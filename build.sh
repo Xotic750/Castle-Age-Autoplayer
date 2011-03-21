@@ -11,6 +11,7 @@ echo -n "Joining files into _normal.user.js : "
 sed -f build/version.sed _head.js > _normal.user.js
 sed -f build/version.sed _lead.js >> _normal.user.js
 cat object_image64.js >> _normal.user.js
+cat object_offline.js >> _normal.user.js
 cat object_config.js >> _normal.user.js
 cat object_state.js >> _normal.user.js
 cat object_css.js >> _normal.user.js
@@ -20,6 +21,8 @@ cat object_general.js >> _normal.user.js
 cat object_monster.js >> _normal.user.js
 cat object_guild_monster.js >> _normal.user.js
 #cat object_arena.js >> _normal.user.js
+cat object_festival.js >> _normal.user.js
+cat object_feed.js >> _normal.user.js
 cat object_battle.js >> _normal.user.js
 cat object_town.js >> _normal.user.js
 cat object_spreadsheet.js >> _normal.user.js
@@ -35,6 +38,7 @@ echo "Done."
 echo -n "Creating Firefox and Chrome versions : "
 cp _normal.user.js Castle-Age-Autoplayer.user.js
 cp Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js
+cp Castle-Age-Autoplayer.user.js ../Castle-Age-Autoplayer.user.js
 cp README Chrome/README
 echo "Done."
 
@@ -44,8 +48,8 @@ echo "Done."
 # http://code.google.com/closure/compiler/
 
 echo "Creating minimised version (will also show errors)"
-sed -f build/version.sed _head.js > _min.user.js
-java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --output_wrapper "(function(){%output%})();" --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.9/js/jquery-ui-1.8.9.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs utility-0.1.0/utility-0.1.0.js >> _min.user.js
+#sed -f build/version.sed _head.js > _min.user.js
+#java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --output_wrapper "(function(){%output%})();" --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.9/js/jquery-ui-1.8.9.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs utility-0.1.0/utility-0.1.0.js >> _min.user.js
 #cp _min.user.js Chrome/Castle-Age-Autoplayer.user.js
 echo "Done."
 

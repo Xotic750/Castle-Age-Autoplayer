@@ -97,10 +97,12 @@
                 }
 
                 if (!$u.isDefined(config.options[name])) {
-                    $u.warn("config.deleteItem - Invalid or non-existant flag: ", name);
+                    $u.warn("config.deleteItem - Invalid or non-existant name:", name);
+                } else {
+                    delete config.options[name];
+                    config.save();
                 }
 
-                delete config.options[name];
                 return true;
             } catch (err) {
                 $u.error("ERROR in config.deleteItem: " + err);

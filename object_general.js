@@ -30,7 +30,11 @@
                 'empi'       : 0,
                 'energyMax'  : 0,
                 'staminaMax' : 0,
-                'healthMax'  : 0
+                'healthMax'  : 0,
+                'item'       : 0,
+                'itype'      : 0,
+                'coolDown'   : false,
+                'charge'     : 0
             };
         },
 
@@ -86,8 +90,13 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        find: function (generalName) {
+        getItem: function (generalName, quiet) {
             try {
+                if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
+                    $u.warn("generalName", generalName);
+                    throw "Invalid identifying generalName!";
+                }
+
                 var it    = 0,
                     len   = 0,
                     found = false;
@@ -100,13 +109,54 @@
                 }
 
                 if (!found) {
-                    $u.warn("Unable to find 'General' record");
+                    if (!quiet) {
+                        $u.warn("Unable to find 'General' record", generalName);
+                    }
+
                     return false;
                 }
 
                 return general.records[it];
             } catch (err) {
-                $u.error("ERROR in general.find: " + err);
+                $u.error("ERROR in general.getItem: " + err);
+                return false;
+            }
+        },
+
+        setItem: function (record) {
+            try {
+                if (!record || !$j.isPlainObject(record)) {
+                    throw "Not passed a record";
+                }
+
+                if (!$u.hasContent(record['name']) || !$u.isString(record['name'])) {
+                    $u.warn("name", record['name']);
+                    throw "Invalid identifying name!";
+                }
+
+                var it      = 0,
+                    len     = 0,
+                    success = false;
+
+                for (it = 0, len = general.records.length; it < len; it += 1) {
+                    if (general.records[it]['name'] === record['name']) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    general.records[it] = record;
+                    $u.log(3, "Updated general record", record, general.records);
+                } else {
+                    general.records.push(record);
+                    $u.log(3, "Added general record", record, general.records);
+                }
+
+                general.save();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in general.setItem: " + err);
                 return false;
             }
         },
@@ -130,7 +180,7 @@
 
         GetImage: function (generalName) {
             try {
-                var genImg = general.find(generalName);
+                var genImg = general.getItem(generalName);
 
                 if (genImg === false) {
                     $u.warn("Unable to find 'General' image");
@@ -148,7 +198,7 @@
 
         GetStaminaMax: function (generalName) {
             try {
-                var genStamina = general.find(generalName);
+                var genStamina = general.getItem(generalName);
 
                 if (genStamina === false) {
                     $u.warn("Unable to find 'General' stamina");
@@ -166,7 +216,7 @@
 
         GetEnergyMax: function (generalName) {
             try {
-                var genEnergy = general.find(generalName);
+                var genEnergy = general.getItem(generalName);
 
                 if (genEnergy === false) {
                     $u.warn("Unable to find 'General' energy");
@@ -184,7 +234,7 @@
 
         GetHealthMax: function (generalName) {
             try {
-                var genHealth = general.find(generalName);
+                var genHealth = general.getItem(generalName);
 
                 if (genHealth === false) {
                     $u.warn("Unable to find 'General' health");
@@ -202,7 +252,7 @@
 
         GetLevel: function (generalName) {
             try {
-                var genLevel = general.find(generalName);
+                var genLevel = general.getItem(generalName);
 
                 if (genLevel === false) {
                     $u.warn("Unable to find 'General' level");
@@ -236,6 +286,25 @@
                 return false;
             }
         },
+
+        getCoolDownNames: function () {
+            try {
+                var it    = 0,
+                    len   = 0,
+                    names = [];
+
+                for (it = 0, len = general.records.length; it < len; it += 1) {
+                    if (general.records[it]['coolDown']) {
+                        names.push(general.records[it]['name']);
+                    }
+                }
+
+                return names.sort();
+            } catch (err) {
+                $u.error("ERROR in general.getCoolDownNames: " + err);
+                return false;
+            }
+        },
         /*jslint sub: false */
 
         List: [],
@@ -250,6 +319,8 @@
 
         SubQuestList: [],
 
+        coolDownList: [],
+
         StandardList: [
             'Idle',
             'Monster',
@@ -259,6 +330,16 @@
             'Duel',
             'War'
             //'Arena'
+            //'Festival'
+        ],
+
+        coolStandardList: [
+            'Monster',
+            'Fortify',
+            'GuildMonster',
+            'Invade',
+            'Duel',
+            'War'
         ],
 
         BuildlLists: function () {
@@ -306,6 +387,10 @@
                     'Titania'
                 ].filter(crossList);
 
+                general.coolDownList = [
+                    ''
+                ].concat(general.getCoolDownNames());
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.BuildlLists: " + err);
@@ -313,14 +398,24 @@
             }
         },
 
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
         GetCurrent: function () {
             try {
-                var nameObj     = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3", caap.globalContainer),
-                    generalName = $u.hasContent(nameObj) ? $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, '') : '';
+                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", caap.globalContainer),
+                    nameObj     = $j(".general_name_div3", equipDiv),
+                    generalName = $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, ''),
+                    record      = {};
 
                 if (!generalName) {
                     $u.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
+                }
+
+                record = general.getItem(generalName);
+                if (record['coolDown'] && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
+                    record['charge'] = 0;
+                    general.setItem(record);
                 }
 
                 $u.log(4, "Current General", generalName);
@@ -331,11 +426,9 @@
             }
         },
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.globalContainer),
+                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -344,10 +437,14 @@
                         var newGeneral = new general.record(),
                             name       = '',
                             img        = '',
+                            item       = 0,
+                            itype      = 0,
                             level      = 0,
                             atk        = 0,
                             def        = 0,
                             special    = '',
+                            coolDown   = false,
+                            charge     = 0,
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
@@ -364,6 +461,28 @@
                             img = $u.setContent(tempObj.attr("src"), '').basename();
                         } else {
                             $u.warn("Unable to find 'image' container", index);
+                        }
+
+                        tempObj = $j("input[name='item']", container);
+                        if ($u.hasContent(tempObj)) {
+                            item = $u.setContent(tempObj.attr("value"), '').parseInt();
+                        } else {
+                            $u.warn("Unable to find 'item' container", index);
+                        }
+
+                        tempObj = $j("input[name='itype']", container);
+                        if ($u.hasContent(tempObj)) {
+                            itype = $u.setContent(tempObj.attr("value"), '').parseInt();
+                        } else {
+                            $u.warn("Unable to find 'itype' container", index);
+                        }
+
+                        tempObj = $j("div[style*='train_progress.jpg']", container);
+                        if ($u.hasContent(tempObj)) {
+                            coolDown = true;
+                            charge = $u.setContent(tempObj.getPercent("width"), 0);
+                        } else {
+                            $u.log(4, "Not a cool down general", index);
                         }
 
                         tempObj = container.children().eq(3);
@@ -398,6 +517,10 @@
 
                             newGeneral.data['name'] = name;
                             newGeneral.data['img'] = img;
+                            newGeneral.data['item'] = item;
+                            newGeneral.data['itype'] = itype;
+                            newGeneral.data['coolDown'] = coolDown;
+                            newGeneral.data['charge'] = charge;
                             newGeneral.data['lvl'] = level;
                             newGeneral.data['atk'] = atk;
                             newGeneral.data['def'] = def;
@@ -443,17 +566,28 @@
 
         UpdateDropDowns: function () {
             try {
-                var it  = 0,
-                    len = 0;
+                var it       = 0,
+                    len      = 0,
+                    coolDown = '';
 
                 general.BuildlLists();
                 $u.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                     caap.changeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
+                    coolDown = general.getCoolDownType(general.StandardList[it]);
+                    if (coolDown) {
+                        caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
+                    }
+                }
+
+                if (coolDown && general.coolDownList.length > 1) {
+                    $j("div[id*='_cool_row']", caap.caapDivObject).css("display", "block");
+                    if (general.getItem("Zin", true) === false ? false : true) {
+                        $j("div[id*='_zin_row']", caap.caapDivObject).css("display", "block");
+                    }
                 }
 
                 caap.changeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
-                caap.changeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
                 caap.changeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
                 caap.changeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
                 caap.changeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
@@ -511,6 +645,27 @@
                 return undefined;
             }
         },
+
+        getCoolDownType: function (whichGeneral) {
+            try {
+                var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '',
+                    it          = 0,
+                    ok          = false;
+
+                for (it = 0; it < general.coolStandardList.length; it += 1) {
+                    if (general.coolStandardList[it] === generalType) {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                generalType = ok ? (generalType ? generalType + "CoolGeneral" : '') : '';
+                return generalType;
+            } catch (err) {
+                $u.error("ERROR in general.getCoolDownType: " + err);
+                return undefined;
+            }
+        },
         /*jslint sub: false */
 
         Select: function (whichGeneral) {
@@ -519,14 +674,24 @@
                     getCurrentGeneral = '',
                     currentGeneral    = '',
                     generalImage      = '',
-                    levelUp           = general.LevelUpCheck(whichGeneral);
+                    levelUp           = general.LevelUpCheck(whichGeneral),
+                    coolType          = general.getCoolDownType(whichGeneral),
+                    coolName          = coolType ? config.getItem(coolType, '') : '',
+                    coolRecord        = coolName ? general.getItem(coolName) : {},
+                    zinRecord         = general.getItem("Zin", true),
+                    zinReady          = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats['stamina']['num'] <= (caap.stats['stamina']['max'] - 15) && zinRecord['charge'] === 100 : false,
+                    coolZin           = coolName === "Zin" ? caap.stats['stamina']['num'] > (caap.stats['stamina']['max'] - 15) : false,
+                    useCool           = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord['charge'] === 100,
+                    zinFirst          = config.getItem("useZinFirst", true);
 
+                $u.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
+                $u.log(3, 'Zin', zinReady, zinFirst, zinRecord);
                 if (levelUp) {
                     whichGeneral = 'LevelUpGeneral';
                     $u.log(2, 'Using level up general');
                 }
 
-                generalName = config.getItem(whichGeneral, 'Use Current');
+                generalName = zinReady && zinFirst ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
                 if (!generalName || /use current/i.test(generalName)) {
                     return false;
                 }
@@ -578,6 +743,7 @@
         /*jslint sub: true */
         GetEquippedStats: function () {
             try {
+                general.quickSwitch = false;
                 var generalName  = general.GetCurrent(),
                     it           = 0,
                     len          = 0,
@@ -704,7 +870,6 @@
                 return undefined;
             }
         },
-        /*jslint sub: false */
 
         menu: function () {
             try {
@@ -733,13 +898,19 @@
                     //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                     LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                     LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
+                    LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
                     dropDownItem = 0,
+                    coolDown = '',
+                    haveZin = general.getItem("Zin", true) === false ? false : true,
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Generals', 'GENERALS');
+                htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
                 htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
                 for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
                     htmlCode += caap.makeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
+                    coolDown = general.getCoolDownType(general.StandardList[dropDownItem]);
+                    htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
                 }
 
                 htmlCode += caap.makeDropDownTR("SubQuest", 'SubQuestGeneral', general.SubQuestList, '', '', 'Use Current', false, false, 62);
@@ -758,6 +929,7 @@
                 htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
                 //htmlCode += caap.makeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
+                //htmlCode += caap.makeCheckTR("Gen For Festival", 'FestivalLevelUpGeneral', true, LevelUpGenInstructions16, true, false);
                 htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
@@ -773,5 +945,131 @@
                 $u.error("ERROR in general.menu: " + err);
                 return '';
             }
+        },
+
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
+                    var html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
+                        values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
+                        generalValues            = [],
+                        pp                       = 0,
+                        link                     = '',
+                        instructions             = '',
+                        valueCol                 = 'red',
+                        it                       = 0,
+                        len                      = 0,
+                        len1                     = 0,
+                        data                     = {text: '', color: '', bgcolor: '', id: '',  title: ''},
+                        header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        statsRegExp              = new RegExp("caap_.*Stats_"),
+                        handler                  = null;
+
+                    $j.merge(generalValues, values);
+                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                        header = {
+                            text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : '',
+                            width : ''
+                        };
+
+                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : '', id    : '', title : '', width : '25%'} : header;
+                        html += caap.makeTh(header);
+                    }
+
+                    html += '</tr>';
+                    for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len; pp += 1) {
+                            if (values[pp] === 'name') {
+                                link = "generals.php?itype=" + general.recordsSortable[it]['itype'] + "&item=" + general.recordsSortable[it]['item'];
+                                instructions = "Clicking this link will change General to " + general.recordsSortable[it]['name'];
+                                data = {
+                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.recordsSortable[it]['name'] + '" rlink="' + link +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.recordsSortable[it]['name'] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_generalsStats", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var changeLink = {
+                                mname     : '',
+                                rlink     : ''
+                            },
+                            i        = 0,
+                            len      = 0,
+                            clickUrl = state.getItem('clickUrl', '');
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                changeLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                changeLink.rlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        if (clickUrl.hasIndexOf("generals.php")) {
+                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "globalContainer", ".game", clickUrl);
+                        } else {
+                            general.quickSwitch = true;
+                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", ".equippedGeneralCnt2", clickUrl);
+                        }
+                    };
+
+                    $j("span[id*='caap_general_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (generalValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("GeneralsSort", order.data);
+                            state.setItem("GeneralsDashUpdate", true);
+                            sort.updateForm("Generals");
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("span[id*='caap_generalsStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    state.setItem("GeneralsDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in general.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };

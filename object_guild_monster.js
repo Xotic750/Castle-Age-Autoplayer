@@ -653,6 +653,7 @@
                             continue;
                         }
 
+                        // need to look at this when next fighting one, don't think ignore cleric code is correct
                         if (isSpecial) {
                             if (!$u.isNaN(record['minions'][it]['healthNum'])) {
                                 specialTargets.pop();
@@ -666,6 +667,11 @@
                                 $u.log(2, "firstSpecial minion", firstSpecial);
                             } else {
                                 $u.log(2, "Special minion", it, specialTargets);
+                            }
+                        } else {
+                            if (ignoreClerics && record['minions'][it]['mclass'] === "Cleric") {
+                                $u.log(2, "Ignoring Cleric", record['minions'][it]);
+                                continue;
                             }
                         }
 
@@ -722,7 +728,7 @@
                     firstUnderMax   = {};
 
                 if (!(force || schedule.oneMinuteUpdate('selectGuildMonster'))) {
-                    return false;
+                    return state.getItem('targetGuildMonster', {});
                 }
 
                 state.setItem('targetGuildMonster', {});
@@ -806,7 +812,7 @@
                     target = firstOverAch;
                 }
 
-                $u.log(2, 'target', target);
+                $u.log(2, 'Guild Monster Target', target);
                 if (target && $j.isPlainObject(target) && !$j.isEmptyObject(target)) {
                     target['color'] = 'green';
                     guild_monster.setItem(target);
@@ -979,7 +985,7 @@
                 htmlCode += caap.makeTD("W" + caap.makeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.makeTD("E" + caap.makeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.makeTD("S" + caap.makeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-                htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'IgnoreMinionsBelow', "Don't attack monster minions that have a health below this value.", 0, '', '');
                 htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
                 htmlCode += caap.makeTD("Attack Monsters in this order");
                 htmlCode += caap.makeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
@@ -992,5 +998,115 @@
                 $u.error("ERROR in guild_monster.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Guild Monster' && state.getItem("GuildMonsterDashUpdate", true)) {
+                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        color   = '',
+                        headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'],
+                        values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'],
+                        pp      = 0,
+                        i       = 0,
+                        len     = 0,
+                        len1    = 0,
+                        data    = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        handler = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            switch (values[pp]) {
+                            case 'name' :
+                                data = {
+                                    text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i]['slot'] + ') ' + guild_monster.records[i]['name'] +
+                                            '" mname="' + guild_monster.records[i]['slot'] + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 + '&guild_id=' + guild_monster.records[i]['guildId'] +
+                                            '&slot=' + guild_monster.records[i]['slot'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i]['name'] + '</span>',
+                                    color : guild_monster.records[i]['color'],
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                                break;
+                            case 'ticker' :
+                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                                break;
+                            default :
+                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                            }
+                        }
+
+                        data = {
+                            text  : '<a href="' + caap.domain.link + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 +
+                                    '&guild_id=' + guild_monster.records[i]['guildId'] + '&action=doObjective&slot=' + guild_monster.records[i]['slot'] + '&ref=nf">Link</a>',
+                            color : 'blue',
+                            id    : '',
+                            title : 'This is a siege link.'
+                        };
+
+                        html += caap.makeTd(data);
+
+                        if ($u.hasContent(guild_monster.records[i]['conditions']) && guild_monster.records[i]['conditions'] !== 'none') {
+                            data = {
+                                text  : '<span title="User Set Conditions: ' + guild_monster.records[i]['conditions'] + '" class="ui-icon ui-icon-info">i</span>',
+                                color : guild_monster.records[i]['color'],
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                        } else {
+                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_guildMonster", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mname     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id*='caap_guildmonster_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("GuildMonsterDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in guild_monster.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };

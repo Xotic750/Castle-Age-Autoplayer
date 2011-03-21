@@ -17,67 +17,83 @@
                     return true;
                 }
 
-                spreadsheet.records = ss.getItem('spreadsheet.records', 'default');
+                spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
                 if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
                     spreadsheet.records = [];
                     $j.ajax({
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
-                        dataType: "json",
+                        dataType: (navigator.userAgent.toLowerCase().hasIndexOf('opera') ? "jsonp" : "json"),
+                        error:
+                            function (XMLHttpRequest, textStatus, errorThrown) {
+                                $u.log(1, "Using offline items");
+                                spreadsheet.records = offline.items;
+                                spreadsheet.save();
+                                $u.error("spreadsheet.load", textStatus);
+                            },
                         success: function (msg) {
-                            $u.log(3, "msg", msg);
-                            var rows       = [],
-                                row        = 0,
-                                rowsLen    = 0,
-                                column     = 0,
-                                newRecord  = {},
-                                cell       = null,
-                                headers    = {},
-                                headersLen = 0,
-                                headersArr = [],
-                                key        = '';
+                            try {
+                                $u.log(3, "msg", msg);
+                                var rows       = [],
+                                    row        = 0,
+                                    rowsLen    = 0,
+                                    column     = 0,
+                                    newRecord  = {},
+                                    cell       = null,
+                                    headers    = {},
+                                    headersLen = 0,
+                                    headersArr = [],
+                                    key        = '';
 
-                            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-                            /*jslint sub: true */
-                            rows = msg['query']['results']['row'];
-                            /*jslint sub: false */
-                            headers = rows[0];
-                            for (key in headers) {
-                                if (headers.hasOwnProperty(key)) {
-                                    headersLen = headersArr.push((headers[key]).toLowerCase());
-                                }
-                            }
-
-                            for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
-                                newRecord = {};
-                                for (column = 0; column < headersLen; column += 1) {
-                                    if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
-                                        $u.warn("Spreadsheet column is empty", column);
-                                        continue;
+                                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                                /*jslint sub: true */
+                                rows = msg['query']['results']['row'];
+                                /*jslint sub: false */
+                                headers = rows[0];
+                                for (key in headers) {
+                                    if (headers.hasOwnProperty(key)) {
+                                        headersLen = headersArr.push((headers[key]).toLowerCase());
                                     }
+                                }
 
-                                    cell = rows[row]["col" + column];
-                                    if (!$u.isDefined(cell) || cell === '') {
-                                        cell = null;
-                                    } else if ($u.isNaN(cell)) {
-                                        if (headersArr[column] === "attack" || headersArr[column] === "defense") {
-                                            $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
+                                    newRecord = {};
+                                    for (column = 0; column < headersLen; column += 1) {
+                                        if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
+                                            $u.warn("Spreadsheet column is empty", column);
+                                            continue;
                                         }
 
-                                        cell = cell.replace(/"/g, "");
-                                    } else {
-                                        cell = cell.parseInt();
+                                        cell = rows[row]["col" + column];
+                                        if (!$u.isDefined(cell) || cell === '') {
+                                            cell = null;
+                                        } else if ($u.isNaN(cell)) {
+                                            if (headersArr[column] === "attack" || headersArr[column] === "defense") {
+                                                $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                            }
+
+                                            cell = cell.replace(/"/g, "");
+                                        } else {
+                                            cell = cell.parseInt();
+                                        }
+
+                                        newRecord[headersArr[column]] = cell;
                                     }
 
-                                    newRecord[headersArr[column]] = cell;
+                                    spreadsheet.records.push(newRecord);
                                 }
 
-                                spreadsheet.records.push(newRecord);
-                            }
+                                if (!$u.hasContent(spreadsheet.records)) {
+                                    $u.log(1, "Using offline items");
+                                    spreadsheet.records = offline.items;
+                                }
 
-                            spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
-                            $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
-                            ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
-                            $u.log(3, "spreadsheet.records", spreadsheet.records);
+                                spreadsheet.save();
+                            } catch (err) {
+                                $u.log(1, "Using offline items");
+                                spreadsheet.records = offline.items;
+                                spreadsheet.save();
+                                $u.error("ERROR in spreadsheet.load: " + err);
+                            }
                         }
                     });
                 } else {
@@ -86,6 +102,9 @@
 
                 return true;
             } catch (err) {
+                $u.log(1, "Using offline items");
+                spreadsheet.records = offline.items;
+                spreadsheet.save();
                 $u.error("ERROR in spreadsheet.load: " + err);
                 return false;
             }
@@ -93,7 +112,9 @@
 
         save: function () {
             try {
-                spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
+                spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
+                $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
+                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
                 $u.log(3, "spreadsheet.save", spreadsheet.records);
                 return true;
             } catch (err) {
@@ -116,6 +137,45 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
+        getItem: function (name, image) {
+            try {
+                if (!$u.hasContent(name) || !$u.isString(name)) {
+                    $u.warn("name", name);
+                    throw "Invalid identifying name!";
+                }
+
+                var it     = 0,
+                    len    = 0,
+                    found  = false,
+                    record = {};
+
+                for (it = 0, len = spreadsheet.records.length; it < len; it += 1) {
+                    if (image) {
+                        if (spreadsheet.records[it]['name'] === name && spreadsheet.records[it]['image'] === image) {
+                            record = spreadsheet.records[it];
+                            found = true;
+                            break;
+                        }
+                    } else {
+                        if (spreadsheet.records[it]['name'] === name) {
+                            record = spreadsheet.records[it];
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!found) {
+                    $u.warn("Unable to find spreadsheet record for", name);
+                }
+
+                return record;
+            } catch (err) {
+                $u.error("ERROR in spreadsheet.getItem: " + err);
+                return undefined;
+            }
+        },
+
         getTitle: function (title, image) {
             try {
                 var it       = 0,

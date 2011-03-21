@@ -113,11 +113,11 @@
                         if ($u.hasContent(tempText)) {
                             current.data['name'] = tempText;
                         } else {
-                            $u.warn("No name found in", giftDiv);
+                            $u.warn("No name found!");
                             current.data['name'] = "Unknown";
                         }
                     } else {
-                        $u.warn("No uid found in", giftDiv);
+                        $u.warn("No uid found!");
                     }
                 } else {
                     $u.warn("No gift messages found!");
@@ -558,7 +558,8 @@
                     var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']", caap.globalContainer),
                         tempText = '',
                         tempArr  = [],
-                        update   = false;
+                        update   = false,
+                        it       = 0;
 
                     if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
@@ -595,7 +596,12 @@
                             }
 
                             if (gifting.gifts.getItem(newGift.data['name'])) {
-                                newGift.data['name'] += " #2";
+                                it = 2;
+                                while (gifting.gifts.getItem(newGift.data['name'] + " #" + it)) {
+                                    it += 1;
+                                }
+
+                                newGift.data['name'] += " #" + it;
                                 $u.log(2, "Gift exists, no auto return for ", newGift.data['name']);
                             }
 
@@ -1088,6 +1094,121 @@
                     $u.error("ERROR in gifting.queue.sent: " + err);
                     return undefined;
                 }
+            },
+
+            dashboard: function () {
+                try {
+                    /*-------------------------------------------------------------------------------------\
+                    Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
+                    table and then build the header row.
+                    \-------------------------------------------------------------------------------------*/
+                    if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
+                        var html                   = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                            headers                = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'],
+                            values                 = ['userId', 'name', 'gift', 'found'],
+                            pp                     = 0,
+                            i                      = 0,
+                            userIdLink             = '',
+                            userIdLinkInstructions = '',
+                            removeLinkInstructions = '',
+                            len                    = 0,
+                            len1                   = 0,
+                            str                    = '',
+                            data                   = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                            handler                = null;
+
+                        for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        }
+
+                        html += '</tr>';
+                        for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                                str = $u.setContent(gifting.queue.records[i][values[pp]], '');
+                                if (/userId/.test(values[pp])) {
+                                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+
+                                    data = {
+                                        text  : '<span id="caap_targetgiftq_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                        color : 'blue',
+                                        id    : '',
+                                        title : ''
+                                    };
+
+                                    html += caap.makeTd(data);
+                                } else {
+                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                }
+                            }
+
+                            removeLinkInstructions = "Clicking this link will remove " + gifting.queue.records[i]['name'] + "'s entry from the gift queue!";
+                            data = {
+                                text  : '<span id="caap_removeq_' + i + '" title="' + removeLinkInstructions + '" mname="' +
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_giftQueue", caap.caapTopObject).html(html);
+
+                        handler = function (e) {
+                            var visitUserIdLink = {
+                                    rlink     : '',
+                                    arlink    : ''
+                                },
+                                i   = 0,
+                                len = 0;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'rlink') {
+                                    visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                }
+                            }
+
+                            caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                        };
+
+                        $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                        handler = function (e) {
+                            var index = -1,
+                                i     = 0,
+                                len   = 0,
+                                resp  = false;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'id') {
+                                    index = e.target.attributes[i].nodeValue.replace("caap_removeq_", "").parseInt();
+                                }
+                            }
+
+                            resp = confirm("Are you sure you want to remove this queue entry?");
+                            if (resp === true) {
+                                gifting.queue.deleteIndex(index);
+                                caap.updateDashboard(true);
+                            }
+                        };
+
+                        $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        state.setItem("GiftQueueDashUpdate", false);
+                    }
+
+                    return true;
+                } catch (err) {
+                    $u.error("ERROR in gifting.queue.dashboard: " + err);
+                    return false;
+                }
             }
             /*jslint sub: false */
         },
@@ -1267,7 +1388,91 @@
                     $u.error("ERROR in gifting.history.length: " + err);
                     return undefined;
                 }
+            },
+
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
+            dashboard: function () {
+                try {
+                    /*-------------------------------------------------------------------------------------\
+                    Next we build the HTML to be included into the 'caap_giftStats' div. We set our
+                    table and then build the header row.
+                    \-------------------------------------------------------------------------------------*/
+                    if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
+                        var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                            headers                  = ['UserId', 'Name', 'Received', 'Sent'],
+                            values                   = ['userId', 'name', 'received', 'sent'],
+                            pp                       = 0,
+                            i                        = 0,
+                            userIdLink               = '',
+                            userIdLinkInstructions   = '',
+                            len                      = 0,
+                            len1                     = 0,
+                            str                      = '',
+                            data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                            handler                  = null;
+
+                        for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        }
+
+                        html += '</tr>';
+                        for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                                str = $u.setContent(gifting.history.records[i][values[pp]], '');
+                                if (/userId/.test(values[pp])) {
+                                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    data = {
+                                        text  : '<span id="caap_targetgift_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                        color : 'blue',
+                                        id    : '',
+                                        title : ''
+                                    };
+
+                                    html += caap.makeTd(data);
+                                } else {
+                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                }
+                            }
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_giftStats", caap.caapTopObject).html(html);
+
+                        handler = function (e) {
+                            var visitUserIdLink = {
+                                    rlink     : '',
+                                    arlink    : ''
+                                },
+                                i   = 0,
+                                len = 0;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'rlink') {
+                                    visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                }
+                            }
+
+                            caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                        };
+
+                        $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        state.setItem("GiftHistoryDashUpdate", false);
+                    }
+
+                    return true;
+                } catch (err) {
+                    $u.error("ERROR in gifting.history.dashboard: " + err);
+                    return false;
+                }
             }
+            /*jslint sub: false */
         }
     };
 

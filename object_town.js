@@ -7,26 +7,17 @@
     town = {
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        soldiers: [],
+        'soldiers': [],
 
         'soldiersSortable': [],
 
-        item: [],
+        'item': [],
 
         'itemSortable': [],
 
-        magic: [],
+        'magic': [],
 
         'magicSortable': [],
-
-        itemRegex: {
-            'Weapon' : /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
-            'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass|Protector/i,
-            'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
-            'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
-            'Armor'  : /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
-        },
 
         record: function () {
             this.data = {
@@ -115,38 +106,6 @@
             }
         },
 
-        getItemType: function (name) {
-            try {
-                var i       = '',
-                    j       = 0,
-                    len     = 0,
-                    mlen    = 0,
-                    maxlen  = 0,
-                    match   = [],
-                    theType = '';
-
-                for (i in town.itemRegex) {
-                    if (town.itemRegex.hasOwnProperty(i)) {
-                        match = name.match(town.itemRegex[i]);
-                        if (match) {
-                            for (j = 0, len = match.length; j < len; j += 1) {
-                                mlen = match[j].length;
-                                if (mlen > maxlen) {
-                                    theType = i;
-                                    maxlen = mlen;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return theType;
-            } catch (err) {
-                $u.error("ERROR in town.getItemType: " + err);
-                return undefined;
-            }
-        },
-
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         GetItems: function (type) {
@@ -166,11 +125,13 @@
                         var row     = $j(this),
                             current = new town.record(),
                             tempDiv = $j("strong", row).eq(0),
-                            tStr    = '';
+                            tStr    = '',
+                            record  = {};
 
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                             current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
-                            current.data['type'] = town.getItemType(current.data['name']);
+                            record = spreadsheet.getItem(current.data['name']);
+                            current.data['type'] = $u.setContent(record['type'], 'Unknown');
                         } else {
                             $u.warn("Unable to get item name in", type);
                             passed = false;
@@ -248,10 +209,10 @@
                     len    = 0,
                     haveIt = false;
 
-                for (it = 0, len = town.magic.length; it < len; it += 1) {
-                    if (town.magic[it]['name'] === name) {
-                        $u.log(3, "town.haveOrb", town.magic[it]);
-                        if (town.magic[it]['owned']) {
+                for (it = 0, len = town['magic'].length; it < len; it += 1) {
+                    if (town['magic'][it]['name'] === name) {
+                        $u.log(3, "town.haveOrb", town['magic'][it]);
+                        if (town['magic'][it]['owned']) {
                             haveIt = true;
                         }
 
@@ -300,6 +261,258 @@
             } catch (err) {
                 $u.error("ERROR in town.getCount: " + err);
                 return undefined;
+            }
+        },
+
+        report: function () {
+            try {
+                var it1      = 0,
+                    it2      = 0,
+                    record   = {},
+                    h        = '',
+                    missing  = [],
+                    w        = $j("#caap_missing_report"),
+                    color    = "red",
+                    bbcode   = config.getItem("townBBCode", true),
+                    sbbcolor = bbcode ? "[color=" + color + "]" : "<td style='color:" + color + "'>",
+                    ebbcolor = bbcode ? "[/color]" : "</td>",
+                    std      = bbcode ? "" : "<td>",
+                    etd      = bbcode ? "" : "</td>";
+
+                if (!$u.hasContent(w)) {
+                    for (it1 = town.types.length - 1; it1 >= 0; it1 -= 1) {
+                        for (it2 = town[town.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
+                            record = spreadsheet.getItem(town[town.types[it1]][it2]['name'], town[town.types[it1]][it2]['image']);
+                            if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record) || town[town.types[it1]][it2]['image'] !== record['image'] || town[town.types[it1]][it2]['atk'] !== record['attack'] || town[town.types[it1]][it2]['def'] !== record['defense']) {
+                                h = bbcode ? "[tr][td]" : "<tr>";
+                                if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record)) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['name'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['name'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['image'] !== record['image']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['image'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['image'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['atk'] !== record['attack']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['atk'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['atk'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['def'] !== record['defense']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['def'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['def'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][/tr]" : "</tr>";
+                                missing.push(h);
+                            }
+                        }
+                    }
+
+                    if ($u.hasContent(missing)) {
+                        missing.sort();
+                        if (bbcode) {
+                            h = "[table]\n[tr][td][b]Name[/b][/td][td][b]Image[/b][/td][td][b]Attack[/b][/td][td][b]Defense[/b][/td][/tr]\n";
+                        } else {
+                            h = "<table>\n<tr><th>Name</th><th>Image</th><th>Attack</th><th>Defense</th></tr>\n";
+                        }
+
+                        h += missing.join("\n");
+
+                        if (bbcode) {
+                            h += "[/table]\n";
+                            h = "<textarea style='resize:none;width:600px;height:400px;' readonly='readonly'>" + h + "</textarea>";
+                        } else {
+                            h += "</table>\n";
+                        }
+
+                        w = $j('<div id="caap_missing_report" class="caap_ff caap_fs" title="Missing Item Report">' + h + '</div>').appendTo(document.body);
+                        w.dialog({
+                            resizable : false,
+                            width     : 'auto',
+                            height    : bbcode ? 'auto' : '400',
+                            buttons   : {
+                                "Ok": function () {
+                                    w.dialog("destroy").remove();
+                                }
+                            },
+                            close     : function () {
+                                w.dialog("destroy").remove();
+                            }
+                        });
+                    } else {
+                        $j().alert("Nothing to report.");
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in town.report: " + err);
+                return false;
+            }
+        },
+
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
+                We set our table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
+                    var headers     = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
+                        values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
+                        html        = '',
+                        townValues  = [],
+                        pp          = 0,
+                        i           = 0,
+                        valueCol    = 'red',
+                        it          = 0,
+                        len         = 0,
+                        len1        = 0,
+                        len2        = 0,
+                        str         = '',
+                        header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        statsRegExp = new RegExp("caap_.*Stats_"),
+                        handler     = null;
+
+                    $j.merge(townValues, values);
+                    for (i = 0, len = town.types.length; i < len; i += 1) {
+                        if (config.getItem('DBDisplay', '') !== (town.types[i].ucFirst() + ' Stats')) {
+                            continue;
+                        }
+
+                        html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                        for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
+                            if (town.types[i] !== 'item' && headers[pp] === 'Type') {
+                                continue;
+                            }
+
+                            header = {
+                                text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : '',
+                                width : ''
+                            };
+
+                            html += caap.makeTh(header);
+                        }
+
+                        html += '</tr>';
+                        for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
+                                if (town.types[i] !== 'item' && values[pp] === 'type') {
+                                    continue;
+                                }
+
+                                if ($u.isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
+                                    str = $u.setContent(town[town.types[i] + "Sortable"][it][values[pp]], '');
+                                } else {
+                                    str = town[town.types[i] + "Sortable"][it][values[pp]].addCommas();
+                                    str = $u.hasContent(str) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + str : str;
+                                }
+
+                                html += caap.makeTd({text: str, color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                            }
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(html);
+                        state.setItem(town.types[i] + "DashUpdate", false);
+                    }
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['soldiersSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("SoldiersSort", order.data);
+                            state.setItem("SoldiersDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Soldiers");
+                        }
+                    };
+
+                    $j("span[id*='caap_soldiersStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['itemSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("ItemSort", order.data);
+                            state.setItem("ItemDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Item");
+                        }
+                    };
+
+                    $j("span[id*='caap_itemStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['magicSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("MagicSort", order.data);
+                            state.setItem("MagicDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Magic");
+                        }
+                    };
+
+                    $j("span[id*='caap_magicStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in town.dashboard: " + err);
+                return false;
             }
         }
         /*jslint sub: false */

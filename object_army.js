@@ -441,5 +441,249 @@
                 $u.error("ERROR in army.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_army' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
+                    var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers                  = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'],
+                        values                   = ['userId', 'user', 'name', 'lvl',   'change'],
+                        color                    = '',
+                        pp                       = 0,
+                        i                        = 0,
+                        userIdLink               = '',
+                        userIdLinkInstructions   = '',
+                        removeLinkInstructions   = '',
+                        len                      = 0,
+                        len1                     = 0,
+                        str                      = '',
+                        header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        handler                  = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        header = {
+                            text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
+                            bgcolor : '',
+                            id    : '',
+                            title : '',
+                            width : ''
+                        };
+
+                        switch (headers[pp]) {
+                        case 'UserId':
+                            header.width = '18%';
+                            break;
+                        case 'User':
+                            header.width = '25%';
+                            break;
+                        case 'Name':
+                            header.width = '30%';
+                            break;
+                        case 'Level':
+                            header.width = '7%';
+                            break;
+                        case 'Change':
+                            header.width = '10%';
+                            break;
+                        case 'Elite':
+                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
+                            header.width = '5%';
+                            break;
+                        default:
+                            header.text = headers[pp];
+                            header.width = '5%';
+                            header.color = '';
+                        }
+
+                        html += caap.makeTh(header);
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
+                        if (army.recordsSortable[i]["userId"] <= 0) {
+                            continue;
+                        }
+
+                        html += "<tr>";
+                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor4", 'red');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor2", 'gold');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
+                        } else {
+                            color = config.getItem("ArmyAgeDaysColor0", 'green');
+                        }
+
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            if (values[pp] === "change") {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                    bgcolor : color,
+                                    color : $u.bestTextColor(color),
+                                    id    : '',
+                                    title : ''
+                                });
+                            } else if (values[pp] === "userId") {
+                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                data = {
+                                    text  : '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
+                                    color : '',
+                                    id    : '',
+                                    title : ''
+                                });
+                            }
+                        }
+
+                        data = {
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+
+                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
+                        data = {
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_army", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitUserIdLink = {
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    };
+
+                    $j("span[id*='caap_targetarmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var userid = 0,
+                            cstate = false,
+                            i      = 0,
+                            len    = 0,
+                            record = {};
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'cstate') {
+                                cstate = e.target.attributes[i].nodeValue === 'true' ? true : false;
+                            }
+                        }
+
+                        if ($u.hasContent(userid) && userid > 0) {
+                            record = army.getItem(userid);
+                            record['elite'] = !cstate;
+                            army.setItem(record);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("input[id*='caap_elitearmy_']", caap.caapTopObject).unbind('change', handler).change(handler);
+
+                    handler = function (e) {
+                        var mname  = '',
+                            userid = '',
+                            i      = 0,
+                            len    = 0,
+                            resp   = false;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'mname') {
+                                mname = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        resp = confirm("Are you sure you want to remove " + mname + " from your army?");
+                        if (resp === true) {
+                            caap.clickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
+                            army.deleteItem(userid);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked  = '',
+                            order    = new sort.order(),
+                            oldOrder = state.getItem("ArmySort", order.data);
+
+                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
+                        if ($u.hasContent(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
+                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
+                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("ArmySort", order.data);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Army");
+                        }
+                    };
+
+                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("ArmyDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };

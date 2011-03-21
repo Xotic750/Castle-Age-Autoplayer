@@ -8,7 +8,7 @@
       "js": [ "jquery-1.5.1.min.js",
               "jquery-ui-1.8.10.custom.min.js",
               "farbtastic.min.js",
-              "utility-0.1.0.min.js",
+              "utility-0.1.1.min.js",
               "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]

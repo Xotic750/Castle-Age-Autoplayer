@@ -4,7 +4,7 @@
     //////////////////////////////////
 
     function caap_log(msg) {
-        if (typeof console.log !== 'undefined') {
+        if (console && typeof console.log === 'function') {
             console.log(caapVersion + (devVersion !== '0' ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
@@ -14,6 +14,7 @@
         inject.setAttribute('type', 'text/javascript');
         inject.setAttribute('src', url);
         (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+        caap.removeLibs.push(inject);
     }
 
     function caap_DomTimeOut() {
@@ -30,7 +31,9 @@
     function caap_WaitForutility() {
         if (window.utility) {
             caap_log("utility ready ...");
-            $j(caap.start).ready();
+            $j(function () {
+                caap.start();
+            }).ready();
         } else {
             caap_log("Waiting for utility ...");
             window.setTimeout(caap_WaitForutility, 100);
@@ -42,7 +45,7 @@
             caap_log("farbtastic ready ...");
             if (!window.utility) {
                 caap_log("Inject utility.");
-                injectScript('http://utility-js.googlecode.com/files/utility-0.1.0.min.js');
+                injectScript(caap.libs.utility);
             }
 
             caap_WaitForutility();
@@ -57,7 +60,7 @@
             caap_log("jQueryUI ready ...");
             if (!window.jQuery.farbtastic) {
                 caap_log("Inject farbtastic.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
+                injectScript(caap.libs.farbtastic);
             }
 
             caap_WaitForFarbtastic();
@@ -73,7 +76,7 @@
             $j = window.jQuery.noConflict();
             if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
-                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js');
+                injectScript(caap.libs.jQueryUI);
             }
 
             caap_WaitForjQueryUI();
@@ -86,15 +89,20 @@
     /////////////////////////////////////////////////////////////////////
     //                         Begin
     /////////////////////////////////////////////////////////////////////
+    caap_log(navigator.userAgent);
+    if (typeof CAAP_SCOPE_RUN !== 'undefined') {
+        caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
+    }
 
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery) {
         caap_log("Inject jQuery");
-        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
+        injectScript(caap.libs.jQuery);
     }
 
     caap_WaitForjQuery();
 
 }());
+
 // ENDOFSCRIPT

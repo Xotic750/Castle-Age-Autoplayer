@@ -594,7 +594,7 @@
 
                 battleRecord = battle.getItem(result.userId);
                 if (result.win) {
-                    $u.log(1, "We Defeated ", result.userName);
+                    $u.log(1, "We Defeated ", result.userName, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold);
                     //Test if we should chain this guy
                     tempTime = $u.setContent(battleRecord['chainTime'], 0);
                     chainBP = config.getItem('ChainBP', '');
@@ -603,7 +603,7 @@
                         if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
                             if (result.points >= chainBP) {
                                 state.setItem("BattleChainId", result.userId);
-                                $u.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
+                                $u.log(1, "Chain Attack:", result.userId, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points);
                             } else {
                                 battleRecord['ignoreTime'] = new Date().getTime();
                             }
@@ -612,7 +612,7 @@
                         if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
                             if (result.gold >= chainGold) {
                                 state.setItem("BattleChainId", result.userId);
-                                $u.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
+                                $u.log(1, "Chain Attack:", result.userId, "Gold: " + result.goldnum);
                             } else {
                                 battleRecord['ignoreTime'] = new Date().getTime();
                             }
@@ -1324,5 +1324,89 @@
                 $u.error("ERROR in battle.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Battle Stats' && state.getItem("BattleDashUpdate", true)) {
+                    var html                    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers                 = ['UserId', 'Name',    'BR#',     'WR#',        'Level',    'Army',    'I Win',         'I Lose',          'D Win',       'D Lose',        'W Win',      'W Lose'],
+                        values                  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'invadelossesNum', 'duelwinsNum', 'duellossesNum', 'warwinsNum', 'warlossesNum'],
+                        pp                      = 0,
+                        i                       = 0,
+                        userIdLink              = '',
+                        userIdLinkInstructions  = '',
+                        len                     = 0,
+                        len1                    = 0,
+                        data                    = {text: '', color: '', bgcolor: '', id: '', title: ''};
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = battle.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            if (/userId/.test(values[pp])) {
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
+                                data = {
+                                    text  : '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.records[i][values[pp]] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else if (/rankNum/.test(values[pp])) {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
+                            } else if (/warRankNum/.test(values[pp])) {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
+                            } else {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_infoBattle", caap.caapTopObject).html(html);
+
+                    $j("span[id*='caap_battle_']", caap.caapTopObject).click(function (e) {
+                        var visitUserIdLink = {
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    });
+
+                    state.setItem("BattleDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in battle.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };

@@ -3,33 +3,122 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            0
-// @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.5.1.min.js
-// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js
-// @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
-// @require        http://utility-js.googlecode.com/files/utility-0.1.0.min.js
+// @dev            2
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
 // @include        http*://apps.facebook.com/sorry.php*
-// @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
+// @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0*
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+, IE 9+
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
-/*global window,jQuery,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,rison,utility,$u */
+/*global window,escape,jQuery,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,CAAP_SCOPE_RUN */
 /*jslint maxlen: 512 */
+
+// If we are running Greasemonkey (FireFox) then we inject CAAP directly into the page and check for updates.
+// This resolves the issues of jQuery not running correctly due to the Greasemonkey sandbox
+/*jslint newcap: false */
+if (navigator.userAgent.toLowerCase().indexOf('firefox') !== -1 && typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undefined') {
+    (function page_scope_runner() {
+        try {
+            var caapVersion = "140.25.0",
+                devVersion = "2",
+                CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
+                // If we're _not_ already running in the page, grab the full source of this script.
+                my_src = "(" + page_scope_runner.caller.toString() + "());",
+                // Create a script node holding this script, plus a marker that lets us
+                // know we are running in the page scope (not the Greasemonkey sandbox).
+                // Note that we are intentionally *not* scope-wrapping here.
+                script = document.createElement('script');
+
+            function scriptUpdate(forced) {
+                try {
+                    // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
+                    if (forced || (parseInt(GM_getValue('SUC_last_update', 0), 10) + 86400000) < new Date().getTime()) {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: devVersion !== '0' ? 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onerror: function (resp) {
+                                GM_log('scriptUpdate:' + resp.status);
+                            },
+                            onload: function (resp) {
+                                try {
+                                    var remote_version = resp.responseText.match(new RegExp("@version\\s*(.*?)\\s*$", "m"))[1],
+                                        dev_version    = resp.responseText.match(new RegExp("@dev\\s*(.*?)\\s*$", "m"))[1],
+                                        script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
+
+                                    GM_log('Remote: ' + script_name + ' ' + remote_version + ' d' + dev_version);
+                                    GM_setValue('SUC_last_update', '' + new Date().getTime());
+                                    GM_setValue('SUC_target_script_name', script_name);
+                                    GM_setValue('SUC_remote_version', remote_version);
+                                    GM_setValue('DEV_remote_version', dev_version);
+                                    CAAP_SCOPE_RUN[0] = script_name;
+                                    CAAP_SCOPE_RUN[1] = remote_version;
+                                    CAAP_SCOPE_RUN[2] = dev_version;
+                                    if (devVersion !== '0' ? (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) : (remote_version > caapVersion)) {
+                                        if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab(devVersion !== '0' ? 'http://code.google.com/p/castle-age-auto-player/updates/list' : 'http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    } else if (forced) {
+                                        alert('No update is available for "' + script_name + '"');
+                                    }
+                                } catch (e) {
+                                    if (forced) {
+                                        alert('An error occurred while checking for updates:\n' + e);
+                                    }
+
+                                    GM_log('An error occurred while checking for updates:\n' + e);
+                                }
+                            }
+                        });
+                    }
+                } catch (err) {
+                    GM_log("ERROR in scriptUpdate: " + err);
+                }
+            }
+
+            scriptUpdate();
+            GM_registerMenuCommand('CAAP - Manual Update Check', function () {
+                scriptUpdate(true);
+            });
+
+            script.setAttribute("type", "text/javascript");
+            // We use the text version of the script rather than a data version because FireBug hangs otherwise
+            script.textContent = "var CAAP_SCOPE_RUN = ['" + CAAP_SCOPE_RUN[0] + "', '" + CAAP_SCOPE_RUN[1] + "', '" + CAAP_SCOPE_RUN[2] + "'];\n" + my_src;
+
+            // Insert the script node into the page, so it will run, and immediately
+            // remove it to clean up.  Use setTimeout to force execution "outside" of
+            // the user script scope completely.
+            window.setTimeout(function () {
+                (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
+                (document.head || document.getElementsByTagName('head')[0]).removeChild(script);
+            }, 0);
+        } catch (err) {
+            GM_log("ERROR in page_scope_runner: " + err);
+        }
+    }());
+
+    // Stop running, because we know Greasemonkey actually runs us in an anonymous wrapper.
+    // The return has to be eval'd otherwise Opera throws an error and will not run the script.
+    /*jslint evil: true */
+    eval("return;");
+    /*jslint evil: false */
+}
+/*jslint newcap: true */
 
 //////////////////////////////////
 //       Globals
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "0",
+        devVersion    = "2",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
+        offline       = {},
         config        = {},
         state         = {},
         css           = {},
@@ -41,6 +130,8 @@
         monster       = {},
         guild_monster = {},
         //arena         = {},
+        festival      = {},
+        feed          = {},
         battle        = {},
         town          = {},
         spreadsheet   = {},
@@ -782,6 +873,14596 @@
     };
 
     ////////////////////////////////////////////////////////////////////
+    //                      offline OBJECT
+    // this is the object for offline items database
+    /////////////////////////////////////////////////////////////////////
+
+    offline = {
+        items: [
+            {
+                "name": "Air Shard 1 of 5",
+                "image": "gift_valhalla_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Air Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
+            },
+            {
+                "name": "Air Shard 2 of 5",
+                "image": "gift_valhalla_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Air Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
+            },
+            {
+                "name": "Air Shard 3 of 5",
+                "image": "gift_valhalla_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Air Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
+            },
+            {
+                "name": "Air Shard 4 of 5",
+                "image": "gift_valhalla_4.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Air Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
+            },
+            {
+                "name": "Air Shard 5 of 5",
+                "image": "gift_valhalla_5.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Air Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
+            },
+            {
+                "name": "Alpha Bahamut Artifact",
+                "image": "eq_alpha_bahamut_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Transcendence",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amber Ore",
+                "image": "gift_araxis_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Araxin Blade",
+                "recipe1image": "gift_araxis_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amethyst Crystal",
+                "image": "eq_strider_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amethyst Crystal",
+                "image": "eq_strider_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amethyst Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Amethyst Sea Serpent",
+                "comment": null
+            },
+            {
+                "name": "Ancient Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ancient Sea Serpent",
+                "comment": null
+            },
+            {
+                "name": "Ancient Frost Hilt",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Glacial Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ancient Hatchet",
+                "image": "gift_turkeyday_promo_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Noktar",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ancient Lichen",
+                "image": "gift_elizabeth3_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Staff of Vigor",
+                "recipe1image": "gift_elizabeth3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ancient Parchment",
+                "image": "eq_gift_elizabeth2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Silverlight Tome",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ancient Symbol",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Helm",
+                "recipe1image": "gift_cid2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Anvil",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Helm",
+                "recipe1image": "gift_cid2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Aquamarine Relic",
+                "image": "gift_chase_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Chase Family Heirloom",
+                "recipe1image": "gift_chase_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Assassins Ankh",
+                "image": "gift_strider2_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Cloak",
+                "recipe1image": "gift_strider2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Map Piece",
+                "image": "seamonster_map1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Map of Atlantis",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Map Piece",
+                "image": "seamonster_map2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Map of Atlantis",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Map Piece",
+                "image": "seamonster_map3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Map of Atlantis",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Map Piece",
+                "image": "seamonster_map4.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Map of Atlantis",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bahamuts Blood",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Draganblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Basilisk Heart",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Staff of Vigor",
+                "recipe1image": "gift_elizabeth3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bat Totem",
+                "image": "gift_strider2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Cloak",
+                "recipe1image": "gift_strider2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battle Heart",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Chase",
+                "recipe1": "Deadly Strike",
+                "recipe1image": null,
+                "recipe2": "Invulnerability",
+                "recipe2image": null,
+                "recipe3": "Tempered Steel",
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegarb Piece 1 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Sophias Battlegarb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegarb Piece 2 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Sophias Battlegarb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegarb Piece 3 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Sophias Battlegarb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegarb Piece 4 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Sophias Battlegarb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegarb Piece 5 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Sophias Battlegarb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegear Shard 1 of 3",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Garlans Battlegear",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegear Shard 2 of 3",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Garlans Battlegear",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battlegear Shard 3 of 3",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Garlans Battlegear",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bituminous Coal",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Fiery Blade",
+                "recipe1image": "gift_dante_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Black Widow",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shadow Blast",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodblade Shard 1 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bloodblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodblade Shard 2 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bloodblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodblade Shard 3 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bloodblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodblade Shard 4 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bloodblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodblade Shard 5 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bloodblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bloodwell Pendant",
+                "image": "eq_vincent_amulet.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bull Totem",
+                "image": "gift_zarevok_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zarevok Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 1 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 2 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 3 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 4 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 5 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Saber Shard 6 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Saber",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Clockatrice Feathers",
+                "image": "gift_terra_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Terra's Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Relic (Terra) gifts"
+            },
+            {
+                "name": "Conch Shard",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Poseidons Horn",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crest Shard 1 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zenarean Crest",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "War of the Red Plains",
+                "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
+            },
+            {
+                "name": "Crest Shard 2 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zenarean Crest",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "War of the Red Plains",
+                "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
+            },
+            {
+                "name": "Crest Shard 3 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zenarean Crest",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "War of the Red Plains",
+                "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
+            },
+            {
+                "name": "Crest Shard 4 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zenarean Crest",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "War of the Red Plains",
+                "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
+            },
+            {
+                "name": "Crimson Leaf",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crimson Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger Fragment",
+                "image": "eq_strider_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger Fragment",
+                "image": "eq_strider_4.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger Piece 1 of 2",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crimson Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger Piece 2 of 2",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crimson Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dantes Shard",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Dante",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Darkness Essence",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystical Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Draganblade Shard 1 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Draganblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Draganblade Shard 2 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Draganblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Draganblade Shard 3 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Draganblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Draganblade Shard 4 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Draganblade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragonbloom",
+                "image": "gift_dragan_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragan Protector",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragon Blood",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragon Charm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dull Blade",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystical Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elf Root",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Elven Crown",
+                "recipe1image": "gift_aeris_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elixir of Life",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Silverlight Tome",
+                "recipe1image": "eq_gift_elizabeth2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Fern",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Silverlight Tome",
+                "recipe1image": "eq_gift_elizabeth2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Emblem of Azriel",
+                "image": "eq_azriel_ring_shard.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Signet of Azriel",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Army of the Apocalypse"
+            },
+            {
+                "name": "Emblem of Keira",
+                "image": "eq_keira_ring_shard.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Signet of Keira",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Army of the Apocalypse"
+            },
+            {
+                "name": "Emblem of Lotus",
+                "image": "eq_lotus_ring_shard.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Signet of Lotus",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Army of the Apocalypse"
+            },
+            {
+                "name": "Emblem of Sylvana",
+                "image": "eq_sylvana_ring_shard.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Signet of Sylvana",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Army of the Apocalypse"
+            },
+            {
+                "name": "Emerald Egg",
+                "image": "gift_egg_green.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Dragon",
+                "comment": null
+            },
+            {
+                "name": "Emerald Egg",
+                "image": "gift_sea_egg_emerald.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Emerald Sea Serpent",
+                "comment": null
+            },
+            {
+                "name": "Enchanted Mythril",
+                "image": "gift_chase_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Chase Family Heirloom",
+                "recipe1image": "gift_chase_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Enriched Mineral",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ring of Life",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Essence of Darkness",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shadow Blast",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Essence of Valhalla",
+                "image": "eq_valhalla_dust.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Stormbinder",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Used to create Stormbinder.  This item can be dropped by Agamemnon, the Overseer or created via Alchemy."
+            },
+            {
+                "name": "Eye of the Bull 1 of 2",
+                "image": "gift_zarevok2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zarevok Defender",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Eye of the Bull 2 of 2",
+                "image": "gift_zarevok2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zarevok Defender",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Faerie Thistle",
+                "image": "gift_aeris2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Aeris Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fairy Dust",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragon Charm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Favor Shard 1 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Favor Points",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Favor Shard 2 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Favor Points",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Favor Shard 3 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Favor Points",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Favor Shard 4 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Favor Points",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Favor Shard 5 of 5",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Favor Points",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Feather",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragon Charm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fiery Starfish",
+                "image": "gift_nautica_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nautical Trident",
+                "recipe1image": "gift_nautica_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fire Berries",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Fiery Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fire Core",
+                "image": "gift_dragan_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragan Protector",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Flameshrooms",
+                "image": "gift_vanquish3_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Flamestrike Amulet",
+                "recipe1image": "gift_vanquish3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Amulet Gifts"
+            },
+            {
+                "name": "Fox Totem",
+                "image": "gift_araxis_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Araxin Blade",
+                "recipe1image": "gift_araxis_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Dragon",
+                "comment": null
+            },
+            {
+                "name": "Frostwyrm Scales",
+                "image": "gift_shino_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Frostwolf Axe",
+                "recipe1image": "gift_shino_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Axe Gifts"
+            },
+            {
+                "name": "Gargoyle Statue",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zarevok Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gingko Leaf",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Titania Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Glimmering Lotus",
+                "image": "gift_aeris2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Aeris Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gold Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Serpentine Shield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Dragon",
+                "comment": "Piece is also used to summon Cronus, The World Hydra"
+            },
+            {
+                "name": "Golden Seahorse",
+                "image": "gift_nautica_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nautical Trident",
+                "recipe1image": "gift_nautica_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Green Tanzanite",
+                "image": "gift_terra_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Terra's Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Relic (Terra) gifts"
+            },
+            {
+                "name": "Hawk Totem",
+                "image": "gift_turkeyday_promo_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Noktar",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellstone",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Soulforge",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Heroes Resolve",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Angelica",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ice Crystals",
+                "image": "gift_shino_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Frostwolf Axe",
+                "recipe1image": "gift_shino_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Axe Gifts"
+            },
+            {
+                "name": "Ice Shard",
+                "image": "eq_frost_crystal.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Glacial Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ice Shard",
+                "image": "gift_water_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ice Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, the Ice Elemental",
+                "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
+            },
+            {
+                "name": "Ice Shard",
+                "image": "gift_water_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ice Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, the Ice Elemental",
+                "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
+            },
+            {
+                "name": "Ice Shard",
+                "image": "gift_water_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ice Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, the Ice Elemental",
+                "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
+            },
+            {
+                "name": "Ice Shard",
+                "image": "gift_water_4.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ice Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, the Ice Elemental",
+                "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
+            },
+            {
+                "name": "Ice Shard",
+                "image": "gift_water_5.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ice Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, the Ice Elemental",
+                "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
+            },
+            {
+                "name": "Illusion Orb",
+                "image": "gift_chase_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Chase Family Heirloom",
+                "recipe1image": "gift_chase_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Inferno Potion",
+                "image": "gift_vanquish3_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Flamestrike Amulet",
+                "recipe1image": "gift_vanquish3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Amulet Gifts"
+            },
+            {
+                "name": "Lava Plant",
+                "image": "gift_dante_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Fiery Blade",
+                "recipe1image": "gift_dante_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lava Shard 1 of 5",
+                "image": "gift_gehenna_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Lava Orb",
+                "recipe1image": "gift_gehenna_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
+            },
+            {
+                "name": "Lava Shard 2 of 5",
+                "image": "gift_gehenna_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Lava Orb",
+                "recipe1image": "gift_gehenna_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
+            },
+            {
+                "name": "Lava Shard 3 of 5",
+                "image": "gift_gehenna_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Lava Orb",
+                "recipe1image": "gift_gehenna_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
+            },
+            {
+                "name": "Lava Shard 4 of 5",
+                "image": "gift_gehenna_4.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Lava Orb",
+                "recipe1image": "gift_gehenna_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
+            },
+            {
+                "name": "Lava Shard 5 of 5",
+                "image": "gift_gehenna_5.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Lava Orb",
+                "recipe1image": "gift_gehenna_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
+            },
+            {
+                "name": "Lead Ore",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Cid Helm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Life Force",
+                "image": "eq_jahanna_ingredient.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Force of Nature",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Life force is used to create divine item Force of Nature (DP 80), must be level 175 to create.  Life force is sometimes dropped by Jahanna, Priestess of Nature."
+            },
+            {
+                "name": "Magic Acorn",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crimson Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mithril Bar",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Glacial Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mystical Filigree",
+                "image": "gift_mercedes_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Witch Locket",
+                "recipe1image": "gift_mercedes_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Nature Effigy",
+                "image": "gift_terra_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Terra's Blade",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Relic (Terra) gifts"
+            },
+            {
+                "name": "Nature Essence",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Staff of Vigor",
+                "recipe1image": "gift_elizabeth3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Nether Soulstone",
+                "image": "eq_red_soul.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Soul Crusher",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying War of the Red Plains"
+            },
+            {
+                "name": "Owl Totem",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Titania Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Primordial Life",
+                "image": "gift_mercedes_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Witch Locket",
+                "recipe1image": "gift_mercedes_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Purple Opal",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ring of Life",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Red Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Serpentine Shield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Dragon",
+                "comment": "Piece is also used to summon Cronus, The World Hydra"
+            },
+            {
+                "name": "Red Wyrmscale",
+                "image": "gift_dragan_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragan Protector",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rhino Horn",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Zarevok Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Roc Feathers",
+                "image": "gift_turkeyday_promo_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": "Noktar",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rune of Agamemnon",
+                "image": "eq_agamemnon_ingredient1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Aegis of Kings",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Aegis of Kings is a divine item (divine power 120), must be level 175 to create.  Rune of Agamemnon is sometimes dropped by Agamemnon, the Overseer"
+            },
+            {
+                "name": "Rune of Darkness",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shadow Blast",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rune of Fire",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crown of Flames",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rune of Flame",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Crown of Flames",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sands of Fire",
+                "image": "gift_vanquish3_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Flamestrike Amulet",
+                "recipe1image": "gift_vanquish3_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Amulet Gifts"
+            },
+            {
+                "name": "Sapphire Egg",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Sapphire Sea Serpent",
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 1 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 2 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 3 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 4 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 5 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Scepter Shard 6 of 6",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Scepter of Light",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shield Shard",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Serpentine Shield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Cronus, The World Hydra",
+                "comment": "Piece is used to create Serpentine Shield which in turn summons Cronus, The World Hydra"
+            },
+            {
+                "name": "Small Emerald",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Elven Crown",
+                "recipe1image": "gift_aeris_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Soul of Agamemnon",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Aegis of Kings",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Aegis of Kings is a divine item (divine power 120), must be level 175 to create.  Soul of Agamemnon is sometimes dropped by Agamemnon, the Overseer, but only for the summoner."
+            },
+            {
+                "name": "Spiral Seashell",
+                "image": "gift_nautica_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nautical Trident",
+                "recipe1image": "gift_nautica_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Star Crystals",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Excalibur",
+                "recipe1image": null,
+                "recipe2": "Soulforge",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Star Fire",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Excalibur",
+                "recipe1image": null,
+                "recipe2": "Soulforge",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Star Metal",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Excalibur",
+                "recipe1image": null,
+                "recipe2": "Soulforge",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Sword Shard",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Dragonbane",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sylvan Leaf",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Elven Crown",
+                "recipe1image": "gift_aeris_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tangleroot",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Titania Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tarnished Ring",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Ring of Life",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Treant Seedling",
+                "image": "gift_aeris2_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Aeris Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Trident Shard",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Trident of the Deep",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Troll Tusks",
+                "image": "gift_araxis_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Araxin Blade",
+                "recipe1image": "gift_araxis_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valhalla Dust",
+                "image": "eq_valhalla_dust.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Essence of Valhalla",
+                "recipe1image": null,
+                "recipe2": "Hand of Valhalla",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Valhalla, the Air Elemental.  Used to create Hand of Valhalla and Essence of Valhalla which in turn are used to create Stormbinder"
+            },
+            {
+                "name": "Valor Crystal",
+                "image": "gift_mercedes_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Witch Locket",
+                "recipe1image": "gift_mercedes_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vanquish Dust",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Wrath of Vanquish",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vanquish Petal",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Wrath of Vanquish",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vanquish Staff",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Wrath of Vanquish",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Volcanic Egg 1 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Dante",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Bahamut and Alpha Bahamut",
+                "comment": null
+            },
+            {
+                "name": "Volcanic Egg 2 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Dante",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Bahamut and Alpha Bahamut",
+                "comment": null
+            },
+            {
+                "name": "Volcanic Egg 3 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Dante",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Bahamut and Alpha Bahamut",
+                "comment": null
+            },
+            {
+                "name": "Volcanic Egg 4 of 4",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Dante",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Bahamut and Alpha Bahamut",
+                "comment": null
+            },
+            {
+                "name": "Volcanic Emerald",
+                "image": "eq_volcanic_shard_green.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Volcanic Ruby",
+                "image": "eq_volcanic_shard_red.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Volcanic Sapphire",
+                "image": "eq_volcanic_shard_blue.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Volcanic Topaz",
+                "image": "eq_volcanic_shard_yellow.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Werewolf Fur",
+                "image": "gift_strider2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Assassins Cloak",
+                "recipe1image": "gift_strider2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wolf Totem",
+                "image": "gift_shino_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Frostwolf Axe",
+                "recipe1image": "gift_shino_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Axe Gifts"
+            },
+            {
+                "name": "Wormwood Berries",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystical Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "All-Seeing Eye",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 stamina when Gorlak is equipped"
+            },
+            {
+                "name": "Air Orb",
+                "image": "gift_valhalla_complete.jpg",
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Valhalla, The Air Elemental",
+                "comment": null
+            },
+            {
+                "name": "Amulet of Cefka",
+                "image": null,
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Excalibur",
+                "recipe1image": null,
+                "recipe2": "Soulforge",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Amulet of Courage",
+                "image": null,
+                "type": "Amulet",
+                "attack": 25,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amulet of the Tempest",
+                "image": null,
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Apocalypse Band",
+                "image": "eq_apocalypse_band.jpg",
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 15,
+                "hero": null,
+                "recipe1": "Signet of Sylvana",
+                "recipe1image": null,
+                "recipe2": "Signet of Keira",
+                "recipe2image": null,
+                "recipe3": "Signet of Lotus",
+                "recipe3image": null,
+                "recipe4": "Signet of Azriel",
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Army of the Apocalypse"
+            },
+            {
+                "name": "Armageddon Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 23,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Araxis"
+            },
+            {
+                "name": "Avenger Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Berserker Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blazerune Necklace",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blazerune Ring",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blood Flask",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 20,
+                "hero": null,
+                "recipe1": "Blood Zealot",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina to Morrigan"
+            },
+            {
+                "name": "Blue Lotus Petal",
+                "image": null,
+                "type": "Amulet",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Frost Tear Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Caldonian Band",
+                "image": "eq_aurelius_ring2.jpg",
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Chase Family Heirloom",
+                "image": "gift_chase_complete.jpg",
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +2 Defense when Chase is equipped"
+            },
+            {
+                "name": "Cloudslayer Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stam when Delfina equipped"
+            },
+            {
+                "name": "Crusader Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 4,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crystal of Lament",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 3,
+                "hero": "Cartigan",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Deathrune Signet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 attack to Skaar"
+            },
+            {
+                "name": "Dragon Ashes",
+                "image": null,
+                "type": "Amulet",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Ring of Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragon Tooth Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Drake Helm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Deathrune Campaign Raid",
+                "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
+            },
+            {
+                "name": "Earth Orb",
+                "image": null,
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": null
+            },
+            {
+                "name": "Earth Shard",
+                "image": "gift_earth_1.jpg",
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Earth Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
+            },
+            {
+                "name": "Earth Shard",
+                "image": "gift_earth_2.jpg",
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Earth Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
+            },
+            {
+                "name": "Earth Shard",
+                "image": "gift_earth_3.jpg",
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 3,
+                "hero": null,
+                "recipe1": "Earth Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
+            },
+            {
+                "name": "Earth Shard",
+                "image": "gift_earth_4.jpg",
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Earth Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
+            },
+            {
+                "name": "Earth Shard",
+                "image": "gift_earth_5.jpg",
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": "Earth Orb",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Genesis, The Earth Elemental",
+                "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
+            },
+            {
+                "name": "Enchanted Lantern",
+                "image": null,
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Eye of the Triangle",
+                "image": null,
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fear Charm",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Flamestrike Amulet",
+                "image": "gift_vanquish3_complete.jpg",
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Components are Collected from receiving Mystery Amulet Gifts, +4 Energy when Vanquish is equipped"
+            },
+            {
+                "name": "Frost Tear Jewel",
+                "image": null,
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Frost Tear Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frozen Signet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Force of Nature",
+                "image": null,
+                "type": "Amulet",
+                "attack": 35,
+                "defense": 50,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Divine Power: 80, must be level 175 to create this item.  Currently best defensive amulet in game."
+            },
+            {
+                "name": "Gildamesh's Charm",
+                "image": null,
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gold Bar",
+                "image": null,
+                "type": "Amulet",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Drake Helm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Deathrune Campaign Raid",
+                "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
+            },
+            {
+                "name": "Green Emerald Shard",
+                "image": "mystery_armor_emerald_1.jpg",
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Golden Hand",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Green Emerald Shard",
+                "image": "mystery_armor_emerald_2.jpg",
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Golden Hand",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Grimshaw Jewel",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 energy when Aria is equipped"
+            },
+            {
+                "name": "Halcyon Necklace",
+                "image": null,
+                "type": "Amulet",
+                "attack": 12,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina when Halycon is equipped"
+            },
+            {
+                "name": "Heart of Elos",
+                "image": null,
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 stamina when Lyra is equipped"
+            },
+            {
+                "name": "Helenas Memento",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hero Insignia",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped from Season 2 Arena, Tier 3 Award, +8 defense when Shino is equipped"
+            },
+            {
+                "name": "Holy Talisman ",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ice Orb",
+                "image": null,
+                "type": "Amulet",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Ragnarok, The Ice Elemental",
+                "comment": null
+            },
+            {
+                "name": "Jadan Signet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Energy when Jada is equipped"
+            },
+            {
+                "name": "Jewel of Fire",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 6,
+                "hero": null,
+                "recipe1": "Helm of Dragon Power",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Keira's Soul",
+                "image": null,
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 2,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lava Orb",
+                "image": "gift_gehenna_complete.jpg",
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gehenna, The Fire Elemental",
+                "comment": null
+            },
+            {
+                "name": "Lionheart Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Magic Mushrooms",
+                "image": null,
+                "type": "Amulet",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Mystic Armor",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Magicite Earrings",
+                "image": null,
+                "type": "Amulet",
+                "attack": 12,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical chance when Azalia is equipped"
+            },
+            {
+                "name": "Magicite Locket",
+                "image": null,
+                "type": "Amulet",
+                "attack": 12,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Energy when Scarlett is Equipped"
+            },
+            {
+                "name": "Mark of the Empire",
+                "image": null,
+                "type": "Amulet",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Metal Ring",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 3,
+                "hero": null,
+                "recipe1": "Ring of Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Moonfall Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 40,
+                "defense": 40,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Moonfall Trinket",
+                "image": null,
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Obsidian Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 2,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Paladin's Oath",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 8,
+                "hero": "Leon Ironhart",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Pendant of the Bull",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 stamina when Karn is equipped"
+            },
+            {
+                "name": "Pendant of Wonder",
+                "image": null,
+                "type": "Amulet",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Poseidons Horn",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ring of Bahamut",
+                "image": null,
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ring of Honor",
+                "image": null,
+                "type": "Amulet",
+                "attack": 18,
+                "defense": 25,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ring of Life",
+                "image": null,
+                "type": "Amulet",
+                "attack": 4,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Energy when Elizabeth Lione is equipped"
+            },
+            {
+                "name": "Ruby Ore",
+                "image": null,
+                "type": "Amulet",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Ring of Bahamut",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sacred Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Serpentine Ring",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 21,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sharpwind Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Stamina when Elora is equipped"
+            },
+            {
+                "name": "Signet of Azriel",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 35,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Heal +10 additional health upon victory as Cleric in Guild Battles when Azriel is equipped"
+            },
+            {
+                "name": "Signet of Keira",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 35,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gain +3 additional attack and defense as Warrior in Guild Battles when Keira is equipped"
+            },
+            {
+                "name": "Signet of Lotus",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 35,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Inflict +30 additional damage upon victory as Rogue in Guild Battles when Lotus is equipped"
+            },
+            {
+                "name": "Signet of Sylvana",
+                "image": null,
+                "type": "Amulet",
+                "attack": 35,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Inflict +1 additional damage upon victory as Mage in Guild Battles when Sylvana is equipped, must be Level 150 to create."
+            },
+            {
+                "name": "Silver Bar",
+                "image": null,
+                "type": "Amulet",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Mystic Armor",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Silverlight Seal",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 Energy when Solara is equipped"
+            },
+            {
+                "name": "Skullstone Relic",
+                "image": null,
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2% crit while Adriana is equipped"
+            },
+            {
+                "name": "Soul Catcher",
+                "image": null,
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Soulless Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 25,
+                "defense": 25,
+                "hero": null,
+                "recipe1": "Transcendence",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sun Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 1,
+                "defense": 3,
+                "hero": null,
+                "recipe1": "Morningstar",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sunstone Crest",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 max stamina when Suri is equipped"
+            },
+            {
+                "name": "Terra's Heart",
+                "image": null,
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical when Terra is equipped"
+            },
+            {
+                "name": "Thawing Star",
+                "image": null,
+                "type": "Amulet",
+                "attack": 18,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 defense to Lilith & Riku"
+            },
+            {
+                "name": "Tooth of Gehenna",
+                "image": null,
+                "type": "Amulet",
+                "attack": 18,
+                "defense": 23,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Transcendence",
+                "image": null,
+                "type": "Amulet",
+                "attack": 46,
+                "defense": 36,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tribal Crest",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% crit when Kataan is equipped"
+            },
+            {
+                "name": "Trigon Necklace",
+                "image": null,
+                "type": "Amulet",
+                "attack": 13,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 Stamina when Crissana is equipped"
+            },
+            {
+                "name": "Vincents Soul",
+                "image": null,
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 5,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Warriors Insignia",
+                "image": null,
+                "type": "Amulet",
+                "attack": 18,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped from Arena Season 1, Tier 3 Award."
+            },
+            {
+                "name": "Wildwalker Necklace",
+                "image": null,
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 energy when Anwar is equipped"
+            },
+            {
+                "name": "Witch Locket",
+                "image": "gift_mercedes_complete.jpg",
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Energy when Mercedes is equipped"
+            },
+            {
+                "name": "Wolfbane Trinket",
+                "image": null,
+                "type": "Amulet",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to player when Fenris is equipped"
+            },
+            {
+                "name": "Wolfwood Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 13,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% Critical when Darius is equipped"
+            },
+            {
+                "name": "Angelic Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 3,
+                "defense": 3,
+                "hero": "Angelica",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Archangels Battlegear",
+                "image": null,
+                "type": "Armor",
+                "attack": 26,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Archmage Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Azalia"
+            },
+            {
+                "name": "Argentum Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Armor of Arielle",
+                "image": null,
+                "type": "Armor",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Arielle"
+            },
+            {
+                "name": "Armor of Vengeance",
+                "image": null,
+                "type": "Armor",
+                "attack": 13,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Assassins Cloak",
+                "image": "gift_strider2_complete.jpg",
+                "type": "Armor",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+5 Defense to Strider"
+            },
+            {
+                "name": "Atlantean Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 4,
+                "defense": 10,
+                "hero": null,
+                "recipe1": "Atlantean Forcefield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Avenger Platemail",
+                "image": null,
+                "type": "Armor",
+                "attack": 1,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Azure Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Kaylen"
+            },
+            {
+                "name": "Bearheart Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Belt of Abaddon",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Crom"
+            },
+            {
+                "name": "Berserker Platemail",
+                "image": null,
+                "type": "Armor",
+                "attack": 4,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bladebourne Raiments",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Miri"
+            },
+            {
+                "name": "Blood Vestment",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Slayer"
+            },
+            {
+                "name": "Bloodlord Plate",
+                "image": "eq_vincent_armor1.jpg",
+                "type": "Armor",
+                "attack": 26,
+                "defense": 14,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Carmine Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Scarlett"
+            },
+            {
+                "name": "Castle Rampart",
+                "image": null,
+                "type": "Armor",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Battle of the Dark Legion",
+                "comment": null
+            },
+            {
+                "name": "Colossal Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 2,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Commanders Battle Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crimson Cloak",
+                "image": "eq_vincent_armor2.jpg",
+                "type": "Armor",
+                "attack": 8,
+                "defense": 20,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crusader Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 8,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Death Ward",
+                "image": null,
+                "type": "Armor",
+                "attack": 12,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Adriana"
+            },
+            {
+                "name": "Deathrune Hellplate",
+                "image": null,
+                "type": "Armor",
+                "attack": 18,
+                "defense": 27,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical when Skaar is equipped"
+            },
+            {
+                "name": "Demonic Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 5,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Divinity Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 12,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Defense to Gallador"
+            },
+            {
+                "name": "Drakken Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 defense to Draconius"
+            },
+            {
+                "name": "Dreadnought Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 8,
+                "defense": 6,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elemental Garb",
+                "image": null,
+                "type": "Armor",
+                "attack": 18,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Emperion Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 12,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Gawain"
+            },
+            {
+                "name": "Epaulets of Might",
+                "image": null,
+                "type": "Armor",
+                "attack": 0,
+                "defense": 4,
+                "hero": "Elin",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Evergreen Cloak",
+                "image": null,
+                "type": "Armor",
+                "attack": 2,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Faerie Wings",
+                "image": null,
+                "type": "Armor",
+                "attack": 6,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Feral Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 1,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Whisper Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 4,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Garlans Battlegear",
+                "image": null,
+                "type": "Armor",
+                "attack": 4,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+5 Defense when Garlan is equipped"
+            },
+            {
+                "name": "Gildamesh's War Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 5,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Glacial Raiments",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gladiator Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 28,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped from Season 2 Arena, Tier 4 Award, +1% critical when Shino is equipped"
+            },
+            {
+                "name": "Glorious Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 31,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellforge Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellkite Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Holy Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 18,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hunters Raiments",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 defense to Kataan"
+            },
+            {
+                "name": "Infernal Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Jadan Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Jada"
+            },
+            {
+                "name": "Lava Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 15,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Sano"
+            },
+            {
+                "name": "Leather Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 0,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lion Scar Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 33,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lionheart Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 25,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lycan Armguard",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+0.5% Critical when Fenris is equipped"
+            },
+            {
+                "name": "Minotaurs Battle Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Karn"
+            },
+            {
+                "name": "Moonfall Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 15,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mystic Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 2,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Nightcraft Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Scourge"
+            },
+            {
+                "name": "Obsidian Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 6,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ogre Raiments",
+                "image": null,
+                "type": "Armor",
+                "attack": 11,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Gorlak"
+            },
+            {
+                "name": "Pauldrons of Light",
+                "image": null,
+                "type": "Armor",
+                "attack": 5,
+                "defense": 11,
+                "hero": "Leon Ironhart",
+                "recipe1": "Holy Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Plate of the Ages",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 45,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Plated Earth",
+                "image": null,
+                "type": "Armor",
+                "attack": 8,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Platinus Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 9,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Lailah"
+            },
+            {
+                "name": "Raven Cloak",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Retribution Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 8,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Dexter"
+            },
+            {
+                "name": "Robe of Insight",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Robes of the Tempest",
+                "image": null,
+                "type": "Armor",
+                "attack": 7,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rusty Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 2,
+                "defense": 3,
+                "hero": null,
+                "recipe1": "Mystic Armor",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sophias Battlegarb",
+                "image": null,
+                "type": "Armor",
+                "attack": 4,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 Energy when Sophia is equipped"
+            },
+            {
+                "name": "Spellweaver Cloak",
+                "image": null,
+                "type": "Armor",
+                "attack": 13,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Godric"
+            },
+            {
+                "name": "Steel Chainmail",
+                "image": null,
+                "type": "Armor",
+                "attack": 1,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Steel Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 2,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Swordsmans Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped from Season 1 Arena, Tier 2 Award"
+            },
+            {
+                "name": "Terran Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 7,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+8 Health when Darius is equipped"
+            },
+            {
+                "name": "Whisper Cloak",
+                "image": null,
+                "type": "Armor",
+                "attack": 6,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wildwalker Tunic",
+                "image": null,
+                "type": "Armor",
+                "attack": 9,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Anwar"
+            },
+            {
+                "name": "Zarevok Plate",
+                "image": "gift_zarevok_complete.jpg",
+                "type": "Armor",
+                "attack": 4,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 defense to Zarevok"
+            },
+            {
+                "name": "Zealot Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Blood Zealot",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Zenarean Chainmail",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": "Atlantean Forcefield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bladebounrne Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 10,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% crit when Miri is equipped"
+            },
+            {
+                "name": "Cloudslayer Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 7,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Delfina"
+            },
+            {
+                "name": "Crusader Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 5,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Death Touch Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Soul Crusher",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+5 attack to Lotus Ravenmoore"
+            },
+            {
+                "name": "Fist of Abaddon",
+                "image": null,
+                "type": "Glove",
+                "attack": 12,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Stamina when Mephistopheles is equipped"
+            },
+            {
+                "name": "Gauntlet of Fire",
+                "image": null,
+                "type": "Glove",
+                "attack": 13,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina when Dante is equipped"
+            },
+            {
+                "name": "Gauntlets of Might",
+                "image": null,
+                "type": "Glove",
+                "attack": 2,
+                "defense": 2,
+                "hero": "Elin",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Stamina when Elin is equipped"
+            },
+            {
+                "name": "Gildamesh's Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Golden Hand",
+                "image": null,
+                "type": "Glove",
+                "attack": 2,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Halcyon Glove",
+                "image": null,
+                "type": "Glove",
+                "attack": 8,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Halycon"
+            },
+            {
+                "name": "Hand of Justice",
+                "image": null,
+                "type": "Glove",
+                "attack": 8,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical chance when Azul is equipped"
+            },
+            {
+                "name": "Hand of Valhalla",
+                "image": null,
+                "type": "Glove",
+                "attack": 17,
+                "defense": 14,
+                "hero": null,
+                "recipe1": "Soulbinder",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Hand of Valhalla is also used to create Stormbinder.  This item can be dropped by Agamemnon, the Overseer or created via Alchemy."
+            },
+            {
+                "name": "Hands of Bounty",
+                "image": null,
+                "type": "Glove",
+                "attack": 10,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hands of Darkness",
+                "image": null,
+                "type": "Glove",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellforge Gauntlets",
+                "image": null,
+                "type": "Glove",
+                "attack": 14,
+                "defense": 6,
+                "hero": null,
+                "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellkite Bracer",
+                "image": null,
+                "type": "Glove",
+                "attack": 5,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Holy Gauntlets",
+                "image": null,
+                "type": "Glove",
+                "attack": 4,
+                "defense": 6,
+                "hero": "Leon Ironhart",
+                "recipe1": "Holy Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Icy Handguards",
+                "image": null,
+                "type": "Glove",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mythril Fists",
+                "image": null,
+                "type": "Glove",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Stamina when Darius is equipped"
+            },
+            {
+                "name": "Nightcraft Gauntlets",
+                "image": null,
+                "type": "Glove",
+                "attack": 9,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% crit when Scourge is equipped"
+            },
+            {
+                "name": "Platinum Hands",
+                "image": null,
+                "type": "Glove",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rusty Gloves",
+                "image": null,
+                "type": "Glove",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Golden Hand",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Slayer's Embrace",
+                "image": null,
+                "type": "Glove",
+                "attack": 5,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 energy when Slayer is equipped"
+            },
+            {
+                "name": "Soul Crusher",
+                "image": null,
+                "type": "Glove",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Soul Eater",
+                "image": null,
+                "type": "Glove",
+                "attack": 4,
+                "defense": 5,
+                "hero": "Cartigan",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Steel Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 1,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Stormbinder",
+                "image": null,
+                "type": "Glove",
+                "attack": 18,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tempered Steel",
+                "image": null,
+                "type": "Glove",
+                "attack": 6,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tetheryn Glove",
+                "image": null,
+                "type": "Glove",
+                "attack": 7,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical chance when Elora is equipped"
+            },
+            {
+                "name": "Virtue of Temperance",
+                "image": null,
+                "type": "Glove",
+                "attack": 7,
+                "defense": 4,
+                "hero": "Hyperion",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical when Hyperion is equipped"
+            },
+            {
+                "name": "Warrior Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped from Season 2 Arena, Tier 2 Award, +8 attack when Shino is equipped"
+            },
+            {
+                "name": "Ancient Veil",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Angelic Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Argentum Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 4,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Berserker Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 12,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Boar Tusk Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Celestial Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cid Helm",
+                "image": "gift_cid2_complete.jpg",
+                "type": "Helmet",
+                "attack": 3,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Defense to Cid"
+            },
+            {
+                "name": "Cowl of the Avenger",
+                "image": null,
+                "type": "Helmet",
+                "attack": 12,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crown of Darius",
+                "image": null,
+                "type": "Helmet",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina when Darius is equipped"
+            },
+            {
+                "name": "Crown of Flames",
+                "image": null,
+                "type": "Helmet",
+                "attack": 33,
+                "defense": 32,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crusader Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 8,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demonic Mask",
+                "image": null,
+                "type": "Helmet",
+                "attack": 6,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Divinity Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina when Gallador is equipped"
+            },
+            {
+                "name": "Drake Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 4,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Deathrune Campaign Raid",
+                "comment": null
+            },
+            {
+                "name": "Drakken Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 8,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 energy when Draconius is equipped"
+            },
+            {
+                "name": "Dreadnought Horns",
+                "image": null,
+                "type": "Helmet",
+                "attack": 6,
+                "defense": 3,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Crown",
+                "image": "eq_sylvanus_crown.jpg",
+                "type": "Helmet",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Crown",
+                "image": "gift_aeris_complete.jpg",
+                "type": "Helmet",
+                "attack": 2,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 Defense when Aeris is equipped"
+            },
+            {
+                "name": "Emperion Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 12,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Stamina when Gawain is equipped"
+            },
+            {
+                "name": "Frost Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 7,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Galvanized Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Garlan"
+            },
+            {
+                "name": "Gildamesh's War Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 6,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gilded Tiara",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 defense to Suri"
+            },
+            {
+                "name": "Glacial Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 energy when Lilith & Riku is equipped"
+            },
+            {
+                "name": "Helm of Dragon Power",
+                "image": null,
+                "type": "Helmet",
+                "attack": 30,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Helm of Fear",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "High Kings Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Infernal Helmet",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lion Scar Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lionheart Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 4,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Moonfall Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Nightcraft Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Stamina when Scourge is equipped"
+            },
+            {
+                "name": "Obsidian Helmet",
+                "image": null,
+                "type": "Helmet",
+                "attack": 3,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Retribution Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "damage received reduced by 1 when Dexter is equipped"
+            },
+            {
+                "name": "Righteous Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 28,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rusted Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 3,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Drake Helm",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Deathrune Campaign Raid",
+                "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
+            },
+            {
+                "name": "Spartan Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Steel Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 1,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Swordsman Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Season 2 Arena, Tier 1 Award, +3 stamina when Shino is equipped"
+            },
+            {
+                "name": "Tempest Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tempest Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Terra's Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 energy to Terra"
+            },
+            {
+                "name": "Titan Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Max Stamina to player when Minerva is equipped"
+            },
+            {
+                "name": "Tyrant Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 22,
+                "defense": 20,
+                "hero": null,
+                "recipe1": "Crown of Flames",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vanguard Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 35,
+                "defense": 35,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Season 2 Arena, Tier 6 Award."
+            },
+            {
+                "name": "Virtue of Fortitude",
+                "image": null,
+                "type": "Helmet",
+                "attack": 14,
+                "defense": 32,
+                "hero": "Hyperion",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Hyperion"
+            },
+            {
+                "name": "Volcanic Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 32,
+                "defense": 14,
+                "hero": null,
+                "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Windstalker Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Energy when Zin is equipped"
+            },
+            {
+                "name": "Windswept Crown",
+                "image": null,
+                "type": "Helmet",
+                "attack": 8,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% crit when Kaylen is equipped"
+            },
+            {
+                "name": "Wolf Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Whisper Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wrathbringer Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 12,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% crit when Barbarus is equipped"
+            },
+            {
+                "name": "Angel Fire",
+                "image": null,
+                "type": "Magic",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Angelic Blessing",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Battle of the Dark Legion",
+                "comment": null
+            },
+            {
+                "name": "Angelic Rebirth",
+                "image": null,
+                "type": "Magic",
+                "attack": 17,
+                "defense": 17,
+                "hero": null,
+                "recipe1": "Transcendence",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Azriel"
+            },
+            {
+                "name": "Angels Crusade",
+                "image": null,
+                "type": "Magic",
+                "attack": 6,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Arcane Blast",
+                "image": null,
+                "type": "Magic",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Forcefield",
+                "image": null,
+                "type": "Magic",
+                "attack": 10,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Avengers Oath",
+                "image": "demi_stamina_spell.jpg",
+                "type": "Magic",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Backdraft",
+                "image": null,
+                "type": "Magic",
+                "attack": 12,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical when Kaiser is equipped"
+            },
+            {
+                "name": "Berserker Frenzy",
+                "image": "demi_attack_spell.jpg",
+                "type": "Magic",
+                "attack": 6,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blessing of Nature",
+                "image": null,
+                "type": "Magic",
+                "attack": 12,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Breath of Fire",
+                "image": null,
+                "type": "Magic",
+                "attack": 15,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Dante"
+            },
+            {
+                "name": "Champions Aura",
+                "image": null,
+                "type": "Magic",
+                "attack": 3,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Colossal Orb",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Colossus of Terra",
+                "comment": null
+            },
+            {
+                "name": "Consecration",
+                "image": null,
+                "type": "Magic",
+                "attack": 14,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Deadly Strike",
+                "image": null,
+                "type": "Magic",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demon Strength",
+                "image": null,
+                "type": "Magic",
+                "attack": 8,
+                "defense": 2,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demonic Circle",
+                "image": null,
+                "type": "Magic",
+                "attack": 9,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Divine Blast",
+                "image": null,
+                "type": "Magic",
+                "attack": 32,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragon Charm",
+                "image": "dragon_charm_spell.jpg",
+                "type": "Magic",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Energy Bolt",
+                "image": "magic_energybolt.jpg",
+                "type": "Magic",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fireball",
+                "image": "magic_fireball.jpg",
+                "type": "Magic",
+                "attack": 5,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Bolt",
+                "image": null,
+                "type": "Magic",
+                "attack": 12,
+                "defense": 25,
+                "hero": "Medius",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Medius"
+            },
+            {
+                "name": "Gladiator Strength",
+                "image": null,
+                "type": "Magic",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 1, Tier 4 Award"
+            },
+            {
+                "name": "Gladiators Strength",
+                "image": null,
+                "type": "Magic",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Greater Fireball",
+                "image": "magic_fireball.jpg",
+                "type": "Magic",
+                "attack": 6,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Helenas Inferno",
+                "image": null,
+                "type": "Magic",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellkite Flames",
+                "image": null,
+                "type": "Magic",
+                "attack": 8,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Heros Resolve",
+                "image": null,
+                "type": "Magic",
+                "attack": 2,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Battle of the Dark Legion",
+                "comment": null
+            },
+            {
+                "name": "Holy Aura",
+                "image": null,
+                "type": "Magic",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Holy Shield",
+                "image": "demi_defense_spell.jpg",
+                "type": "Magic",
+                "attack": 4,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Holy Smite",
+                "image": null,
+                "type": "Magic",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Immolation",
+                "image": null,
+                "type": "Magic",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Dante"
+            },
+            {
+                "name": "Invulnerability",
+                "image": null,
+                "type": "Magic",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lightning Bolt",
+                "image": "magic_lightning.jpg",
+                "type": "Magic",
+                "attack": 8,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lightning Storm",
+                "image": "lightning_storm.jpg",
+                "type": "Magic",
+                "attack": 15,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lotus Orb",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Lotus",
+                "comment": null
+            },
+            {
+                "name": "Maelstrom",
+                "image": "magic_maelstrom.jpg",
+                "type": "Magic",
+                "attack": 7,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Magic Missile",
+                "image": "magic_magic_missile.jpg",
+                "type": "Magic",
+                "attack": 1,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mark of the Wolf",
+                "image": null,
+                "type": "Magic",
+                "attack": 6,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Energy when Darius is equipped"
+            },
+            {
+                "name": "Mind Control",
+                "image": null,
+                "type": "Magic",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Aria"
+            },
+            {
+                "name": "Moonfall Aura",
+                "image": "demi_health_spell.jpg",
+                "type": "Magic",
+                "attack": 4,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orb of Alpha Mephistopheles",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Alpha Mephistopheles",
+                "comment": null
+            },
+            {
+                "name": "Orb of Aurelius",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Lion's Rebellion",
+                "comment": null
+            },
+            {
+                "name": "Orb of Azriel",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Azriel",
+                "comment": null
+            },
+            {
+                "name": "Orb of Corvintheus",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Corvintheus",
+                "comment": null
+            },
+            {
+                "name": "Orb of Gildamesh",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Gildamesh",
+                "comment": null
+            },
+            {
+                "name": "Orb of Keira",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Keira",
+                "comment": null
+            },
+            {
+                "name": "Orb of Mephistopheles",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Mephistopheles",
+                "comment": null
+            },
+            {
+                "name": "Orb of Skaar Deathrune",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Skaar Deathrune",
+                "comment": null
+            },
+            {
+                "name": "Pestilence",
+                "image": null,
+                "type": "Magic",
+                "attack": 7,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Royal Seal",
+                "image": null,
+                "type": "Magic",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow Blast",
+                "image": null,
+                "type": "Magic",
+                "attack": 5,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack to Morrigan"
+            },
+            {
+                "name": "Skullfire",
+                "image": null,
+                "type": "Magic",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Solar Desolation",
+                "image": null,
+                "type": "Magic",
+                "attack": 13,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Stone Skin",
+                "image": null,
+                "type": "Magic",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Swarm of Darkness",
+                "image": null,
+                "type": "Magic",
+                "attack": 20,
+                "defense": 16,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": " ",
+                "comment": "Sometimes dropped after slaying Vincent or Alpha Vincent"
+            },
+            {
+                "name": "Sylvanas Orb",
+                "image": null,
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Sylvanas",
+                "comment": null
+            },
+            {
+                "name": "Tempest Storm",
+                "image": "demi_energy_spell.jpg",
+                "type": "Magic",
+                "attack": 17,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Time Shift",
+                "image": null,
+                "type": "Magic",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Stamina when Godric is equipped"
+            },
+            {
+                "name": "Wall of Fire",
+                "image": "dragon_reward_fire.jpg",
+                "type": "Magic",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": "Helm of Dragon Power",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Whirlwind",
+                "image": null,
+                "type": "Magic",
+                "attack": 28,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wolf Spirit",
+                "image": "magic_wolf.jpg",
+                "type": "Magic",
+                "attack": 7,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wrath of Vanquish",
+                "image": null,
+                "type": "Magic",
+                "attack": 4,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Vanquish"
+            },
+            {
+                "name": "Absolution",
+                "image": null,
+                "type": "Shield",
+                "attack": 13,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Azul"
+            },
+            {
+                "name": "Aegis of Kings",
+                "image": null,
+                "type": "Shield",
+                "attack": 50,
+                "defense": 40,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "This is a divine item, must be level 175 to create.  Divine power: 120"
+            },
+            {
+                "name": "Aegis of the Tower",
+                "image": null,
+                "type": "Shield",
+                "attack": 22,
+                "defense": 26,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped by Agamemnon, the Overseer. Used to create the Aegis of Kings (Divine Power 120, must be level 175 to create)."
+            },
+            {
+                "name": "Ancient Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Zin"
+            },
+            {
+                "name": "Ancient Tome",
+                "image": null,
+                "type": "Shield",
+                "attack": 7,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 defense to Lyra"
+            },
+            {
+                "name": "Atlantean Shield",
+                "image": "eq_seamonster_shield.jpg",
+                "type": "Shield",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": "Atlantean Forcefield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Berserker Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 3,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Buckler",
+                "image": null,
+                "type": "Shield",
+                "attack": 0,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crusader Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Deathshield",
+                "image": "eq_death_epic_shield.jpg",
+                "type": "Shield",
+                "attack": 24,
+                "defense": 24,
+                "hero": " ",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 stamina when Skaar is equipped"
+            },
+            {
+                "name": "Defender",
+                "image": "eq_leon_shield.jpg",
+                "type": "Shield",
+                "attack": 7,
+                "defense": 10,
+                "hero": "Leon Ironhart",
+                "recipe1": "Holy Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragan Protector",
+                "image": "gift_dragan_complete.jpg",
+                "type": "Shield",
+                "attack": 5,
+                "defense": 9,
+                "hero": "Dragan",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+5 Defense when Dragan is equipped"
+            },
+            {
+                "name": "Dragon Scale",
+                "image": null,
+                "type": "Shield",
+                "attack": 4,
+                "defense": 9,
+                "hero": null,
+                "recipe1": "Helm of Dragon Power",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Feral Staff",
+                "image": null,
+                "type": "Shield",
+                "attack": 2,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Whisper Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Tear Dagger",
+                "image": null,
+                "type": "Shield",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Harmony",
+                "image": null,
+                "type": "Shield",
+                "attack": 8,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "damage received reduced by 1 when Lailah is equipped"
+            },
+            {
+                "name": "Heart of the Pride",
+                "image": null,
+                "type": "Shield",
+                "attack": 20,
+                "defense": 44,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellcore Defender",
+                "image": null,
+                "type": "Shield",
+                "attack": 18,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellkite Shield",
+                "image": "eq_mephisto_shield.jpg",
+                "type": "Shield",
+                "attack": 2,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Honors Defender",
+                "image": null,
+                "type": "Shield",
+                "attack": 25,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hour Glass",
+                "image": null,
+                "type": "Shield",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": "Morningstar",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ice Dagger",
+                "image": null,
+                "type": "Shield",
+                "attack": 2,
+                "defense": 2,
+                "hero": null,
+                "recipe1": "Frost Tear Dagger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Illusia's Bauble",
+                "image": null,
+                "type": "Shield",
+                "attack": 8,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Illvasan Crest",
+                "image": null,
+                "type": "Shield",
+                "attack": 10,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 defense to Minerva"
+            },
+            {
+                "name": "Inferno Shield",
+                "image": "eq_volcanic_weapon2.jpg",
+                "type": "Shield",
+                "attack": 15,
+                "defense": 10,
+                "hero": null,
+                "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Juggernaut Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 18,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lionheart Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 7,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Moonfall Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 10,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Obsidian Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Purgatory",
+                "image": null,
+                "type": "Shield",
+                "attack": 30,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Seraphim Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Solara"
+            },
+            {
+                "name": "Serenes Arrow",
+                "image": null,
+                "type": "Shield",
+                "attack": 1,
+                "defense": 1,
+                "hero": "Serene",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% Critical when Serene is equipped"
+            },
+            {
+                "name": "Serpentine Shield",
+                "image": "alchemy_serpent_done.jpg",
+                "type": "Shield",
+                "attack": 4,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Cronus, The World Hydra",
+                "comment": null
+            },
+            {
+                "name": "Shield of Arielle",
+                "image": null,
+                "type": "Shield",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Arielle"
+            },
+            {
+                "name": "Shield of Artanis",
+                "image": null,
+                "type": "Shield",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shield of Dante",
+                "image": "eq_dante_shield_complete.jpg",
+                "type": "Shield",
+                "attack": 4,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Defense when Dante is equipped"
+            },
+            {
+                "name": "Shield of Might",
+                "image": "eq_elin_shield.jpg",
+                "type": "Shield",
+                "attack": 1,
+                "defense": 3,
+                "hero": "Elin",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Elin"
+            },
+            {
+                "name": "Silverlight Tome",
+                "image": "eq_gift_elizabeth2_complete.jpg",
+                "type": "Shield",
+                "attack": 3,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Defense to Elizabeth Lione"
+            },
+            {
+                "name": "Spartan Shield",
+                "image": "eq_spartan_shield.jpg",
+                "type": "Shield",
+                "attack": 0,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Star Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 7,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Steel Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 1,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sword of Redemption",
+                "image": null,
+                "type": "Shield",
+                "attack": 50,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tempest Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 4,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Terra's Guard",
+                "image": null,
+                "type": "Shield",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 defense to Terra"
+            },
+            {
+                "name": "The Dreadnought",
+                "image": "boss_keira_shield.jpg",
+                "type": "Shield",
+                "attack": 3,
+                "defense": 7,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vindicator Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Crissana"
+            },
+            {
+                "name": "Warmonger Shield",
+                "image": null,
+                "type": "Shield",
+                "attack": 12,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Barbarus"
+            },
+            {
+                "name": "Zenarean Crest",
+                "image": null,
+                "type": "Shield",
+                "attack": 4,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "War of the Red Plains",
+                "comment": null
+            },
+            {
+                "name": "Air Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Alpha Amethyst Serpent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 75,
+                "defense": 75,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Alpha Emerald Serpent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 65,
+                "defense": 65,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Alpha Ragnarok",
+                "image": null,
+                "type": "Soldier",
+                "attack": 110,
+                "defense": 110,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Alpha Red Serpent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 80,
+                "defense": 80,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Alpha Sapphire Serpent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 70,
+                "defense": 70,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Angel",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Angelic Sentinel",
+                "image": null,
+                "type": "Soldier",
+                "attack": 20,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Arcanist",
+                "image": null,
+                "type": "Soldier",
+                "attack": 23,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Archangel",
+                "image": null,
+                "type": "Soldier",
+                "attack": 25,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Archer",
+                "image": null,
+                "type": "Soldier",
+                "attack": 12,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Armored Spider",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bahamut, the Volcanic Dragon",
+                "image": null,
+                "type": "Soldier",
+                "attack": 75,
+                "defense": 75,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Barbarian",
+                "image": null,
+                "type": "Soldier",
+                "attack": 10,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Barbarian Captain",
+                "image": null,
+                "type": "Soldier",
+                "attack": 23,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Black Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blood Zealot",
+                "image": null,
+                "type": "Soldier",
+                "attack": 40,
+                "defense": 40,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cleric",
+                "image": null,
+                "type": "Soldier",
+                "attack": 1,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Cronus, The World Hydra",
+                "image": null,
+                "type": "Soldier",
+                "attack": 60,
+                "defense": 60,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Death Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 9,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demonic Stalker",
+                "image": null,
+                "type": "Soldier",
+                "attack": 25,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragon",
+                "image": null,
+                "type": "Soldier",
+                "attack": 16,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dwarven Battlemaster",
+                "image": null,
+                "type": "Soldier",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dwarven Sentry",
+                "image": null,
+                "type": "Soldier",
+                "attack": 29,
+                "defense": 33,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Earth Bandit",
+                "image": null,
+                "type": "Soldier",
+                "attack": 2,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Blade",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Entangling Spider",
+                "image": null,
+                "type": "Soldier",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fire Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": 8,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Flame Invoker",
+                "image": "soldier_gehenna.jpg",
+                "type": "Soldier",
+                "attack": 55,
+                "defense": 45,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Footman",
+                "image": null,
+                "type": "Soldier",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Tiger",
+                "image": null,
+                "type": "Soldier",
+                "attack": 26,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gehenna",
+                "image": null,
+                "type": "Soldier",
+                "attack": 110,
+                "defense": 110,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Genesis, The Earth Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": 100,
+                "defense": 100,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 1, Tier 6 Award."
+            },
+            {
+                "name": "Gift Angel",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Cleric",
+                "image": null,
+                "type": "Soldier",
+                "attack": 1,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Dragon",
+                "image": null,
+                "type": "Soldier",
+                "attack": 16,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Footman",
+                "image": null,
+                "type": "Soldier",
+                "attack": 1,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Paladin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Phoenix",
+                "image": null,
+                "type": "Soldier",
+                "attack": 20,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Ranger",
+                "image": null,
+                "type": "Soldier",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Tree Ent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 4,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gift Wizard",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gladiator",
+                "image": null,
+                "type": "Soldier",
+                "attack": 35,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Golden Fang",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Greater Werewolf",
+                "image": null,
+                "type": "Soldier",
+                "attack": 27,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Griffin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Griffin Rider",
+                "image": null,
+                "type": "Soldier",
+                "attack": 33,
+                "defense": 29,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellkite Minion",
+                "image": null,
+                "type": "Soldier",
+                "attack": 32,
+                "defense": 27,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hellslayer Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 29,
+                "defense": 33,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hydra: Atlas",
+                "image": null,
+                "type": "Soldier",
+                "attack": 23,
+                "defense": 28,
+                "hero": null,
+                "recipe1": "Cronus, The World Hydra",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hydra: Epimetheus",
+                "image": null,
+                "type": "Soldier",
+                "attack": 18,
+                "defense": 24,
+                "hero": null,
+                "recipe1": "Cronus, The World Hydra",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hydra: Prometheus",
+                "image": null,
+                "type": "Soldier",
+                "attack": 35,
+                "defense": 25,
+                "hero": null,
+                "recipe1": "Cronus, The World Hydra",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hydra: Rhea",
+                "image": null,
+                "type": "Soldier",
+                "attack": 24,
+                "defense": 18,
+                "hero": null,
+                "recipe1": "Cronus, The World Hydra",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hydra: Tethys",
+                "image": null,
+                "type": "Soldier",
+                "attack": 21,
+                "defense": 21,
+                "hero": null,
+                "recipe1": "Cronus, The World Hydra",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Illvasan Elite",
+                "image": null,
+                "type": "Soldier",
+                "attack": 27,
+                "defense": 32,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lich",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Maiden Shadow",
+                "image": null,
+                "type": "Soldier",
+                "attack": 16,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mercenary",
+                "image": null,
+                "type": "Soldier",
+                "attack": 5,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Monk Warrior",
+                "image": null,
+                "type": "Soldier",
+                "attack": 30,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ogre",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orc Champion",
+                "image": null,
+                "type": "Soldier",
+                "attack": 50,
+                "defense": 50,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orc Chieftain",
+                "image": null,
+                "type": "Soldier",
+                "attack": 26,
+                "defense": 26,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orc Grunt",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orc Marauder",
+                "image": null,
+                "type": "Soldier",
+                "attack": 32,
+                "defense": 27,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Paladin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Phantasm",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Phoenix",
+                "image": null,
+                "type": "Soldier",
+                "attack": 20,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Platinum Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 23,
+                "defense": 27,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Poisonous Spider",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ragnarok",
+                "image": null,
+                "type": "Soldier",
+                "attack": 105,
+                "defense": 105,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ranger",
+                "image": null,
+                "type": "Soldier",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rogue Assassin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 34,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Seraphim Angel",
+                "image": null,
+                "type": "Soldier",
+                "attack": 24,
+                "defense": 21,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow Assassin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 15,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow Panther",
+                "image": null,
+                "type": "Soldier",
+                "attack": 15,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow Warrior",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadow Wraith",
+                "image": null,
+                "type": "Soldier",
+                "attack": 13,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Skeleton Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 18,
+                "defense": 27,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Skeleton Warrior",
+                "image": null,
+                "type": "Soldier",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Spartan Phalanx",
+                "image": null,
+                "type": "Soldier",
+                "attack": 70,
+                "defense": 70,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Spartan Warrior",
+                "image": null,
+                "type": "Soldier",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Spartan Phalanx",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Succubus",
+                "image": null,
+                "type": "Soldier",
+                "attack": 19,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sun Eagle",
+                "image": null,
+                "type": "Soldier",
+                "attack": 15,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tempest Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": 55,
+                "defense": 50,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Templar Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 15,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Tree Ent",
+                "image": null,
+                "type": "Soldier",
+                "attack": 4,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valerian Assassin",
+                "image": null,
+                "type": "Soldier",
+                "attack": 1,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valerian Guard",
+                "image": null,
+                "type": "Soldier",
+                "attack": 7,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valerian Mystic",
+                "image": null,
+                "type": "Soldier",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valhalla the Air Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valor Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 22,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vampire",
+                "image": null,
+                "type": "Soldier",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vampire Lord",
+                "image": null,
+                "type": "Soldier",
+                "attack": 20,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Volcanic Knight",
+                "image": null,
+                "type": "Soldier",
+                "attack": 65,
+                "defense": 55,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "War Bear",
+                "image": null,
+                "type": "Soldier",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "War Lion",
+                "image": null,
+                "type": "Soldier",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Water Demon",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Water Elemental",
+                "image": null,
+                "type": "Soldier",
+                "attack": 14,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Water Sprite",
+                "image": null,
+                "type": "Soldier",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Willow Wisp",
+                "image": null,
+                "type": "Soldier",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wizard",
+                "image": null,
+                "type": "Soldier",
+                "attack": 3,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Aegis of Earth",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Darius"
+            },
+            {
+                "name": "Aeris Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 4,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+5 Attack to Aeris"
+            },
+            {
+                "name": "Arachnid Claw",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Arachnid Slayer",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Araxin Blade",
+                "image": "gift_araxis_complete.jpg",
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Bonus: +1 Attack to Araxis"
+            },
+            {
+                "name": "Arctic Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Assassins Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack to Strider"
+            },
+            {
+                "name": "Atlantean Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Spear",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": "Atlantean Forcefield",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atonement",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Azul"
+            },
+            {
+                "name": "Avenger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Avenging Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 13,
+                "hero": null,
+                "recipe1": "Blood Zealot",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battle Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 4,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Battle Spear",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Berserker Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blade of Arielle",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack to Arielle"
+            },
+            {
+                "name": "Blade of Ursus",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Blade of Vengeance",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Bladebourne Saber",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Miri"
+            },
+            {
+                "name": "Bloodblade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Vanquish"
+            },
+            {
+                "name": "Bonecrusher",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 21,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Sano"
+            },
+            {
+                "name": "Bramble Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Burning Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 13,
+                "hero": null,
+                "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Caldonian Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 13,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Garlan"
+            },
+            {
+                "name": "Celestas Devotion",
+                "image": null,
+                "type": "Weapon",
+                "attack": 22,
+                "defense": 44,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3% Critical when Celesta is equipped"
+            },
+            {
+                "name": "Cid Saber",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Cid"
+            },
+            {
+                "name": "Cloudslayer Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Delfina"
+            },
+            {
+                "name": "Colossal Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Colossal Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crimson Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 energy when Elena is equipped"
+            },
+            {
+                "name": "Crusader Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crusader Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crushing Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Darius"
+            },
+            {
+                "name": "Crystal Rod",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crystalline Rod",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Defense to Scarlett"
+            },
+            {
+                "name": "Daedalus",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 1,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dagger +1",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Death Dealer",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Kaiser"
+            },
+            {
+                "name": "Deathbellow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 19,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Barbarus"
+            },
+            {
+                "name": "Deathrune Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Deliverance",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demon Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Demonic Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Divinity Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Gallador"
+            },
+            {
+                "name": "Draganblade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack when Dragan is equipped"
+            },
+            {
+                "name": "Dragon Talon",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 6,
+                "hero": null,
+                "recipe1": "Helm of Dragon Power",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Dragonbane",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Drakken Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack to Draconius"
+            },
+            {
+                "name": "Dreadnought Greatsword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 4,
+                "hero": "Keira",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Elven Staff",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Emerald Saber",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Aria"
+            },
+            {
+                "name": "Emperion Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Gawain"
+            },
+            {
+                "name": "Excalibur",
+                "image": null,
+                "type": "Weapon",
+                "attack": 25,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Soulforge",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Exsanguinator",
+                "image": null,
+                "type": "Weapon",
+                "attack": 32,
+                "defense": 22,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Fiery Blade",
+                "image": "gift_dante_complete.jpg",
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Dante"
+            },
+            {
+                "name": "Flame Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frost Edge",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Lilith & Riku"
+            },
+            {
+                "name": "Frostfire Staves",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Frostwolf Axe",
+                "image": "gift_shino_complete.jpg",
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Components collected from Mystery Axe Gifts, +1 attack when Shino is equipped"
+            },
+            {
+                "name": "Fury Maul Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Genesis Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 30,
+                "hero": "Medius",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Medius"
+            },
+            {
+                "name": "Gildamesh's War Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gilded Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Glacial Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Gladiator Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Golden Horn Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Elora"
+            },
+            {
+                "name": "Gorlak's Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Dexter"
+            },
+            {
+                "name": "Gorlak's Cudgel",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Gorlak"
+            },
+            {
+                "name": "Great Halberd",
+                "image": null,
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Halcyon Grinder",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Halycon"
+            },
+            {
+                "name": "Hellblade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 30,
+                "defense": 20,
+                "hero": null,
+                "recipe1": "Soulforge",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Alpha Mephistopheles, +5 Attack to Chimerus"
+            },
+            {
+                "name": "Hellkite Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hephaestus Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 28,
+                "defense": 22,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Holy Avenger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": "Excalibur",
+                "recipe1image": null,
+                "recipe2": "Soulforge",
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Icicle Lance",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Incarnation",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Lailah"
+            },
+            {
+                "name": "Infernal Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Iron Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ironhart's Might",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Judgement",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Jadan Wand",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Jada"
+            },
+            {
+                "name": "Judgement",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 5,
+                "hero": null,
+                "recipe1": "Holy Plate",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Justice",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Kingblade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 31,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lance of Valhalla",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lavareign Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lifebane",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Adriana"
+            },
+            {
+                "name": "Lightbringer",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lightguard Rapier",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lion Fang",
+                "image": null,
+                "type": "Weapon",
+                "attack": 24,
+                "defense": 22,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lionheart Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Long Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Longsword +1",
+                "image": null,
+                "type": "Weapon",
+                "attack": 4,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": null,
+                "image": null,
+                "type": null,
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Moonclaw",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+0.5% Critical when Fenris is equipped"
+            },
+            {
+                "name": "Moonfall Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Morningstar",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mystical Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack when Edea is equipped"
+            },
+            {
+                "name": "Nautical Trident",
+                "image": "gift_nautica_complete.jpg",
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 5,
+                "hero": "Nautica",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": " +2 Attack to Nautica"
+            },
+            {
+                "name": "Oathkeeper",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 4,
+                "hero": "Leon Ironhart",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Oberon's Might",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Obsidian Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Onslaught",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Orc War Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 4,
+                "defense": 1,
+                "hero": null,
+                "recipe1": "Avenger",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ornate Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ornate Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Kaiser"
+            },
+            {
+                "name": "Path of the Tower",
+                "image": null,
+                "type": "Weapon",
+                "attack": 22,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Prismatic Staff",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Azalia"
+            },
+            {
+                "name": "Punisher",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rift Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Godric"
+            },
+            {
+                "name": "Righteousness",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Minerva"
+            },
+            {
+                "name": "Rockcrusher Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rockthorn Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 12,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rune Axe",
+                "image": null,
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rune Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Lyra"
+            },
+            {
+                "name": "Scepter of Light",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Defense when Penelope is equipped"
+            },
+            {
+                "name": "Scytheblade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Crissana"
+            },
+            {
+                "name": "Serenity Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Zin"
+            },
+            {
+                "name": "Shadow Blades",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadowfel Katara",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shining Greatsword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Short Sword",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shortsword +1",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Silver Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 4,
+                "hero": null,
+                "recipe1": "Morningstar",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Silverfist Hammer",
+                "image": null,
+                "type": "Weapon",
+                "attack": 19,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Skullcrush Mace",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Karn"
+            },
+            {
+                "name": "Solstice Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Solara"
+            },
+            {
+                "name": "Soul Siphon",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Soulforge",
+                "image": null,
+                "type": "Weapon",
+                "attack": 35,
+                "defense": 35,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% Crit when Strider, Dragan, Sophia or Penelope is equipped"
+            },
+            {
+                "name": "Spartan Spear",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Staff of Jahanna",
+                "image": null,
+                "type": "Weapon",
+                "attack": 26,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Staff of the Tempest",
+                "image": null,
+                "type": "Weapon",
+                "attack": 4,
+                "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Staff of the Martyr",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 19,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Staff of Vigor",
+                "image": "gift_elizabeth3_complete.jpg",
+                "type": "Weapon",
+                "attack": 8,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+4 Stamina to Elizabeth Lione"
+            },
+            {
+                "name": "Stormcrusher",
+                "image": null,
+                "type": "Weapon",
+                "attack": 35,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Stormwind Saber",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 Attack to Kaylen"
+            },
+            {
+                "name": "Sun Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sword of Light",
+                "image": null,
+                "type": "Weapon",
+                "attack": 2,
+                "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sword of Might",
+                "image": null,
+                "type": "Weapon",
+                "attack": 3,
+                "defense": 1,
+                "hero": "Elin",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Elin"
+            },
+            {
+                "name": "Sword of the Faithless",
+                "image": null,
+                "type": "Weapon",
+                "attack": 7,
+                "defense": 7,
+                "hero": "Cartigan",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Sword of the Sea",
+                "image": null,
+                "type": "Weapon",
+                "attack": 5,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Terra's Blade",
+                "image": "gift_terra_complete.jpg",
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +3 Attack to Terra"
+            },
+            {
+                "name": "The Disembowler",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Kataan"
+            },
+            {
+                "name": "The Galvanizer",
+                "image": null,
+                "type": "Weapon",
+                "attack": 27,
+                "defense": 23,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "The Reckoning",
+                "image": null,
+                "type": "Weapon",
+                "attack": 40,
+                "defense": 28,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Titania Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+3 Attack to Titania"
+            },
+            {
+                "name": "Trident of the Deep",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Truthseeker Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 15,
+                "defense": 22,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vampiric Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 10,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 attack to Slayer"
+            },
+            {
+                "name": "Virtue of Justice",
+                "image": null,
+                "type": "Weapon",
+                "attack": 25,
+                "defense": 25,
+                "hero": "Hyperion",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Attack to Hyperion"
+            },
+            {
+                "name": "Wand of Illusia",
+                "image": null,
+                "type": "Weapon",
+                "attack": 9,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Warriors Blade",
+                "image": null,
+                "type": "Weapon",
+                "attack": 30,
+                "defense": 19,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Whisper Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 6,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wildleaf Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Wildwalker Staff",
+                "image": null,
+                "type": "Weapon",
+                "attack": 11,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1% critical when Anwar is equipped"
+            },
+            {
+                "name": "Windthorn Wand",
+                "image": null,
+                "type": "Weapon",
+                "attack": 16,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+2 attack to Suri"
+            },
+            {
+                "name": "Zarevok's Meat Cleaver",
+                "image": null,
+                "type": "Weapon",
+                "attack": 44,
+                "defense": 22,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 1, Tier 5 reward. +3 attack, +3 defense to Zarevok when equipped."
+            },
+            {
+                "name": "Zenarean Bow",
+                "image": null,
+                "type": "Weapon",
+                "attack": 14,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Zenarean Dagger",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 19,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            }
+        ]
+    };
+
+    ////////////////////////////////////////////////////////////////////
     //                          config OBJECT
     // this is the main object for dealing with user options
     /////////////////////////////////////////////////////////////////////
@@ -879,10 +15560,12 @@
                 }
 
                 if (!$u.isDefined(config.options[name])) {
-                    $u.warn("config.deleteItem - Invalid or non-existant flag: ", name);
+                    $u.warn("config.deleteItem - Invalid or non-existant name:", name);
+                } else {
+                    delete config.options[name];
+                    config.save();
                 }
 
-                delete config.options[name];
                 return true;
             } catch (err) {
                 $u.error("ERROR in config.deleteItem: " + err);
@@ -1406,7 +16089,11 @@
                 'empi'       : 0,
                 'energyMax'  : 0,
                 'staminaMax' : 0,
-                'healthMax'  : 0
+                'healthMax'  : 0,
+                'item'       : 0,
+                'itype'      : 0,
+                'coolDown'   : false,
+                'charge'     : 0
             };
         },
 
@@ -1462,8 +16149,13 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        find: function (generalName) {
+        getItem: function (generalName, quiet) {
             try {
+                if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
+                    $u.warn("generalName", generalName);
+                    throw "Invalid identifying generalName!";
+                }
+
                 var it    = 0,
                     len   = 0,
                     found = false;
@@ -1476,13 +16168,54 @@
                 }
 
                 if (!found) {
-                    $u.warn("Unable to find 'General' record");
+                    if (!quiet) {
+                        $u.warn("Unable to find 'General' record", generalName);
+                    }
+
                     return false;
                 }
 
                 return general.records[it];
             } catch (err) {
-                $u.error("ERROR in general.find: " + err);
+                $u.error("ERROR in general.getItem: " + err);
+                return false;
+            }
+        },
+
+        setItem: function (record) {
+            try {
+                if (!record || !$j.isPlainObject(record)) {
+                    throw "Not passed a record";
+                }
+
+                if (!$u.hasContent(record['name']) || !$u.isString(record['name'])) {
+                    $u.warn("name", record['name']);
+                    throw "Invalid identifying name!";
+                }
+
+                var it      = 0,
+                    len     = 0,
+                    success = false;
+
+                for (it = 0, len = general.records.length; it < len; it += 1) {
+                    if (general.records[it]['name'] === record['name']) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    general.records[it] = record;
+                    $u.log(3, "Updated general record", record, general.records);
+                } else {
+                    general.records.push(record);
+                    $u.log(3, "Added general record", record, general.records);
+                }
+
+                general.save();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in general.setItem: " + err);
                 return false;
             }
         },
@@ -1506,7 +16239,7 @@
 
         GetImage: function (generalName) {
             try {
-                var genImg = general.find(generalName);
+                var genImg = general.getItem(generalName);
 
                 if (genImg === false) {
                     $u.warn("Unable to find 'General' image");
@@ -1524,7 +16257,7 @@
 
         GetStaminaMax: function (generalName) {
             try {
-                var genStamina = general.find(generalName);
+                var genStamina = general.getItem(generalName);
 
                 if (genStamina === false) {
                     $u.warn("Unable to find 'General' stamina");
@@ -1542,7 +16275,7 @@
 
         GetEnergyMax: function (generalName) {
             try {
-                var genEnergy = general.find(generalName);
+                var genEnergy = general.getItem(generalName);
 
                 if (genEnergy === false) {
                     $u.warn("Unable to find 'General' energy");
@@ -1560,7 +16293,7 @@
 
         GetHealthMax: function (generalName) {
             try {
-                var genHealth = general.find(generalName);
+                var genHealth = general.getItem(generalName);
 
                 if (genHealth === false) {
                     $u.warn("Unable to find 'General' health");
@@ -1578,7 +16311,7 @@
 
         GetLevel: function (generalName) {
             try {
-                var genLevel = general.find(generalName);
+                var genLevel = general.getItem(generalName);
 
                 if (genLevel === false) {
                     $u.warn("Unable to find 'General' level");
@@ -1612,6 +16345,25 @@
                 return false;
             }
         },
+
+        getCoolDownNames: function () {
+            try {
+                var it    = 0,
+                    len   = 0,
+                    names = [];
+
+                for (it = 0, len = general.records.length; it < len; it += 1) {
+                    if (general.records[it]['coolDown']) {
+                        names.push(general.records[it]['name']);
+                    }
+                }
+
+                return names.sort();
+            } catch (err) {
+                $u.error("ERROR in general.getCoolDownNames: " + err);
+                return false;
+            }
+        },
         /*jslint sub: false */
 
         List: [],
@@ -1626,6 +16378,8 @@
 
         SubQuestList: [],
 
+        coolDownList: [],
+
         StandardList: [
             'Idle',
             'Monster',
@@ -1635,6 +16389,16 @@
             'Duel',
             'War'
             //'Arena'
+            //'Festival'
+        ],
+
+        coolStandardList: [
+            'Monster',
+            'Fortify',
+            'GuildMonster',
+            'Invade',
+            'Duel',
+            'War'
         ],
 
         BuildlLists: function () {
@@ -1682,6 +16446,10 @@
                     'Titania'
                 ].filter(crossList);
 
+                general.coolDownList = [
+                    ''
+                ].concat(general.getCoolDownNames());
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.BuildlLists: " + err);
@@ -1689,14 +16457,24 @@
             }
         },
 
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
         GetCurrent: function () {
             try {
-                var nameObj     = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3", caap.globalContainer),
-                    generalName = $u.hasContent(nameObj) ? $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, '') : '';
+                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", caap.globalContainer),
+                    nameObj     = $j(".general_name_div3", equipDiv),
+                    generalName = $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, ''),
+                    record      = {};
 
                 if (!generalName) {
                     $u.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
+                }
+
+                record = general.getItem(generalName);
+                if (record['coolDown'] && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
+                    record['charge'] = 0;
+                    general.setItem(record);
                 }
 
                 $u.log(4, "Current General", generalName);
@@ -1707,11 +16485,9 @@
             }
         },
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.globalContainer),
+                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -1720,10 +16496,14 @@
                         var newGeneral = new general.record(),
                             name       = '',
                             img        = '',
+                            item       = 0,
+                            itype      = 0,
                             level      = 0,
                             atk        = 0,
                             def        = 0,
                             special    = '',
+                            coolDown   = false,
+                            charge     = 0,
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
@@ -1740,6 +16520,28 @@
                             img = $u.setContent(tempObj.attr("src"), '').basename();
                         } else {
                             $u.warn("Unable to find 'image' container", index);
+                        }
+
+                        tempObj = $j("input[name='item']", container);
+                        if ($u.hasContent(tempObj)) {
+                            item = $u.setContent(tempObj.attr("value"), '').parseInt();
+                        } else {
+                            $u.warn("Unable to find 'item' container", index);
+                        }
+
+                        tempObj = $j("input[name='itype']", container);
+                        if ($u.hasContent(tempObj)) {
+                            itype = $u.setContent(tempObj.attr("value"), '').parseInt();
+                        } else {
+                            $u.warn("Unable to find 'itype' container", index);
+                        }
+
+                        tempObj = $j("div[style*='train_progress.jpg']", container);
+                        if ($u.hasContent(tempObj)) {
+                            coolDown = true;
+                            charge = $u.setContent(tempObj.getPercent("width"), 0);
+                        } else {
+                            $u.log(4, "Not a cool down general", index);
                         }
 
                         tempObj = container.children().eq(3);
@@ -1774,6 +16576,10 @@
 
                             newGeneral.data['name'] = name;
                             newGeneral.data['img'] = img;
+                            newGeneral.data['item'] = item;
+                            newGeneral.data['itype'] = itype;
+                            newGeneral.data['coolDown'] = coolDown;
+                            newGeneral.data['charge'] = charge;
                             newGeneral.data['lvl'] = level;
                             newGeneral.data['atk'] = atk;
                             newGeneral.data['def'] = def;
@@ -1819,17 +16625,28 @@
 
         UpdateDropDowns: function () {
             try {
-                var it  = 0,
-                    len = 0;
+                var it       = 0,
+                    len      = 0,
+                    coolDown = '';
 
                 general.BuildlLists();
                 $u.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                     caap.changeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
+                    coolDown = general.getCoolDownType(general.StandardList[it]);
+                    if (coolDown) {
+                        caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
+                    }
+                }
+
+                if (coolDown && general.coolDownList.length > 1) {
+                    $j("div[id*='_cool_row']", caap.caapDivObject).css("display", "block");
+                    if (general.getItem("Zin", true) === false ? false : true) {
+                        $j("div[id*='_zin_row']", caap.caapDivObject).css("display", "block");
+                    }
                 }
 
                 caap.changeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
-                caap.changeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
                 caap.changeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
                 caap.changeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
                 caap.changeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
@@ -1887,6 +16704,27 @@
                 return undefined;
             }
         },
+
+        getCoolDownType: function (whichGeneral) {
+            try {
+                var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '',
+                    it          = 0,
+                    ok          = false;
+
+                for (it = 0; it < general.coolStandardList.length; it += 1) {
+                    if (general.coolStandardList[it] === generalType) {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                generalType = ok ? (generalType ? generalType + "CoolGeneral" : '') : '';
+                return generalType;
+            } catch (err) {
+                $u.error("ERROR in general.getCoolDownType: " + err);
+                return undefined;
+            }
+        },
         /*jslint sub: false */
 
         Select: function (whichGeneral) {
@@ -1895,14 +16733,24 @@
                     getCurrentGeneral = '',
                     currentGeneral    = '',
                     generalImage      = '',
-                    levelUp           = general.LevelUpCheck(whichGeneral);
+                    levelUp           = general.LevelUpCheck(whichGeneral),
+                    coolType          = general.getCoolDownType(whichGeneral),
+                    coolName          = coolType ? config.getItem(coolType, '') : '',
+                    coolRecord        = coolName ? general.getItem(coolName) : {},
+                    zinRecord         = general.getItem("Zin", true),
+                    zinReady          = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats['stamina']['num'] <= (caap.stats['stamina']['max'] - 15) && zinRecord['charge'] === 100 : false,
+                    coolZin           = coolName === "Zin" ? caap.stats['stamina']['num'] > (caap.stats['stamina']['max'] - 15) : false,
+                    useCool           = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord['charge'] === 100,
+                    zinFirst          = config.getItem("useZinFirst", true);
 
+                $u.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
+                $u.log(3, 'Zin', zinReady, zinFirst, zinRecord);
                 if (levelUp) {
                     whichGeneral = 'LevelUpGeneral';
                     $u.log(2, 'Using level up general');
                 }
 
-                generalName = config.getItem(whichGeneral, 'Use Current');
+                generalName = zinReady && zinFirst ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
                 if (!generalName || /use current/i.test(generalName)) {
                     return false;
                 }
@@ -1954,6 +16802,7 @@
         /*jslint sub: true */
         GetEquippedStats: function () {
             try {
+                general.quickSwitch = false;
                 var generalName  = general.GetCurrent(),
                     it           = 0,
                     len          = 0,
@@ -2080,7 +16929,6 @@
                 return undefined;
             }
         },
-        /*jslint sub: false */
 
         menu: function () {
             try {
@@ -2109,13 +16957,19 @@
                     //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                     LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                     LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
+                    LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
                     dropDownItem = 0,
+                    coolDown = '',
+                    haveZin = general.getItem("Zin", true) === false ? false : true,
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Generals', 'GENERALS');
+                htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
                 htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
                 for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
                     htmlCode += caap.makeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
+                    coolDown = general.getCoolDownType(general.StandardList[dropDownItem]);
+                    htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
                 }
 
                 htmlCode += caap.makeDropDownTR("SubQuest", 'SubQuestGeneral', general.SubQuestList, '', '', 'Use Current', false, false, 62);
@@ -2134,6 +16988,7 @@
                 htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
                 //htmlCode += caap.makeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
+                //htmlCode += caap.makeCheckTR("Gen For Festival", 'FestivalLevelUpGeneral', true, LevelUpGenInstructions16, true, false);
                 htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
@@ -2149,7 +17004,133 @@
                 $u.error("ERROR in general.menu: " + err);
                 return '';
             }
+        },
+
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
+                    var html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
+                        values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
+                        generalValues            = [],
+                        pp                       = 0,
+                        link                     = '',
+                        instructions             = '',
+                        valueCol                 = 'red',
+                        it                       = 0,
+                        len                      = 0,
+                        len1                     = 0,
+                        data                     = {text: '', color: '', bgcolor: '', id: '',  title: ''},
+                        header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        statsRegExp              = new RegExp("caap_.*Stats_"),
+                        handler                  = null;
+
+                    $j.merge(generalValues, values);
+                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                        header = {
+                            text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : '',
+                            width : ''
+                        };
+
+                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : '', id    : '', title : '', width : '25%'} : header;
+                        html += caap.makeTh(header);
+                    }
+
+                    html += '</tr>';
+                    for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len; pp += 1) {
+                            if (values[pp] === 'name') {
+                                link = "generals.php?itype=" + general.recordsSortable[it]['itype'] + "&item=" + general.recordsSortable[it]['item'];
+                                instructions = "Clicking this link will change General to " + general.recordsSortable[it]['name'];
+                                data = {
+                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.recordsSortable[it]['name'] + '" rlink="' + link +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.recordsSortable[it]['name'] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_generalsStats", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var changeLink = {
+                                mname     : '',
+                                rlink     : ''
+                            },
+                            i        = 0,
+                            len      = 0,
+                            clickUrl = state.getItem('clickUrl', '');
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                changeLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                changeLink.rlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        if (clickUrl.hasIndexOf("generals.php")) {
+                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "globalContainer", ".game", clickUrl);
+                        } else {
+                            general.quickSwitch = true;
+                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", ".equippedGeneralCnt2", clickUrl);
+                        }
+                    };
+
+                    $j("span[id*='caap_general_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (generalValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("GeneralsSort", order.data);
+                            state.setItem("GeneralsDashUpdate", true);
+                            sort.updateForm("Generals");
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("span[id*='caap_generalsStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    state.setItem("GeneralsDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in general.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -2165,7 +17146,10 @@
         record: function () {
             this.data = {
                 'name'       : '',
+                'userName'   : '',
                 'userId'     : 0,
+                'monster'    : '',
+                'md5'        : '',
                 'attacked'   : -1,
                 'defended'   : -1,
                 'damage'     : -1,
@@ -2175,6 +17159,7 @@
                 't2k'        : -1,
                 'phase'      : '',
                 'miss'       : 0,
+                'feedLink'   : '',
                 'link'       : '',
                 'rix'        : -1,
                 'mpool'      : '',
@@ -2192,7 +17177,12 @@
                 'stunDo'     : false,
                 'stunType'   : '',
                 'tip'        : '',
-                'fImg'       : ''
+                'fImg'       : '',
+                'hide'       : false,
+                'save'       : true,
+                'joinable'   : {},
+                'joined'     : false,
+                'select'     : false
             };
         },
         /*jslint sub: false */
@@ -2216,7 +17206,7 @@
         // http://castleage.wikidot.com/monster for monster info
         // http://castleage.wikidot.com/skaar
         info: {
-            'Deathrune' : {
+            'Skaar Deathrune' : {
                 duration     : 96,
                 defense      : true,
                 hp           : 100000000,
@@ -2233,9 +17223,16 @@
                 reqAtkButton : 'attack_monster_button.jpg',
                 v            : 'attack_monster_button2.jpg',
                 defButton    : 'button_dispel.gif',
-                defense_img  : 'bar_dispel.gif'
+                defense_img  : 'bar_dispel.gif',
+                levels       : [1,  30, 60, 90],
+                join         : [30, 50, 70, 70],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_skaar_boss.jpg',
+                festival_dur : 120,
+                festival_ach : 1000000
             },
-            'Ice Elemental' : {
+            'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
                 defense      : true,
                 hp           : 100000000,
@@ -2252,9 +17249,16 @@
                 reqAtkButton : 'attack_monster_button.jpg',
                 pwrAtkButton : 'attack_monster_button2.jpg',
                 defButton    : 'button_dispel.gif',
-                defense_img  : 'bar_dispel.gif'
+                defense_img  : 'bar_dispel.gif',
+                levels       : [1,  30, 60, 90],
+                join         : [30, 50, 70, 70],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_water_element.jpg',
+                festival_dur : 192,
+                festival_ach : 1000000
             },
-            'Earth Elemental' : {
+            'Genesis, The Earth Elemental' : {
                 duration     : 168,
                 defense      : true,
                 hp           : 100000000,
@@ -2272,9 +17276,16 @@
                 pwrAtkButton : 'attack_monster_button2.jpg',
                 defButton    : 'attack_monster_button3.jpg',
                 defense_img  : 'seamonster_ship_health.jpg',
-                repair_img   : 'repair_bar_grey.jpg'
+                repair_img   : 'repair_bar_grey.jpg',
+                levels       : [1,  30, 60, 90],
+                join         : [30, 30, 30, 40],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_earth_element.jpg',
+                festival_dur : 192,
+                festival_ach : 1000000
             },
-            'Hydra' : {
+            'Cronus, The World Hydra' : {
                 duration     : 168,
                 hp           : 100000000,
                 ach          : 500000,
@@ -2284,9 +17295,16 @@
                 siege_img    : ['/graphics/monster_siege_small'],
                 staUse       : 10,
                 staLvl       : [0, 100, 200, 400, 400],
-                staMax       : [10, 20, 50,  100, 200]
+                staMax       : [10, 20, 50,  100, 200],
+                levels       : [1,  30, 60, 90],
+                join         : [40, 30, 30, 30],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_hydra.jpg',
+                festival_dur : 192,
+                festival_ach : 500000
             },
-            'Legion' : {
+            'Battle Of The Dark Legion' : {
                 duration     : 168,
                 hp           : 100000,
                 ach          : 1000,
@@ -2300,7 +17318,11 @@
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
                 defense_img  : 'seamonster_ship_health.jpg',
-                repair_img   : 'repair_bar_grey.jpg'
+                repair_img   : 'repair_bar_grey.jpg',
+                levels       : [1,  30, 60, 90],
+                join         : [30, 30, 30, 40],
+                mClass       : 'Epic World',
+                mpool        : 3
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -2311,7 +17333,9 @@
                 attack_img   : [
                     'seamonster_power.gif',
                     'serpent_10stam_attack.gif'
-                ]
+                ],
+                mClass       : 'Epic Team',
+                mpool        : 2
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -2322,7 +17346,12 @@
                 attack_img   : [
                     'seamonster_power.gif',
                     'serpent_10stam_attack.gif'
-                ]
+                ],
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_dragon_blue.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -2333,9 +17362,14 @@
                 attack_img   : [
                     'seamonster_power.gif',
                     'serpent_10stam_attack.gif'
-                ]
+                ],
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_dragon_yellow.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
             },
-            'Red Dragon' : {
+            'Ancient Red Dragon' : {
                 duration     : 72,
                 ach          : 100000,
                 siege        : 0,
@@ -2344,40 +17378,64 @@
                 attack_img   : [
                     'seamonster_power.gif',
                     'serpent_10stam_attack.gif'
-                ]
+                ],
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_dragon_red.jpg',
+                festival_dur : 96,
+                festival_ach : 50000
             },
-            'King'      : {
+            'Gildamesh, The Orc King'      : {
                 duration     : 72,
                 ach          : 15000,
-                siege        : 0
+                siege        : 0,
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_orcking.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
             },
-            'Terra'     : {
+            'Colossus Of Terra'     : {
                 duration     : 72,
                 ach          : 20000,
-                siege        : 0
+                siege        : 0,
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_stonegiant.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
             },
-            'Queen'     : {
+            'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
                 ach          : 50000,
                 siege        : 1,
                 siegeClicks  : [11],
                 siegeDam     : [500000],
-                siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif']
+                siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif'],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_sylvanus.jpg',
+                festival_dur : 72,
+                festival_ach : 30000
             },
-            'Ravenmoore' : {
+            'Lotus Ravenmoore' : {
                 duration     : 48,
                 ach          : 500000,
-                siege        : 0
+                siege        : 0,
+                mClass       : 'Epic Boss',
+                mpool        : 1
             },
-            'Knight'    : {
+            'Keira The Dread Knight'    : {
                 duration     : 48,
                 ach          : 30000,
                 siege        : 0,
                 reqAtkButton : 'event_attack1.gif',
                 pwrAtkButton : 'event_attack2.gif',
-                defButton    : null
+                //defButton    : null,
+                mClass       : 'Epic Boss',
+                mpool        : 1
             },
-            'Serpent'   : {
+            'Amethyst Sea Serpent'   : {
                 duration     : 72,
                 defense      : true,
                 ach          : 250000,
@@ -2390,45 +17448,112 @@
                     'serpent_20stam_attack.gif'
                 ],
                 fortify_img  : ['seamonster_fortify.gif'],
-                defense_img  : 'seamonster_ship_health.jpg'
+                defense_img  : 'seamonster_ship_health.jpg',
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_seamonster_purple.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
             },
-            'Siege'    : {
+            'Ancient Sea Serpent'   : {
+                duration     : 72,
+                defense      : true,
+                ach          : 250000,
+                siege        : 0,
+                fort         : true,
+                staUse       : 10,
+                staMax       : [10, 20],
+                attack_img   : [
+                    'serpent_10stam_attack.gif',
+                    'serpent_20stam_attack.gif'
+                ],
+                fortify_img  : ['seamonster_fortify.gif'],
+                defense_img  : 'seamonster_ship_health.jpg',
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_seamonster_red.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
+            },
+            'Emerald Sea Serpent'   : {
+                duration     : 72,
+                defense      : true,
+                ach          : 250000,
+                siege        : 0,
+                fort         : true,
+                staUse       : 10,
+                staMax       : [10, 20],
+                attack_img   : [
+                    'serpent_10stam_attack.gif',
+                    'serpent_20stam_attack.gif'
+                ],
+                fortify_img  : ['seamonster_fortify.gif'],
+                defense_img  : 'seamonster_ship_health.jpg',
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_seamonster_green.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
+            },
+            'Sapphire Sea Serpent'   : {
+                duration     : 72,
+                defense      : true,
+                ach          : 250000,
+                siege        : 0,
+                fort         : true,
+                staUse       : 10,
+                staMax       : [10, 20],
+                attack_img   : [
+                    'serpent_10stam_attack.gif',
+                    'serpent_20stam_attack.gif'
+                ],
+                fortify_img  : ['seamonster_fortify.gif'],
+                defense_img  : 'seamonster_ship_health.jpg',
+                mClass       : 'Epic Team',
+                mpool        : 2,
+                festival_img : 'festival_monsters_top_seamonster_blue.jpg',
+                festival_dur : 96,
+                festival_ach : 30000
+            },
+            'The Deathrune Siege'    : {
                 duration     : 232,
-                raid         : true,
                 ach          : 100,
                 siege        : 2,
-                siegeClicks  : [30, 100],
+                siegeClicks  : [80,  100],
                 siegeDam     : [300, 1500],
                 siege_img    : ['/graphics/monster_siege_'],
-                staUse       : 1
-            },
-            'Raid I'    : {
-                duration     : 88,
-                raid         : true,
-                ach          : 50,
-                siege        : 1,
-                siegeClicks  : [30],
-                siegeDam     : [300],
-                siege_img    : ['/graphics/monster_siege_'],
-                staUse       : 1
-            },
-            'Raid II'   : {
-                duration     : 144,
-                raid         : true,
-                ach          : 100,
-                siege        : 2,
-                siegeClicks  : [30, 100],
-                siegeDam     : [300, 1500],
-                siege_img    : ['/graphics/monster_siege_'],
-                staUse       : 1
+                staUse       : 1,
+                stage1       : {
+                    duration     : 88,
+                    ach          : 50,
+                    siege        : 1,
+                    siegeClicks  : [80],
+                    siegeDam     : [300],
+                    siege_img    : ['/graphics/monster_siege_'],
+                    staUse       : 1
+                },
+                stage2       : {
+                    duration     : 144,
+                    ach          : 100,
+                    siege        : 2,
+                    siegeClicks  : [80,  100],
+                    siegeDam     : [300, 1500],
+                    siege_img    : ['/graphics/monster_siege_'],
+                    staUse       : 1
+                }
             },
             'Mephistopheles' : {
                 duration     : 48,
                 ach          : 200000,
-                siege        : 0
+                siege        : 0,
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_mephistopheles.jpg',
+                festival_dur : 89,
+                festival_ach : 50000
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
-            'Plains' : {
+            'War Of The Red Plains' : {
                 alpha        : true,
                 tactics      : true,
                 duration     : 168,
@@ -2448,10 +17573,14 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic World',
+                mpool        : 3
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
-            'Volcanic Dragon' : {
+            'Bahamut, The Volcanic Dragon' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 130000000,
@@ -2465,11 +17594,18 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  20],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_volcanic_new.jpg',
+                festival_dur : 192,
+                festival_ach : 1000000
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
-            'Alpha Volcanic Dragon' : {
+            'Alpha Bahamut, The Volcanic Dragon' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 620000000,
@@ -2487,10 +17623,14 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  60],
+                mClass       : 'Epic World',
+                mpool        : 3
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
-            'Wrath' : {
+            'Azriel, The Angel Of Wrath' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 600000000,
@@ -2508,7 +17648,14 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_boss_azriel.jpg',
+                festival_dur : 192,
+                festival_ach : 4000000
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -2529,9 +17676,16 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic Boss',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_alpha_mephistopheles.jpg',
+                festival_dur : 192,
+                festival_ach : 1000000
             },
-            'Fire Elemental' : {
+            'Gehenna, The Fire Elemental' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 350000000,
@@ -2550,9 +17704,16 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_fire_element.jpg',
+                festival_dur : 96,
+                festival_ach : 3500000
             },
-            "Lion's Rebellion" : {
+            "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
                 tactics      : true,
                 duration     : 168,
@@ -2572,7 +17733,11 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic Boss',
+                mpool        : 1
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -2593,9 +17758,13 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic Boss',
+                mpool        : 1
             },
-            'Air Elemental' : {
+            'Valhalla, The Air Elemental' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 650000000,
@@ -2615,9 +17784,16 @@
                 staLvl       : [0,  50, 100, 200],
                 staMax       : [10, 20, 50,  100],
                 nrgMax       : [20, 40, 100, 200],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 30,  45],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                festival_img : 'festival_monsters_top_air_element.jpg',
+                festival_dur : 192,
+                festival_ach : 2500000
             },
-            'Priestess of Aurora' : {
+            'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 650000000,
@@ -2636,9 +17812,13 @@
                 staLvl       : [0,  50, 100, 200],
                 staMax       : [10, 20, 50,  100],
                 nrgMax       : [20, 40, 100, 200],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic Boss',
+                mpool        : 1
             },
-            "Overseer" : {
+            "Agamemnon The Overseer" : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 640000000,
@@ -2657,9 +17837,79 @@
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg'
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                festival_img : 'festival_monsters_top_agamemnon.jpg',
+                festival_dur : 192,
+                festival_ach : 10000000
             }
         },
+
+        list: function () {
+            try {
+                var i    = '',
+                    list = [];
+
+                for (i in monster.info) {
+                    if (monster.info.hasOwnProperty(i)) {
+                        list.push(i);
+                    }
+                }
+
+                return list.sort();
+            } catch (err) {
+                $u.error("ERROR in monster.list: " + err);
+                return undefined;
+            }
+        },
+
+        getFestName: function (img) {
+            try {
+                if (!$u.hasContent(img) || !$u.isString(img)) {
+                    $u.warn("img", img);
+                    throw "Invalid identifying img!";
+                }
+
+                var i    = '',
+                    r    = {},
+                    name = '';
+
+                for (i in monster.info) {
+                    if (monster.info.hasOwnProperty(i)) {
+                        r = monster.info[i];
+                        if (img === r.festival_img) {
+                            name = i;
+                            break;
+                        }
+                    }
+                }
+
+                return name;
+            } catch (err) {
+                $u.error("ERROR in monster.getFestName: " + err);
+                return undefined;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        getInfo: function (record) {
+            try {
+                if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
+                    throw "Not passed a record";
+                }
+
+                var monsterInfo = monster.info[record['monster']];
+                return $u.hasContent(record['type']) ? (record['type'] === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
+            } catch (err) {
+                $u.error("ERROR in monster.getInfo: " + err);
+                return undefined;
+            }
+        },
+        /*jslint sub: false */
 
         load: function () {
             try {
@@ -2688,6 +17938,31 @@
                 return false;
             }
         },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        clean: function () {
+            try {
+                var it   = 0,
+                    list = [];
+
+                for (it = 0; it < monster.records.length; it += 1) {
+                    if (!monster.records[it]['joined']) {
+                        list.push(monster.records[it]['md5']);
+                    }
+                }
+
+                for (it = 0; it < list.length; it += 1) {
+                    monster.deleteItem(list[it]);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in monster.clean: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
 
         parseCondition: function (type, conditions) {
             try {
@@ -2754,95 +18029,104 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        getItem: function (name) {
+        getItem: function (md5) {
             try {
                 var it        = 0,
                     len       = 0,
                     success   = false,
-                    newRecord = {};
+                    newRecord = {},
+                    record    = {};
 
-                if (!$u.isString(name)) {
-                    $u.warn("name", name);
-                    throw "Invalid identifying name!";
+                if (!$u.isString(md5)) {
+                    $u.warn("md5", md5);
+                    throw "Invalid identifying md5!";
                 }
 
-                if (name === '') {
-                    return '';
-                }
-
-                for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['name'] === name) {
-                        success = true;
-                        break;
+                if ($u.hasContent(md5)) {
+                    for (it = 0, len = monster.records.length; it < len; it += 1) {
+                        if (monster.records[it]['md5'] === md5) {
+                            success = true;
+                            break;
+                        }
                     }
                 }
 
                 if (success) {
-                    $u.log(3, "Got monster record", name, monster.records[it]);
-                    return monster.records[it];
+                    record = monster.records[it];
+                    $u.log(3, "Got monster record", md5, record);
                 } else {
                     newRecord = new monster.record();
-                    newRecord.data['name'] = name;
-                    $u.log(3, "New monster record", name, newRecord.data);
-                    return newRecord.data;
+                    newRecord.data['md5'] = md5;
+                    record = newRecord.data;
+                    $u.log(3, "New monster record", md5, record);
                 }
+
+                return record;
             } catch (err) {
                 $u.error("ERROR in monster.getItem: " + err);
-                return false;
+                return undefined;
             }
         },
 
         setItem: function (record) {
             try {
-                if (!record || !$j.isPlainObject(record)) {
+                if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
-                if (!$u.isString(record['name']) || record['name'] === '') {
-                    $u.warn("name", record['name']);
-                    throw "Invalid identifying name!";
+                if (!$u.isString(record['md5']) || !$u.hasContent(record['md5'])) {
+                    $u.warn("md5", record['md5']);
+                    throw "Invalid identifying md5!";
                 }
 
                 var it      = 0,
                     len     = 0,
                     success = false;
 
-                for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['name'] === record['name']) {
-                        success = true;
-                        break;
+                if (config.getItem('enableMonsterFinder', false) && !record['select']) {
+                    feed.checked(record);
+                }
+
+                record['select'] = false;
+                if (record['save']) {
+                    for (it = 0, len = monster.records.length; it < len; it += 1) {
+                        if (monster.records[it]['md5'] === record['md5']) {
+                            success = true;
+                            break;
+                        }
                     }
+
+                    if (success) {
+                        monster.records[it] = record;
+                        $u.log(3, "Updated monster record", record, monster.records);
+                    } else {
+                        monster.records.push(record);
+                        $u.log(3, "Added monster record", record, monster.records);
+                    }
+
+                    monster.save();
                 }
 
-                if (success) {
-                    monster.records[it] = record;
-                    $u.log(3, "Updated monster record", record, monster.records);
-                } else {
-                    monster.records.push(record);
-                    $u.log(3, "Added monster record", record, monster.records);
-                }
-
-                monster.save();
-                return true;
+                return record;
             } catch (err) {
                 $u.error("ERROR in monster.setItem: " + err);
-                return false;
+                return undefined;
             }
         },
 
-        deleteItem: function (name) {
+        deleteItem: function (md5) {
             try {
                 var it        = 0,
                     len       = 0,
                     success   = false;
 
-                if (!$u.isString(name) || name === '') {
-                    $u.warn("name", name);
-                    throw "Invalid identifying name!";
+                if (!$u.isString(md5) || !$u.hasContent(md5)) {
+                    $u.warn("md5", md5);
+                    throw "Invalid identifying md5!";
                 }
 
                 for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['name'] === name) {
+                    if (monster.records[it]['md5'] === md5) {
                         success = true;
                         break;
                     }
@@ -2851,12 +18135,12 @@
                 if (success) {
                     monster.records.splice(it, 1);
                     monster.save();
-                    $u.log(3, "Deleted monster record", name, monster.records);
-                    return true;
+                    $u.log(3, "Deleted monster record", md5, monster.records);
                 } else {
-                    $u.warn("Unable to delete monster record", name, monster.records);
-                    return false;
+                    $u.warn("Unable to delete monster record", md5, monster.records);
                 }
+
+                return success;
             } catch (err) {
                 $u.error("ERROR in monster.deleteItem: " + err);
                 return false;
@@ -2879,10 +18163,11 @@
         /*jslint sub: true */
         t2kCalc: function (record) {
             try {
-                var boss                           = monster.info[record['type']],
+                var boss                           = monster.getInfo(record),
                     siegeStage                     = record['phase'] - 1,
                     timeLeft                       = record['time'][0] + (record['time'][1] * 0.0166),
-                    timeUsed                       = (record['page'] === 'festival_tower' ? (caap.festivalMonsterImgTable[record['fImg']] ? caap.festivalMonsterImgTable[record['fImg']].duration : 192) : boss.duration) - timeLeft,
+                    duration                       = record['page'] === 'festival_battle_monster' ? (boss ? boss.festival_dur : 192) : (boss ? boss.duration : 192),
+                    timeUsed                       = duration - timeLeft,
                     T2K                            = 0,
                     damageDone                     = 0,
                     hpLeft                         = 0,
@@ -2934,7 +18219,7 @@
                 T2K = T2K.dp(2);
                 $u.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
                 $u.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
-                return T2K ? T2K : siegeImpacts;
+                return T2K > 0 ? T2K : siegeImpacts;
             } catch (err) {
                 $u.error("ERROR in monster.t2kCalc: " + err);
                 return 0;
@@ -2980,6 +18265,7 @@
         /*jslint sub: true */
         energyTarget: function () {
             this.data = {
+                'md5'  : '',
                 'name' : '',
                 'type' : ''
             };
@@ -3018,16 +18304,17 @@
                     fortifyTarget         = '',
                     stunTarget            = '',
                     energyTarget          = new monster.energyTarget(),
-                    monsterName           = '',
+                    monsterMD5            = '',
                     monsterObj            = {},
                     monsterConditions     = '',
-                    monstType             = '',
+                    //monstType             = '',
+                    monsterInfo           = {},
                     p                     = 0,
                     m                     = 0,
                     attackOrderList       = [],
                     theGeneral            = config.getItem('MonsterGeneral', 'Use Current');
 
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 // First we forget everything about who we already picked.
                 state.setItem('targetFrombattle_monster', '');
                 state.setItem('targetFromfortify', energyTarget.data);
@@ -3036,11 +18323,12 @@
                 // Next we get our monster objects from the reposoitory and break them into separarte lists
                 // for monster or raid.  If we are serializing then we make one list only.
                 for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['type'] === '') {
-                        monster.records[it]['type'] = monster.type(monster.records[it]['name']);
+                    if (!monster.records[it]['joined']) {
+                        continue;
                     }
 
-                    if (monster.info[monster.records[it]['type']] && monster.info[monster.records[it]['type']].alpha) {
+                    monsterInfo = monster.getInfo(monster.records[it]);
+                    if (monsterInfo && monsterInfo.alpha) {
                         if (monster.records[it]['damage'] !== -1 && monster.records[it]['color'] !== 'grey' && schedule.since(monster.records[it]['stunTime'], 0)) {
                             $u.log(2, "Review monster due to class timer", monster.records[it]['name']);
                             monster.records[it]['review'] = -1;
@@ -3050,9 +18338,9 @@
 
                     monster.records[it]['conditions'] = 'none';
                     if (config.getItem('SerializeRaidsAndMonsters', false)) {
-                        monsterList['any'].push(monster.records[it]['name']);
-                    } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'].replace('festival_tower', 'battle_monster') === 'battle_monster')) {
-                        monsterList[monster.records[it]['page'].replace('festival_tower', 'battle_monster')].push(monster.records[it]['name']);
+                        monsterList['any'].push(monster.records[it]['md5']);
+                    } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'].replace('festival_battle_monster', 'battle_monster') === 'battle_monster')) {
+                        monsterList[monster.records[it]['page'].replace('festival_battle_monster', 'battle_monster')].push(monster.records[it]['md5']);
                     }
                 }
 
@@ -3121,12 +18409,13 @@
                             // If this monster does not match, skip to next one
                             // Or if this monster is dead, skip to next one
                             // Or if this monster is not the correct type, skip to next one
-                            if (!monsterList[selectTypes[s]][m].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) || (selectTypes[s] !== 'any' && monsterObj['page'].replace('festival_tower', 'battle_monster') !== selectTypes[s])) {
+                            if (!monster.getItem(monsterList[selectTypes[s]][m])['name'].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) || (selectTypes[s] !== 'any' && monsterObj['page'].replace('festival_battle_monster', 'battle_monster') !== selectTypes[s])) {
                                 continue;
                             }
 
                             //Monster is a match so we set the conditions
                             monsterObj['conditions'] = monsterConditions;
+                            monsterObj['select'] = true;
                             monster.setItem(monsterObj);
                             // If it's complete or collect rewards, no need to process further
                             if (monsterObj['color'] === 'grey') {
@@ -3140,42 +18429,42 @@
                                 if (monsterObj['over'] === 'ach') {
                                     if (!firstOverAch) {
                                         firstOverAch = monsterList[selectTypes[s]][m];
-                                        $u.log(3, 'firstOverAch', firstOverAch);
+                                        $u.log(3, 'firstOverAch', firstOverAch, monsterObj['name']);
                                     }
                                 } else if (monsterObj['over'] !== 'max') {
                                     firstUnderMax = monsterList[selectTypes[s]][m];
-                                    $u.log(3, 'firstUnderMax', firstUnderMax);
+                                    $u.log(3, 'firstUnderMax', firstUnderMax, monsterObj['name']);
                                 }
                             }
 
-                            monstType = monster.type(monsterList[selectTypes[s]][m]);
-                            if (monstType && monster.info[monstType]) {
-                                if (!monster.info[monstType].alpha || (monster.info[monstType].alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Heal'))) {
+                            monsterInfo = monster.getInfo(monsterObj);
+                            if (monsterInfo) {
+                                if (!monsterInfo.alpha || (monsterInfo.alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Heal'))) {
                                     maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                    if (monster.info[monstType].fort && !firstFortUnderMax && monsterObj['fortify'] < maxToFortify) {
+                                    if (monsterInfo.fort && !firstFortUnderMax && monsterObj['fortify'] < maxToFortify) {
                                         if (monsterObj['over'] === 'ach') {
                                             if (!firstFortOverAch) {
                                                 firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                $u.log(3, 'firstFortOverAch', firstFortOverAch);
+                                                $u.log(3, 'firstFortOverAch', firstFortOverAch, monsterObj['name']);
                                             }
                                         } else if (monsterObj['over'] !== 'max') {
                                             firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                            $u.log(3, 'firstFortUnderMax', firstFortUnderMax);
+                                            $u.log(3, 'firstFortUnderMax', firstFortUnderMax, monsterObj['name']);
                                         }
                                     }
                                 }
 
-                                if (monster.info[monstType].alpha) {
+                                if (monsterInfo.alpha) {
                                     if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Strengthen')) {
                                         if (!firstStrengthUnderMax && monsterObj['strength'] < 100) {
                                             if (monsterObj['over'] === 'ach') {
                                                 if (!firstStrengthOverAch) {
                                                     firstStrengthOverAch = monsterList[selectTypes[s]][m];
-                                                    $u.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
+                                                    $u.log(3, 'firstStrengthOverAch', firstStrengthOverAch, monsterObj['name']);
                                                 }
                                             } else if (monsterObj['over'] !== 'max') {
                                                 firstStrengthUnderMax = monsterList[selectTypes[s]][m];
-                                                $u.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
+                                                $u.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax, monsterObj['name']);
                                             }
                                         }
                                     }
@@ -3184,11 +18473,11 @@
                                         if (monsterObj['over'] === 'ach') {
                                             if (!firstStunOverAch) {
                                                 firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                $u.log(3, 'firstStunOverAch', firstStunOverAch);
+                                                $u.log(3, 'firstStunOverAch', firstStunOverAch, monsterObj['name']);
                                             }
                                         } else if (monsterObj['over'] !== 'max') {
                                             firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                            $u.log(3, 'firstStunUnderMax', firstStunUnderMax);
+                                            $u.log(3, 'firstStunUnderMax', firstStunUnderMax, monsterObj['name']);
                                         }
                                     }
                                 }
@@ -3205,7 +18494,8 @@
                         }
 
                         if (strengthTarget) {
-                            energyTarget.data['name'] = strengthTarget;
+                            energyTarget.data['md5']  = strengthTarget;
+                            energyTarget.data['name'] = monster.getItem(strengthTarget)['name'];
                             energyTarget.data['type'] = 'Strengthen';
                             $u.log(3, 'Strengthen target ', energyTarget.data['name']);
                         }
@@ -3216,7 +18506,8 @@
                         }
 
                         if (fortifyTarget) {
-                            energyTarget.data['name'] = fortifyTarget;
+                            energyTarget.data['md5']  = fortifyTarget;
+                            energyTarget.data['name'] = monster.getItem(fortifyTarget)['name'];
                             energyTarget.data['type'] = 'Fortify';
                             $u.log(3, 'Fortify replaces strengthen ', energyTarget.data['name']);
                         }
@@ -3227,7 +18518,8 @@
                         }
 
                         if (stunTarget) {
-                            energyTarget.data['name'] = stunTarget;
+                            energyTarget.data['md5']  = stunTarget;
+                            energyTarget.data['name'] = monster.getItem(stunTarget)['name'];
                             energyTarget.data['type'] = 'Stun';
                             $u.log(3, 'Stun target replaces fortify ', energyTarget.data['name']);
                         }
@@ -3238,34 +18530,35 @@
                         }
                     }
 
-                    monsterName = firstUnderMax;
-                    if (!monsterName) {
-                        monsterName = firstOverAch;
+                    monsterMD5 = firstUnderMax;
+                    if (!monsterMD5) {
+                        monsterMD5 = firstOverAch;
                     }
 
                     // If we've got a monster for this selection type then we set the GM variables for the name
                     // and stamina requirements
-                    if (monsterName) {
-                        monsterObj = monster.getItem(monsterName);
-                        state.setItem('targetFrom' + monsterObj['page'].replace('festival_tower', 'battle_monster'), monsterName);
-                        if (monsterObj['page'].replace('festival_tower', 'battle_monster') === 'battle_monster') {
+                    if (monsterMD5) {
+                        monsterObj = monster.getItem(monsterMD5);
+                        monsterInfo = monster.getInfo(monsterObj);
+                        state.setItem('targetFrom' + monsterObj['page'].replace('festival_battle_monster', 'battle_monster'), monsterMD5);
+                        if (monsterObj['page'].replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
                             nodeNum = 0;
-                            if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
-                                for (nodeNum = monster.info[monsterObj['type']].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                    if (caap.stats['stamina']['max'] >= monster.info[monsterObj['type']].staLvl[nodeNum]) {
+                            if (!caap.inLevelUpMode() && monsterInfo && monsterInfo.staLvl) {
+                                for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                    if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
                                         break;
                                     }
                                 }
                             }
 
-                            if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                if (monster.info[monsterObj['type']].attack_img) {
+                            if (!caap.inLevelUpMode() && monsterInfo && monsterInfo.staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                if (monsterInfo.attack_img) {
                                     nodeNum = 1;
                                 }
 
-                                state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
-                            } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
-                                state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);
+                                state.setItem('MonsterStaminaReq', monsterInfo.staMax[nodeNum]);
+                            } else if (monsterInfo && monsterInfo.staUse) {
+                                state.setItem('MonsterStaminaReq', monsterInfo.staUse);
                             } else if ((caap.inLevelUpMode() && caap.stats['stamina']['num'] >= 10) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('MonsterStaminaReq', 5);
                             } else if (/:sa/i.test(monsterObj['conditions'])) {
@@ -3294,8 +18587,8 @@
                         } else {
                             if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('RaidStaminaReq', 5);
-                            } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
-                                state.setItem('RaidStaminaReq', monster.info[monsterObj['type']].staUse);
+                            } else if (monsterInfo && monsterInfo.staUse) {
+                                state.setItem('RaidStaminaReq', monsterInfo.staUse);
                             } else {
                                 state.setItem('RaidStaminaReq', 1);
                             }
@@ -3311,18 +18604,24 @@
             }
         },
 
-        ConfirmRightPage: function (monsterName) {
+        confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
+                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
                     tempDiv     = $j(),
                     tempText    = '',
-                    fMonstStyle = '';
+                    fMonstStyle = '',
+                    feedMonster = '',
+                    userName    = '',
+                    mName       = '',
+                    id          = 0,
+                    md5         = '',
+                    page        = state.getItem('page', 'battle_monster');
 
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + monster.getFestName(fMonstStyle);
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
@@ -3343,19 +18642,48 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "'],img[src*='" + caap.stats['FBID'] + "']", monsterDiv))) {
-                    $u.log(2, "Your monster found", monsterName);
-                    tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
+                if ($u.hasContent(monsterDiv)) {
+                    id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
+                    id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
+                    id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
+                    id = $u.setContent(id, 0);
+                    if (id === 0 || !$u.hasContent(id)) {
+                        $u.warn("Unable to get id!");
+                    }
+
+                    if (/Aurelius, Lion's Rebellion/.test(tempText)) {
+                        feedMonster = "Aurelius, Lion's Rebellion";
+                        userName = tempText.replace(feedMonster, '').trim();
+                    } else {
+                        feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1');
+                        userName = tempText.replace(feedMonster, '').trim();
+                        feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
+                    }
+
+                    if (!$u.hasContent(feedMonster)) {
+                        $u.warn("Unable to get monster string!!");
+                    }
+
+                    if (id === caap.stats['FBID']) {
+                        $u.log(2, "Your monster found", tempText);
+                        userName = 'Your';
+                    }
+                } else {
+                    $u.warn("monster.confirmRightPage monsterDiv issue!");
                 }
 
-                if (monsterName !== tempText) {
-                    $u.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
-                    return caap.navigateTo('keep,' + monster.getItem(monsterName).page);
+                mName = userName + ' ' + feedMonster;
+                $u.log(2, 'monster Name', mName);
+                if (monsterName !== mName) {
+                    $u.log(2, 'Looking for ' + monsterName + ' but on ' + mName + '. Going back to select screen');
+                    page = page === 'onMonster' ? 'battle_monster' : (page === 'onRaid' ? 'raid' : page);
+                    $u.log(4, "monster.confirmRightPage page", page);
+                    return caap.navigateTo('keep,' + monster.getItem(md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5()).page);
                 }
 
                 return false;
             } catch (err) {
-                $u.error("ERROR in monster.ConfirmRightPage: " + err);
+                $u.error("ERROR in monster.confirmRightPage: " + err);
                 return false;
             }
         },
@@ -3451,7 +18779,239 @@
                 $u.error("ERROR in monster.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                if (config.getItem('DBDisplay', '') === 'Monster' && state.getItem("MonsterDashUpdate", true)) {
+                    var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers                  = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'],
+                        values                   = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'],
+                        pp                       = 0,
+                        value                    = null,
+                        color                    = '',
+                        monsterConditions        = '',
+                        achLevel                 = 0,
+                        maxDamage                = 0,
+                        title                    = '',
+                        id                       = '',
+                        monsterObjLink           = '',
+                        visitMonsterLink         = '',
+                        visitMonsterInstructions = '',
+                        removeLink               = '',
+                        removeLinkInstructions   = '',
+                        len                      = 0,
+                        data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        linkRegExp               = new RegExp("'(http.+)'"),
+                        duration                 = 0,
+                        count                    = 0,
+                        handler                  = null,
+                        monsterInfo              = {};
+
+                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: headers[pp] === 'Name' ? '30%' : ''});
+                    }
+
+                    html += '</tr>';
+                    values.shift();
+                    monster.records.forEach(function (monsterObj) {
+                        monsterInfo = monster.getInfo(monsterObj);
+                        html += "<tr>";
+                        color = monsterObj['color'];
+                        if (monsterObj['md5'] === state.getItem('targetFromfortify', new monster.energyTarget().data)['md5']) {
+                            color = 'blue';
+                        } else if (monsterObj['md5'] === state.getItem('targetFrombattle_monster', '') || monsterObj['md5'] === state.getItem('targetFromraid', '')) {
+                            color = 'green';
+                        }
+
+                        monsterConditions = monsterObj['conditions'];
+                        achLevel = monster.parseCondition('ach', monsterConditions);
+                        maxDamage = monster.parseCondition('max', monsterConditions);
+                        monsterObjLink = monsterObj['link'];
+                        if (monsterObjLink) {
+                            visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
+                            visitMonsterInstructions = "Clicking this link will take you to " + monsterObj['name'];
+                            data = {
+                                text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj['name'] + '" mmd5="' + monsterObj['md5'] + '" rlink="' + visitMonsterLink[1] +
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj['name'] + '</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                        } else {
+                            html += caap.makeTd({text: monsterObj['name'], color: color, id: '', title: ''});
+                        }
+
+                        values.forEach(function (displayItem) {
+                            id = "caap_" + displayItem + "_" + count;
+                            title = '';
+                            if (displayItem === 'phase' && color === 'grey') {
+                                html += caap.makeTd({text: monsterObj['status'], color: color, id: '', title: ''});
+                            } else {
+                                value = monsterObj[displayItem];
+                                if (value !== '' && (value >= 0 || value.length)) {
+                                    if (!$u.isNaN(value) && value > 999) {
+                                        value = value.addCommas();
+                                    }
+
+                                    switch (displayItem) {
+                                    case 'damage' :
+                                        if (achLevel) {
+                                            title = "User Set Monster Achievement: " + achLevel.addCommas();
+                                        } else if (config.getItem('AchievementMode', false)) {
+                                            title = $u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.ach) ? "Default Monster Achievement: " + monsterInfo.ach.addCommas() : '';
+                                            title += monsterObj['page'] === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " + monsterInfo.festival_ach.addCommas() : '') : '';
+                                        } else {
+                                            title = "Achievement Mode Disabled";
+                                        }
+
+                                        title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
+                                        break;
+                                    case 'time' :
+                                        if ($u.hasContent(value) && value.length === 3) {
+                                            value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]);
+                                            duration = monsterObj['page'] === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
+                                            title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
+                                        } else {
+                                            value = '';
+                                        }
+
+                                        break;
+                                    case 't2k' :
+                                        value = $u.minutes2hours(value);
+                                        title = "Estimated Time To Kill: " + value + " hours:mins";
+                                        break;
+                                    case 'life' :
+                                        title = "Percentage of monster life remaining: " + value + "%";
+                                        break;
+                                    case 'phase' :
+                                        value = value + "/" + monsterInfo.siege + " need " + monsterObj['miss'];
+                                        title = "Siege Phase: " + value + " more clicks";
+                                        break;
+                                    case 'fortify' :
+                                        title = "Percentage of party health/monster defense: " + value + "%";
+                                        break;
+                                    case 'strength' :
+                                        title = "Percentage of party strength: " + value + "%";
+                                        break;
+                                    default :
+                                    }
+
+                                    html += caap.makeTd({text: value, color: color, id: id, title: title});
+                                } else {
+                                    html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                                }
+                            }
+                        });
+
+                        if (monsterConditions && monsterConditions !== 'none') {
+                            data = {
+                                text  : '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                        } else {
+                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                        }
+
+                        if (monsterObjLink) {
+                            removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) + (monsterObj['page'] === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj['mid'].replace("&mid=", "") : '');
+                            removeLinkInstructions = "Clicking this link will remove " + monsterObj['name'] + " from both CA and CAAP!";
+                            data = {
+                                text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj['name'] + '" mmd5="' + monsterObj['md5'] + '" rlink="' + removeLink +
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                        } else {
+                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                        }
+
+                        html += '</tr>';
+                        count += 1;
+                    });
+
+                    html += '</table>';
+                    $j("#caap_infoMonster", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mmd5      : '',
+                                mname     : '',
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
+                                visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.link + "/", "");
+                            } else if (e.target.attributes[i].nodeName === 'mmd5') {
+                                visitMonsterLink.mmd5 = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        feed.setScanRecord(visitMonsterLink.mmd5);
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id*='caap_monster_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var monsterRemove = {
+                                mmd5      : '',
+                                mname     : '',
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i    = 0,
+                            len  = 0,
+                            resp = false;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                monsterRemove.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                                monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.link + "/", "");
+                            } else if (e.target.attributes[i].nodeName === 'mmd5') {
+                                monsterRemove.mmd5 = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
+                        if (resp === true) {
+                            monster.deleteItem(monsterRemove.mmd5);
+                            caap.updateDashboard(true);
+                            caap.clickGetCachedAjax(monsterRemove.arlink);
+                        }
+                    };
+
+                    $j("span[id*='caap_remove_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    state.setItem("MonsterDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in monster.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -4108,6 +19668,7 @@
                             continue;
                         }
 
+                        // need to look at this when next fighting one, don't think ignore cleric code is correct
                         if (isSpecial) {
                             if (!$u.isNaN(record['minions'][it]['healthNum'])) {
                                 specialTargets.pop();
@@ -4121,6 +19682,11 @@
                                 $u.log(2, "firstSpecial minion", firstSpecial);
                             } else {
                                 $u.log(2, "Special minion", it, specialTargets);
+                            }
+                        } else {
+                            if (ignoreClerics && record['minions'][it]['mclass'] === "Cleric") {
+                                $u.log(2, "Ignoring Cleric", record['minions'][it]);
+                                continue;
                             }
                         }
 
@@ -4177,7 +19743,7 @@
                     firstUnderMax   = {};
 
                 if (!(force || schedule.oneMinuteUpdate('selectGuildMonster'))) {
-                    return false;
+                    return state.getItem('targetGuildMonster', {});
                 }
 
                 state.setItem('targetGuildMonster', {});
@@ -4261,7 +19827,7 @@
                     target = firstOverAch;
                 }
 
-                $u.log(2, 'target', target);
+                $u.log(2, 'Guild Monster Target', target);
                 if (target && $j.isPlainObject(target) && !$j.isEmptyObject(target)) {
                     target['color'] = 'green';
                     guild_monster.setItem(target);
@@ -4434,7 +20000,7 @@
                 htmlCode += caap.makeTD("W" + caap.makeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.makeTD("E" + caap.makeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.makeTD("S" + caap.makeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-                htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'IgnoreMinionsBelow', "Don't attack monster minions that have a health below this value.", 0, '', '');
                 htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
                 htmlCode += caap.makeTD("Attack Monsters in this order");
                 htmlCode += caap.makeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
@@ -4446,6 +20012,2374 @@
             } catch (err) {
                 $u.error("ERROR in guild_monster.menu: " + err);
                 return '';
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Guild Monster' && state.getItem("GuildMonsterDashUpdate", true)) {
+                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        color   = '',
+                        headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'],
+                        values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'],
+                        pp      = 0,
+                        i       = 0,
+                        len     = 0,
+                        len1    = 0,
+                        data    = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        handler = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            switch (values[pp]) {
+                            case 'name' :
+                                data = {
+                                    text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i]['slot'] + ') ' + guild_monster.records[i]['name'] +
+                                            '" mname="' + guild_monster.records[i]['slot'] + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 + '&guild_id=' + guild_monster.records[i]['guildId'] +
+                                            '&slot=' + guild_monster.records[i]['slot'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i]['name'] + '</span>',
+                                    color : guild_monster.records[i]['color'],
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                                break;
+                            case 'ticker' :
+                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                                break;
+                            default :
+                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                            }
+                        }
+
+                        data = {
+                            text  : '<a href="' + caap.domain.link + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 +
+                                    '&guild_id=' + guild_monster.records[i]['guildId'] + '&action=doObjective&slot=' + guild_monster.records[i]['slot'] + '&ref=nf">Link</a>',
+                            color : 'blue',
+                            id    : '',
+                            title : 'This is a siege link.'
+                        };
+
+                        html += caap.makeTd(data);
+
+                        if ($u.hasContent(guild_monster.records[i]['conditions']) && guild_monster.records[i]['conditions'] !== 'none') {
+                            data = {
+                                text  : '<span title="User Set Conditions: ' + guild_monster.records[i]['conditions'] + '" class="ui-icon ui-icon-info">i</span>',
+                                color : guild_monster.records[i]['color'],
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                        } else {
+                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_guildMonster", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mname     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id*='caap_guildmonster_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("GuildMonsterDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in guild_monster.dashboard: " + err);
+                return false;
+            }
+        }
+        /*jslint sub: false */
+    };
+
+    ////////////////////////////////////////////////////////////////////
+    //                          festival OBJECT
+    // this is the main object for dealing with festival battles
+    /////////////////////////////////////////////////////////////////////
+
+    festival = {
+        records: [],
+
+        record: function () {
+            this.data = {
+                'reviewed'    : 0,
+                'days'        : 0,
+                'tokens'      : 0,
+                'tokenTime'   : 0,
+                'collect'     : false,
+                'startTime'   : 0,
+                'ticker'      : '',
+                'endTime'     : 0,
+                'minions'     : [],
+                'teamHealth'  : 0,
+                'enemyHealth' : 0,
+                'damage'      : 0,
+                'myStatus'    : '',
+                'myClass'     : '',
+                'state'       : '',
+                'wins'        : [],
+                'losses'      : []
+            };
+        },
+
+        minion: function () {
+            this.data = {
+                'index'              : 0,
+                'attacking_position' : 0,
+                'target_id'          : 0,
+                'name'               : '',
+                'level'              : 0,
+                'mclass'             : '',
+                'healthNum'          : 0,
+                'healthMax'          : 0,
+                'status'             : '',
+                'percent'            : 0,
+                'points'             : 0,
+                'won'                : false,
+                'lost'               : false,
+                'poly'               : false,
+                'shout'              : false,
+                'shield'             : false,
+                'last_ap'            : 0
+            };
+        },
+
+        win: function () {
+            this.data = {
+                'userId' : 0,
+                'ap'     : 0
+            };
+        },
+
+        me: function () {
+            this.data = {
+                'name'               : '',
+                'level'              : 0,
+                'mclass'             : '',
+                'healthNum'          : 0,
+                'healthMax'          : 0,
+                'status'             : '',
+                'percent'            : 0
+            };
+        },
+
+        load: function () {
+            try {
+                festival.records = gm.getItem('festival.records', 'default');
+                if (festival.records === 'default' || !$j.isArray(festival.records)) {
+                    festival.records = gm.setItem('festival.records', []);
+                }
+
+                festival.cleanWins();
+                state.setItem("FestivalDashUpdate", true);
+                $u.log(3, "festival.load", festival.records);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.load: " + err);
+                return false;
+            }
+        },
+
+        save: function () {
+            try {
+                gm.setItem('festival.records', festival.records);
+                state.setItem("FestivalDashUpdate", true);
+                $u.log(3, "festival.save", festival.records);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.save: " + err);
+                return false;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        getItem: function () {
+            try {
+                return (festival.records.length ? festival.records[0] : new festival.record().data);
+            } catch (err) {
+                $u.error("ERROR in festival.getItem: " + err);
+                return false;
+            }
+        },
+
+        setItem: function (record) {
+            try {
+                if (!record || !$j.isPlainObject(record)) {
+                    throw "Not passed a record";
+                }
+
+                festival.records[0] = record;
+                $u.log(2, "Updated festival record", record, festival.records);
+                festival.save();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.setItem: " + err);
+                return false;
+            }
+        },
+
+        deleteItem: function (slot) {
+            try {
+                var it        = 0,
+                    len       = 0,
+                    success   = false;
+
+                if (!$u.isNumber(slot) || slot <= 0) {
+                    $u.warn("slot", slot);
+                    throw "Invalid identifying slot!";
+                }
+
+                for (it = 0, len = festival.records.length; it < len; it += 1) {
+                    if (festival.records[it]['slot'] === slot) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    festival.records.splice(it, 1);
+                    festival.save();
+                    $u.log(3, "Deleted festival record", slot, festival.records);
+                    return true;
+                } else {
+                    $u.warn("Unable to delete festival record", slot, festival.records);
+                    return false;
+                }
+            } catch (err) {
+                $u.error("ERROR in festival.deleteItem: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
+
+        clear: function () {
+            try {
+                $u.log(1, "festival.clear");
+                festival.records = gm.setItem("festival.records", []);
+                state.setItem('staminaFestival', 0);
+                state.setItem('targetFestival', {});
+                state.setItem("FestivalDashUpdate", true);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.clear: " + err);
+                return false;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        setWin: function (records, won) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (!won || !$j.isPlainObject(won)) {
+                    throw "Not passed a win";
+                }
+
+                if (won['userId'] === '' || $u.isNaN(won['userId']) || won['userId'] < 1) {
+                    $u.warn("userId", won['userId']);
+                    throw "Invalid identifying userId!";
+                }
+
+                var it      = 0,
+                    len     = 0,
+                    success = false;
+
+                for (it = 0, len = records.length; it < len; it += 1) {
+                    if (records[it]['userId'] === won['userId']) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    records[it] = won;
+                    $u.log(3, "Updated records", won, records);
+                } else {
+                    records.push(won);
+                    $u.log(3, "Added records", won, records);
+                }
+
+                return records;
+            } catch (err) {
+                $u.error("ERROR in festival.setWin: " + err, won, records);
+                return false;
+            }
+        },
+
+        getWin: function (records, userId) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
+                    $u.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                var it      = 0,
+                    len     = 0,
+                    success = false;
+
+                for (it = 0, len = records.length; it < len; it += 1) {
+                    if (records[it]['userId'] === userId) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    $u.log(3, "Got win record", userId, records[it]);
+                    return records[it];
+                } else {
+                    $u.log(3, "No win record", userId);
+                    return false;
+                }
+            } catch (err) {
+                $u.error("ERROR in festival.getWin: " + err, userId, records);
+                return false;
+            }
+        },
+
+        delWin: function (records, userId) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
+                    $u.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                var it      = 0,
+                    len     = 0,
+                    success = false;
+
+                for (it = 0, len = records.length; it < len; it += 1) {
+                    if (records[it]['userId'] === userId) {
+                        success = true;
+                        break;
+                    }
+                }
+
+                if (success) {
+                    records.splice(it, 1);
+                    $u.log(2, "Deleted win record", userId, records);
+                    return records;
+                } else {
+                    $u.log(3, "Unable to delete win record", userId, records);
+                    return false;
+                }
+            } catch (err) {
+                $u.error("ERROR in festival.delWin: " + err, userId, records);
+                return false;
+            }
+        },
+
+        setLoss: function (records, userId) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
+                    $u.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                if (records.hasIndexOf(userId)) {
+                    $u.log(3, "userId exists", userId, records);
+                } else {
+                    records.push(userId);
+                    $u.log(3, "Added userId", userId, records);
+                }
+
+                return records;
+            } catch (err) {
+                $u.error("ERROR in festival.setLoss: " + err, userId, records);
+                return false;
+            }
+        },
+
+        checkLoss: function (records, userId) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
+                    $u.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                if (records.hasIndexOf(userId)) {
+                    $u.log(3, "userId exists", userId, records);
+                    return true;
+                } else {
+                    $u.log(3, "userId not exists", userId, records);
+                    return false;
+                }
+            } catch (err) {
+                $u.error("ERROR in festival.checkLoss: " + err, userId, records);
+                return undefined;
+            }
+        },
+
+        delLoss: function (records, userId) {
+            try {
+                if (!records || !$j.isArray(records)) {
+                    throw "Not passed records";
+                }
+
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
+                    $u.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                var it = -1;
+                it = records.indexOf(userId);
+                if (it >= 0) {
+                    records.splice(it, 1);
+                    $u.log(2, "Deleted loss", userId, records);
+                    return records;
+                } else {
+                    $u.log(3, "Unable to delete loss", userId, records);
+                    return false;
+                }
+            } catch (err) {
+                $u.error("ERROR in festival.delLoss: " + err, userId, records);
+                return false;
+            }
+        },
+
+        cleanWins: function () {
+            try {
+                var festivalInfo = {},
+                    it        = 0,
+                    len       = 0,
+                    found     = false;
+
+                festivalInfo = festival.getItem();
+                if (!$j.isEmptyObject(festivalInfo)) {
+                    for (it = 0, len = festivalInfo['wins'].length; it < len; it += 1) {
+                        if (festivalInfo['losses'].hasIndexOf(festivalInfo['wins'][it]['userId'])) {
+                            $u.log(1, "Found win in losses: delete", festivalInfo['wins'][it]);
+                            festivalInfo['wins'].splice(it, 1);
+                            found = true;
+                        }
+                    }
+                } else {
+                    $u.log(1, "No loss records available", festivalInfo);
+                }
+
+                if (found) {
+                    festival.setItem(festivalInfo);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.cleanWins: " + err);
+                return false;
+            }
+        },
+
+        /*jslint sub: false */
+
+        navigate_to_main: function () {
+            return caap.navigateTo('soldiers,tab_festival_off.jpg,festival_battle_home', 'arena3_rewardsbutton.gif');
+        },
+
+        navigate_to_main_refresh: function () {
+            state.setItem('FestivalRefresh', false);
+            return caap.navigateTo('soldiers,tab_festival_off.jpg,festival_battle_home');
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        checkInfo: function () {
+            try {
+                var infoDiv      = $j("#current_battle_info", caap.appBodyDiv),
+                    now          = new Date(),
+                    tDate        = new Date(),
+                    next         = $u.setContent(infoDiv.children().eq(0).children().eq(0).text(), '').trim().innerTrim(),
+                    timer        = $u.setContent(infoDiv.children().eq(1).children().eq(0).text(), '').trim().innerTrim(),
+                    tz           = $u.setContent(timer.regex(/UTC ([\-+]*?\d+);/), 0),
+                    ampm         = $u.setContent(timer.regex(/\d+:\d+ (AM|PM)/), 'AM'),
+                    hour         = $u.setContent(timer.regex(/(\d+):\d+/), 0),
+                    festivalInfo = festival.getItem(),
+                    start        = 0;
+
+                hour = ampm === 'AM' && hour === 12 ? 0 : (ampm === 'PM' ? hour + 12 : hour);
+                hour = tz === 0 ? hour : hour - tz;
+                hour = hour < 0 ? hour + 24 : (hour > 24 ? hour - 24 : hour);
+                tDate.setUTCHours(hour, 0, 0, 0);
+                tDate.setUTCDate(tDate.getDate() + (tDate < now ? 1 : 0));
+                festivalInfo['reviewed'] = now.getTime();
+                $u.log(2, "festival.checkInfo", next, timer, hour, tz);
+                $u.log(2, "When", tDate.toUTCString());
+
+                if (festivalInfo['endTime'] < festivalInfo['reviewed']) {
+                    festivalInfo['startTime'] = tDate.getTime();
+                    festivalInfo['endTime'] = festivalInfo['startTime'] + 3600000;
+                    schedule.setItem('festivalStartTime', festivalInfo['startTime'], 20);
+                    $u.log(2, "New start time");
+                }
+
+                festivalInfo['collect'] = next.regex(/(COLLECT NOW!)/) ? true : false;
+                if (festivalInfo['state'] === '' || festivalInfo['state'] === 'Completed') {
+                    schedule.setItem("festivalTokenTicker", 0);
+                    festivalInfo['state'] = 'Ready';
+                    festivalInfo['tokens'] = 10;
+                    festivalInfo['myStatus'] = '';
+                    festivalInfo['damage'] = 0;
+                    festivalInfo['teamHealth'] = 0;
+                    festivalInfo['enemyHealth'] = 0;
+                    festivalInfo['ticker'] = '';
+                }
+
+                festival.setItem(festivalInfo);
+                start = festivalInfo['startTime'] - festivalInfo['reviewed'];
+                start = start > 0 ? start : 0;
+                if (start && festivalInfo['state'] === 'Ready') {
+                    festivalInfo['minions'] = [];
+                    $u.log(2, "Festival starting in", start);
+                    schedule.setItem("FestivalReview", start, 20);
+                } else {
+                    $u.log(2, "Festival review in", 300);
+                    schedule.setItem("FestivalReview", 300, 20);
+                }
+
+                $u.log(3, "festival.checkInfo", festivalInfo);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.checkInfo: " + err);
+                return false;
+            }
+        },
+
+        onBattle: function () {
+            try {
+                var gates         = $j(),
+                    tabs          = $j(),
+                    health        = $j(),
+                    healthGuild   = $j(),
+                    healthEnemy   = $j(),
+                    bannerDiv     = $j(),
+                    collectDiv    = $j(),
+                    enterDiv      = $j(),
+                    tokenSpan     = $j(),
+                    timerSpan     = $j(),
+                    resultBody    = $j(),
+                    imgDiv        = $j(),
+                    myStatsTxt    = '',
+                    myStatsArr    = [],
+                    index         = 0,
+                    currentRecord = {},
+                    minions       = [],
+                    tStr          = '',
+                    tNum          = 0,
+                    resultsTxt    = '',
+                    lastAttacked  = {},
+                    won           = {},
+                    losses        = [],
+                    wins          = [],
+                    notStarted    = '',
+                    notFestival      = '',
+                    battleOver    = '',
+                    minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Festival Activity Points: (\\d+)");
+
+                currentRecord = festival.getItem();
+                if (currentRecord['state'] !== 'Alive') {
+                    $u.log(2, "Test targeting");
+                    festival.getTargetMinion(currentRecord);
+                }
+
+                if (!currentRecord['wins']) {
+                    currentRecord['wins'] = [];
+                }
+
+                if (!currentRecord['losses']) {
+                    currentRecord['losses'] = [];
+                }
+
+                if (!currentRecord['myClass']) {
+                    currentRecord['myClass'] = '';
+                }
+
+                lastAttacked = state.getItem('FestivalMinionAttacked', {});
+                state.setItem('FestivalMinionAttacked', {});
+                if (!$j.isEmptyObject(lastAttacked) && lastAttacked['index'] >= 0 && lastAttacked['index'] < 40) {
+                    resultBody = $j("span[class='result_body']", caap.globalContainer);
+                    if ($u.hasContent(resultBody)) {
+                        tStr = resultBody.text();
+                        tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
+                    }
+
+                    imgDiv = $j("img[src*='battle_defeat.gif']", caap.globalContainer);
+                    if ($u.hasContent(imgDiv)) {
+                        if (lastAttacked['poly']) {
+                            $u.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                        } else {
+                            if (tNum > 50) {
+                                currentRecord['minions'][lastAttacked['index']]['lost'] = true;
+                                currentRecord['minions'][lastAttacked['index']]['won'] = false;
+                                currentRecord['minions'][lastAttacked['index']]['last_ap'] = 0;
+                                wins = festival.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                                currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                                losses = festival.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                                currentRecord['losses'] = losses ? losses : currentRecord['losses'];
+                                festival.setItem(currentRecord);
+                            } else {
+                                $u.log(1, "You were polymorphed");
+                            }
+
+                            $u.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                        }
+                    } else {
+                        imgDiv = $j("img[src*='battle_victory.gif']", caap.globalContainer);
+                        if ($u.hasContent(imgDiv)) {
+                            if (lastAttacked['poly']) {
+                                $u.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                            } else {
+                                currentRecord['minions'][lastAttacked['index']]['lost'] = false;
+                                currentRecord['minions'][lastAttacked['index']]['won'] = true;
+                                currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 160;
+                                won = new festival.win();
+                                won.data['userId'] = currentRecord['minions'][lastAttacked['index']]['target_id'];
+                                won.data['ap'] = currentRecord['minions'][lastAttacked['index']]['last_ap'];
+                                wins = festival.setWin(currentRecord['wins'], won.data);
+                                currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                                losses = festival.delLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                                currentRecord['losses'] = losses ? losses : currentRecord['losses'];
+                                festival.setItem(currentRecord);
+                                $u.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                            }
+                        } else {
+                            resultsTxt = $j("div[class='results']", caap.globalContainer).text();
+                            if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/i)) {
+                                $u.log(1, "You didn't have enough battle tokens");
+                            } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
+                                $u.log(1, "Minion had no health left");
+                            } else if (resultsTxt.regex(/(You tried to attack but tripped while running)/i)) {
+                                $u.log(1, "Oops, you tripped");
+                            } else {
+                                $u.log(1, "Unknown win or loss or result");
+                            }
+                        }
+                    }
+                }
+
+                bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer);
+                $u.log(2, "arena_battle_banner_section");
+                myStatsTxt = bannerDiv.text();
+                myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
+                notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
+                notFestival = myStatsTxt.regex(/(You Are Not A Part Of This Festival Battle)/);
+                battleOver = myStatsTxt.regex(/(This Festival Battle Is Over)/);
+                if (notFestival) {
+                    return true;
+                }
+
+                $u.log(3, "myStatsTxt", myStatsTxt);
+                if ($u.hasContent(bannerDiv)) {
+                    currentRecord['teamHealth'] = 0;
+                    currentRecord['enemyHealth'] = 0;
+                    if (!notStarted) {
+                        gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']", caap.globalContainer);
+                        if (!$u.hasContent(gates)) {
+                            tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']", caap.globalContainer);
+                            if (!$u.hasContent(tabs)) {
+                                $u.warn("No gates found");
+                            }
+                        } else if (!$u.hasContent(gates) || gates.length !== 4) {
+                            $u.warn("Not enough gates found");
+                        } else {
+                            gates.each(function (gIndex) {
+                                var memberDivs = $j(this).children();
+                                if (!$u.hasContent(memberDivs)) {
+                                    $u.warn("No members found");
+                                } else {
+                                    if (memberDivs.length === 1 && /No Soldiers Posted In This Position!/i.test(memberDivs.text().trim().innerTrim())) {
+                                        $u.log(2, "No Soldiers Posted In This Position");
+                                        return true;
+                                    }
+
+                                    memberDivs.each(function (mIndex) {
+                                        var member       = $j(this),
+                                            memberText   = '',
+                                            memberArr    = [],
+                                            targetIdDiv  = $j(),
+                                            polyImg      = $j(),
+                                            shoutImg     = $j(),
+                                            shieldImg    = $j(),
+                                            nameDiv      = $j(),
+                                            loss         = false,
+                                            memberRecord = new festival.minion().data;
+
+                                        memberRecord['index'] = index;
+                                        targetIdDiv = $j("input[name='target_id']", member);
+                                        if ($u.hasContent(targetIdDiv)) {
+                                            memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 0;
+                                            won = festival.getWin(currentRecord['wins'], memberRecord['target_id']);
+                                            if ($j.isPlainObject(won)) {
+                                                memberRecord['won'] = true;
+                                                memberRecord['last_ap'] = won['ap'] ? won['ap'] : 0;
+                                            }
+
+                                            loss = festival.checkLoss(currentRecord['losses'], memberRecord['target_id']);
+                                            if ($u.isBoolean(loss)) {
+                                                memberRecord['lost'] = loss;
+                                            }
+                                        } else {
+                                            $u.warn("Unable to find target_id for minion!", targetIdDiv.length);
+                                        }
+
+                                        memberRecord['attacking_position'] = (gIndex + 1);
+                                        memberText = member.children().eq(1).text();
+                                        memberText = memberText ? memberText.trim().innerTrim() : '';
+                                        $u.log(2, "memberText", memberText);
+                                        memberArr = memberText.match(minionRegEx);
+                                        if ($u.hasContent(memberArr) && memberArr.length === 8) {
+                                            memberRecord['name'] = memberArr[1] ? memberArr[1] : '';
+                                            memberRecord['level'] = memberArr[2] ? memberArr[2].parseInt() : 0;
+                                            memberRecord['mclass'] = memberArr[3] ? memberArr[3] : '';
+                                            memberRecord['healthNum'] = memberArr[4] ? memberArr[4].parseInt() : 0;
+                                            memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 0;
+                                            memberRecord['status'] = memberArr[6] ? memberArr[6] : '';
+                                            memberRecord['points'] = memberArr[7] ? memberArr[7].parseInt() : 0;
+                                            memberRecord['percent'] = ((memberRecord['healthNum'] / (memberRecord['healthMax'] ? memberRecord['healthMax'] : 1)) * 100).dp(2);
+                                        } else {
+                                            $u.warn("Minion match issue!", memberArr);
+                                        }
+
+                                        if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
+                                            if (currentRecord['minions'][index]['index'] === index) {
+                                                memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : false;
+                                                memberRecord['last_ap'] = currentRecord['minions'][index]['last_ap'] ? currentRecord['minions'][index]['last_ap'] : 0;
+                                            } else {
+                                                $u.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
+                                            }
+                                        }
+
+                                        nameDiv = $j("div[style='font-size: 19px; padding-bottom: 3px;'], div[style='font-size:19px; padding-bottom:3px;']", member);
+                                        if ($u.hasContent(nameDiv) && nameDiv.length === 1) {
+                                            if (memberRecord['won']) {
+                                                tStr = '<div style="float: left; width: 220px; font-size: 11px;"><span style="float: left;" title="Won - Last Points: ' + memberRecord['last_ap'];
+                                                tStr += '" class="ui-icon ui-icon-circle-check">Won</span> Last Points: ' + memberRecord['last_ap'] + '</div>';
+                                                nameDiv.after(tStr);
+                                            }
+
+                                            if (memberRecord['lost']) {
+                                                tStr = '<div style="float: left; width: 220px; font-size: 11px;"><span style="float: left;" title="Lost" class="ui-icon ui-icon-circle-close">Lost</span>Lost</div>';
+                                                nameDiv.after(tStr);
+                                            }
+                                        }
+
+                                        polyImg = $j("img[src*='polymorph_effect']", member);
+                                        memberRecord['poly'] = $u.hasContent(polyImg) ? true : false;
+                                        if (memberRecord['poly']) {
+                                            $u.log(3, "poly", memberRecord);
+                                        }
+
+                                        shoutImg = $j("img[src*='warrior_effect_shout']", member);
+                                        memberRecord['shout'] = $u.hasContent(shoutImg) ? true : false;
+                                        if (memberRecord['shout']) {
+                                            $u.log(2, "shout", memberRecord);
+                                        }
+
+                                        shieldImg = $j("img[src*='mage_effect_shield']", member);
+                                        memberRecord['shield'] = $u.hasContent(shieldImg) ? true : false;
+                                        if (memberRecord['shield']) {
+                                            $u.log(2, "shield", memberRecord);
+                                        }
+
+                                        index = minions.push(memberRecord);
+                                    });
+                                }
+
+                                return true;
+                            });
+                        }
+                    }
+
+                    collectDiv = $j("input[src*='arena3_collectbutton.gif']", caap.globalContainer);
+                    enterDiv = $j("input[src*='guild_enter_battle_button.gif']", caap.globalContainer);
+                    if (!notStarted && !battleOver && !$u.hasContent(collectDiv) && !$u.hasContent(enterDiv)) {
+                        currentRecord['state'] = 'Alive';
+                        tStr = $j("span[id='" +  caap.domain.id[caap.domain.which] + "monsterTicker']", caap.globalContainer).text();
+                        currentRecord['ticker'] = tStr ? tStr.trim() : '';
+                        schedule.setItem("festivalTokenTicker", currentRecord['ticker'].parseTimer(), 5);
+                        if (myStatsTxt) {
+                            $u.log(3, "myStatsTxt", myStatsTxt);
+                            myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Festival Activity Points: (\\d+)"));
+                            if ($u.hasContent(myStatsArr) && myStatsArr.length === 8) {
+                                $u.log(3, "myStatsArr", myStatsArr);
+                                currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
+                                currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
+                                currentRecord['myClass'] = myStatsArr[3] ? myStatsArr[3].trim() : '';
+                            } else {
+                                $u.warn("myStatsArr error", myStatsArr, myStatsTxt);
+                            }
+                        }
+
+                        tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']", caap.globalContainer);
+                        tStr = $u.hasContent(tokenSpan) ? tokenSpan.text().trim() : '';
+                        currentRecord['tokens'] = tStr ? tStr.parseInt() : 0;
+
+                        timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']", caap.globalContainer);
+                        tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
+                        currentRecord['tokenTime'] = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
+
+                        health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health", caap.globalContainer);
+                        if ($u.hasContent(health)) {
+                            healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
+                            if ($u.hasContent(healthEnemy)) {
+                                currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
+                            } else {
+                                $u.warn("guild_battle_bar_enemy.gif not found");
+                            }
+
+                            healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
+                            if ($u.hasContent(healthGuild)) {
+                                currentRecord['teamHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
+                            } else {
+                                $u.warn("guild_battle_bar_you.gif not found");
+                            }
+                        } else {
+                            $u.warn("guild_battle_health error");
+                        }
+                    } else {
+                        if ($u.hasContent(collectDiv)) {
+                            $u.log(1, "Battle ready to collect");
+                            currentRecord['state'] = 'Collect';
+                        } else if (!$u.hasContent(enterDiv) && currentRecord['state'] !== 'Ready') {
+                            $u.log(1, "Battle is completed");
+                            currentRecord['state'] = 'Completed';
+                        } else {
+                            $u.log(1, "Battle is ready to join");
+                            currentRecord['state'] = 'Ready';
+                        }
+
+                        currentRecord['myStatus'] = '';
+                        currentRecord['damage'] = 0;
+                        currentRecord['teamHealth'] = 0;
+                        currentRecord['enemyHealth'] = 0;
+                    }
+
+                    if ($u.hasContent(minions)) {
+                        currentRecord['minions'] = minions.slice();
+                    }
+
+                    currentRecord['reviewed'] = new Date().getTime();
+                    $u.log(3, "currentRecord", currentRecord);
+                    festival.setItem(currentRecord);
+                    if (currentRecord['state'] === 'Collect' && $u.hasContent(collectDiv)) {
+                        caap.click(collectDiv);
+                    }
+                } else {
+                    $u.warn("Not on festival battle page");
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.onBattle: " + err);
+                return false;
+            }
+        },
+
+        clearMinions: function () {
+            try {
+                var currentRecord = {};
+                currentRecord = festival.getItem();
+                currentRecord['minions'] = [];
+                festival.setItem(currentRecord);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.clearMinions: " + err);
+                return false;
+            }
+        },
+
+        getMinion: function (index) {
+            try {
+                var festivalInfo = {},
+                    minion    = {};
+
+                if (index === '' || $u.isNaN(index) || index < 0 || index > 40) {
+                    $u.warn("index", index);
+                    throw "Invalid identifying index!";
+                }
+
+                festivalInfo = festival.getItem();
+                if (!$j.isEmptyObject(festivalInfo) && festivalInfo['minions'] && festivalInfo['minions'].length === 40) {
+                    minion = festivalInfo['minions'][index];
+                } else {
+                    $u.log(1, "No minion records available", festivalInfo);
+                }
+
+                return minion;
+            } catch (err) {
+                $u.error("ERROR in festival.getTarget: " + err);
+                return false;
+            }
+        },
+
+        getTargetMinion: function (record) {
+            try {
+                var it              = 0,
+                    ot              = 0,
+                    lenIt           = 0,
+                    lenOt           = 0,
+                    target = {
+                        'Cleric' : {
+                            'last'    : {},
+                            'suicide' : {},
+                            'active'  : {},
+                            'alive'   : {},
+                            'health'  : {},
+                            'poly'    : {},
+                            'shout'   : {},
+                            'chain'   : {}
+                        },
+                        'Mage' : {
+                            'last'    : {},
+                            'suicide' : {},
+                            'active'  : {},
+                            'alive'   : {},
+                            'health'  : {},
+                            'poly'    : {},
+                            'shout'   : {},
+                            'chain'   : {}
+                        },
+                        'Rogue' : {
+                            'last'    : {},
+                            'suicide' : {},
+                            'active'  : {},
+                            'alive'   : {},
+                            'health'  : {},
+                            'poly'    : {},
+                            'shout'   : {},
+                            'chain'   : {}
+                        },
+                        'Warrior' : {
+                            'last'    : {},
+                            'suicide' : {},
+                            'active'  : {},
+                            'alive'   : {},
+                            'health'  : {},
+                            'poly'    : {},
+                            'shout'   : {},
+                            'chain'   : {}
+                        }
+                    },
+                    minion            = {},
+                    killClericFirst   = false,
+                    attackPoly        = false,
+                    ignoreFestivalHealth = 0,
+                    maxFestivalLevel     = 0,
+                    chainFestival        = 0,
+                    observeHealth     = false,
+                    attackSuicide     = false,
+                    chainStrict       = false,
+                    doPoly            = false,
+                    stunnedPoly       = false,
+                    roguePoly         = false,
+                    attackOrderList   = [],
+                    defaultOrderList  = [],
+                    typeOrderList     = [],
+                    done              = false,
+                    uOrder            = '',
+                    oType             = '';
+
+                if (!record || !$j.isPlainObject(record)) {
+                    throw "Not passed a record";
+                }
+
+                ignoreFestivalHealth = config.getItem("ignoreFestivalHealth", 200);
+                maxFestivalLevel = config.getItem("maxFestivalLevel", 50);
+                killClericFirst = config.getItem("killClericFirst", false);
+                attackPoly = config.getItem("attackPoly", false);
+                chainFestival = config.getItem("chainFestival", '160').parseInt();
+                observeHealth = config.getItem("observeHealth", true);
+                attackSuicide = config.getItem("attackSuicide", false);
+                chainStrict = config.getItem("chainStrict", false);
+                doPoly = config.getItem("doPoly", false);
+                stunnedPoly = config.getItem("stunnedPoly", true);
+                roguePoly = config.getItem("roguePoly", true);
+                function targetThis(next, type) {
+                    try {
+                        var nDiff   = 0,
+                            cDiff   = 0,
+                            higherLevel  = false,
+                            lowerLevel = false,
+                            knownWin = false,
+                            clericMage = false,
+                            shieldShout = false,
+                            ignorePoly = false,
+                            logic1  = false,
+                            logic2  = false,
+                            logic3  = false,
+                            logic4  = false,
+                            logic5  = false,
+                            mclass  = '';
+
+                        mclass = next['mclass'];
+                        higherLevel = next['level'] > (target[mclass][type]['level'] ? target[mclass][type]['level'] : 0);
+                        lowerLevel = next['level'] < (target[mclass][type]['level'] ? target[mclass][type]['level'] : 99999);
+                        knownWin = next['won'] && !(target[mclass][type]['won'] ? target[mclass][type]['won'] : false);
+                        clericMage = mclass === "Cleric" || mclass === "Mage";
+                        shieldShout = next['shield'] || next['shout'];
+                        logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreFestivalHealth);
+                        logic2 = !doPoly && next['poly'];
+                        logic3 = doPoly && stunnedPoly && next['poly'] && record['myStatus'] === 'Stunned';
+                        logic4 = doPoly && roguePoly && next['poly'] && record['myClass'] !== 'Rogue';
+                        logic5 = doPoly && next['poly'] && next['healthNum'] <= 50;
+                        ignorePoly = logic2 || logic3 || logic4 || logic5;
+
+                        switch (type) {
+                        case "health":
+                            if (ignorePoly) {
+                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                return false;
+                            }
+
+                            if (!(logic1 && !shieldShout)) {
+                                return false;
+                            }
+
+                            break;
+                        case "active":
+                            if (ignorePoly) {
+                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                return false;
+                            }
+
+                            if (!(logic1 && next['points'] && !shieldShout)) {
+                                return false;
+                            }
+
+                            break;
+                        case "suicide":
+                            logic2 = next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 99999);
+                            logic3 = !clericMage && logic1 && next['points'] && logic2;
+                            if (logic3 && !shieldShout && lowerLevel) {
+                                target[mclass][type] = next;
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                            break;
+                        case "last":
+                            logic2 = $j.isEmptyObject(target[mclass][type]) && clericMage && next['healthNum'] > 0 && next['healthNum'] <= 30;
+                            if (logic2 && !shieldShout) {
+                                target[mclass][type] = next;
+                                return true;
+                            }
+
+                            logic3 = !clericMage && target[mclass][type]['mclass'] !== 'Cleric' && (target[mclass][type]['mclass'] ? target[mclass][type]['mclass'] : 'none') !== 'mage';
+                            logic4 = logic3 && next['healthNum'] > 200 && next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
+                            if (logic4 && !shieldShout && lowerLevel) {
+                                target[mclass][type] = next;
+                                return true;
+                            }
+
+                            logic5 = $j.isEmptyObject(target[mclass][type]) && logic3 && next['healthNum'] > (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
+                            if (logic5 && !shieldShout) {
+                                target[mclass][type] = next;
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                            break;
+                        case "poly":
+                            if (ignorePoly) {
+                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                return false;
+                            }
+
+                            if (next['poly'] && (shieldShout || higherLevel)) {
+                                target[mclass][type] = next;
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                            break;
+                        case "chain":
+                            logic2 = chainFestival && next['won'] && next['last_ap'] >= chainFestival;
+                            logic3 = !observeHealth && logic2;
+                            logic4 = observeHealth && logic1 && logic2;
+                            logic5 = logic3 || logic4;
+
+                            if (logic5 && higherLevel && next['last_ap'] >= (target[mclass][type]['last_ap'] ? target[mclass][type]['last_ap'] : 0)) {
+                                target[mclass][type] = next;
+                                return true;
+                            } else {
+                                return false;
+                            }
+
+                            break;
+                        default:
+                        }
+
+                        nDiff = next['level'] - caap.stats['level'];
+                        cDiff = target[mclass][type]['level'] ? target[mclass][type]['level'] - caap.stats['level'] : 0 - caap.stats['level'];
+                        if (cDiff !== 0) {
+                            if (cDiff > 0) {
+                                if (nDiff >= 0 && nDiff <= maxFestivalLevel && nDiff > cDiff) {
+                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    target[mclass][type] = next;
+                                    return true;
+                                }
+
+                                if (nDiff > maxFestivalLevel && nDiff < cDiff) {
+                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    target[mclass][type] = next;
+                                    return true;
+                                }
+                            } else {
+                                if (nDiff <= maxFestivalLevel && nDiff > cDiff) {
+                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    target[mclass][type] = next;
+                                    return true;
+                                }
+                            }
+                        }
+
+                        return false;
+                    } catch (e) {
+                        $u.warn("targetThis", next);
+                        return false;
+                    }
+                }
+
+                for (it = record['minions'].length - 1; it >= 0; it -= 1) {
+                    var cm = {};
+
+                    cm = record['minions'][it];
+                    if (cm['status'] === 'Stunned' && cm['healthNum'] <= 0) {
+                        $u.log(2, "Stunned minion", cm['index'], cm);
+                        continue;
+                    }
+
+                    targetThis(cm, 'last');
+                    targetThis(cm, 'poly');
+                    if (cm['lost']) {
+                        $u.log(2, "Lost minion", cm['index'], cm);
+                        targetThis(cm, 'suicide');
+                        continue;
+                    }
+
+                    targetThis(cm, 'active');
+                    targetThis(cm, 'alive');
+                    targetThis(cm, 'health');
+                    targetThis(cm, 'chain');
+                }
+
+                defaultOrderList = ['Cleric', 'Mage', 'Rogue', 'Warrior'];
+                attackOrderList = config.getList('orderFestivalClass', '');
+                if (!attackOrderList || attackOrderList.length === 0) {
+                    attackOrderList = defaultOrderList.slice();
+                }
+
+                $u.log(3, "attackOrderList", attackOrderList);
+                typeOrderList = ['chain', 'active', 'health', 'alive', 'last'];
+                if (attackSuicide) {
+                    typeOrderList.splice(3, 0, 'suicide');
+                }
+
+                if (attackPoly) {
+                    typeOrderList.unshift('poly');
+                } else {
+                    typeOrderList.splice(1, 0, 'poly');
+                }
+
+                $u.log(3, "typeOrderList", typeOrderList);
+                for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
+                    if (done) {
+                        break;
+                    }
+
+                    oType = typeOrderList[it];
+                    $u.log(3, "oType", oType);
+                    for (ot = 0, lenOt = attackOrderList.length; ot < lenOt; ot += 1) {
+                        uOrder = attackOrderList[ot].toString().toLowerCase().ucFirst();
+                        $u.log(3, "uOrder", uOrder);
+                        if (!defaultOrderList.hasIndexOf(uOrder)) {
+                            continue;
+                        }
+
+                        if (!$j.isEmptyObject(target[uOrder][oType])) {
+                            minion = target[uOrder][oType];
+                            $u.log(3, "done", uOrder, oType);
+                            done = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($j.isEmptyObject(minion)) {
+                    $u.warn("No target found!");
+                } else {
+                    $u.log(1, "Target " + minion['mclass'] + " " + oType, minion['index'], minion, target);
+                }
+
+                return minion;
+            } catch (err) {
+                $u.error("ERROR in festival.getTargetMinion: " + err);
+                return undefined;
+            }
+        },
+
+        menu: function () {
+            try {
+                var mbattleList = [
+                        'Tokens Available',
+                        'Never'
+                    ],
+                    mbattleInst = [
+                        'Tokens Available will attack whenever you have enough tokens',
+                        'Never - disables attacking in Festival'
+                    ],
+                    chainList = [
+                        '0',
+                        '160',
+                        '200',
+                        '240'
+                    ],
+                    chainListInst = [
+                        'Disabled',
+                        'Chain 160 and above',
+                        'Chain 200 and above',
+                        'Chain 240 and above'
+                    ],
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Festival', 'FESTIVAL');
+                htmlCode += caap.makeDropDownTR("Attack When", 'WhenFestival', mbattleList, mbattleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.startDropHide('WhenFestival', '', 'Never', true);
+                htmlCode += caap.makeTD("Attack Classes in this order");
+                htmlCode += caap.makeTextBox('orderFestivalClass', 'Attack Festival class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Health &lt;=", 'ignoreFestivalHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Level Plus &gt;=", 'maxFestivalLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
+                htmlCode += caap.makeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
+                htmlCode += caap.makeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
+                htmlCode += caap.startCheckHide('doPoly');
+                htmlCode += caap.makeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
+                htmlCode += caap.makeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
+                htmlCode += caap.makeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
+                htmlCode += caap.endCheckHide('doPoly');
+                htmlCode += caap.makeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
+                htmlCode += caap.makeDropDownTR("Chain", 'chainFestival', chainList, chainListInst, '', '160', false, false, 35);
+                htmlCode += caap.startDropHide('chainFestival', '', '0', true);
+                htmlCode += caap.makeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
+                htmlCode += caap.endDropHide('chainFestival');
+                htmlCode += caap.endDropHide('WhenFestival');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in festival.menu: " + err);
+                return '';
+            }
+        },
+
+        AddFestivalDashboard: function () {
+            try {
+                if (config.getItem('DBDisplay', '') === 'Festival' && state.getItem("FestivalDashUpdate", true)) {
+                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers = ['Festival', 'Damage',     'Team%',       'Enemy%',   'My Status', 'TimeLeft', 'Status'],
+                        values  = ['damage',   'teamHealth', 'enemyHealth', 'myStatus', 'ticker',    'state'],
+                        pp      = 0,
+                        i       = 0,
+                        len     = 0,
+                        data    = {},
+                        color   = '',
+                        handler = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = festival.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        data = {
+                            text  : '<span id="caap_festival_1" title="Clicking this link will take you to the Festival" rlink="festival_battle_home.php" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">Festival</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                        color = festival.records[i]['state'] === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
+                        color = festival.records[i]['state'] === 'Alive' && festival.records[i]['enemyHealth'] === festival.records[i]['teamHealth'] ? 'purple' : color;
+                        color = festival.records[i]['enemyHealth'] > festival.records[i]['teamHealth'] ? 'red' : color;
+                        for (pp = 0; pp < values.length; pp += 1) {
+                            if (values[pp] === 'ticker') {
+                                html += caap.makeTd({text: $u.hasContent(festival.records[i][values[pp]]) ? festival.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: color, id: '', title: ''});
+                            } else {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(festival.records[i][values[pp]]) && ($u.isString(festival.records[i][values[pp]]) || festival.records[i][values[pp]] > 0) ? festival.records[i][values[pp]] : '',
+                                    color : color,
+                                    id    : '',
+                                    title : ''
+                                });
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_festival", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mname     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id='caap_festival_1']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("FestivalDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.AddFestivalDashboard: " + err);
+                return false;
+            }
+        },
+
+        engageListener: function (event) {
+            $u.log(4, "engage festival_battle_home.php");
+            state.setItem('clickUrl', caap.domain.link + '/festival_battle_home.php');
+            schedule.setItem('clickedOnSomething', 0);
+            caap.waitingForDomLoad = true;
+        },
+
+
+        dualListener: function (event) {
+            var index  = -1,
+                minion = {};
+
+            $u.log(4, "engage festival_guild_battle.php", event.target.id);
+            index = event.target.id ? event.target.id.parseInt() : -1;
+            minion = festival.getMinion(index);
+            minion = !$j.isEmptyObject(minion) ? minion : {};
+            state.setItem('FestivalMinionAttacked', minion);
+            state.setItem('clickUrl', caap.domain.link + '/festival_guild_battle.php');
+            schedule.setItem('clickedOnSomething', 0);
+            caap.waitingForDomLoad = true;
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        checkResults_festival_battle_home: function () {
+            try {
+                //caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', festival.engageListener);
+                festival.checkInfo();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.checkResults_festival_battle_home: " + err);
+                return false;
+            }
+        },
+
+        checkResults_festival_guild_battle: function () {
+            try {
+                caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
+                    $j(this).parent().parent().attr("id", index).bind('click', festival.dualListener);
+                });
+
+                festival.onBattle();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
+                return false;
+            }
+        },
+
+        review: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                We do Festival review once an hour.  Some routines may reset this timer to drive
+                FestivalReview immediately.
+                \-------------------------------------------------------------------------------------*/
+                if (!schedule.check("FestivalReview") || config.getItem('WhenFestival', 'Never') === 'Never') {
+                    return false;
+                }
+
+                if (state.getItem('FestivalRefresh', true)) {
+                    if (festival.navigate_to_main_refresh()) {
+                        return true;
+                    }
+                }
+
+                if (!state.getItem('FestivalReview', false)) {
+                    if (festival.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('FestivalReview', true);
+                }
+
+                state.setItem('FestivalRefresh', true);
+                state.setItem('FestivalReview', false);
+                $u.log(1, 'Done with Festival review.');
+                return false;
+            } catch (err) {
+                $u.error("ERROR in festival.Review: " + err);
+                return false;
+            }
+        },
+
+        festival: function () {
+            try {
+                var when    = config.getItem("WhenFestival", 'Never'),
+                    record  = festival.getItem(),
+                    minion  = {},
+                    form    = $j(),
+                    key     = $j(),
+                    enterButton = $j(),
+                    nextTime = '',
+                    tokenTimer = 0;
+
+                if (when === 'Never') {
+                    return false;
+                }
+
+                nextTime = record['startTime'] ? "Next Festival: " + $u.makeTime(record['startTime'], schedule.timeStr(true)) : '';
+                tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
+                tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
+                nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
+                caap.setDivContent('festival_mess', nextTime);
+                if (!schedule.check('festivalStartTime')) {
+                    $u.log(1, "festivalStartTime", new Date().getTime(), schedule.getItem('festivalStartTime'));
+                    return false;
+                }
+
+                /*
+                if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('FestivalJoined', false)) {
+                    $u.log(1, "FestivalRefresh1");
+                    if (state.getItem('FestivalRefresh', true)) {
+                        if (festival.navigate_to_main_refresh()) {
+                            return true;
+                        }
+                    }
+
+                    if (!state.getItem('FestivalReview', false)) {
+                        if (festival.navigate_to_main()) {
+                            return true;
+                        }
+
+                        state.setItem('FestivalReview', true);
+                    }
+
+                    state.setItem('FestivalRefresh', true);
+                    state.setItem('FestivalReview', false);
+                    state.setItem('FestivalJoined', false);
+                    return false;
+                }
+                */
+
+                /*
+                if (record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
+                    return false;
+                }
+                */
+                if (!schedule.check("festivalTokenTicker")) {
+                    $u.log(1, "festivalTokenTicker");
+                    return false;
+                }
+
+                caap.setDivContent('festival_mess', "Entering Festival");
+                if (general.Select('FestivalGeneral')) {
+                    return true;
+                }
+
+                if (!$u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer))) {
+                    $u.log(1, "FestivalRefresh2");
+                    /*
+                    if (state.getItem('FestivalRefresh', true)) {
+                        if (festival.navigate_to_main_refresh()) {
+                            return true;
+                        }
+                    }
+
+                    if (!state.getItem('FestivalReview', false)) {
+                        if (festival.navigate_to_main()) {
+                            return true;
+                        }
+
+                        state.setItem('FestivalReview', true);
+                    }
+                    */
+
+                    state.setItem('FestivalRefresh', true);
+                    state.setItem('FestivalReview', false);
+                    enterButton = $j("img[src*='festival_arena_enter.jpg']");
+                    $u.log(1, "Enter battle", record, enterButton);
+                    if (record['tokens'] > 0 && $u.hasContent(enterButton)) {
+                        festival.clearMinions();
+                        caap.click(enterButton);
+                        return true;
+                    }
+                }
+
+                enterButton = $j("input[src*='guild_enter_battle_button.gif']");
+                if ($u.hasContent(enterButton)) {
+                    $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
+                    if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
+                        state.setItem('FestivalJoined', true);
+                        caap.click(enterButton);
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (record['state'] !== "Alive") {
+                    $u.log(1, "Not Alive");
+                    return false;
+                }
+
+                minion = festival.getTargetMinion(record);
+                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                    $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
+                    caap.setDivContent('festival_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
+                    key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
+                    if (key && key.length) {
+                        form = key.parents("form").eq(0);
+                        if (form && form.length) {
+                            state.setItem('FestivalMinionAttacked', minion);
+                            caap.click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            } catch (err) {
+                $u.error("ERROR in festival.festival: " + err);
+                return false;
+            }
+        },
+
+        index: function () {
+            try {
+                var tokenSpan = $j(),
+                    tStr      = '',
+                    festivalInfo = {};
+
+                $j("div[style*='arena3_newsfeed']").unbind('click', festival.engageListener).bind('click', caap.arenaEngageListener);
+                tokenSpan = $j("span[id='" + caap.domain.id[caap.domain.which] + "arena_token_current_value']");
+                if (tokenSpan && tokenSpan.length) {
+                    tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
+                    festivalInfo = festival.getItem();
+                    festivalInfo['tokens'] = tStr ? tStr.parseInt() : 0;
+                    if (festivalInfo['tokens'] === 10) {
+                        festivalInfo['tokenTime'] = '';
+                    }
+
+                    festival.setItem(festivalInfo);
+                    $u.log(4, 'festivalInfo', festivalInfo);
+                }
+                return false;
+            } catch (err) {
+                $u.error("ERROR in festival.index: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
+
+        addListeners: function () {
+            try {
+                $j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', festival.engageListener);
+                //$j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', festival.engageListener);
+                $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
+                    $j(this).attr("id", index).bind('click', festival.dualListener);
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in festival.addListeners: " + err);
+                return false;
+            }
+        }
+    };
+
+    ////////////////////////////////////////////////////////////////////
+    //                          feed OBJECT
+    // this is the main object for dealing with feed records
+    /////////////////////////////////////////////////////////////////////
+
+    feed = {
+        records: {},
+
+        recordsSortable : [],
+
+        monsterList: [],
+
+        loadList: function () {
+            try {
+                var list = monster.list();
+                feed.monsterList = gm.getItem('feed.monsterList', 'default');
+                if (feed.monsterList === 'default' || !$j.isArray(feed.monsterList)) {
+                    feed.monsterList = gm.setItem('feed.monsterList', list);
+                }
+
+                if (feed.monsterList.length !== list.length) {
+                    if (feed.monsterList.length < list.length) {
+                        $u.warn("monsterList mismatch, fewer monsters than master!", feed.monsterList, list);
+                        feed.monsterList = gm.setItem('feed.monsterList', list);
+                    } else if (feed.monsterList.length > list.length) {
+                        $u.log(2, "monsterList mismatch, more monsters than master.", feed.monsterList, list);
+                    }
+                }
+
+                $u.log(3, "feed.monsterList", feed.monsterList);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.loadList: " + err);
+                return false;
+            }
+        },
+
+        saveList: function () {
+            try {
+                gm.setItem('feed.monsterList', feed.monsterList);
+                $u.log(3, "feed.monsterList", feed.monsterList);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.saveList: " + err);
+                return false;
+            }
+        },
+
+        load: function () {
+            try {
+                feed.records = gm.getItem('feed.records', 'default');
+                if (feed.records === 'default' || !$j.isPlainObject(feed.records)) {
+                    feed.records = gm.setItem('feed.records', {});
+                }
+
+                feed.loadList();
+                feed.deleteExpired();
+                feed.copy2sortable();
+                state.setItem("FeedDashUpdate", true);
+                $u.log(3, "feed.load", feed.records);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.load: " + err);
+                return false;
+            }
+        },
+
+        save: function (force) {
+            try {
+                gm.setItem('feed.records', feed.records);
+                feed.deleteExpired();
+                feed.copy2sortable();
+                state.setItem("FeedDashUpdate", true);
+                $u.log(3, "feed.save", feed.records);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.save: " + err);
+                return false;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        deleteExpired: function () {
+            try {
+                var i       = '',
+                    save    = false,
+                    seconds = 0,
+                    mRecord = {};
+
+                for (i in feed.records) {
+                    if (feed.records.hasOwnProperty(i)) {
+                        if (!feed.records[i]['checked']) {
+                            $u.log(3, "feed.deleteExpired skipping unchecked record", feed.records[i]);
+                            continue;
+                        }
+
+                        seconds = (feed.records[i]['time'][0] * 3600) + (feed.records[i]['time'][1] * 60) + feed.records[i]['time'][2];
+                        seconds = seconds > 0 ? seconds : 86400;
+                        mRecord = monster.getItem(feed.records[i]['md5']);
+                        if (schedule.since(feed.records[i]['review'], seconds) && !$u.hasContent(mRecord['monster'])) {
+                            $u.log(2, "Feed Entry Expired", feed.records[i]);
+                            feed.deleteItem(feed.records[i]['md5']);
+                            save = true;
+                        }
+                    }
+                }
+
+                if (save) {
+                    feed.save();
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.deleteExpired: " + err);
+                return false;
+            }
+        },
+
+        copy2sortable: function () {
+            try {
+                var i      = '',
+                    update = false;
+
+                feed.recordsSortable = [];
+                for (i in feed.records) {
+                    if (feed.records.hasOwnProperty(i)) {
+                        feed.recordsSortable.push(feed.records[i]);
+                        if (!feed.monsterList.hasIndexOf(feed.records[i]['monster'].toLowerCase().ucWords())) {
+                            $u.log(1, "New monster name found", feed.records[i]['monster']);
+                            feed.monsterList.push(feed.records[i]['monster'].ucWords());
+                            update = true;
+                        }
+                    }
+                }
+
+                $u.log(3, "feed.recordsSortable", feed.recordsSortable);
+                feed.recordsSortable.sort($u.sortBy(true, 'review'));
+                if (update) {
+                    feed.monsterList.sort();
+                    feed.saveList();
+                    feed.updateDropDowns();
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.copy2sortable: " + err);
+                return false;
+            }
+        },
+
+        setItem: function (url, mon) {
+            try {
+                if (!$u.isString(mon) || !$u.isDefined(mon)) {
+                    throw "URL supplied is 'undefined' or 'null'!";
+                }
+
+                if (!$u.isString(mon) || !$u.isDefined(mon)) {
+                    throw "Monster supplied is 'undefined' or 'null'!";
+                }
+
+                var id    = url.regex(/user=(\d+)/),
+                    page  = url.regex(new RegExp("^(\\S+).php")),
+                    index = (id + ' ' + mon + ' ' + page).toLowerCase().MD5(),
+                    mine  = caap.stats['FBID'] === id ? true : false;
+
+                if (id === 0 || !$u.hasContent(id) || !$u.isNumber(id)) {
+                    $u.warn("feed.setItem id", id);
+                    throw "ID is not valid!";
+                }
+
+                if (!$u.hasContent(page) || !$u.isString(page)) {
+                    $u.warn("feed.setItem page", page);
+                    throw "Page is not valid!";
+                }
+
+                $u.log(4, "page", page);
+                if (!$u.hasContent(feed.records[index])) {
+                    feed.records[index] = {
+                        'md5'      : index,
+                        'id'       : id,
+                        'page'     : page,
+                        'url'      : url,
+                        'monster'  : mon,
+                        'type'     : '',
+                        'time'     : [0, 0, 0],
+                        'life'     : 0,
+                        't2k'      : 0,
+                        'seen'     : new Date().getTime(),
+                        'review'   : 0,
+                        'checked'  : false,
+                        'hide'     : mine,
+                        'joinable' : {}
+                    };
+
+                    feed.save();
+                    state.setItem("feedScanDone", false);
+                }
+
+                return feed.records[index];
+            } catch (err) {
+                $u.error("ERROR in feed.setItem: " + err);
+                return undefined;
+            }
+        },
+        /*jslint sub: false */
+
+        getItem: function (index) {
+            try {
+                if (!$u.isString(index) || index === '') {
+                    throw "Index supplied is 'undefined' or 'null'!";
+                }
+
+                var record = feed.records[index];
+                if (!$u.isDefined(record)) {
+                    $u.warn("feed.getItem returned 'undefined' or 'null' for", index);
+                    record = null;
+                }
+
+                return record;
+            } catch (err) {
+                $u.error("ERROR in feed.getItem: " + err);
+                return undefined;
+            }
+        },
+
+        deleteItem: function (index) {
+            try {
+                if (!$u.isString(index) || index === '') {
+                    throw "Index supplied is 'undefined' or 'null'!";
+                }
+
+                if (!$u.isDefined(feed.records[index])) {
+                    $u.warn("feed.deleteItem - Invalid or non-existant index:", index);
+                } else {
+                    delete feed.records[index];
+                    feed.save();
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.deleteItem: " + err);
+                return false;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        checked: function (currentMonster) {
+            try {
+                if (currentMonster['md5'] === '') {
+                    $u.log(2, "feed.checked no md5 supplied");
+                    if ($u.hasContent(feed.scanRecord)) {
+                        if ($u.hasContent(feed.scanRecord['id']) && $u.hasContent(feed.scanRecord['monster'] && $u.hasContent(feed.scanRecord['page']))) {
+                            currentMonster['md5'] = feed.scanRecord['md5'];
+                            currentMonster['userId'] = feed.scanRecord['id'];
+                            currentMonster['page'] = feed.scanRecord['page'];
+                            currentMonster['monster'] = feed.scanRecord['monster'];
+                            currentMonster['type'] = feed.scanRecord['type'];
+                            currentMonster['feedLink'] = feed.scanRecord['url'];
+                            currentMonster['hide'] = true;
+                            currentMonster['save'] = false;
+                            currentMonster['joinable'] = {};
+                            currentMonster['time'] = feed.scanRecord['time'];
+                            currentMonster['life'] = feed.scanRecord['life'];
+                            currentMonster['t2k'] = feed.scanRecord['t2k'];
+                            currentMonster['review'] = feed.scanRecord['review'] > 0 ? feed.scanRecord['review'] : new Date().getTime();
+                            $u.log(2, "feed.checked monster set from scanRecord", currentMonster);
+                        } else if ($u.hasContent(feed.scanRecord['md5'])) {
+                            currentMonster = monster.getItem(feed.scanRecord['md5']);
+                            $u.log(2, "feed.checked monster set from monster record", currentMonster);
+                        }
+
+                        feed.scanRecord = {};
+                    }
+                }
+
+                if (!$u.hasContent(currentMonster) || !$j.isPlainObject(currentMonster)) {
+                    throw "Not passed a record";
+                }
+
+                if (!$u.isString(currentMonster['md5']) || !$u.hasContent(currentMonster['md5'])) {
+                    $u.warn("md5", currentMonster);
+                    throw "Invalid identifying md5!";
+                }
+
+                var id   = $u.setContent(currentMonster['userId'], currentMonster['feedLink'].regex(/user=(\d+)/)),
+                    page = $u.setContent(currentMonster['page'], currentMonster['feedLink'].regex(new RegExp("^(\\S+).php"))),
+                    mon  = currentMonster['monster'],
+                    md5  = (id + ' ' + mon  + ' ' + page).toLowerCase().MD5();
+
+                if (currentMonster['md5'] !== md5) {
+                    $u.warn("md5 mismatch!", md5, currentMonster);
+                    if (config.getItem("DebugLevel", 1) > 1) {
+                        $j().alert("md5 mismatch!<br />" + md5 + '<br />' + currentMonster['md5']);
+                    }
+
+                    throw "md5 mismatch!";
+                }
+
+                if (!$u.hasContent(feed.records[currentMonster['md5']])) {
+                    $u.log(3, "feed link", currentMonster['feedLink']);
+                    feed.records[currentMonster['md5']] = {};
+                    feed.records[currentMonster['md5']]['md5'] = currentMonster['md5'];
+                    feed.records[currentMonster['md5']]['id'] = id;
+                    feed.records[currentMonster['md5']]['url'] = currentMonster['feedLink'];
+                    feed.records[currentMonster['md5']]['page'] = page;
+                    feed.records[currentMonster['md5']]['monster'] = currentMonster['monster'];
+                    feed.records[currentMonster['md5']]['type'] = currentMonster['type'];
+                    feed.records[currentMonster['md5']]['seen'] = new Date().getTime();
+                    feed.records[currentMonster['md5']]['checked'] = false;
+                    $u.log(2, "Added monster details to feed", feed.records[currentMonster['md5']]);
+                } else {
+                    feed.records[currentMonster['md5']]['checked'] = true;
+                }
+
+                feed.records[currentMonster['md5']]['hide'] = currentMonster['hide'];
+                feed.records[currentMonster['md5']]['joinable'] = currentMonster['joinable'];
+                feed.records[currentMonster['md5']]['time'] = currentMonster['time'];
+                feed.records[currentMonster['md5']]['life'] = currentMonster['life'];
+                feed.records[currentMonster['md5']]['t2k'] = currentMonster['t2k'];
+                feed.records[currentMonster['md5']]['review'] = currentMonster['review'];
+                $u.log(3, "feed.checked", feed.records[currentMonster['md5']], currentMonster);
+                feed.save();
+                return feed.records[currentMonster['md5']];
+            } catch (err) {
+                $u.error("ERROR in feed.checked: " + err);
+                return undefined;
+            }
+        },
+        /*jslint sub: false */
+
+        items: function (type, slice) {
+            try {
+                var ft = config.getItem("festivalTower", false);
+                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
+                    var post = $j(this),
+                        link = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
+                        mon  = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
+                        img  = type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"),
+                        fix  = false;
+
+                    $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
+                    if (!$u.hasContent(link)) {
+                        $u.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    if (!ft && link.hasIndexOf("festival")) {
+                        return true;
+                    }
+
+                    if (link.hasIndexOf('guild_battle_monster')) {
+                        $u.log(2, "Guild Monster, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    if (!$u.hasContent(mon)) {
+                        $u.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("No item monster text, skipping<br />" + mon + '<br />' + link + '<br />' + img);
+                        }
+
+                        return true;
+                    }
+
+                    if (!$u.hasContent(img)) {
+                        $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    if (mon.hasIndexOf("Bahamut") && !mon.hasIndexOf("Alpha") && (img.hasIndexOf("volcanic5") || link.hasIndexOf("twt2=alpha"))) {
+                        mon = "Alpha " + mon;
+                        fix = true;
+                    }
+
+                    if (mon.hasIndexOf("War Of The Red Plains")) {
+                        if (img.hasIndexOf("valhalla")) {
+                            mon = "Valhalla, The Air Elemental";
+                            fix = true;
+                        } else if (img.hasIndexOf("gehenna")) {
+                            mon = "Gehenna, The Fire Elemental";
+                            fix = true;
+                        } else if (img.hasIndexOf("alpha_mephistopheles")) {
+                            mon = "Alpha Mephistopheles";
+                            fix = true;
+                        } else if (img.hasIndexOf("aurelius")) {
+                            mon = "Aurelius, Lion's Rebellion";
+                            fix = true;
+                        } else if (img.hasIndexOf("corv")) {
+                            mon = "Corvintheus";
+                            fix = true;
+                        }
+                    }
+
+                    if (fix) {
+                        $u.log(2, "Fixed CA listing issue", mon);
+                    }
+
+                    feed.setItem(link, mon);
+                    return true;
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.items: " + err);
+                return false;
+            }
+        },
+
+        ajaxFeedWait: false,
+
+        ajaxFeed: function () {
+            try {
+                if (feed.ajaxFeedWait) {
+                    return true;
+                }
+
+                feed.ajaxFeedWait = true;
+                $j.ajax({
+                    url: caap.domain.link + '/army_news_feed.php',
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            $u.error("feed.ajaxFeed", textStatus);
+                            feed.ajaxFeedWait = false;
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            try {
+                                feed.items("feed", data);
+                            } catch (err) {
+                                $u.error("ERROR in feed.ajaxFeed: " + err);
+                            }
+
+                            feed.ajaxFeedWait = false;
+                        }
+                });
+
+                var minutes = config.getItem('CheckFeedMonsterFinderMins', 15);
+                minutes = minutes >= 15 ? minutes : 15;
+                schedule.setItem("feedMonsterFinder", minutes * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.ajaxFeed: " + err);
+                return false;
+            }
+        },
+
+        ajaxGuildWait: false,
+
+        ajaxGuild: function () {
+            try {
+                if (feed.ajaxGuildWait) {
+                    return true;
+                }
+
+                feed.ajaxGuildWait = true;
+                $j.ajax({
+                    url: caap.domain.link + '/guild.php',
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            $u.error("feed.ajaxGuild", textStatus);
+                            feed.ajaxGuildWait = false;
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            try {
+                                feed.items("guild", data);
+                            } catch (err) {
+                                $u.error("ERROR in feed.ajaxGuild: " + err);
+                            }
+
+                            feed.ajaxGuildWait = false;
+                        }
+                });
+
+                var minutes = config.getItem('CheckGuildMonsterFinderMins', 60);
+                minutes = minutes >= 15 ? minutes : 15;
+                schedule.setItem("guildMonsterFinder", minutes * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.ajaxGuild: " + err);
+                return false;
+            }
+        },
+
+        ajaxScanWait: false,
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        ajaxScan: function (record) {
+            try {
+                if (feed.ajaxScanWait) {
+                    return true;
+                }
+
+                feed.ajaxScanWait = true;
+                caap.tempAjax.load(caap.domain.link + '/' + record['url'] + ' #' + caap.domain.id[caap.domain.which] + 'globalContainer',
+                    function (data, textStatus, XMLHttpRequest) {
+                        try {
+                            caap.checkResults_viewFight(record);
+                        } catch (err) {
+                            $u.error("ERROR in feed.ajaxScan: " + err);
+                        }
+
+                        feed.ajaxScanWait = false;
+                    }
+                );
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.ajaxScan: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
+
+        scanRecord: {},
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        setScanRecord: function (md5) {
+            try {
+                if (!$u.isString(md5) || !$u.hasContent(md5)) {
+                    $u.warn("md5", md5);
+                    throw "Invalid identifying md5!";
+                }
+
+                feed.scanRecord = feed.getItem(md5);
+                if (!$u.hasContent(feed.scanRecord)) {
+                    feed.scanRecord = {};
+                    feed.scanRecord['md5'] = md5;
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.setScanRecord: " + err);
+                return false;
+            }
+        },
+
+        scan: function () {
+            try {
+                var it      = 0,
+                    len     = feed.recordsSortable.length,
+                    done    = true,
+                    hours   = config.getItem("feedMonsterReviewHrs", 6),
+                    seconds = 0;
+
+                hours = hours >= 1 ? hours : 1;
+                seconds = hours * 3600;
+                for (it = 0; it < len; it += 1) {
+                    if (!feed.recordsSortable[it]['hide'] && $u.hasContent(feed.recordsSortable[it]['url']) && schedule.since(feed.recordsSortable[it]['review'], seconds)) {
+                        done = false;
+                        break;
+                    }
+                }
+
+                if (!state.setItem("feedScanDone", done)) {
+                    $u.log(2, "Scanning", feed.recordsSortable[it]);
+                    feed.scanRecord = feed.recordsSortable[it];
+                    if (config.getItem("feedCompatabilityScan", false)) {
+                        caap.clickAjaxLinkSend(feed.recordsSortable[it]['url']);
+                    } else {
+                        feed.ajaxScan(feed.recordsSortable[it]);
+                    }
+                } else {
+                    feed.scanRecord = {};
+                    caap.tempAjax.html("");
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.scan: " + err);
+                return false;
+            }
+        },
+
+        dashboard: function () {
+            try {
+                if (config.getItem('DBDisplay', '') === 'Feed' && state.getItem("FeeedDashUpdate", true)) {
+                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers = ['Monster', 'Type', 'Damage%', 'TimeLeft', 'T2K', 'Reviewed'],
+                        values  = ['monster', 'page', 'life',    'time',     't2k', 'review'],
+                        pp      = 0,
+                        i       = 0,
+                        len     = 0,
+                        data    = {},
+                        color   = '',
+                        value   = null,
+                        handler = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = feed.recordsSortable.length; i < len; i += 1) {
+                        html += "<tr>";
+                        for (pp = 0; pp < values.length; pp += 1) {
+                            if (feed.recordsSortable[i]['hide']) {
+                                continue;
+                            }
+
+                            value = feed.recordsSortable[i][values[pp]];
+                            if (values[pp] === 'monster') {
+                                data = {
+                                    text  : '<span id="caap_feed_' + i + '" title="Clicking this link will take you to the monster" rlink="' + feed.recordsSortable[i]['url'] + '" mmd5="' + feed.recordsSortable[i]['md5'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + value + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else if (values[pp] === 'review') {
+                                html += caap.makeTd({text: $u.makeTime(value, "d M H:i"), color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
+                            } else if (values[pp] === 'page') {
+                                html += caap.makeTd({text: value.hasIndexOf('festival') ? "Festival" : "Standard", color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
+                            } else if (values[pp] === 'life') {
+                                html += caap.makeTd({text: value, color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['life'] < 10 ? 'red' :'green') : color, id: '', title: ''});
+                            } else if (values[pp] === 't2k') {
+                                html += caap.makeTd({text: $u.minutes2hours(value), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['t2k'] < (feed.recordsSortable[i]['time'][0] + feed.recordsSortable[i]['time'][1] / 60) ? 'purple' : 'green') : color, id: '', title: ''});
+                            } else if (values[pp] === 'time') {
+                                html += caap.makeTd({text: value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['time'][0] < 2 ? 'red' : 'green') : color, id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_feed", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mmd5      : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'mmd5') {
+                                visitMonsterLink.mmd5 = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        feed.setScanRecord(visitMonsterLink.mmd5);
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id*='caap_feed_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("FeedlDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.dashboard: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
+
+        menu: function () {
+            try {
+                var htmlCode = '';
+
+                htmlCode += caap.startToggle('Monster Finder', 'MONSTER FINDER');
+                htmlCode += caap.makeCheckTR("Enable Monster Finder", 'enableMonsterFinder', false, "Find joinable monsters.");
+                htmlCode += caap.startCheckHide('enableMonsterFinder');
+                htmlCode += caap.makeCheckTR("Enable Live Feed", 'feedMonsterFinder', false, "Find monsters in the Live Feed.");
+                htmlCode += caap.startCheckHide('feedMonsterFinder');
+                htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckFeedMonsterFinderMins', "Check the Live Feed every X minutes. Minimum 15.", 15, '', '', true);
+                htmlCode += caap.endCheckHide('feedMonsterFinder');
+                htmlCode += caap.makeCheckTR("Enable Guild Feed", 'guildMonsterFinder', false, "Find monsters in the Guild Feed.");
+                htmlCode += caap.startCheckHide('guildMonsterFinder');
+                htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
+                htmlCode += caap.endCheckHide('guildMonsterFinder');
+                htmlCode += caap.makeCheckTR("Status Scan", 'feedScan', false, "Scan the feed monsters to check their status.");
+                htmlCode += caap.startCheckHide('feedScan');
+                htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status. Minimum 1.", 6, '', '', true);
+                if (false) {
+                    htmlCode += caap.makeCheckTR("Compatability Scan", 'feedCompatabilityScan', false, "Scan the feed monsters in the foreground to check their status", true);
+                } else {
+                    config.setItem("feedCompatabilityScan", false);
+                }
+
+                htmlCode += caap.endCheckHide('feedScan');
+                if (false) {
+                    htmlCode += caap.makeDropDownTR("Join", 'JoinMonster1', [''].concat(feed.monsterList), '', '', '', false, false, 80);
+                    htmlCode += caap.makeDropDownTR("Join", 'JoinMonster2', [''].concat(feed.monsterList), '', '', '', false, false, 80);
+                    htmlCode += caap.makeDropDownTR("Join", 'JoinMonster3', [''].concat(feed.monsterList), '', '', '', false, false, 80);
+                    htmlCode += caap.makeDropDownTR("Join", 'JoinMonster4', [''].concat(feed.monsterList), '', '', '', false, false, 80);
+                }
+
+                htmlCode += caap.endCheckHide('enableMonsterFinder');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in feed.menu: " + err);
+                return '';
+            }
+        },
+
+        updateDropDowns: function () {
+            try {
+                caap.changeDropDownList('JoinMonster1', [''].concat(feed.monsterList), config.getItem('JoinMonster1', ''));
+                caap.changeDropDownList('JoinMonster2', [''].concat(feed.monsterList), config.getItem('JoinMonster2', ''));
+                caap.changeDropDownList('JoinMonster3', [''].concat(feed.monsterList), config.getItem('JoinMonster3', ''));
+                caap.changeDropDownList('JoinMonster4', [''].concat(feed.monsterList), config.getItem('JoinMonster4', ''));
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.updateDropDowns: " + err);
+                return false;
             }
         }
     };
@@ -5045,7 +22979,7 @@
 
                 battleRecord = battle.getItem(result.userId);
                 if (result.win) {
-                    $u.log(1, "We Defeated ", result.userName);
+                    $u.log(1, "We Defeated ", result.userName, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold);
                     //Test if we should chain this guy
                     tempTime = $u.setContent(battleRecord['chainTime'], 0);
                     chainBP = config.getItem('ChainBP', '');
@@ -5054,7 +22988,7 @@
                         if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
                             if (result.points >= chainBP) {
                                 state.setItem("BattleChainId", result.userId);
-                                $u.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
+                                $u.log(1, "Chain Attack:", result.userId, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points);
                             } else {
                                 battleRecord['ignoreTime'] = new Date().getTime();
                             }
@@ -5063,7 +22997,7 @@
                         if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
                             if (result.gold >= chainGold) {
                                 state.setItem("BattleChainId", result.userId);
-                                $u.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
+                                $u.log(1, "Chain Attack:", result.userId, "Gold: " + result.goldnum);
                             } else {
                                 battleRecord['ignoreTime'] = new Date().getTime();
                             }
@@ -5775,7 +23709,91 @@
                 $u.error("ERROR in battle.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Battle Stats' && state.getItem("BattleDashUpdate", true)) {
+                    var html                    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers                 = ['UserId', 'Name',    'BR#',     'WR#',        'Level',    'Army',    'I Win',         'I Lose',          'D Win',       'D Lose',        'W Win',      'W Lose'],
+                        values                  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'invadelossesNum', 'duelwinsNum', 'duellossesNum', 'warwinsNum', 'warlossesNum'],
+                        pp                      = 0,
+                        i                       = 0,
+                        userIdLink              = '',
+                        userIdLinkInstructions  = '',
+                        len                     = 0,
+                        len1                    = 0,
+                        data                    = {text: '', color: '', bgcolor: '', id: '', title: ''};
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = battle.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            if (/userId/.test(values[pp])) {
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
+                                data = {
+                                    text  : '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.records[i][values[pp]] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else if (/rankNum/.test(values[pp])) {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
+                            } else if (/warRankNum/.test(values[pp])) {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
+                            } else {
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_infoBattle", caap.caapTopObject).html(html);
+
+                    $j("span[id*='caap_battle_']", caap.caapTopObject).click(function (e) {
+                        var visitUserIdLink = {
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    });
+
+                    state.setItem("BattleDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in battle.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -5786,26 +23804,17 @@
     town = {
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        soldiers: [],
+        'soldiers': [],
 
         'soldiersSortable': [],
 
-        item: [],
+        'item': [],
 
         'itemSortable': [],
 
-        magic: [],
+        'magic': [],
 
         'magicSortable': [],
-
-        itemRegex: {
-            'Weapon' : /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
-            'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass|Protector/i,
-            'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
-            'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
-            'Armor'  : /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
-        },
 
         record: function () {
             this.data = {
@@ -5894,38 +23903,6 @@
             }
         },
 
-        getItemType: function (name) {
-            try {
-                var i       = '',
-                    j       = 0,
-                    len     = 0,
-                    mlen    = 0,
-                    maxlen  = 0,
-                    match   = [],
-                    theType = '';
-
-                for (i in town.itemRegex) {
-                    if (town.itemRegex.hasOwnProperty(i)) {
-                        match = name.match(town.itemRegex[i]);
-                        if (match) {
-                            for (j = 0, len = match.length; j < len; j += 1) {
-                                mlen = match[j].length;
-                                if (mlen > maxlen) {
-                                    theType = i;
-                                    maxlen = mlen;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return theType;
-            } catch (err) {
-                $u.error("ERROR in town.getItemType: " + err);
-                return undefined;
-            }
-        },
-
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         GetItems: function (type) {
@@ -5945,11 +23922,13 @@
                         var row     = $j(this),
                             current = new town.record(),
                             tempDiv = $j("strong", row).eq(0),
-                            tStr    = '';
+                            tStr    = '',
+                            record  = {};
 
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                             current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
-                            current.data['type'] = town.getItemType(current.data['name']);
+                            record = spreadsheet.getItem(current.data['name']);
+                            current.data['type'] = $u.setContent(record['type'], 'Unknown');
                         } else {
                             $u.warn("Unable to get item name in", type);
                             passed = false;
@@ -6027,10 +24006,10 @@
                     len    = 0,
                     haveIt = false;
 
-                for (it = 0, len = town.magic.length; it < len; it += 1) {
-                    if (town.magic[it]['name'] === name) {
-                        $u.log(3, "town.haveOrb", town.magic[it]);
-                        if (town.magic[it]['owned']) {
+                for (it = 0, len = town['magic'].length; it < len; it += 1) {
+                    if (town['magic'][it]['name'] === name) {
+                        $u.log(3, "town.haveOrb", town['magic'][it]);
+                        if (town['magic'][it]['owned']) {
                             haveIt = true;
                         }
 
@@ -6080,6 +24059,258 @@
                 $u.error("ERROR in town.getCount: " + err);
                 return undefined;
             }
+        },
+
+        report: function () {
+            try {
+                var it1      = 0,
+                    it2      = 0,
+                    record   = {},
+                    h        = '',
+                    missing  = [],
+                    w        = $j("#caap_missing_report"),
+                    color    = "red",
+                    bbcode   = config.getItem("townBBCode", true),
+                    sbbcolor = bbcode ? "[color=" + color + "]" : "<td style='color:" + color + "'>",
+                    ebbcolor = bbcode ? "[/color]" : "</td>",
+                    std      = bbcode ? "" : "<td>",
+                    etd      = bbcode ? "" : "</td>";
+
+                if (!$u.hasContent(w)) {
+                    for (it1 = town.types.length - 1; it1 >= 0; it1 -= 1) {
+                        for (it2 = town[town.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
+                            record = spreadsheet.getItem(town[town.types[it1]][it2]['name'], town[town.types[it1]][it2]['image']);
+                            if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record) || town[town.types[it1]][it2]['image'] !== record['image'] || town[town.types[it1]][it2]['atk'] !== record['attack'] || town[town.types[it1]][it2]['def'] !== record['defense']) {
+                                h = bbcode ? "[tr][td]" : "<tr>";
+                                if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record)) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['name'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['name'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['image'] !== record['image']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['image'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['image'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['atk'] !== record['attack']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['atk'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['atk'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][td]" : "";
+                                if (town[town.types[it1]][it2]['def'] !== record['defense']) {
+                                    h += sbbcolor + town[town.types[it1]][it2]['def'] + ebbcolor;
+                                } else {
+                                    h += std + town[town.types[it1]][it2]['def'] + etd;
+                                }
+
+                                h += bbcode ? "[/td][/tr]" : "</tr>";
+                                missing.push(h);
+                            }
+                        }
+                    }
+
+                    if ($u.hasContent(missing)) {
+                        missing.sort();
+                        if (bbcode) {
+                            h = "[table]\n[tr][td][b]Name[/b][/td][td][b]Image[/b][/td][td][b]Attack[/b][/td][td][b]Defense[/b][/td][/tr]\n";
+                        } else {
+                            h = "<table>\n<tr><th>Name</th><th>Image</th><th>Attack</th><th>Defense</th></tr>\n";
+                        }
+
+                        h += missing.join("\n");
+
+                        if (bbcode) {
+                            h += "[/table]\n";
+                            h = "<textarea style='resize:none;width:600px;height:400px;' readonly='readonly'>" + h + "</textarea>";
+                        } else {
+                            h += "</table>\n";
+                        }
+
+                        w = $j('<div id="caap_missing_report" class="caap_ff caap_fs" title="Missing Item Report">' + h + '</div>').appendTo(document.body);
+                        w.dialog({
+                            resizable : false,
+                            width     : 'auto',
+                            height    : bbcode ? 'auto' : '400',
+                            buttons   : {
+                                "Ok": function () {
+                                    w.dialog("destroy").remove();
+                                }
+                            },
+                            close     : function () {
+                                w.dialog("destroy").remove();
+                            }
+                        });
+                    } else {
+                        $j().alert("Nothing to report.");
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in town.report: " + err);
+                return false;
+            }
+        },
+
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
+                We set our table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
+                    var headers     = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
+                        values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
+                        html        = '',
+                        townValues  = [],
+                        pp          = 0,
+                        i           = 0,
+                        valueCol    = 'red',
+                        it          = 0,
+                        len         = 0,
+                        len1        = 0,
+                        len2        = 0,
+                        str         = '',
+                        header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        statsRegExp = new RegExp("caap_.*Stats_"),
+                        handler     = null;
+
+                    $j.merge(townValues, values);
+                    for (i = 0, len = town.types.length; i < len; i += 1) {
+                        if (config.getItem('DBDisplay', '') !== (town.types[i].ucFirst() + ' Stats')) {
+                            continue;
+                        }
+
+                        html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                        for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
+                            if (town.types[i] !== 'item' && headers[pp] === 'Type') {
+                                continue;
+                            }
+
+                            header = {
+                                text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : '',
+                                width : ''
+                            };
+
+                            html += caap.makeTh(header);
+                        }
+
+                        html += '</tr>';
+                        for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
+                                if (town.types[i] !== 'item' && values[pp] === 'type') {
+                                    continue;
+                                }
+
+                                if ($u.isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
+                                    str = $u.setContent(town[town.types[i] + "Sortable"][it][values[pp]], '');
+                                } else {
+                                    str = town[town.types[i] + "Sortable"][it][values[pp]].addCommas();
+                                    str = $u.hasContent(str) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + str : str;
+                                }
+
+                                html += caap.makeTd({text: str, color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                            }
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(html);
+                        state.setItem(town.types[i] + "DashUpdate", false);
+                    }
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['soldiersSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("SoldiersSort", order.data);
+                            state.setItem("SoldiersDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Soldiers");
+                        }
+                    };
+
+                    $j("span[id*='caap_soldiersStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['itemSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("ItemSort", order.data);
+                            state.setItem("ItemDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Item");
+                        }
+                    };
+
+                    $j("span[id*='caap_itemStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked = '',
+                            order = new sort.order();
+
+                        if (e.target.id) {
+                            clicked = e.target.id.replace(statsRegExp, '');
+                        }
+
+                        if (townValues.hasIndexOf(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            if (clicked !== 'name') {
+                                order.data['reverse']['a'] = true;
+                                order.data['value']['b'] = "name";
+                            }
+
+                            town['magicSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("MagicSort", order.data);
+                            state.setItem("MagicDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Magic");
+                        }
+                    };
+
+                    $j("span[id*='caap_magicStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in town.dashboard: " + err);
+                return false;
+            }
         }
         /*jslint sub: false */
     };
@@ -6102,67 +24333,83 @@
                     return true;
                 }
 
-                spreadsheet.records = ss.getItem('spreadsheet.records', 'default');
+                spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
                 if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
                     spreadsheet.records = [];
                     $j.ajax({
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
-                        dataType: "json",
+                        dataType: (navigator.userAgent.toLowerCase().hasIndexOf('opera') ? "jsonp" : "json"),
+                        error:
+                            function (XMLHttpRequest, textStatus, errorThrown) {
+                                $u.log(1, "Using offline items");
+                                spreadsheet.records = offline.items;
+                                spreadsheet.save();
+                                $u.error("spreadsheet.load", textStatus);
+                            },
                         success: function (msg) {
-                            $u.log(3, "msg", msg);
-                            var rows       = [],
-                                row        = 0,
-                                rowsLen    = 0,
-                                column     = 0,
-                                newRecord  = {},
-                                cell       = null,
-                                headers    = {},
-                                headersLen = 0,
-                                headersArr = [],
-                                key        = '';
+                            try {
+                                $u.log(3, "msg", msg);
+                                var rows       = [],
+                                    row        = 0,
+                                    rowsLen    = 0,
+                                    column     = 0,
+                                    newRecord  = {},
+                                    cell       = null,
+                                    headers    = {},
+                                    headersLen = 0,
+                                    headersArr = [],
+                                    key        = '';
 
-                            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-                            /*jslint sub: true */
-                            rows = msg['query']['results']['row'];
-                            /*jslint sub: false */
-                            headers = rows[0];
-                            for (key in headers) {
-                                if (headers.hasOwnProperty(key)) {
-                                    headersLen = headersArr.push((headers[key]).toLowerCase());
-                                }
-                            }
-
-                            for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
-                                newRecord = {};
-                                for (column = 0; column < headersLen; column += 1) {
-                                    if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
-                                        $u.warn("Spreadsheet column is empty", column);
-                                        continue;
+                                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                                /*jslint sub: true */
+                                rows = msg['query']['results']['row'];
+                                /*jslint sub: false */
+                                headers = rows[0];
+                                for (key in headers) {
+                                    if (headers.hasOwnProperty(key)) {
+                                        headersLen = headersArr.push((headers[key]).toLowerCase());
                                     }
+                                }
 
-                                    cell = rows[row]["col" + column];
-                                    if (!$u.isDefined(cell) || cell === '') {
-                                        cell = null;
-                                    } else if ($u.isNaN(cell)) {
-                                        if (headersArr[column] === "attack" || headersArr[column] === "defense") {
-                                            $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
+                                    newRecord = {};
+                                    for (column = 0; column < headersLen; column += 1) {
+                                        if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
+                                            $u.warn("Spreadsheet column is empty", column);
+                                            continue;
                                         }
 
-                                        cell = cell.replace(/"/g, "");
-                                    } else {
-                                        cell = cell.parseInt();
+                                        cell = rows[row]["col" + column];
+                                        if (!$u.isDefined(cell) || cell === '') {
+                                            cell = null;
+                                        } else if ($u.isNaN(cell)) {
+                                            if (headersArr[column] === "attack" || headersArr[column] === "defense") {
+                                                $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                            }
+
+                                            cell = cell.replace(/"/g, "");
+                                        } else {
+                                            cell = cell.parseInt();
+                                        }
+
+                                        newRecord[headersArr[column]] = cell;
                                     }
 
-                                    newRecord[headersArr[column]] = cell;
+                                    spreadsheet.records.push(newRecord);
                                 }
 
-                                spreadsheet.records.push(newRecord);
-                            }
+                                if (!$u.hasContent(spreadsheet.records)) {
+                                    $u.log(1, "Using offline items");
+                                    spreadsheet.records = offline.items;
+                                }
 
-                            spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
-                            $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
-                            ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
-                            $u.log(3, "spreadsheet.records", spreadsheet.records);
+                                spreadsheet.save();
+                            } catch (err) {
+                                $u.log(1, "Using offline items");
+                                spreadsheet.records = offline.items;
+                                spreadsheet.save();
+                                $u.error("ERROR in spreadsheet.load: " + err);
+                            }
                         }
                     });
                 } else {
@@ -6171,6 +24418,9 @@
 
                 return true;
             } catch (err) {
+                $u.log(1, "Using offline items");
+                spreadsheet.records = offline.items;
+                spreadsheet.save();
                 $u.error("ERROR in spreadsheet.load: " + err);
                 return false;
             }
@@ -6178,7 +24428,9 @@
 
         save: function () {
             try {
-                spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
+                spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
+                $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
+                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
                 $u.log(3, "spreadsheet.save", spreadsheet.records);
                 return true;
             } catch (err) {
@@ -6201,6 +24453,45 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
+        getItem: function (name, image) {
+            try {
+                if (!$u.hasContent(name) || !$u.isString(name)) {
+                    $u.warn("name", name);
+                    throw "Invalid identifying name!";
+                }
+
+                var it     = 0,
+                    len    = 0,
+                    found  = false,
+                    record = {};
+
+                for (it = 0, len = spreadsheet.records.length; it < len; it += 1) {
+                    if (image) {
+                        if (spreadsheet.records[it]['name'] === name && spreadsheet.records[it]['image'] === image) {
+                            record = spreadsheet.records[it];
+                            found = true;
+                            break;
+                        }
+                    } else {
+                        if (spreadsheet.records[it]['name'] === name) {
+                            record = spreadsheet.records[it];
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!found) {
+                    $u.warn("Unable to find spreadsheet record for", name);
+                }
+
+                return record;
+            } catch (err) {
+                $u.error("ERROR in spreadsheet.getItem: " + err);
+                return undefined;
+            }
+        },
+
         getTitle: function (title, image) {
             try {
                 var it       = 0,
@@ -6460,11 +24751,11 @@
                         if ($u.hasContent(tempText)) {
                             current.data['name'] = tempText;
                         } else {
-                            $u.warn("No name found in", giftDiv);
+                            $u.warn("No name found!");
                             current.data['name'] = "Unknown";
                         }
                     } else {
-                        $u.warn("No uid found in", giftDiv);
+                        $u.warn("No uid found!");
                     }
                 } else {
                     $u.warn("No gift messages found!");
@@ -6905,7 +25196,8 @@
                     var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']", caap.globalContainer),
                         tempText = '',
                         tempArr  = [],
-                        update   = false;
+                        update   = false,
+                        it       = 0;
 
                     if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
@@ -6942,7 +25234,12 @@
                             }
 
                             if (gifting.gifts.getItem(newGift.data['name'])) {
-                                newGift.data['name'] += " #2";
+                                it = 2;
+                                while (gifting.gifts.getItem(newGift.data['name'] + " #" + it)) {
+                                    it += 1;
+                                }
+
+                                newGift.data['name'] += " #" + it;
                                 $u.log(2, "Gift exists, no auto return for ", newGift.data['name']);
                             }
 
@@ -7435,6 +25732,121 @@
                     $u.error("ERROR in gifting.queue.sent: " + err);
                     return undefined;
                 }
+            },
+
+            dashboard: function () {
+                try {
+                    /*-------------------------------------------------------------------------------------\
+                    Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
+                    table and then build the header row.
+                    \-------------------------------------------------------------------------------------*/
+                    if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
+                        var html                   = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                            headers                = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'],
+                            values                 = ['userId', 'name', 'gift', 'found'],
+                            pp                     = 0,
+                            i                      = 0,
+                            userIdLink             = '',
+                            userIdLinkInstructions = '',
+                            removeLinkInstructions = '',
+                            len                    = 0,
+                            len1                   = 0,
+                            str                    = '',
+                            data                   = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                            handler                = null;
+
+                        for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        }
+
+                        html += '</tr>';
+                        for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                                str = $u.setContent(gifting.queue.records[i][values[pp]], '');
+                                if (/userId/.test(values[pp])) {
+                                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+
+                                    data = {
+                                        text  : '<span id="caap_targetgiftq_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                        color : 'blue',
+                                        id    : '',
+                                        title : ''
+                                    };
+
+                                    html += caap.makeTd(data);
+                                } else {
+                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                }
+                            }
+
+                            removeLinkInstructions = "Clicking this link will remove " + gifting.queue.records[i]['name'] + "'s entry from the gift queue!";
+                            data = {
+                                text  : '<span id="caap_removeq_' + i + '" title="' + removeLinkInstructions + '" mname="' +
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_giftQueue", caap.caapTopObject).html(html);
+
+                        handler = function (e) {
+                            var visitUserIdLink = {
+                                    rlink     : '',
+                                    arlink    : ''
+                                },
+                                i   = 0,
+                                len = 0;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'rlink') {
+                                    visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                }
+                            }
+
+                            caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                        };
+
+                        $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                        handler = function (e) {
+                            var index = -1,
+                                i     = 0,
+                                len   = 0,
+                                resp  = false;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'id') {
+                                    index = e.target.attributes[i].nodeValue.replace("caap_removeq_", "").parseInt();
+                                }
+                            }
+
+                            resp = confirm("Are you sure you want to remove this queue entry?");
+                            if (resp === true) {
+                                gifting.queue.deleteIndex(index);
+                                caap.updateDashboard(true);
+                            }
+                        };
+
+                        $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        state.setItem("GiftQueueDashUpdate", false);
+                    }
+
+                    return true;
+                } catch (err) {
+                    $u.error("ERROR in gifting.queue.dashboard: " + err);
+                    return false;
+                }
             }
             /*jslint sub: false */
         },
@@ -7614,7 +26026,91 @@
                     $u.error("ERROR in gifting.history.length: " + err);
                     return undefined;
                 }
+            },
+
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
+            dashboard: function () {
+                try {
+                    /*-------------------------------------------------------------------------------------\
+                    Next we build the HTML to be included into the 'caap_giftStats' div. We set our
+                    table and then build the header row.
+                    \-------------------------------------------------------------------------------------*/
+                    if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
+                        var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                            headers                  = ['UserId', 'Name', 'Received', 'Sent'],
+                            values                   = ['userId', 'name', 'received', 'sent'],
+                            pp                       = 0,
+                            i                        = 0,
+                            userIdLink               = '',
+                            userIdLinkInstructions   = '',
+                            len                      = 0,
+                            len1                     = 0,
+                            str                      = '',
+                            data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                            handler                  = null;
+
+                        for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        }
+
+                        html += '</tr>';
+                        for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
+                            html += "<tr>";
+                            for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                                str = $u.setContent(gifting.history.records[i][values[pp]], '');
+                                if (/userId/.test(values[pp])) {
+                                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    data = {
+                                        text  : '<span id="caap_targetgift_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                        color : 'blue',
+                                        id    : '',
+                                        title : ''
+                                    };
+
+                                    html += caap.makeTd(data);
+                                } else {
+                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                }
+                            }
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $j("#caap_giftStats", caap.caapTopObject).html(html);
+
+                        handler = function (e) {
+                            var visitUserIdLink = {
+                                    rlink     : '',
+                                    arlink    : ''
+                                },
+                                i   = 0,
+                                len = 0;
+
+                            for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                                if (e.target.attributes[i].nodeName === 'rlink') {
+                                    visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                }
+                            }
+
+                            caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                        };
+
+                        $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        state.setItem("GiftHistoryDashUpdate", false);
+                    }
+
+                    return true;
+                } catch (err) {
+                    $u.error("ERROR in gifting.history.dashboard: " + err);
+                    return false;
+                }
             }
+            /*jslint sub: false */
         }
     };
 
@@ -8068,7 +26564,251 @@
                 $u.error("ERROR in army.menu: " + err);
                 return '';
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        dashboard: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_army' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
+                    var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers                  = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'],
+                        values                   = ['userId', 'user', 'name', 'lvl',   'change'],
+                        color                    = '',
+                        pp                       = 0,
+                        i                        = 0,
+                        userIdLink               = '',
+                        userIdLinkInstructions   = '',
+                        removeLinkInstructions   = '',
+                        len                      = 0,
+                        len1                     = 0,
+                        str                      = '',
+                        header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        handler                  = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        header = {
+                            text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
+                            bgcolor : '',
+                            id    : '',
+                            title : '',
+                            width : ''
+                        };
+
+                        switch (headers[pp]) {
+                        case 'UserId':
+                            header.width = '18%';
+                            break;
+                        case 'User':
+                            header.width = '25%';
+                            break;
+                        case 'Name':
+                            header.width = '30%';
+                            break;
+                        case 'Level':
+                            header.width = '7%';
+                            break;
+                        case 'Change':
+                            header.width = '10%';
+                            break;
+                        case 'Elite':
+                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
+                            header.width = '5%';
+                            break;
+                        default:
+                            header.text = headers[pp];
+                            header.width = '5%';
+                            header.color = '';
+                        }
+
+                        html += caap.makeTh(header);
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
+                        if (army.recordsSortable[i]["userId"] <= 0) {
+                            continue;
+                        }
+
+                        html += "<tr>";
+                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor4", 'red');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor2", 'gold');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
+                        } else {
+                            color = config.getItem("ArmyAgeDaysColor0", 'green');
+                        }
+
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+                            if (values[pp] === "change") {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                    bgcolor : color,
+                                    color : $u.bestTextColor(color),
+                                    id    : '',
+                                    title : ''
+                                });
+                            } else if (values[pp] === "userId") {
+                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                data = {
+                                    text  : '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
+                                    color : '',
+                                    id    : '',
+                                    title : ''
+                                });
+                            }
+                        }
+
+                        data = {
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+
+                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
+                        data = {
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_army", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitUserIdLink = {
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                            }
+                        }
+
+                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    };
+
+                    $j("span[id*='caap_targetarmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var userid = 0,
+                            cstate = false,
+                            i      = 0,
+                            len    = 0,
+                            record = {};
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'cstate') {
+                                cstate = e.target.attributes[i].nodeValue === 'true' ? true : false;
+                            }
+                        }
+
+                        if ($u.hasContent(userid) && userid > 0) {
+                            record = army.getItem(userid);
+                            record['elite'] = !cstate;
+                            army.setItem(record);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("input[id*='caap_elitearmy_']", caap.caapTopObject).unbind('change', handler).change(handler);
+
+                    handler = function (e) {
+                        var mname  = '',
+                            userid = '',
+                            i      = 0,
+                            len    = 0,
+                            resp   = false;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'mname') {
+                                mname = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        resp = confirm("Are you sure you want to remove " + mname + " from your army?");
+                        if (resp === true) {
+                            caap.clickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
+                            army.deleteItem(userid);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                        }
+                    };
+
+                    $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked  = '',
+                            order    = new sort.order(),
+                            oldOrder = state.getItem("ArmySort", order.data);
+
+                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
+                        if ($u.hasContent(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
+                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
+                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("ArmySort", order.data);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.updateDashboard(true);
+                            sort.updateForm("Army");
+                        }
+                    };
+
+                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("ArmyDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.dashboard: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -8086,12 +26826,19 @@
         caapDivObject       : {},
         caapTopObject       : {},
         documentTitle       : '',
-        newVersionAvailable : false,
+        newVersionAvailable : typeof CAAP_SCOPE_RUN !== 'undefined' ? (devVersion !== '0' ? (CAAP_SCOPE_RUN[1] > caapVersion || (CAAP_SCOPE_RUN[1] >= caapVersion && CAAP_SCOPE_RUN[2] > devVersion)) : (CAAP_SCOPE_RUN[1] > caapVersion)) : false,
         ajaxLoadIcon        : {},
         globalContainer     : {},
         appBodyDiv          : {},
         resultsWrapperDiv   : {},
         resultsText         : '',
+        libs                : {
+            jQuery     : 'http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js',
+            jQueryUI   : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js',
+            farbtastic : 'http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
+            utility    : 'http://utility-js.googlecode.com/files/utility-0.1.1.min.js'
+        },
+        removeLibs   : [],
         domain              : {
             which    : -1,
             protocol : ["http://", "https://"],
@@ -8106,11 +26853,17 @@
             var FBID      = 0,
                 idOk      = false,
                 accountEl = $j(),
-                delay     = 1000;
+                delay     = 1000,
+                it        = 0;
 
             $u.set_log_version(caapVersion + (devVersion !== '0' ? 'd' + devVersion : ''));
             $u.log(1, 'DOM load completed');
             window.clearTimeout(caap_timeout);
+            for (it = 0; it < caap.removeLibs.length; it += 1) {
+                (document.head || document.getElementsByTagName('head')[0]).removeChild(caap.removeLibs[it]);
+            }
+
+            caap.removeLibs = [];
             if (window.location.href.hasIndexOf('apps.facebook.com/castle_age/')) {
                 caap.domain.which = 0;
             } else if (window.location.href.hasIndexOf('apps.facebook.com/reqs.php#confirm_46755028429_0')) {
@@ -8221,20 +26974,6 @@
             schedule.setItem('clickedOnSomething', 0);
 
             /////////////////////////////////////////////////////////////////////
-            //                          http://code.google.com/ updater
-            // Used by browsers other than Chrome (namely Firefox and Flock)
-            // to get updates from http://code.google.com/
-            /////////////////////////////////////////////////////////////////////
-
-            if ($u.is_firefox) {
-                if (devVersion === '0') {
-                    caap.releaseUpdate();
-                } else {
-                    caap.devUpdate();
-                }
-            }
-
-            /////////////////////////////////////////////////////////////////////
             // Put code to be run once to upgrade an old version's variables to
             // new format or such here.
             /////////////////////////////////////////////////////////////////////
@@ -8317,114 +27056,6 @@
             }
         },
 
-        releaseUpdate: function () {
-            try {
-                caap.newVersionAvailable = state.getItem('SUC_remote_version', '0') > caapVersion ? true : false;
-                // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
-                function updateCheck(forced) {
-                    if (forced || schedule.check('SUC_last_update')) {
-                        try {
-                            /*jslint newcap: false */
-                            GM_xmlhttpRequest({
-                            /*jslint newcap: true */
-                                method: 'GET',
-                                url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
-                                headers: {'Cache-Control': 'no-cache'},
-                                onload: function (resp) {
-                                    var remote_version = resp.responseText.match(new RegExp("@version\\s*(.*?)\\s*$", "m"))[1],
-                                        script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
-
-                                    schedule.setItem('SUC_last_update', 86400000);
-                                    state.setItem('SUC_target_script_name', script_name);
-                                    state.setItem('SUC_remote_version', remote_version);
-                                    $u.log(1, 'Remote version ', remote_version);
-                                    if (remote_version > caapVersion) {
-                                        caap.newVersionAvailable = true;
-                                        if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            /*jslint newcap: false */
-                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
-                                            /*jslint newcap: true */
-                                        }
-                                    } else if (forced) {
-                                        alert('No update is available for "' + script_name + '."');
-                                    }
-                                }
-                            });
-                        } catch (err) {
-                            if (forced) {
-                                alert('An error occurred while checking for updates:\n' + err);
-                            }
-                        }
-                    }
-                }
-
-                /*jslint newcap: false */
-                GM_registerMenuCommand(state.getItem('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
-                /*jslint newcap: true */
-                    updateCheck(true);
-                });
-
-                updateCheck(false);
-            } catch (err) {
-                $u.error("ERROR in release updater: " + err);
-            }
-        },
-
-        devUpdate: function () {
-            try {
-                caap.newVersionAvailable = state.getItem('SUC_remote_version', '0') > caapVersion || (state.getItem('SUC_remote_version', '0') >= caapVersion && state.getItem('DEV_remote_version', '0') > devVersion) ? true : false;
-                // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
-                function updateCheck(forced) {
-                    if (forced || schedule.check('SUC_last_update')) {
-                        try {
-                            /*jslint newcap: false */
-                            GM_xmlhttpRequest({
-                            /*jslint newcap: true */
-                                method: 'GET',
-                                url: 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js',
-                                headers: {'Cache-Control': 'no-cache'},
-                                onload: function (resp) {
-                                    var remote_version = resp.responseText.match(new RegExp("@version\\s*(.*?)\\s*$", "m"))[1],
-                                        dev_version    = resp.responseText.match(new RegExp("@dev\\s*(.*?)\\s*$", "m"))[1],
-                                        script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
-
-                                    schedule.setItem('SUC_last_update', 86400000);
-                                    state.setItem('SUC_target_script_name', script_name);
-                                    state.setItem('SUC_remote_version', remote_version);
-                                    state.setItem('DEV_remote_version', dev_version);
-                                    $u.log(1, 'Remote version ', remote_version, dev_version);
-                                    if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
-                                        caap.newVersionAvailable = true;
-                                        if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            /*jslint newcap: false */
-                                            GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
-                                            /*jslint newcap: true */
-                                        }
-                                    } else if (forced) {
-                                        alert('No update is available for "' + script_name + '."');
-                                    }
-                                }
-                            });
-                        } catch (err) {
-                            if (forced) {
-                                alert('An error occurred while checking for updates:\n' + err);
-                            }
-                        }
-                    }
-                }
-
-                /*jslint newcap: false */
-                GM_registerMenuCommand(state.getItem('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
-                /*jslint newcap: true */
-                    updateCheck(true);
-                });
-
-                updateCheck(false);
-            } catch (err) {
-                $u.error("ERROR in development updater: " + err);
-            }
-        },
-
         /*
         injectCATools: function () {
             $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp");
@@ -8492,6 +27123,8 @@
                 monster.load();
                 guild_monster.load();
                 //arena.load();
+                festival.load();
+                feed.load();
                 battle.load();
                 caap.loadDemi();
                 caap.loadRecon();
@@ -8502,6 +27135,7 @@
                 spreadsheet.load();
                 caap.addControl();
                 caap.addDashboard();
+                caap.addCaapAjax();
                 caap.addListeners();
                 caap.addDBListener();
                 caap.checkResults();
@@ -8631,6 +27265,47 @@
             }
         },
 
+        ajaxLoad: function (link, selector_dom, selector_load, result, loadWaitTime) {
+            try {
+                if (!$u.hasContent(link)) {
+                    throw 'No link passed to ajaxLoad';
+                }
+
+                if (!$u.hasContent(selector_dom)) {
+                    throw 'No selector_dom passed to ajaxLoad';
+                }
+
+                if (!$u.hasContent(selector_load)) {
+                    throw 'No selector_load passed to ajaxLoad';
+                }
+
+                caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
+                if (!state.getItem('clickUrl', '').hasIndexOf($u.setContent(result, link))) {
+                    state.setItem('clickUrl', caap.domain.link + '/' + $u.setContent(result, link));
+                }
+
+                if (caap.waitingForDomLoad === false) {
+                    schedule.setItem('clickedOnSomething', 0);
+                    caap.waitingForDomLoad = true;
+                }
+
+                caap.ajaxLoadIcon.css("display", "block");
+                $j(selector_dom).load(caap.domain.link + '/' + link + ' ' + selector_load,
+                    function (data, textStatus, XMLHttpRequest) {
+                        caap.ajaxLoadIcon.css("display", "none");
+                        caap.reBind();
+                        caap.waitingForDomLoad = false;
+                        caap.checkResults();
+                    }
+                );
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in caap.ajaxLoad: " + err);
+                return false;
+            }
+        },
+
         navigateTo: function (pathToPage, imageOnPage, webSlice) {
             try {
                 webSlice = $u.setContent(webSlice, caap.globalContainer);
@@ -8685,7 +27360,6 @@
         checkForImage: function (image, webSlice, subDocument, nodeNum) {
             try {
                 webSlice = $u.setContent(webSlice, $u.setContent(subDocument, window.document).body);
-                //webSlice = webSlice.jquery ? webSlice : $j(webSlice);
                 return $j("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']", webSlice).eq($u.setContent(nodeNum, 0));
             } catch (err) {
                 $u.error("ERROR in caap.checkForImage: " + err);
@@ -8759,7 +27433,7 @@
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
                     title = instructions[item] ? " title='" + instructions[item].escapeHTML() + "'" : '';
-                    htmlCode += "<option value='" + dropDownList[item] + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item] + "</option>";
+                    htmlCode += "<option value='" + dropDownList[item].escapeHTML() + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item].escapeHTML() + "</option>";
                 }
 
                 htmlCode += "</select>";
@@ -8880,10 +27554,10 @@
             }
         },
 
-        makeCheckTR: function (text, idName, defaultValue, instructions, indent, right, css) {
+        makeCheckTR: function (text, idName, defaultValue, instructions, indent, right, css, id1, css1) {
             try {
                 var htmlCode = '';
-                htmlCode += caap.startTR();
+                htmlCode += caap.startTR(id1 ? idName + id1 : idName + "_row", css1);
                 htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
                 htmlCode += caap.makeTD(caap.makeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -8932,10 +27606,10 @@
             }
         },
 
-        makeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css) {
+        makeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css, id1, css1) {
             try {
                 var htmlCode = '';
-                htmlCode += caap.startTR();
+                htmlCode += caap.startTR(id1 ? idName + id1 : idName + "_row", css1);
                 htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
                 htmlCode += caap.makeTD(caap.makeDropDown(idName, dropDownList, instructions, formatParms, defaultValue, css), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -9134,11 +27808,11 @@
                         $u.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                     }
 
-                    $j("#caap_" + idName, caap.caapDivObject).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
+                    $j("#caap_" + idName, caap.caapDivObject).append("<option value='" + dropList[item].escapeHTML() + "'>" + dropList[item].escapeHTML() + "</option>");
                 }
 
                 if (option) {
-                    $j("#caap_" + idName + " option[value='" + option + "']", caap.caapDivObject).attr('selected', 'selected');
+                    $j("#caap_" + idName + " option[value='" + option.escapeHTML() + "']", caap.caapDivObject).attr('selected', 'selected');
                 } else {
                     $j("#caap_" + idName + " option:eq(1)", caap.caapDivObject).attr('selected', 'selected');
                 }
@@ -9236,6 +27910,7 @@
                         'monster_mess',
                         'guild_monster_mess',
                         //'arena_mess',
+                        'festival_mess',
                         'fortify_mess',
                         'heal_mess',
                         'demipoint_mess',
@@ -9294,7 +27969,14 @@
                 htmlCode += battle.menu();
                 htmlCode += monster.menu();
                 htmlCode += guild_monster.menu();
+                htmlCode += feed.menu();
                 //htmlCode += arena.menu();
+                if (false) {
+                    htmlCode += festival.menu();
+                } else {
+                    config.setItem("WhenFestival", "Never");
+                }
+
                 htmlCode += caap.addReconMenu();
                 htmlCode += general.menu();
                 htmlCode += caap.addSkillPointsMenu();
@@ -9320,6 +28002,16 @@
                 return true;
             } catch (err) {
                 $u.error("ERROR in addControl: " + err);
+                return false;
+            }
+        },
+
+        addCaapAjax: function () {
+            try {
+                caap.tempAjax = true ? $j("<div id='caap_ajax'></div>") : $j("<div id='caap_ajax'></div>").appendTo(document.body);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in addCaapAjax: " + err);
                 return false;
             }
         },
@@ -9656,7 +28348,7 @@
                     ],
                     htmlCode = '';
 
-                htmlCode += caap.startToggle('Festival', 'FESTIVAL OPTIONS');
+                htmlCode += caap.startToggle('FestivalOptions', 'FESTIVAL OPTIONS');
                 htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
                 htmlCode += caap.makeCheckTR('Enable Tower', 'festivalTower', false, '');
                 htmlCode += caap.endToggle;
@@ -9684,6 +28376,7 @@
                     goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
                     ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
                     alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
+                    keepShrinkInstructions = "Reduces the size of the item images on the Keep pages.",
                     recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
                     recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
                     bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
@@ -9702,6 +28395,7 @@
                 htmlCode += caap.makeCheckTR('Do Goblin Hinting', 'goblinHinting', true, goblinHintingInstructions);
                 htmlCode += caap.makeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, ingredientsHideInstructions);
                 htmlCode += caap.makeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
+                htmlCode += caap.makeCheckTR('Keep Shrink', 'enableKeepShrink', true, keepShrinkInstructions);
                 htmlCode += caap.makeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
                 htmlCode += caap.startCheckHide('enableRecipeClean');
                 htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
@@ -9755,6 +28449,10 @@
                 htmlCode += caap.makeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.makeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.makeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.makeCheckTR("Town Item Report BBCode", "townBBCode", true, 'Switches between BBCode for forum posts and a screen viewable table.');
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_TownItemReport' value='Town Item Report' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "text-align: center;");
+                htmlCode += caap.endTR;
                 htmlCode += caap.endTR;
                 htmlCode += "</fieldset></form>";
                 htmlCode += caap.endCheckHide('AdvancedOptions');
@@ -9793,30 +28491,6 @@
             }
         },
 
-        /*-------------------------------------------------------------------------------------\
-        dashDBDropDown is used to make our drop down boxes for dash board controls.  These require
-        slightly different HTML from the side controls.
-        \-------------------------------------------------------------------------------------*/
-        dashDBDropDown: function (idName, dropDownList, instructions, formatParms) {
-            try {
-                var selectedItem = config.getItem(idName, 'defaultValue'),
-                    htmlCode     = '',
-                    item         = 0,
-                    len          = 0;
-
-                selectedItem = selectedItem !== 'defaultValue' ? selectedItem : config.setItem(idName, dropDownList[0]);
-                htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
-                for (item = 0, len = dropDownList.length; item < len; item += 1) {
-                    htmlCode += selectedItem !== dropDownList[item] ? "<option value='" + dropDownList[item] + "' " + ($u.hasContent(instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + dropDownList[item] : '';
-                }
-
-                return htmlCode + '</select>';
-            } catch (err) {
-                $u.error("ERROR in dashDBDropDown: " + err);
-                return '';
-            }
-        },
-
         addDashboard: function () {
             try {
                 /*-------------------------------------------------------------------------------------\
@@ -9824,7 +28498,40 @@
                  container and position it within the main container.
                 \-------------------------------------------------------------------------------------*/
                 var layout      = "<div id='caap_top'>",
-                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldiers Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', /*'Arena',*/ 'Army'],
+                    displayList = [
+                        /*'Arena',*/
+                        'Army',
+                        'Battle Stats',
+                        'Feed',
+                        'Festival',
+                        'Generals Stats',
+                        'Gift Queue',
+                        'Gifting Stats',
+                        'Guild Monster',
+                        'Item Stats',
+                        'Magic Stats',
+                        'Monster',
+                        'Soldiers Stats',
+                        'Target List',
+                        'User Stats'
+                    ],
+                    displayInst = [
+                        /*'Display the Arena battle in progress.',*/
+                        'Display your army members, the last time they leveled up and choose priority Elite Guard.',
+                        'Display your Battle history statistics, who you fought and if you won or lost.',
+                        'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
+                        'Display the Festival battle in progress.',
+                        'Display information about your Generals.',
+                        'Display your current Gift Queue',
+                        'Display your Gifting history, how many gifts you have received and returned to a user.',
+                        'Guild Monster',
+                        'Display information about Items seen in your Black Smith page.',
+                        'Display information about Magic seen in your Magic page.',
+                        'Display your Monster battles.',
+                        'Display information about Soldiers seen in your Soldiers page.',
+                        'Display information about Targets that you have performed reconnaissance on.',
+                        'Useful informaton about your account and character statistics.'
+                    ],
                     styleXY = {
                         x: 0,
                         y: 0
@@ -9898,7 +28605,7 @@
                  available displays.
                 \-------------------------------------------------------------------------------------*/
                 layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:5px;'>Display: ";
-                layout += caap.dashDBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
+                layout += caap.makeDropDown('DBDisplay', displayList, displayInst, '', 'User Stats', "font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;") + "</div>";
                 /*-------------------------------------------------------------------------------------\
                 And here we build our empty content divs.  We display the appropriate div
                 depending on which display was selected using the control above
@@ -9916,6 +28623,8 @@
                 layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
                 //layout += "<div id='caap_arena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena' ? 'block' : 'none') + "'></div>";
+                layout += "<div id='caap_festival' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Festival' ? 'block' : 'none') + "'></div>";
+                layout += "<div id='caap_feed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
                 layout += "</div>";
                 /*-------------------------------------------------------------------------------------\
                  No we apply our CSS to our container
@@ -10005,545 +28714,30 @@
 
                 caap.updateDashboardWaitLog = true;
                 $u.log(3, "Updating Dashboard");
-                var html                     = '',
-                    color                    = '',
-                    value                    = 0,
-                    headers                  = [],
-                    values                   = [],
-                    generalValues            = [],
-                    townValues               = [],
-                    pp                       = 0,
-                    i                        = 0,
-                    count                    = 0,
-                    monsterObjLink           = '',
-                    visitMonsterLink         = '',
-                    visitMonsterInstructions = '',
-                    removeLink               = '',
-                    removeLinkInstructions   = '',
-                    userIdLink               = '',
-                    userIdLinkInstructions   = '',
-                    id                       = '',
-                    title                    = '',
-                    monsterConditions        = '',
-                    achLevel                 = 0,
-                    maxDamage                = 0,
-                    valueCol                 = 'red',
-                    it                       = 0,
-                    len                      = 0,
-                    len1                     = 0,
-                    len2                     = 0,
-                    duration                 = 0,
-                    str                      = '',
-                    header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                    data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                    linkRegExp               = new RegExp("'(http.+)'"),
-                    statsRegExp              = new RegExp("caap_.*Stats_"),
-                    handler                  = null;
-
-                if (config.getItem('DBDisplay', '') === 'Monster' && state.getItem("MonsterDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
-                    values  = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'];
-                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: headers[pp] === 'Name' ? '30%' : ''});
-                    }
-
-                    html += '</tr>';
-                    values.shift();
-                    monster.records.forEach(function (monsterObj) {
-                        html += "<tr>";
-                        color = monsterObj['color'];
-                        if (monsterObj['name'] === state.getItem('targetFromfortify', new monster.energyTarget().data)['name']) {
-                            color = 'blue';
-                        } else if (monsterObj['name'] === state.getItem('targetFrombattle_monster', '') || monsterObj['name'] === state.getItem('targetFromraid', '')) {
-                            color = 'green';
-                        }
-
-                        monsterConditions = monsterObj['conditions'];
-                        achLevel = monster.parseCondition('ach', monsterConditions);
-                        maxDamage = monster.parseCondition('max', monsterConditions);
-                        monsterObjLink = monsterObj['link'];
-                        if (monsterObjLink) {
-                            visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
-                            visitMonsterInstructions = "Clicking this link will take you to " + monsterObj['name'];
-                            data = {
-                                text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj['name'] + '" rlink="' + visitMonsterLink[1] +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj['name'] + '</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else {
-                            html += caap.makeTd({text: monsterObj['name'], color: color, id: '', title: ''});
-                        }
-
-                        values.forEach(function (displayItem) {
-                            id = "caap_" + displayItem + "_" + count;
-                            title = '';
-                            if (displayItem === 'phase' && color === 'grey') {
-                                html += caap.makeTd({text: monsterObj['status'], color: color, id: '', title: ''});
-                            } else {
-                                value = monsterObj[displayItem];
-                                if (value !== '' && (value >= 0 || value.length)) {
-                                    if (!$u.isNaN(value) && value > 999) {
-                                        value = value.addCommas();
-                                    }
-
-                                    switch (displayItem) {
-                                    case 'damage' :
-                                        if (achLevel) {
-                                            title = "User Set Monster Achievement: " + achLevel.addCommas();
-                                        } else if (config.getItem('AchievementMode', false)) {
-                                            title = $u.hasContent(monster.info[monsterObj['type']]) && $u.isNumber(monster.info[monsterObj['type']].ach) ? "Default Monster Achievement: " + monster.info[monsterObj['type']].ach.addCommas() : '';
-                                        } else {
-                                            title = "Achievement Mode Disabled";
-                                        }
-
-                                        title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
-                                        break;
-                                    case 'time' :
-                                        if ($u.hasContent(value) && value.length === 3) {
-                                            value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]);
-                                            duration = (monsterObj['page'] === 'festival_tower' ? (caap.festivalMonsterImgTable[monsterObj['fImg']] ? caap.festivalMonsterImgTable[monsterObj['fImg']].duration : 192) : (monster.info[monsterObj['type']] ? monster.info[monsterObj['type']].duration : 192));
-                                            title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
-                                        } else {
-                                            value = '';
-                                        }
-
-                                        break;
-                                    case 't2k' :
-                                        value = $u.minutes2hours(value);
-                                        title = "Estimated Time To Kill: " + value + " hours:mins";
-                                        break;
-                                    case 'life' :
-                                        title = "Percentage of monster life remaining: " + value + "%";
-                                        break;
-                                    case 'phase' :
-                                        value = value + "/" + monster.info[monsterObj['type']].siege + " need " + monsterObj['miss'];
-                                        title = "Siege Phase: " + value + " more clicks";
-                                        break;
-                                    case 'fortify' :
-                                        title = "Percentage of party health/monster defense: " + value + "%";
-                                        break;
-                                    case 'strength' :
-                                        title = "Percentage of party strength: " + value + "%";
-                                        break;
-                                    default :
-                                    }
-
-                                    html += caap.makeTd({text: value, color: color, id: id, title: title});
-                                } else {
-                                    html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                                }
-                            }
-                        });
-
-                        if (monsterConditions && monsterConditions !== 'none') {
-                            data = {
-                                text  : '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                        }
-
-                        if (monsterObjLink) {
-                            removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) + (monsterObj['page'] === 'festival_tower' ? '&remove_monsterKey=' + monsterObj['mid'].replace("&mid=", "") : '');
-                            removeLinkInstructions = "Clicking this link will remove " + monsterObj['name'] + " from both CA and CAAP!";
-                            data = {
-                                text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj['name'] + '" rlink="' + removeLink +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                        }
-
-                        html += '</tr>';
-                        count += 1;
-                    });
-
-                    html += '</table>';
-                    $j("#caap_infoMonster", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitMonsterLink = {
-                                mname     : '',
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'mname') {
-                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                            } else if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
-                                visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
-                    };
-
-                    $j("span[id*='caap_monster_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var monsterRemove = {
-                                mname     : '',
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i    = 0,
-                            len  = 0,
-                            resp = false;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'mname') {
-                                monsterRemove.mname = e.target.attributes[i].nodeValue;
-                            } else if (e.target.attributes[i].nodeName === 'rlink') {
-                                monsterRemove.rlink = e.target.attributes[i].nodeValue;
-                                monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
-                        if (resp === true) {
-                            monster.deleteItem(monsterRemove.mname);
-                            caap.updateDashboard(true);
-                            caap.clickGetCachedAjax(monsterRemove.arlink);
-                        }
-                    };
-
-                    $j("span[id*='caap_remove_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                    state.setItem("MonsterDashUpdate", false);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Guild Monster' && state.getItem("GuildMonsterDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'];
-                    values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'];
-                    for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            switch (values[pp]) {
-                            case 'name' :
-                                data = {
-                                    text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i]['slot'] + ') ' + guild_monster.records[i]['name'] +
-                                            '" mname="' + guild_monster.records[i]['slot'] + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 + '&guild_id=' + guild_monster.records[i]['guildId'] +
-                                            '&slot=' + guild_monster.records[i]['slot'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i]['name'] + '</span>',
-                                    color : guild_monster.records[i]['color'],
-                                    id    : '',
-                                    title : ''
-                                };
-
-                                html += caap.makeTd(data);
-                                break;
-                            case 'ticker' :
-                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: guild_monster.records[i]['color'], id: '', title: ''});
-                                break;
-                            default :
-                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '', color: guild_monster.records[i]['color'], id: '', title: ''});
-                            }
-                        }
-
-                        data = {
-                            text  : '<a href="' + caap.domain.link + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 +
-                                    '&guild_id=' + guild_monster.records[i]['guildId'] + '&action=doObjective&slot=' + guild_monster.records[i]['slot'] + '&ref=nf">Link</a>',
-                            color : 'blue',
-                            id    : '',
-                            title : 'This is a siege link.'
-                        };
-
-                        html += caap.makeTd(data);
-
-                        if ($u.hasContent(guild_monster.records[i]['conditions']) && guild_monster.records[i]['conditions'] !== 'none') {
-                            data = {
-                                text  : '<span title="User Set Conditions: ' + guild_monster.records[i]['conditions'] + '" class="ui-icon ui-icon-info">i</span>',
-                                color : guild_monster.records[i]['color'],
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                        }
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_guildMonster", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitMonsterLink = {
-                                mname     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'mname') {
-                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                            } else if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
-                    };
-
-                    $j("span[id*='caap_guildmonster_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    state.setItem("GuildMonsterDashUpdate", false);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_arena' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
+                monster.dashboard();
+                guild_monster.dashboard();
                 //arena.AddArenaDashboard();
+                festival.AddFestivalDashboard();
+                feed.dashboard();
+                army.dashboard();
+                battle.dashboard();
+                town.dashboard();
+                general.dashboard();
+                gifting.queue.dashboard();
+                gifting.history.dashboard();
 
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_army' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'];
-                    values  = ['userId', 'user', 'name', 'lvl',   'change'];
-                    for (pp = 0; pp < headers.length; pp += 1) {
-                        header = {
-                            text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                            color : 'blue',
-                            bgcolor : '',
-                            id    : '',
-                            title : '',
-                            width : ''
-                        };
-
-                        switch (headers[pp]) {
-                        case 'UserId':
-                            header.width = '18%';
-                            break;
-                        case 'User':
-                            header.width = '25%';
-                            break;
-                        case 'Name':
-                            header.width = '30%';
-                            break;
-                        case 'Level':
-                            header.width = '7%';
-                            break;
-                        case 'Change':
-                            header.width = '10%';
-                            break;
-                        case 'Elite':
-                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
-                            header.width = '5%';
-                            break;
-                        default:
-                            header.text = headers[pp];
-                            header.width = '5%';
-                            header.color = '';
-                        }
-
-                        html += caap.makeTh(header);
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
-                        if (army.recordsSortable[i]["userId"] <= 0) {
-                            continue;
-                        }
-
-                        html += "<tr>";
-                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor4", 'red');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor2", 'gold');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
-                        } else {
-                            color = config.getItem("ArmyAgeDaysColor0", 'green');
-                        }
-
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            if (values[pp] === "change") {
-                                html += caap.makeTd({
-                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
-                                    bgcolor : color,
-                                    color : $u.bestTextColor(color),
-                                    id    : '',
-                                    title : ''
-                                });
-                            } else if (values[pp] === "userId") {
-                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
-                                data = {
-                                    text  : '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
-                                    color : 'blue',
-                                    id    : '',
-                                    title : ''
-                                };
-
-                                html += caap.makeTd(data);
-                            } else {
-                                html += caap.makeTd({
-                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
-                                    color : '',
-                                    id    : '',
-                                    title : ''
-                                });
-                            }
-                        }
-
-                        data = {
-                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
-                            color : 'blue',
-                            id    : '',
-                            title : ''
-                        };
-
-                        html += caap.makeTd(data);
-
-                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
-                        data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                            color : 'blue',
-                            id    : '',
-                            title : ''
-                        };
-
-                        html += caap.makeTd(data);
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_army", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitUserIdLink = {
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
-                    };
-
-                    $j("span[id*='caap_targetarmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var userid = 0,
-                            cstate = false,
-                            i      = 0,
-                            len    = 0,
-                            record = {};
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'userid') {
-                                userid = e.target.attributes[i].nodeValue.parseInt();
-                            } else if (e.target.attributes[i].nodeName === 'cstate') {
-                                cstate = e.target.attributes[i].nodeValue === 'true' ? true : false;
-                            }
-                        }
-
-                        if ($u.hasContent(userid) && userid > 0) {
-                            record = army.getItem(userid);
-                            record['elite'] = !cstate;
-                            army.setItem(record);
-                            state.setItem("ArmyDashUpdate", true);
-                            caap.updateDashboard(true);
-                        }
-                    };
-
-                    $j("input[id*='caap_elitearmy_']", caap.caapTopObject).unbind('change', handler).change(handler);
-
-                    handler = function (e) {
-                        var mname  = '',
-                            userid = '',
-                            i      = 0,
-                            len    = 0,
-                            resp   = false;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'userid') {
-                                userid = e.target.attributes[i].nodeValue.parseInt();
-                            } else if (e.target.attributes[i].nodeName === 'mname') {
-                                mname = e.target.attributes[i].nodeValue;
-                            }
-                        }
-
-                        resp = confirm("Are you sure you want to remove " + mname + " from your army?");
-                        if (resp === true) {
-                            caap.clickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
-                            army.deleteItem(userid);
-                            state.setItem("ArmyDashUpdate", true);
-                            caap.updateDashboard(true);
-                        }
-                    };
-
-                    $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked  = '',
-                            order    = new sort.order(),
-                            oldOrder = state.getItem("ArmySort", order.data);
-
-                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
-                        if ($u.hasContent(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
-                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
-                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("ArmySort", order.data);
-                            state.setItem("ArmyDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Army");
-                        }
-                    };
-
-                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    state.setItem("ArmyDashUpdate", false);
-                }
+                var html                   = '',
+                    headers                = [],
+                    values                 = [],
+                    pp                     = 0,
+                    i                      = 0,
+                    count                  = 0,
+                    userIdLink             = '',
+                    userIdLinkInstructions = '',
+                    valueCol               = 'red',
+                    len                    = 0,
+                    data                   = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                    handler                = null;
 
                 /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
@@ -10615,70 +28809,6 @@
 
                     $j("span[id*='caap_targetrecon_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("ReconDashUpdate", false);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Battle Stats' && state.getItem("BattleDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'Name',    'BR#',     'WR#',        'Level',    'Army',    'I Win',         'I Lose',          'D Win',       'D Lose',        'W Win',      'W Lose'];
-                    values  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'invadelossesNum', 'duelwinsNum', 'duellossesNum', 'warwinsNum', 'warlossesNum'];
-                    for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = battle.records.length; i < len; i += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            if (/userId/.test(values[pp])) {
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
-                                userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
-                                data = {
-                                    text  : '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.records[i][values[pp]] + '</span>',
-                                    color : 'blue',
-                                    id    : '',
-                                    title : ''
-                                };
-
-                                html += caap.makeTd(data);
-                            } else if (/rankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
-                            } else if (/warRankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
-                            } else {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
-                            }
-                        }
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_infoBattle", caap.caapTopObject).html(html);
-
-                    $j("span[id*='caap_battle_']", caap.caapTopObject).click(function (e) {
-                        var visitUserIdLink = {
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
-                    });
-
-                    state.setItem("BattleDashUpdate", false);
                 }
 
                 /*-------------------------------------------------------------------------------------\
@@ -11098,357 +29228,6 @@
                     state.setItem("UserDashUpdate", false);
                 }
 
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
-                    values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
-                    $j.merge(generalValues, values);
-                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                        header = {
-                            text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                            color : 'blue',
-                            id    : '',
-                            title : '',
-                            width : ''
-                        };
-
-                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : '', id    : '', title : '', width : '25%'} : header;
-                        html += caap.makeTh(header);
-                    }
-
-                    html += '</tr>';
-                    for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len; pp += 1) {
-                            html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? '' : valueCol, id: '', title: ''});
-                        }
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_generalsStats", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (generalValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("GeneralsSort", order.data);
-                            state.setItem("GeneralsDashUpdate", true);
-                            sort.updateForm("Generals");
-                            caap.updateDashboard(true);
-                        }
-                    };
-
-                    $j("span[id*='caap_generalsStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                    state.setItem("GeneralsDashUpdate", false);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
-                We set our table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
-                    headers = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
-                    values  = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
-                    $j.merge(townValues, values);
-                    for (i = 0, len = town.types.length; i < len; i += 1) {
-                        if (config.getItem('DBDisplay', '') !== (town.types[i].ucFirst() + ' Stats')) {
-                            continue;
-                        }
-
-                        html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                        for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
-                            if (town.types[i] !== 'item' && headers[pp] === 'Type') {
-                                continue;
-                            }
-
-                            header = {
-                                text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : '',
-                                width : ''
-                            };
-
-                            html += caap.makeTh(header);
-                        }
-
-                        html += '</tr>';
-                        for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
-                            html += "<tr>";
-                            for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
-                                if (town.types[i] !== 'item' && values[pp] === 'type') {
-                                    continue;
-                                }
-
-                                if ($u.isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
-                                    str = $u.setContent(town[town.types[i] + "Sortable"][it][values[pp]], '');
-                                } else {
-                                    str = town[town.types[i] + "Sortable"][it][values[pp]].addCommas();
-                                    str = $u.hasContent(str) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + str : str;
-                                }
-
-                                html += caap.makeTd({text: str, color: pp === 0 ? '' : valueCol, id: '', title: ''});
-                            }
-
-                            html += '</tr>';
-                        }
-
-                        html += '</table>';
-                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(html);
-                        state.setItem(town.types[i] + "DashUpdate", false);
-                    }
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['soldiersSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("SoldiersSort", order.data);
-                            state.setItem("SoldiersDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Soldiers");
-                        }
-                    };
-
-                    $j("span[id*='caap_soldiersStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['itemSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("ItemSort", order.data);
-                            state.setItem("ItemDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Item");
-                        }
-                    };
-
-                    $j("span[id*='caap_itemStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['magicSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("MagicSort", order.data);
-                            state.setItem("MagicDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Magic");
-                        }
-                    };
-
-                    $j("span[id*='caap_magicStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_giftStats' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'Name', 'Received', 'Sent'];
-                    values  = ['userId', 'name', 'received', 'sent'];
-                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            str = $u.setContent(gifting.history.records[i][values[pp]], '');
-                            if (/userId/.test(values[pp])) {
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
-                                data = {
-                                    text  : '<span id="caap_targetgift_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
-                                    color : 'blue',
-                                    id    : '',
-                                    title : ''
-                                };
-
-                                html += caap.makeTd(data);
-                            } else {
-                                html += caap.makeTd({text: str, color: '', id: '', title: ''});
-                            }
-                        }
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_giftStats", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitUserIdLink = {
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
-                    };
-
-                    $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                    state.setItem("GiftHistoryDashUpdate", false);
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'];
-                    values  = ['userId', 'name', 'gift', 'found'];
-                    for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            str = $u.setContent(gifting.queue.records[i][values[pp]], '');
-                            if (/userId/.test(values[pp])) {
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
-
-                                data = {
-                                    text  : '<span id="caap_targetgiftq_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
-                                    color : 'blue',
-                                    id    : '',
-                                    title : ''
-                                };
-
-                                html += caap.makeTd(data);
-                            } else {
-                                html += caap.makeTd({text: str, color: '', id: '', title: ''});
-                            }
-                        }
-
-                        removeLinkInstructions = "Clicking this link will remove " + gifting.queue.records[i]['name'] + "'s entry from the gift queue!";
-                        data = {
-                            text  : '<span id="caap_removeq_' + i + '" title="' + removeLinkInstructions + '" mname="' +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                            color : 'blue',
-                            id    : '',
-                            title : ''
-                        };
-
-                        html += caap.makeTd(data);
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_giftQueue", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitUserIdLink = {
-                                rlink     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitUserIdLink.arlink);
-                    };
-
-                    $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var index = -1,
-                            i     = 0,
-                            len   = 0,
-                            resp  = false;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'id') {
-                                index = e.target.attributes[i].nodeValue.replace("caap_removeq_", "").parseInt();
-                            }
-                        }
-
-                        resp = confirm("Are you sure you want to remove this queue entry?");
-                        if (resp === true) {
-                            gifting.queue.deleteIndex(index);
-                            caap.updateDashboard(true);
-                        }
-                    };
-
-                    $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                    state.setItem("GiftQueueDashUpdate", false);
-                }
-
                 return true;
             } catch (err) {
                 $u.error("ERROR in updateDashboard: " + err);
@@ -11461,11 +29240,18 @@
         addDBListener creates the listener for our dashboard controls.
         \-------------------------------------------------------------------------------------*/
         dbDisplayListener: function (e) {
-            var value = e.target.options[e.target.selectedIndex].value;
-            config.setItem('DBDisplay', value);
+            var idName = e.target.id.stripCaap(),
+                value  = e.target.options[e.target.selectedIndex].value,
+                title  = e.target.options[e.target.selectedIndex].title;
+
+            $u.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+            config.setItem(idName, value);
+            e.target.title = title;
             caap.setDisplay("caapTopObject", 'infoMonster', false);
             caap.setDisplay("caapTopObject", 'guildMonster', false);
             //caap.setDisplay("caapTopObject", 'arena', false);
+            caap.setDisplay("caapTopObject", 'festival', false);
+            caap.setDisplay("caapTopObject", 'feed', false);
             caap.setDisplay("caapTopObject", 'army', false);
             caap.setDisplay("caapTopObject", 'infoTargets1', false);
             caap.setDisplay("caapTopObject", 'infoBattle', false);
@@ -11534,6 +29320,12 @@
             /*case "Arena" :
                 caap.setDisplay("caapTopObject", 'arena', true);
                 break;*/
+            case "Festival" :
+                caap.setDisplay("caapTopObject", 'festival', true);
+                break;
+            case "Feed" :
+                caap.setDisplay("caapTopObject", 'feed', true);
+                break;
             case "Army" :
                 caap.setDisplay("caapTopObject", 'army', true);
                 caap.setDisplay("caapTopObject", 'buttonArmy', true);
@@ -12122,8 +29914,9 @@
                         caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                         if (!idName.hasIndexOf('Quest')) {
                             //if (!idName.hasIndexOf('Arena')) {
-                            caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
-                            //}
+                            if (!idName.hasIndexOf('Festival')) {
+                                caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
+                            }
 
                             caap.setDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
                             caap.setDisplay("caapDivObject", 'WhenMonsterStayHidden_hide', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
@@ -12161,6 +29954,14 @@
                                 }
 
                                 break;*/
+                            case 'WhenFestival':
+                                if (value === 'Never') {
+                                    caap.setDivContent('festival_mess', 'Festival off');
+                                } else {
+                                    caap.setDivContent('festival_mess', '');
+                                }
+
+                                break;
                             default:
                             }
                         } else {
@@ -12191,7 +29992,7 @@
                         schedule.setItem('festivalBlessTimer', 0);
                     } else if (idName === 'TargetType') {
                         state.getItem('BattleChainId', 0);
-                        caap.setDisplay("caapDivObject", 'TargetTypeFreshmeat_hide', value === "Freshmeat");
+                        //caap.setDisplay("caapDivObject", 'TargetTypeFreshmeat_hide', value === "Freshmeat");
                         caap.setDisplay("caapDivObject", 'TargetTypeUserId_hide', value === "Userid List");
                         caap.setDisplay("caapDivObject", 'TargetTypeRaid_hide', value === "Raid");
                     } else if (idName === 'LevelUpGeneral') {
@@ -12200,6 +30001,8 @@
                         state.setItem("statsMatch", true);
                     /*} else if (idName === 'chainArena') {
                         caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');*/
+                    } else if (idName === 'chainFestival') {
+                        caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');
                     } else if (idName === 'DisplayStyle') {
                         caap.setDisplay("caapDivObject", idName + '_hide', value === 'Custom');
                         switch (value) {
@@ -12343,6 +30146,7 @@
             state.setItem('caapPause', 'none');
             state.setItem('ReleaseControl', true);
             state.setItem('resetselectMonster', true);
+            state.setItem('resetselectGuildMonster', true);
             caap.waitingForDomLoad = false;
         },
 
@@ -12560,6 +30364,7 @@
                     caap.deleteDialog(val);
                 });
 
+                $j('#caap_TownItemReport', caap.caapDivObject).click(town.report);
                 $j('#caap_ActionList', caap.caapDivObject).click(caap.actionDialog);
                 $j('#caap_FillArmy', caap.caapDivObject).click(function (e) {
                     state.setItem("FillArmy", true);
@@ -12624,6 +30429,7 @@
                 $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
                 $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
                 //arena.addListeners();
+                festival.addListeners();
 
                 caap.globalContainer.bind('DOMNodeInserted', function (event) {
                     var tId        = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
@@ -12678,6 +30484,7 @@
                             "festival_challenge",
                             "festival_achievements",
                             "festival_battle_home",
+                            "festival_guild_battle",
                             "festival_battle_rank",
                             "festival_tower",
                             "festival_battle_monster"
@@ -12704,7 +30511,7 @@
                         window.setTimeout(function () {
                             caap.checkResults();
                             caap.delayMain = false;
-                        }, 600);
+                        }, 750);
                     }
 
                     // Reposition the dashboard
@@ -12877,6 +30684,18 @@
             'festival_battle_monster': {
                 signaturePic: 'festival_achievement_monster_',
                 CheckResultsFunction: 'checkResults_viewFight'
+            },
+            'festival_battle_home': {
+                signaturePic: 'festival_button_rewards.gif',
+                CheckResultsFunction: 'checkResults_festival_battle_home'
+            },
+            'festival_guild_battle': {
+                signatureId: 'arena_battle_banner_section',
+                CheckResultsFunction: 'checkResults_festival_guild_battle'
+            },
+            'army_news_feed': {
+                signatureId: 'army_feed_body',
+                CheckResultsFunction: 'checkResults_army_news_feed'
             }
         },
 
@@ -12915,6 +30734,11 @@
                 caap.pageLoadOK = caap.getStats();
                 if (!caap.pageLoadOK) {
                     return true;
+                }
+
+                general.GetCurrent();
+                if (general.quickSwitch) {
+                    general.GetEquippedStats();
                 }
 
                 var pageUrl         = state.getItem('clickUrl', ''),
@@ -13567,6 +31391,10 @@
                     spreadsheet.doTitles();
                 }
 
+                if (config.getItem("enableKeepShrink", true)) {
+                    $j("div[class*='statUnit'] img", caap.appBodyDiv).attr("style", "height: 45px; width: 45px;").not("div[class*='statUnit'] img[alt='Stamina Potion'],img[alt='Energy Potion']", caap.appBodyDiv).parent().parent().attr("style", "height: 45px; width: 45px;");
+                }
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in checkResults_keep: " + err);
@@ -14133,7 +31961,7 @@
 
                 if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
                     var fortMon = state.getItem('targetFromfortify', new monster.energyTarget().data);
-                    if ($j.isPlainObject(fortMon) && fortMon['name'] && fortMon['type']) {
+                    if ($j.isPlainObject(fortMon) && fortMon['md5'] && fortMon['type']) {
                         switch (fortMon['type']) {
                         case "Fortify":
                             var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
@@ -14144,11 +31972,12 @@
 
                             caap.setDivContent('quest_mess', 'No questing until attack target ' + fortMon['name'] + " health exceeds " + config.getItem('MaxToFortify', 0) + '%');
                             var targetFrombattle_monster = state.getItem('targetFrombattle_monster', '');
+                            // this looks like a bug and needs testing if (!targetFrombattle_monster) {
                             if (!targetFrombattle_monster) {
                                 var currentMonster = monster.getItem(targetFrombattle_monster);
                                 if (!currentMonster['fortify']) {
                                     if (currentMonster['fortify'] < maxHealthtoQuest) {
-                                        caap.setDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
+                                        caap.setDivContent('quest_mess', 'No questing until fortify target ' + currentMonster['name'] + ' health exceeds ' + maxHealthtoQuest + '%');
                                         return false;
                                     }
                                 }
@@ -14273,6 +32102,7 @@
                 }
 
                 if (general.quickSwitch) {
+                    caap.reBind();
                     general.GetEquippedStats();
                 }
 
@@ -15412,11 +33242,7 @@
                         tStr         = '',
                         maxAllowed   = 0,
                         owned        = 0,
-                        bestLandCost = {},
-                        ss           = $j(),
                         s            = 0,
-                        div          = $j(),
-                        infoDiv      = $j(),
                         roi          = 0,
                         selection    = [1, 5, 10],
                         land         = new caap.landRecord();
@@ -15832,6 +33658,51 @@
             }
         },
 
+        ajaxCheckFeed: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('feedMonsterFinder', false) || !schedule.check("feedMonsterFinder")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Feed");
+                feed.ajaxFeed();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckFeed: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckGuild: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('guildMonsterFinder', false) || !schedule.check("guildMonsterFinder")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Guild");
+                feed.ajaxGuild();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckGuild: " + err);
+                return false;
+            }
+        },
+
+        feedScan: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('feedScan', false) || state.getItem("feedScanDone", false)) {
+                    return false;
+                }
+
+                $u.log(2, "Doing Feed Scan");
+                feed.scan();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feedScan: " + err);
+                return false;
+            }
+        },
+
         /////////////////////////////////////////////////////////////////////
         //                          BATTLING PLAYERS
         /////////////////////////////////////////////////////////////////////
@@ -15890,12 +33761,12 @@
                     raidName      = '',
                     battleChainId = 0,
                     targetMonster = '',
-                    targetRaid    = '',
                     whenMonster   = '',
                     targetType    = '',
                     rejoinSecs    = '',
                     battleRecord  = {},
-                    tempTime      = 0;
+                    tempTime      = 0,
+                    monsterObject = {};
 
                 if (caap.stats['level'] < 8) {
                     if (caap.battleWarnLevel) {
@@ -15909,7 +33780,7 @@
                 whenBattle = config.getItem('WhenBattle', 'Never');
                 whenMonster = config.getItem('WhenMonster', 'Never');
                 targetMonster = state.getItem('targetFrombattle_monster', '');
-                targetRaid = state.getItem('targetFromraid', '');
+                monsterObject = $u.hasContent(targetMonster) ? monster.getItem(targetMonster) : monsterObject;
                 switch (whenBattle) {
                 case 'Never' :
                     caap.setDivContent('battle_mess', 'Battle off');
@@ -15924,7 +33795,7 @@
                     break;
                 case 'No Monster' :
                     if (mode !== 'DemiPoints') {
-                        if (whenMonster !== 'Never' && targetMonster && !/the deathrune siege/i.test(targetMonster)) {
+                        if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject['name'])) {
                             return false;
                         }
                     }
@@ -15935,7 +33806,7 @@
                         return false;
                     }
 
-                    if (mode !== 'DemiPoints' && whenMonster !== 'Never' && targetMonster && !/the deathrune siege/i.test(targetMonster)) {
+                    if (mode !== 'DemiPoints' && whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject['name'])) {
                         return false;
                     }
 
@@ -16054,37 +33925,44 @@
                     caap.setDivContent('battle_mess', 'Joining the Raid');
                     // This is a temporary fix for the web3 url until CA fix their HTML
                     if (caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
-                        if (caap.navigateTo(caap.battlePage + ',arena', 'tab_arena_on.gif')) {
+                        if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
                             return true;
                         }
+
+                        caap.clickAjaxLinkSend("raid.php");
+                        return true;
                     }
 
                     if (caap.navigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
                         return true;
                     }
 
-                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['name'])) {
+                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['md5'])) {
                         caap.click(monster.completeButton['raid']['button']);
-                        monster.deleteItem(monster.completeButton['raid']['name']);
-                        monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
+                        monster.deleteItem(monster.completeButton['raid']['md5']);
+                        monster.completeButton['raid'] = {'md5': undefined, 'name': undefined, 'button': undefined};
                         caap.updateDashboard(true);
                         $u.log(1, 'Cleared a completed raid');
                         return true;
                     }
 
                     raidName = state.getItem('targetFromraid', '');
+                    if ($u.hasContent(raidName)) {
+                        monsterObject = monster.getItem(raidName);
+                    }
+
                     if (!$u.hasContent($j("div[style*='dragon_title_owner']", caap.appBodyDiv))) {
-                        button = monster.engageButtons[raidName];
+                        button = monster.engageButtons[monsterObject['md5']];
                         if ($u.hasContent(button)) {
                             caap.click(button);
                             return true;
                         }
 
-                        $u.warn('Unable to engage raid', raidName);
+                        $u.warn('Unable to engage raid', monsterObject['name']);
                         return false;
                     }
 
-                    if (monster.ConfirmRightPage(raidName)) {
+                    if (monster.confirmRightPage(monsterObject['name'])) {
                         return true;
                     }
 
@@ -16200,7 +34078,12 @@
                     members    = [],
                     save       = false;
 
-                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_achievement", caap.globalContainer).text().trim().innerTrim();
+                if (config.getItem('enableMonsterFinder', false)) {
+                    feed.items("guild", caap.appBodyDiv);
+                }
+
+                schedule.setItem("guildMonsterFinder", config.getItem('CheckGuildMonsterFinderMins', 60) * 60, 300);
+                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_achievement", caap.appBodyDiv).text().trim().innerTrim();
                 if ($u.hasContent(guildTxt)) {
                     tStr = guildTxt.regex(/Monster ([\d,]+)/);
                     caap.stats['guild']['mPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
@@ -16478,7 +34361,10 @@
                 }
 
                 caap.setDivContent('guild_monster_mess', '');
-                record = guild_monster.select(true);
+                record = guild_monster.select();
+                //record = guild_monster.select(true);
+                //record = state.setItem('targetGuildMonster', {});
+                //$u.log(1, "record", record);
                 if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
                     if (general.Select('GuildMonsterGeneral')) {
                         return true;
@@ -16565,8 +34451,66 @@
         },*/
 
         /////////////////////////////////////////////////////////////////////
+        //                          FESTIVAL
+        /////////////////////////////////////////////////////////////////////
+
+        checkResults_festival_battle_home: function () {
+            try {
+                return festival.checkResults_festival_battle_home();
+            } catch (err) {
+                $u.error("ERROR in checkResults_festival_battle_home: " + err);
+                return false;
+            }
+        },
+
+        checkResults_festival_guild_battle: function () {
+            try {
+                return festival.checkResults_festival_guild_battle();
+            } catch (err) {
+                $u.error("ERROR in checkResults_festival_guild_battle: " + err);
+                return false;
+            }
+        },
+
+        /*-------------------------------------------------------------------------------------\
+        FestivalReview is a primary action subroutine to mange the Festival on the dashboard
+        \-------------------------------------------------------------------------------------*/
+        festivalReview: function () {
+            try {
+                return festival.review();
+            } catch (err) {
+                $u.error("ERROR in festivalReview: " + err);
+                return false;
+            }
+        },
+
+        festival: function () {
+            try {
+                return festival.festival();
+            } catch (err) {
+                $u.error("ERROR in festival: " + err);
+                return false;
+            }
+        },
+
+        /////////////////////////////////////////////////////////////////////
         //                          MONSTERS AND BATTLES
         /////////////////////////////////////////////////////////////////////
+
+        checkResults_army_news_feed: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false)) {
+                    return true;
+                }
+
+                feed.items("feed", caap.appBodyDiv);
+                schedule.setItem("feedMonsterFinder", config.getItem('CheckFeedMonsterFinderMins', 15) * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in checkResults_army_news_feed: " + err);
+                return false;
+            }
+        },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
@@ -16578,16 +34522,22 @@
                     it                    = 0,
                     len                   = 0,
                     url                   = '',
-                    delList               = [],
                     siege                 = '',
                     engageButtonName      = '',
                     monsterName           = '',
                     monsterRow            = $j(),
                     monsterFull           = '',
+                    monsterInfo           = {},
                     summonDiv             = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv),
                     tempText              = '',
+                    monsterText           = '',
+                    userId                = 0,
+                    userName              = '',
+                    mName                 = '',
+                    md5                   = '',
                     pageUserCheck         = 0;
 
+                monster.clean();
                 // get all buttons to check monsterObjectList
                 if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv)) {
                     $u.log(2, "No buttons found");
@@ -16597,6 +34547,7 @@
                 page = state.getItem('page', 'battle_monster');
                 if ((page === 'battle_monster' || page === 'festival_tower') && !$u.hasContent(buttonsDiv)) {
                     $u.log(2, "No monsters to review");
+                    //feed.checked("Not Found");
                     state.setItem('reviewDone', true);
                     return true;
                 }
@@ -16616,12 +34567,35 @@
                         continue;
                     }
 
+                    url = url.replace(/http(s)*:\/\/(apps\.facebook\.com\/castle_age\/|web3\.castleagegame\.com\/castle_ws\/)/, '');
                     monsterRow = buttonsDiv.eq(it).parents().eq(3);
                     monsterFull = monsterRow.text().trim().innerTrim();
                     monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').replace(/COLLECTION: \d+:\d+:\d+/i, '').trim().innerTrim();
-                    monsterReviewed = monster.getItem(monsterName);
-                    monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], monster.type(monsterName));
-                    monsterReviewed['page'] = page;
+                    if (/^Your /.test(monsterName)) {
+                        monsterText = monsterName.replace(/^Your /, '').trim().innerTrim().toLowerCase().ucWords();
+                        userName = "Your";
+                    } else if (/Aurelius, Lion's Rebellion/.test(monsterName)) {
+                        monsterText = "Aurelius, Lion's Rebellion";
+                        userName = monsterName.replace(monsterText, '').trim();
+                    } else {
+                        monsterText = monsterName.replace(new RegExp(".+'s (.+)$"), '$1');
+                        userName = monsterName.replace(monsterText, '').trim();
+                        monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
+                    }
+
+                    mName = userName + ' ' + monsterText;
+                    $u.log(2, "Monster Name", mName);
+                    userId = $u.setContent(url.regex(/user=(\d+)/), 0);
+                    $u.log(3, "checkResults_fightList page", page.replace(/festival_tower/, "festival_battle_monster"), url);
+                    md5 = (userId + ' ' + monsterText + ' ' + page.replace(/festival_tower/, "festival_battle_monster")).toLowerCase().MD5();
+                    monsterReviewed = monster.getItem(md5);
+                    monsterReviewed['name'] = mName;
+                    monsterReviewed['userName'] = userName;
+                    monsterReviewed['monster'] = monsterText;
+                    monsterReviewed['userId'] = userId;
+                    monsterReviewed['md5'] = md5;
+                    monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], '');
+                    monsterReviewed['page'] = page.replace(/festival_tower/, "festival_battle_monster");
                     engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                     switch (engageButtonName) {
                     case 'collectbtn' :
@@ -16631,17 +34605,18 @@
                         break;
                     case 'engagebtn' :
                     case 'dragon_list_btn_3' :
-                        monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
+                        monster.engageButtons[monsterReviewed['md5']] = $j(buttonsDiv.eq(it));
                         break;
                     case 'viewbtn' :
                     case 'dragon_list_btn_4' :
                         if (page === 'raid' && !(/!/.test(monsterFull))) {
-                            monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
+                            monster.engageButtons[monsterReviewed['md5']] = $j(buttonsDiv.eq(it));
                             break;
                         }
 
-                        if (page !== "festival_tower" && !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['button']) || !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'])) {
-                            monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'] = $u.setContent(monsterName, '');
+                        if (page !== "festival_tower" && !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['button']) || !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['md5'])) {
+                            monster.completeButton[page.replace("festival_tower", "battle_monster")]['md5'] = $u.setContent(monsterReviewed['md5'], '');
+                            monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'] = $u.setContent(monsterReviewed['name'], '');
                             monster.completeButton[page.replace("festival_tower", "battle_monster")]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
                         }
 
@@ -16651,22 +34626,16 @@
                     default :
                     }
 
-                    monsterReviewed['userId'] = $u.setContent(url.regex(/user=(\d+)/), 0);
+                    monsterReviewed['hide'] = true;
                     monsterReviewed['mpool'] = /mpool=\d+/.test(url) ? '&mpool=' + url.regex(/mpool=(\d+)/) : '';
-                    monsterReviewed['mid'] = page === 'festival_tower' ? '&mid=' + url.regex(/mid=(\S+)/) : '';
-                    siege = monster.info[monsterReviewed['type']] && monster.info[monsterReviewed['type']].siege ? "&action=doObjective" : '';
-                    monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + (page === 'festival_tower' ? 'festival_battle_monster' : page) + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + $u.setContent(monsterReviewed['mid'], '') + siege + "'>Link</a>";
+                    monsterReviewed['mid'] = /mid=\S+/.test(url) ? '&mid=' + url.regex(/mid=(\S+)[&]*/) : '';
+                    monsterInfo = monster.getInfo(monsterReviewed);
+                    siege = monsterInfo && monsterInfo.siege ? "&action=doObjective" : '';
+                    monsterReviewed['feedLink'] = url;
+                    //monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + (page === 'festival_tower' ? 'festival_battle_monster' : page) + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + $u.setContent(monsterReviewed['mid'], '') + siege + "'>Link</a>";
+                    monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + monsterReviewed['feedLink'] + siege + "'>Link</a>";
+                    monsterReviewed['joined'] = true;
                     monster.setItem(monsterReviewed);
-                }
-
-                for (it = 0; it < monster.records.length; it += 1) {
-                    if (monster.records[it]['page'] === '') {
-                        delList.push(monster.records[it]['name']);
-                    }
-                }
-
-                for (it = 0; it < delList.length; it += 1) {
-                    monster.deleteItem(delList[it]);
                 }
 
                 state.setItem('reviewDone', true);
@@ -16678,88 +34647,11 @@
             }
         },
 
-        festivalMonsterImgTable: {
-            'festival_monsters_top_seamonster_green.jpg'  : {
-                name     : 'Emerald Sea Serpent',
-                duration : 96
-            },
-            'festival_monsters_top_seamonster_red.jpg'    : {
-                name     : 'Ancient Sea Serpent',
-                duration : 96
-            },
-            'festival_monsters_top_seamonster_blue.jpg'   : {
-                name     : 'Sapphire Sea Serpent',
-                duration : 96
-            },
-            'festival_monsters_top_seamonster_purple.jpg' : {
-                name     : 'Amethyst Sea Serpent',
-                duration : 96
-            },
-            'festival_monsters_top_orcking.jpg'           : {
-                name     : 'Gildamesh, The Orc King',
-                duration : 96
-            },
-            'festival_monsters_top_dragon_blue.jpg'       : {
-                name     : 'Frost Dragon',
-                duration : 96
-            },
-            'festival_monsters_top_dragon_red.jpg'        : {
-                name     : 'Ancient Red Dragon',
-                duration : 96
-            },
-            'festival_monsters_top_dragon_yellow.jpg'     : {
-                name     : 'Gold Dragon',
-                duration : 96
-            },
-            'festival_monsters_top_stonegiant.jpg'        : {
-                name     : 'Colossus of Terra',
-                duration : 96
-            },
-            'festival_monsters_top_sylvanus.jpg'          : {
-                name     : 'Sylvanas the Sorceress Queen',
-                duration : 72
-            },
-            'festival_monsters_top_agamemnon.jpg'         : {
-                name     : 'Agamemnon the Overseer',
-                duration : 192
-            },
-            'festival_monsters_top_skaar_boss.jpg'        : {
-                name     : 'Skaar Deathrune',
-                duration : 120
-            },
-            'festival_monsters_top_fire_element.jpg'      : {
-                name     : 'Gehenna, The Fire Elemental',
-                duration : 96
-            },
-            'festival_monsters_top_hydra.jpg'             : {
-                name     : 'Cronus, The World Hydra',
-                duration : 192
-            },
-            'festival_monsters_top_water_element.jpg'     : {
-                name     : 'Ragnarok, The Ice Elemental',
-                duration : 192
-            },
-            'festival_monsters_top_earth_element.jpg'     : {
-                name     : 'Genesis, The Earth Elemental',
-                duration : 192
-            },
-            'festival_monsters_top_mephistopheles.jpg'    : {
-                name     : 'Mephistopheles',
-                duration : 89
-            },
-            'festival_monsters_top_boss_azriel.jpg'       : {
-                name     : 'Azriel, the Angel of Wrath',
-                duration : 192
-            },
-            'festival_monsters_top_volcanic_new.jpg'      : {
-                name     : 'Bahamut, the Volcanic Dragon',
-                duration : 192
-            }
-        },
-
-        checkResults_viewFight: function () {
+        checkResults_viewFight: function (feedRecord) {
             try {
-                var currentMonster    = {},
+                var ajax              = feedRecord ? true : false,
+                    slice             = ajax ? caap.tempAjax : caap.appBodyDiv,
+                    currentMonster    = {},
                     time              = [],
                     tempDiv           = $j(),
                     tempText          = '',
@@ -16785,33 +34677,97 @@
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
+                    monsterDiv        = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
                     targetFromfortify = {},
                     tStr              = '',
+                    tNum              = 0,
                     tBool             = false,
-                    fMonstStyle       = '';
+                    fMonstStyle       = '',
+                    id                = 0,
+                    userName          = '',
+                    mName             = '',
+                    feedMonster       = '',
+                    md5               = '',
+                    //page              = state.getItem('page', 'battle_monster'),
+                    page              = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''),
+                    matches           = true,
+                    ctaDiv            = $j(),
+                    dragonDiv         = $j(".dragonContainer", slice),
+                    dleadersDiv       = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv),
+                    maxJoin           = dleadersDiv.text().regex(/(\d+)/),
+                    countJoin         = 0,
+                    it                = 0,
+                    jt                = 0,
+                    groups            = {},
+                    groupMatch        = false;
 
-                battle.checkResults();
-                if (config.getItem("enableTitles", true)) {
-                    spreadsheet.doTitles();
+                $u.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
+                tempDiv = $j("td[colspan='2']", dragonDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tempDiv.each(function (index) {
+                        $j(this).parent().attr("id", "mark" + index);
+                    });
+
+                    tempDiv.each(function (index) {
+                        var group  = $j(this),
+                            levels = $j("b", group).text(),
+                            start  = levels.regex(/Levels (\d+)/),
+                            max    = group.text().trim().innerTrim().replace(levels, '').trim(),
+                            maxNum = max.regex(/(\d+)/),
+                            adjust = group.parent().siblings("#mark" + (index + 1)).length ? 1 : 0,
+                            count  = group.parent().nextUntil("#mark" + (index + 1)).length - adjust;
+
+                        $u.log(3, "groups", index, levels, start, maxNum, count);
+                        groups[levels] = {'level': start, 'max': maxNum, 'count': count};
+                        countJoin += count;
+                        if (!ajax) {
+                            group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+                        }
+                    });
+                } else {
+                    tempDiv = $j("table:eq(1) a", dragonDiv);
+                    countJoin = tempDiv.length;
                 }
 
-                caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
+                groups['total'] = {'max': maxJoin, 'count': countJoin};
+                $u.log(3, "groups", groups);
+                if (!ajax) {
+                    dleadersDiv.html("[" + countJoin + "/" + maxJoin + "max]");
+                }
+
+                if (ajax && $u.hasContent(feedRecord['page']) && feedRecord['page'] !== page) {
+                    page = feedRecord['page'];
+                    $u.log(2, "Page mismatch so using feedRecord page", page, feedRecord['page']);
+                    if (config.getItem("DebugLevel", 1) > 1) {
+                        $j().alert("Page mismatch so using feedRecord page<br />" + page + '<br />' + feedRecord['page']);
+                    }
+                }
+
+                $u.log(3, "GAME PAGE", page);
+                if (!ajax) {
+                    battle.checkResults();
+                    if (config.getItem("enableTitles", true)) {
+                        spreadsheet.doTitles();
+                    }
+
+                    caap.chatLink(slice, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
+                }
+
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + monster.getFestName(fMonstStyle);
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
                 } else {
-                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
+                    monsterDiv = $j("div[style*='nm_top']", slice);
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
-                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
+                        tempDiv = $j("div[style*='nm_bars']", slice);
                         if ($u.hasContent(tempDiv)) {
                             tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
@@ -16823,25 +34779,198 @@
                             $j().alert(fMonstStyle + "<br />I don't know this monster!<br />Please inform me.");
                         }
 
-                        $u.warn("Problem finding dragon_title_owner and nm_top");
+                        if ($u.hasContent($j("div[style*='no_monster_back.jpg']", slice))) {
+                            $u.log(2, "No monster");
+                        }  else {
+                            $u.warn("Problem finding dragon_title_owner and nm_top");
+                        }
+
+                        feed.checked(monster.getItem(''));
                         return;
                     }
                 }
 
-                if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],.fb_link[href*='" + caap.stats['FBID'] + "'],img[src*='" + caap.stats['FBID'] + "']", monsterDiv))) {
-                    $u.log(2, "Your monster found", tempText);
-                    tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
+                if ($u.hasContent(monsterDiv)) {
+                    id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
+                    id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
+                    id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
+                    id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", slice).attr("onclick") + "", '').regex(/user=(\d+)/));
+                    id = $u.setContent(id, ajax ? feedRecord['id'] : 0);
+                    $u.log(3, "USER ID", id);
+                    if (id === 0 || !$u.hasContent(id)) {
+                        $u.warn("Unable to get id!");
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("Unable to get id!");
+                        }
+
+                        if (ajax) {
+                            feed.checked(monster.getItem(''));
+                        }
+
+                        return;
+                    }
+
+                    if (/Aurelius, Lion's Rebellion/.test(tempText)) {
+                        feedMonster = "Aurelius, Lion's Rebellion";
+                        userName = tempText.replace(feedMonster, '').trim();
+                    } else {
+                        feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1');
+                        userName = tempText.replace(feedMonster, '').trim();
+                        feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
+                    }
+
+                    if (!$u.hasContent(feedMonster)) {
+                        $u.warn("Unable to get monster string!!");
+                    }
+
+                    if (id === caap.stats['FBID']) {
+                        $u.log(2, "Your monster found", tempText);
+                        userName = 'Your';
+                    }
+                } else {
+                    $u.warn("checkResults_viewFight monsterDiv issue!");
                 }
 
-                $u.log(2, "Monster name", tempText);
-                currentMonster = monster.getItem(tempText);
+                mName = userName + ' ' + feedMonster;
+                $u.log(2, "Monster name", mName);
+                if (ajax) {
+                    if (feedRecord['id'] !== id) {
+                        $u.warn("User ID doesn't match!");
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("User ID doesn't match!<br />" + id + '<br />' + feedRecord['id']);
+                        }
+
+                        matches = false;
+                    }
+
+                    if (feedRecord['monster'] !== feedMonster) {
+                        $u.warn("Monster doesn't match!");
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("Monster doesn't match!<br />" + feedRecord['monster'] + '<br />' + feedMonster);
+                        }
+
+                        matches = false;
+                    }
+
+                    if (!feedRecord['url'].hasIndexOf(page)) {
+                        $u.warn("Page doesn't match!");
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("Page doesn't match!<br />" + page + '<br />' + feedRecord['url']);
+                        }
+
+                        matches = false;
+                    }
+
+                    if (!matches) {
+                        feed.checked(monster.getItem(''));
+                    }
+                }
+
+                md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5();
+                if (ajax && matches && feedRecord['md5'] !== md5) {
+                    $u.warn("MD5 mismatch!", md5, feedRecord['md5']);
+                    if (config.getItem("DebugLevel", 1) > 1) {
+                        $j().alert("md5 mismatch!<br />" + md5 + '<br />' + feedRecord['md5']);
+                    }
+
+                    throw "MD5 mismatch!";
+                }
+
+                currentMonster = monster.getItem(md5);
+                currentMonster['save'] = true;
+                if ((!$u.hasContent(currentMonster['userId']) || currentMonster['userId'] === 0) && $u.hasContent(id) && id !== 0) {
+                    currentMonster['userId'] = id;
+                    $u.log(3, "Set monster id", currentMonster['userId']);
+                }
+
+                if (!$u.hasContent(currentMonster['name']) && $u.hasContent(mName)) {
+                    currentMonster['name'] = mName;
+                    $u.log(3, "Set monster name", currentMonster['name']);
+                }
+
+                if (!$u.hasContent(currentMonster['monster']) && $u.hasContent(feedMonster)) {
+                    currentMonster['monster'] = feedMonster;
+                    $u.log(3, "Set monster monster", currentMonster['monster']);
+                }
+
+                if (!$u.hasContent(currentMonster['userName']) && $u.hasContent(userName)) {
+                    currentMonster['userName'] = userName;
+                    $u.log(3, "Set monster userName", userName);
+                }
+
+                if (!$u.hasContent(currentMonster['md5'])) {
+                    currentMonster['md5'] = md5;
+                    $u.log(3, "Set monster md5", currentMonster['md5']);
+                }
+
+                if (!$u.hasContent(currentMonster['page']) && $u.hasContent(page)) {
+                    currentMonster['page'] = page;
+                    $u.log(3, "Set monster page", page);
+                }
+
+                if (!$u.hasContent(currentMonster['feedLink'])) {
+                    if (ajax) {
+                        currentMonster['save'] = false;
+                        currentMonster['feedLink'] = feedRecord['url'];
+                        $u.log(3, "Set monster feedLink ajax", currentMonster['feedLink']);
+                    } else {
+                        feedRecord = feed.getItem(md5);
+                        if (feedRecord) {
+                            currentMonster['feedLink'] = feedRecord['url'];
+                            $u.log(3, "Set monster feedLink from feedRecord", currentMonster['feedLink']);
+                        } else {
+                            currentMonster['feedLink'] = page + '.php?';
+                            currentMonster['feedLink'] += page !== 'festival_battle_monster' ? 'twt2&' : '';
+                            currentMonster['feedLink'] += 'causer=' + id;
+                            ctaDiv = $j("input[name*='help with']", slice).parents("form").eq(0);
+                            tStr = $j("input[name='mpool']", ctaDiv).attr("value");
+                            currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mpool=' + tStr.parseInt() : '';
+                            tStr = $j("input[name='mid']", ctaDiv).attr("value");
+                            currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mid=' + tStr : '';
+                            $u.log(2, "Set monster feedLink", currentMonster['feedLink']);
+                            if (config.getItem("DebugLevel", 1) > 1) {
+                                $j().alert("Set monster feedLink<br />" + currentMonster['feedLink']);
+                            }
+                        }
+                    }
+                }
+
+                if ($u.hasContent(currentMonster['feedLink'])) {
+                    tNum = currentMonster['feedLink'].regex(/mpool=(\d+)/);
+                    currentMonster['mpool'] = $u.hasContent(tNum) ? '&mpool=' + tNum : '';
+                    tStr = currentMonster['feedLink'].regex(/mid=(\S+)[&]*/);
+                    currentMonster['mid'] = $u.hasContent(tStr) ? '&mid=' + tStr : '';
+                    tNum = currentMonster['feedLink'].regex(/rix=(\d+)/);
+                    currentMonster['rix'] = $u.hasContent(tNum) ? tNum : -1;
+                }
+
+                currentMonster['hide'] = false;
                 currentMonster['fImg'] = $u.setContent(fMonstStyle, '');
-                if (currentMonster['type'] === '') {
-                    currentMonster['type'] = monster.type(currentMonster['name']);
+                currentMonster['type'] = $u.setContent(currentMonster['type'], '');
+                monsterInfo = monster.getInfo(currentMonster);
+                $u.log(2, "monsterInfo", currentMonster['monster'], monsterInfo);
+                if ($u.hasContent(monsterInfo.levels)) {
+                    for (it = 0; it < monsterInfo.levels.length; it += 1) {
+                        groupMatch = false;
+                        for (jt in groups) {
+                            if (groups.hasOwnProperty(jt)) {
+                                if (groups[jt]['level'] === monsterInfo.levels[it]) {
+                                    currentMonster['joinable']['group' + it] = groups[jt];
+                                    groupMatch = true;
+                                }
+                            }
+                        }
+
+                        if (!groupMatch) {
+                            currentMonster['joinable']['group' + it] = {'level': monsterInfo.levels[it], 'max': monsterInfo.join[it], 'count': 0};
+                        }
+                    }
                 }
 
-                if (currentMonster['type'] === 'Siege' || currentMonster['type'].hasIndexOf('Raid')) {
-                    tempDiv = $j("div[style*='raid_back']", caap.appBodyDiv);
+                currentMonster['joinable']['total'] = groups['total'];
+                $u.log(3, "Joinable", currentMonster['joinable']);
+                if (currentMonster['monster'] === 'The Deathrune Siege') {
+                    tempDiv = $j("div[style*='raid_back']", slice);
                     if ($u.hasContent(tempDiv)) {
                         if ($u.hasContent($j("img[src*='raid_1_large.jpg']", tempDiv))) {
                             currentMonster['type'] = 'Raid I';
@@ -16849,65 +34978,71 @@
                             currentMonster['type'] = 'Raid II';
                         } else if ($u.hasContent($j("img[src*='raid_1_large_victory.jpg']", tempDiv))) {
                             $u.log(2, "Siege Victory!");
+                            currentMonster['hide'] = true;
+                            currentMonster['joinable'] = {};
                         } else {
                             $u.log(2, "Problem finding raid image! Probably finished.");
+                            currentMonster['hide'] = true;
+                            currentMonster['joinable'] = {};
                         }
+
+                        $u.log(2, "Raid Type", currentMonster['type']);
                     } else {
                         $u.warn("Problem finding raid_back");
                         return;
                     }
                 }
 
-                monsterInfo = monster.info[currentMonster['type']];
                 currentMonster['review'] = new Date().getTime();
                 state.setItem('monsterRepeatCount', 0);
                 // Extract info
-                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", caap.appBodyDiv);
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", slice);
                 if ($u.hasContent(tempDiv)) {
                     $u.log(4, "Monster ticker found");
                     time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
                 } else {
-                    if (!caap.hasImage("dead.jpg")) {
+                    if (caap.hasImage("dead.jpg")) {
+                        currentMonster['hide'] = true;
+                        currentMonster['joinable'] = {};
+                    } else {
                         $u.warn("Could not locate Monster ticker.");
                     }
                 }
 
                 if ($u.hasContent(time) && time.length === 3 && monsterInfo && monsterInfo.fort) {
-                    if (currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental') {
-                        currentMonster['fortify'] = 100;
-                    } else {
-                        currentMonster['fortify'] = 0;
-                    }
-
+                    currentMonster['fortify'] = currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental' ? 100 : 0;
                     switch (monsterInfo.defense_img) {
                     case 'bar_dispel.gif' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
                         if ($u.hasContent(tempDiv)) {
                             currentMonster['fortify'] = (100 - tempDiv.getPercent('width')).dp(2);
                         } else {
+                            currentMonster['fortify'] = 100;
                             $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                         }
 
                         break;
                     case 'seamonster_ship_health.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
                         if ($u.hasContent(tempDiv)) {
                             currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             if (monsterInfo.repair_img) {
-                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", caap.appBodyDiv).parent();
+                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", slice).parent();
                                 if ($u.hasContent(tempDiv)) {
                                     currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.getPercent('width')))).dp(2);
                                 } else {
+                                    currentMonster['fortify'] = 100;
                                     $u.warn("Unable to find repair bar", monsterInfo.repair_img);
                                 }
                             }
                         } else {
+                            currentMonster['fortify'] = 100;
                             $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                         }
 
                         break;
                     case 'nm_green.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice);
                         if ($u.hasContent(tempDiv)) {
                             tempDiv = tempDiv.parent();
                             if ($u.hasContent(tempDiv)) {
@@ -16916,12 +35051,17 @@
                                 if ($u.hasContent(tempDiv)) {
                                     currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
                                 } else {
+                                    currentMonster['strength'] = 100;
                                     $u.warn("Unable to find defense bar strength");
                                 }
                             } else {
+                                currentMonster['fortify'] = 100;
+                                currentMonster['strength'] = 100;
                                 $u.warn("Unable to find defense bar fortify");
                             }
                         } else {
+                            currentMonster['fortify'] = 100;
+                            currentMonster['strength'] = 100;
                             $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                         }
 
@@ -16932,7 +35072,7 @@
                 }
 
                 // Get damage done to monster
-                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", caap.appBodyDiv);
+                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", slice);
                 damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
                 if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
@@ -16944,7 +35084,7 @@
                         } else {
                             $u.warn("Unable to get attacked and defended damage");
                         }
-                    } else if (currentMonster['type'] === 'Siege' || (monsterInfo && monsterInfo.raid)) {
+                    } else if (currentMonster['monster'] === 'The Deathrune Siege') {
                         currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
                         currentMonster['damage'] = currentMonster['attacked'];
                     } else {
@@ -16952,25 +35092,31 @@
                         currentMonster['damage'] = currentMonster['attacked'];
                     }
 
-                    damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
+                    if (!ajax) {
+                        damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
+                    }
+
+                    currentMonster['hide'] = true;
                 } else {
+                    currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
                     $u.log(2, "Player hasn't done damage yet");
                 }
 
-                tBool = /Raid/i.test(currentMonster['type']);
+                tBool = currentMonster['monster'] === "The Deathrune Siege" ? true : false;
                 if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
                     counter = state.getItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
-                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.appBodyDiv)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.appBodyDiv)))) {
+                    // Change from using monster name to monster MD5 - need to keep an eye open for any more
+                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['md5'] === currentMonster['md5'] && ($u.hasContent($j("a[href*='&action=collectReward']", slice)) || $u.hasContent($j("input[alt*='Collect Reward']", slice)))) {
                         $u.log(2, 'Collecting Reward');
                         currentMonster['review'] = -1;
                         state.setItem('monsterReviewCounter', counter -= 1);
                         currentMonster['status'] = 'Collect Reward';
-                        currentMonster['rix'] = currentMonster['name'].hasIndexOf('Siege') ? $u.setContent($u.setContent($j("a[href*='&rix=']", caap.appBodyDiv).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
+                        currentMonster['rix'] = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent($u.setContent($j("a[href*='&rix=']", slice).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
                     }
                 }
 
                 monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' :  'monster_health_background.jpg';
-                monsterDiv = $j("img[src*='" + monstHealthImg + "']", caap.appBodyDiv).parent();
+                monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
                 if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                     currentMonster['time'] = time;
                     if ($u.hasContent(monsterDiv)) {
@@ -16982,13 +35128,13 @@
 
                     if (currentMonster['life'] && !monsterInfo) {
                         monster.setItem(currentMonster);
-                        $u.warn('Unknown monster');
+                        $u.warn('Unknown monster', currentMonster);
                         return;
                     }
 
                     if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
                         // Character type stuff
-                        monsterDiv = $j("div[style*='nm_bottom']", caap.appBodyDiv);
+                        monsterDiv = $j("div[style*='nm_bottom']", slice);
                         if ($u.hasContent(monsterDiv)) {
                             tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                             if (tempText) {
@@ -17082,7 +35228,7 @@
 
                     if (monsterInfo) {
                         if (monsterInfo.siege) {
-                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
+                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", slice).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
                             for (ind = 0, len = monsterInfo.siege_img.length; ind < len; ind += 1) {
                                 searchStr += "img[src*='" + monsterInfo.siege_img[ind] + "']";
                                 if (ind < len - 1) {
@@ -17090,9 +35236,9 @@
                                 }
                             }
 
-                            searchRes = $j(searchStr, caap.appBodyDiv);
+                            searchRes = $j(searchStr, slice);
                             if ($u.hasContent(searchRes)) {
-                                totalCount = currentMonster['type'].hasIndexOf('Raid') ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
+                                totalCount = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
                             }
 
                             currentMonster['phase'] = Math.min(totalCount, monsterInfo.siege);
@@ -17110,6 +35256,8 @@
                         currentMonster['status'] = "Dead or Fled";
                     }
 
+                    currentMonster['hide'] = true;
+                    currentMonster['joinable'] = {};
                     state.setItem('resetselectMonster', true);
                     monster.setItem(currentMonster);
                     return;
@@ -17297,6 +35445,7 @@
                 }
 
                 monster.setItem(currentMonster);
+                $u.log(3, "currentMonster", currentMonster);
                 monster.select(true);
                 caap.updateDashboard(true);
                 if (schedule.check('battleTimer')) {
@@ -17328,13 +35477,12 @@
                 the monsterOl completely. Otherwise it will be our index into how far we are into
                 reviewing monsterOl.
                 \-------------------------------------------------------------------------------------*/
-                var fCounter = config.getItem("festivalTower", false) ? -4 : -3,
-                    counter = state.getItem('monsterReviewCounter', fCounter),
-                    link     = '',
-                    tempTime = 0,
-                    isSiege  = false,
-                    listDiv  = $j(),
-                    button   = $j();
+                var fCounter    = config.getItem("festivalTower", false) ? -4 : -3,
+                    counter     = state.getItem('monsterReviewCounter', fCounter),
+                    link        = '',
+                    tempTime    = 0,
+                    isSiege     = false,
+                    monsterInfo = {};
 
                 if (counter === fCounter) {
                     state.setItem('monsterReviewCounter', counter += 1);
@@ -17354,10 +35502,10 @@
                     }
 
                     /*
-                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
+                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['md5'])) {
                         caap.click(monster.completeButton['battle_monster']['button']);
-                        monster.deleteItem(monster.completeButton['battle_monster']['name']);
-                        monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                        monster.deleteItem(monster.completeButton['battle_monster']['md5']);
+                        monster.completeButton['battle_monster'] = {'md5': undefined, 'name': undefined, 'button': undefined};
                         caap.updateDashboard(true);
                         $u.log(1, 'Cleared a completed monster');
                         return true;
@@ -17382,10 +35530,10 @@
                         state.setItem('reviewDone', true);
                     }
 
-                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
+                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['md5'])) {
                         caap.click(monster.completeButton['battle_monster']['button']);
-                        monster.deleteItem(monster.completeButton['battle_monster']['name']);
-                        monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                        monster.deleteItem(monster.completeButton['battle_monster']['md5']);
+                        monster.completeButton['battle_monster'] = {'md5': undefined, 'name': undefined, 'button': undefined};
                         caap.updateDashboard(true);
                         $u.log(1, 'Cleared a completed monster');
                         return true;
@@ -17402,9 +35550,12 @@
                     if (caap.stats['level'] > 7) {
                         // This is a temporary fix for the web3 url until CA fix their HTML
                         if (caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
-                            if (caap.navigateTo(caap.battlePage + ',arena', 'tab_arena_on.gif')) {
+                            if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
                                 return true;
                             }
+
+                            caap.clickAjaxLinkSend("raid.php");
+                            return true;
                         }
 
                         if (caap.navigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
@@ -17416,10 +35567,10 @@
                         state.setItem('reviewDone', true);
                     }
 
-                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['name'])) {
+                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['md5'])) {
                         caap.click(monster.completeButton['raid']['button']);
-                        monster.deleteItem(monster.completeButton['raid']['name']);
-                        monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
+                        monster.deleteItem(monster.completeButton['raid']['md5']);
+                        monster.completeButton['raid'] = {'md5': undefined, 'name': undefined, 'button': undefined};
                         caap.updateDashboard(true);
                         $u.log(1, 'Cleared a completed raid');
                         return true;
@@ -17479,7 +35630,8 @@
                         If the autocollect token was specified then we set the link to do auto collect. If
                         the conditions indicate we should not do sieges then we fix the link.
                         \-------------------------------------------------------------------------------------*/
-                        isSiege = /Raid/.test(monster.records[counter]['type']) || monster.records[counter]['type'] === 'Siege';
+                        isSiege = monster.records[counter]['monster'] === 'The Deathrune Siege' ? true : false;
+                        monsterInfo = monster.getInfo(monster.records[counter]);
                         $u.log(4, "monster.records[counter]", monster.records[counter]);
                         if (((monster.records[counter]['conditions'] && /:ac\b/.test(monster.records[counter]['conditions'])) ||
                                 (isSiege && config.getItem('raidCollectReward', false)) ||
@@ -17490,7 +35642,7 @@
                             }
 
                             link += '&action=collectReward';
-                            if (monster.records[counter]['name'].hasIndexOf('Siege')) {
+                            if (isSiege) {
                                 if (monster.records[counter]['rix'] !== -1)  {
                                     link += '&rix=' + monster.records[counter]['rix'];
                                 } else {
@@ -17502,7 +35654,7 @@
                             state.setItem('CollectedRewards', true);
                         } else if ((monster.records[counter]['conditions'] && monster.records[counter]['conditions'].match(':!s')) ||
                                    (!config.getItem('raidDoSiege', true) && isSiege) ||
-                                   (!config.getItem('monsterDoSiege', true) && !isSiege && monster.info[monster.records[counter]['type']].siege) ||
+                                   (!config.getItem('monsterDoSiege', true) && !isSiege && monsterInfo && monsterInfo.siege) ||
                                    caap.stats['stamina']['num'] === 0) {
                             $u.log(2, "Do not siege");
                             link = link.replace('&action=doObjective', '');
@@ -17514,7 +35666,7 @@
                         state.setItem('ReleaseControl', true);
                         link = link.replace(caap.domain.link + '/', '').replace('?', '?twt2&');
 
-                        $u.log(2, "Link", link);
+                        $u.log(3, "Link", link);
                         caap.clickAjaxLinkSend(link);
                         state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                         state.setItem('resetselectMonster', true);
@@ -17580,12 +35732,12 @@
                 }
 
                 var fightMode        = '',
-                    monsterName      = state.getItem('targetFromfortify', new monster.energyTarget().data)['name'],
-                    monstType        = monster.type(monsterName),
+                    targetMonster    = state.getItem('targetFromfortify', new monster.energyTarget().data),
+                    monsterName      = targetMonster['name'],
                     nodeNum          = 0,
                     energyRequire    = 10,
-                    currentMonster   = monster.getItem(monsterName),
-                    imageTest        = '',
+                    currentMonster   = monster.getItem(targetMonster['md5']),
+                    monsterInfo      = monster.getInfo(currentMonster),
                     attackButton     = null,
                     singleButtonList = [],
                     buttonList       = [],
@@ -17598,20 +35750,21 @@
                     buttonHref       = '',
                     theGeneral       = config.getItem('FortifyGeneral', 'Use Current');
 
-                if (monstType) {
-                    if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monster.info[monstType].staLvl) {
-                        for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                            if (caap.stats['stamina']['max'] >= monster.info[monstType].staLvl[nodeNum]) {
+                monsterInfo = $u.hasContent(currentMonster['type']) ? (currentMonster['type'] === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
+                if (monsterInfo) {
+                    if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monsterInfo.staLvl) {
+                        for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
                                 break;
                             }
                         }
                     }
 
-                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
+                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : energyRequire;
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 switch (theGeneral) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -17632,10 +35785,11 @@
                 if (monsterName && caap.checkEnergy(energyRequire, gm.getItem('WhenFortify', 'Energy Available', hiddenVar), 'fortify_mess')) {
                     fightMode = 'Fortify';
                 } else {
-                    monsterName = state.getItem('targetFrombattle_monster', '');
-                    monstType = monster.type(monsterName);
-                    currentMonster = monster.getItem(monsterName);
-                    if (monsterName && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster['page'].replace('festival_tower', 'battle_monster') === 'battle_monster') {
+                    targetMonster = state.getItem('targetFrombattle_monster', '');
+                    currentMonster = monster.getItem(targetMonster);
+                    monsterName = currentMonster['name'];
+                    monsterInfo = monster.getInfo(currentMonster);
+                    if (monsterName && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster['page'].replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
                         fightMode = 'Monster';
                     } else {
                         schedule.setItem('NotargetFrombattle_monster', 60);
@@ -17649,10 +35803,8 @@
                 }
 
                 // Check if on engage monster page
-                imageTest = monstType && monster.info[monstType].alpha ? 'nm_top' : (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower' ? 'festival_monsters_top_' :'dragon_title_owner');
-
-                if ($u.hasContent($j("div[style*='" + imageTest + "']", caap.appBodyDiv))) {
-                    if (monster.ConfirmRightPage(monsterName)) {
+                if ($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
+                    if (monster.confirmRightPage(monsterName)) {
                         return true;
                     }
 
@@ -17673,8 +35825,8 @@
                             'attack_monster_button3.jpg'
                         ];
 
-                        if (monster.info[monstType] && monster.info[monstType].fortify_img) {
-                            buttonList.unshift(monster.info[monstType].fortify_img[0]);
+                        if (monsterInfo && monsterInfo.fortify_img) {
+                            buttonList.unshift(monsterInfo.fortify_img[0]);
                         }
 
                         if (currentMonster && currentMonster['stunDo'] && currentMonster['stunType'] !== '') {
@@ -17718,11 +35870,11 @@
                                 'attack_monster_button.jpg'
                             ].concat(singleButtonList);
 
-                            if (monster.info[monstType] && monster.info[monstType].attack_img) {
+                            if (monsterInfo && monsterInfo.attack_img) {
                                 if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                    buttonList.unshift(monster.info[monstType].attack_img[1]);
+                                    buttonList.unshift(monsterInfo.attack_img[1]);
                                 } else {
-                                    buttonList.unshift(monster.info[monstType].attack_img[0]);
+                                    buttonList.unshift(monsterInfo.attack_img[0]);
                                 }
                             }
                         }
@@ -17731,9 +35883,9 @@
                     $u.log(4, "monster/button list", currentMonster, buttonList);
                     nodeNum = 0;
                     if (!caap.inLevelUpMode()) {
-                        if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.info[monstType].staLvl) {
-                            for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats['stamina']['max'] >= monster.info[monstType].staLvl[nodeNum]) {
+                        if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monsterInfo.staLvl) {
+                            for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
                                     break;
                                 }
                             }
@@ -17773,7 +35925,7 @@
                     if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                         return true;
                     }
-                } else if (currentMonster['page'] === 'festival_tower') {
+                } else if (currentMonster['page'] === 'festival_battle_monster') {
                     if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
                         return true;
                     }
@@ -17788,7 +35940,7 @@
                     $u.log(2, "On another player's keep.", pageUserCheck);
                     if (currentMonster['page'] === 'battle_monster') {
                         return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
-                    } else if (currentMonster['page'] === 'festival_tower') {
+                    } else if (currentMonster['page'] === 'festival_battle_monster') {
                         return caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg');
                     } else {
                         $u.warn('What kind of monster?', currentMonster);
@@ -17796,18 +35948,18 @@
                     }
                 }
 
-                if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
+                if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['md5'])) {
                     caap.click(monster.completeButton['battle_monster']['button']);
-                    monster.deleteItem(monster.completeButton['battle_monster']['name']);
-                    monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                    monster.deleteItem(monster.completeButton['battle_monster']['md5']);
+                    monster.completeButton['battle_monster'] = {'md5': undefined, 'name': undefined, 'button': undefined};
                     caap.updateDashboard(true);
                     $u.log(1, 'Cleared a completed monster');
                     return true;
                 }
 
-                if ($u.hasContent(monster.engageButtons[monsterName])) {
+                if ($u.hasContent(monster.engageButtons[currentMonster['md5']])) {
                     caap.setDivContent('monster_mess', 'Opening ' + monsterName);
-                    caap.click(monster.engageButtons[monsterName]);
+                    caap.click(monster.engageButtons[currentMonster['md5']]);
                     return true;
                 } else {
                     schedule.setItem('NotargetFrombattle_monster', 60);
@@ -18498,7 +36650,7 @@
                 }
 
                 if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                    if ((caap.inLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['staminaT']['max']) && caap.stats['health']['num'] < 10) {
+                    if ((caap.inLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['staminaT']['max']) && caap.stats['health']['num'] < (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10)) {
                         $u.log(1, 'Heal');
                         return caap.navigateTo('keep,heal_button.gif');
                     }
@@ -18735,6 +36887,10 @@
             try {
                 function news() {
                     try {
+                        if ($u.hasContent($j("#caap_news", caap.globalContainer))) {
+                            return true;
+                        }
+
                         var xp     = 0,
                             bp     = 0,
                             wp     = 0,
@@ -18816,7 +36972,7 @@
                                     list.push('You died ' + (deaths > 1 ? deaths + ' times' : 'once') + '!');
                                 }
 
-                                $c.prepend('<div style="padding: 0pt 0pt 10px;"><div class="alert_title">Summary:</div><div class="alert_content">' + list.join('<br>') + '</div></div>');
+                                $c.prepend('<div id="caap_news" style="padding: 0pt 0pt 10px;"><div class="alert_title">Summary:</div><div class="alert_content">' + list.join('<br>') + '</div></div>');
                             }
                         }
 
@@ -19644,6 +37800,12 @@
                 state.setItem('resetselectMonster', false);
             }
 
+            if (state.getItem('resetselectGuildMonster', false)) {
+                $u.log(4, "resetselectGuildMonster");
+                guild_monster.select(true);
+                state.setItem('resetselectGuildMonster', false);
+            }
+
             if (caap.doCTAs()) {
                 return true;
             }
@@ -19913,6 +38075,8 @@
             'checkArmy'             : 'Checking Army',
             'checkKeep'             : 'Checking Keep',
             'ajaxGiftCheck'         : 'Ajax Gift Check',
+            'ajaxCheckFeed'         : 'Ajax Feed Check',
+            'feedScan'              : 'Scanning Monsters',
             'checkAchievements'     : 'Achievements',
             'reconPlayers'          : 'Player Recon',
             'checkOracle'           : 'Checking Oracle',
@@ -19951,9 +38115,11 @@
             0x03: 'immediateAutoStat',
             0x04: 'maxEnergyQuest',
             //0x05: 'arenaReview',
+            0x05: 'festivalReview',
             0x06: 'guildMonsterReview',
             0x07: 'monsterReview',
             //0x08: 'arena',
+            0x08: 'festival',
             0x09: 'guildMonster',
             0x0A: 'demiPoints',
             0x0B: 'monsters',
@@ -19983,7 +38149,10 @@
             0x23: 'checkMagic',
             0x24: 'checkCharacterClasses',
             0x25: 'festivalBless',
-            0x26: 'idle'
+            0x26: 'ajaxCheckFeed',
+            0x27: 'ajaxCheckGuild',
+            0x28: 'feedScan',
+            0x29: 'idle'
         },
 
         actionsList: [],
@@ -20266,7 +38435,7 @@
             try {
                 // better than reload... no prompt on forms!
                 if (force || !config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
-                    caap.visitUrl(caap.domain.link + "/index.php?bm=1&ref=bookmarks&count=0");
+                    caap.visitUrl(caap.domain.link + (caap.domain.which === 0 || caap.domain.which === 2 ? "/index.php?bm=1&ref=bookmarks&count=0" : ""));
                 }
 
                 return true;
@@ -20414,45 +38583,48 @@
                     gm.deleteItem("general.records");
                 }
             },
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
             'Soldiers' : {
                 'export' : function () {
-                    return town.soldiers;
+                    return town['soldiers'];
                 },
                 'import' : function (d) {
-                    town.soldiers = d;
+                    town['soldiers'] = d;
                     town.save('soldiers');
                 },
                 'delete' : function () {
-                    town.soldiers = [];
+                    town['soldiers'] = [];
                     gm.deleteItem("soldiers.records");
                 }
             },
             'Item' : {
                 'export' : function () {
-                    return town.item;
+                    return town['item'];
                 },
                 'import' : function (d) {
-                    town.item = d;
+                    town['item'] = d;
                     town.save('item');
                 },
                 'delete' : function () {
-                    town.item = [];
+                    town['item'] = [];
                     gm.deleteItem("item.records");
                 }
             },
             'Magic' : {
                 'export' : function () {
-                    return town.magic;
+                    return town['magic'];
                 },
                 'import' : function (d) {
-                    town.magic = d;
+                    town['magic'] = d;
                     town.save('magic');
                 },
                 'delete' : function () {
-                    town.magic = [];
+                    town['magic'] = [];
                     gm.deleteItem("magic.records");
                 }
             },
+            /*jslint sub: false */
             'Gift Stats' : {
                 'export' : function () {
                     return gifting.history.records;
@@ -20530,6 +38702,45 @@
                     caap.demi = {};
                     gm.deleteItem("demipoint.records");
                 }
+            },
+            'Feed' : {
+                'export' : function () {
+                    return feed.records;
+                },
+                'import' : function (d) {
+                    feed.records = d;
+                    feed.save();
+                },
+                'delete' : function () {
+                    feed.records = {};
+                    gm.deleteItem("feed.records");
+                }
+            },
+            'Monster List' : {
+                'export' : function () {
+                    return feed.monsterList;
+                },
+                'import' : function (d) {
+                    feed.monsterList = d;
+                    feed.saveList();
+                },
+                'delete' : function () {
+                    feed.monsterList = [];
+                    gm.deleteItem("feed.monsterList");
+                }
+            },
+            'Goblin Hints' : {
+                'export' : function () {
+                    return spreadsheet.records;
+                },
+                'import' : function (d) {
+                    spreadsheet.records = d;
+                    spreadsheet.save();
+                },
+                'delete' : function () {
+                    spreadsheet.records = [];
+                    ss.deleteItem("spreadsheet.records");
+                }
             }
         },
 
@@ -20544,7 +38755,7 @@
                     }
                 }
 
-                return list;
+                return list.sort();
             } catch (err) {
                 $u.error("ERROR in caap.exportList: " + err);
                 return undefined;
@@ -20652,6 +38863,7 @@
             try {
                 var h  = '',
                     w  = $j("#caap_action"),
+                    csa = $j(),
                     it = 0,
                     jt = '',
                     t  = '';
@@ -20673,14 +38885,15 @@
 
                     t = t.substring(0, t.length - 1);
                     w = $j('<div id="caap_action" class="caap_ff caap_fs" title="Action Order"><div style="margin:20px 0px; width: 150px; height: 480px;">' + caap.makeCheckTR('Disable AutoIncome', 'disAutoIncome', false, '') + '<ul class="caap_ul" id="caap_action_sortable">' + h + '</ul></div></div>').appendTo(document.body);
+                    csa = $j("#caap_action_sortable", w);
                     w.dialog({
                         resizable : false,
                         modal     : true,
-                        width     : 'auto',
+                        width     : '200px',
                         height    : 'auto',
                         buttons   : {
                             "Ok": function () {
-                                var result = $j("#caap_action_sortable", w).sortable('toArray'),
+                                var result = csa.sortable('toArray'),
                                     s      = '';
 
                                 for (it = 0; it < result.length; it += 1) {
@@ -20713,7 +38926,7 @@
                                     }
                                 }
 
-                                $j("#caap_action_sortable", w).html(ht).sortable("refresh");
+                                csa.html(ht).sortable("refresh");
                             }
                         },
                         close     : function () {
@@ -20721,7 +38934,7 @@
                         }
                     });
 
-                    $j("#caap_action_sortable", w).sortable({
+                    csa.sortable({
                         containment: w,
                         placeholder: "ui-state-highlight"
                     }).disableSelection();
@@ -20884,7 +39097,7 @@
     //////////////////////////////////
 
     function caap_log(msg) {
-        if (typeof console.log !== 'undefined') {
+        if (console && typeof console.log === 'function') {
             console.log(caapVersion + (devVersion !== '0' ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
@@ -20894,6 +39107,7 @@
         inject.setAttribute('type', 'text/javascript');
         inject.setAttribute('src', url);
         (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+        caap.removeLibs.push(inject);
     }
 
     function caap_DomTimeOut() {
@@ -20910,7 +39124,9 @@
     function caap_WaitForutility() {
         if (window.utility) {
             caap_log("utility ready ...");
-            $j(caap.start).ready();
+            $j(function () {
+                caap.start();
+            }).ready();
         } else {
             caap_log("Waiting for utility ...");
             window.setTimeout(caap_WaitForutility, 100);
@@ -20922,7 +39138,7 @@
             caap_log("farbtastic ready ...");
             if (!window.utility) {
                 caap_log("Inject utility.");
-                injectScript('http://utility-js.googlecode.com/files/utility-0.1.0.min.js');
+                injectScript(caap.libs.utility);
             }
 
             caap_WaitForutility();
@@ -20937,7 +39153,7 @@
             caap_log("jQueryUI ready ...");
             if (!window.jQuery.farbtastic) {
                 caap_log("Inject farbtastic.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
+                injectScript(caap.libs.farbtastic);
             }
 
             caap_WaitForFarbtastic();
@@ -20953,7 +39169,7 @@
             $j = window.jQuery.noConflict();
             if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
-                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js');
+                injectScript(caap.libs.jQueryUI);
             }
 
             caap_WaitForjQueryUI();
@@ -20966,15 +39182,20 @@
     /////////////////////////////////////////////////////////////////////
     //                         Begin
     /////////////////////////////////////////////////////////////////////
+    caap_log(navigator.userAgent);
+    if (typeof CAAP_SCOPE_RUN !== 'undefined') {
+        caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
+    }
 
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery) {
         caap_log("Inject jQuery");
-        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
+        injectScript(caap.libs.jQuery);
     }
 
     caap_WaitForjQuery();
 
 }());
+
 // ENDOFSCRIPT
