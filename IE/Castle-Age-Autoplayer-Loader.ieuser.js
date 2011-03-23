@@ -15,7 +15,7 @@
 (function () {
     var a = document.createElement('script');
     a.type = 'text/javascript';
-    a.src = 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.ieuser.js';
+    a.src = 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer-IE.ieuser.js';
     (document.head || document.getElementsByTagName('head')[0]).appendChild(a);
     (document.head || document.getElementsByTagName('head')[0]).removeChild(a);
 }());
