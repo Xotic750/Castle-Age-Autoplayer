@@ -1473,7 +1473,7 @@
         confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
+                var monsterDiv  = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     tempDiv     = $j(),
                     tempText    = '',
                     fMonstStyle = '',
@@ -1482,7 +1482,8 @@
                     mName       = '',
                     id          = 0,
                     md5         = '',
-                    page        = state.getItem('page', 'battle_monster');
+                    //page        = state.getItem('page', 'battle_monster');
+                    page         = $j(".game", caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], '');
 
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
@@ -1492,18 +1493,27 @@
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
                 } else {
-                    monsterDiv = $j("div[style*='nm_top']", caap.globalContainer);
+                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
-                        tempDiv = $j("div[style*='nm_bars']", caap.globalContainer);
+                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
-                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().innerTrim().replace("'s Life", "");
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return false;
                         }
                     } else {
-                        $u.warn("Problem finding dragon_title_owner and nm_top");
+                        if ($u.hasContent(fMonstStyle)) {
+                            $j().alert(fMonstStyle + "<br />I don't know this monster!<br />Please inform me.");
+                        }
+
+                        if ($u.hasContent($j("div[style*='no_monster_back.jpg']", caap.appBodyDiv))) {
+                            $u.log(2, "No monster");
+                        }  else {
+                            $u.warn("Problem finding dragon_title_owner and nm_top");
+                        }
+
                         return false;
                     }
                 }
@@ -1512,9 +1522,11 @@
                     id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
                     id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                     id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
+                    id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", caap.appBodyDiv).attr("onclick") + "", '').regex(/user=(\d+)/));
                     id = $u.setContent(id, 0);
                     if (id === 0 || !$u.hasContent(id)) {
                         $u.warn("Unable to get id!");
+                        return false;
                     }
 
                     if (/Aurelius, Lion's Rebellion/.test(tempText)) {
@@ -1528,6 +1540,7 @@
 
                     if (!$u.hasContent(feedMonster)) {
                         $u.warn("Unable to get monster string!!");
+                        return false;
                     }
 
                     if (id === caap.stats['FBID']) {
@@ -1536,6 +1549,7 @@
                     }
                 } else {
                     $u.warn("monster.confirmRightPage monsterDiv issue!");
+                    return false;
                 }
 
                 mName = userName + ' ' + feedMonster;

@@ -100,7 +100,6 @@ else
         echo "Would create packed Chrome extension, but you are missing Chrome.pem file"
     fi
 fi
-
 echo "Done."
 
 # --------------------------------------------------------------------------------------
@@ -113,3 +112,7 @@ echo "Done."
 #java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --output_wrapper "(function(){%output%})();" --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.9/js/jquery-ui-1.8.9.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs utility-0.1.0/utility-0.1.0.js >> _min.user.js
 #cp _min.user.js Chrome/Castle-Age-Autoplayer.user.js
 #echo "Done."
+
+echo -n "Deleting old build files : "
+rm -f _buildcommon.tmp
+echo "Done."
