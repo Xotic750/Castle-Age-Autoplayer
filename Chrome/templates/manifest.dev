@@ -24,7 +24,7 @@
       "48": "48x48.png"
    },
    "name": "Castle Age Autoplayer - Alpha Patched",
-   "update_url": "http://castle-age-auto-player.googlecode.com/svn/trunk/updates.xml",
+   "update_url": "http://castle-age-auto-player.googlecode.com/svn/trunk/Chrome/packed/updates.xml",
    "permissions": [ "tabs",
                     "http://apps.facebook.com/castle_age/*",
                     "https://apps.facebook.com/castle_age/*",
