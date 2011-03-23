@@ -98,8 +98,11 @@ else
     # next line to be removed in the future once link changes are completed
     cp ../Chrome/packed/updates.xml ../
     if [ -f ../Chrome/Chrome.pem ]; then
-        #chromium-browser --no-message-box --pack-extension="Chrome" --pack-extension-key="../Chrome/Chrome.pem"
-        google-chrome --no-message-box --pack-extension="Chrome" --pack-extension-key="../Chrome/Chrome.pem"
+        chromium-browser --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
+        #google-chrome --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
+        mv ../Chrome/unpacked.crx ../Chrome/packed/Chrome.crx
+        # next line to be removed in the future once link changes are completed
+        cp ../Chrome/packed/Chrome.crx ../Chrome/Chrome.crx
     else
         echo "Would create packed Chrome extension, but you are missing Chrome.pem file"
     fi
