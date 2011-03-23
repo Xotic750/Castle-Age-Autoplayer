@@ -691,7 +691,7 @@
                     $u.log(2, 'Using level up general');
                 }
 
-                generalName = zinReady && zinFirst ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+                generalName = zinReady && zinFirst && coolType ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
                 if (!generalName || /use current/i.test(generalName)) {
                     return false;
                 }
