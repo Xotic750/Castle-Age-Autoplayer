@@ -17,5 +17,4 @@
     a.type = 'text/javascript';
     a.src = 'http://castle-age-auto-player.googlecode.com/svn/trunk/IE/Castle-Age-Autoplayer-IE.ieuser.js?' + Math.random();
     (document.head || document.getElementsByTagName('head')[0]).appendChild(a);
-    (document.head || document.getElementsByTagName('head')[0]).removeChild(a);
 }());
