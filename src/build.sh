@@ -47,6 +47,8 @@ echo -n "Creating Firefox version : "
 sed -f version.sed _head_firefox.js > ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
 sed -f version.sed _pre_firefox.js >> ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
 cat _buildcommon.tmp >> ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
+# next line to be removed in the future once link changes are completed
+cp ../FireFox/Castle-Age-Autoplayer-FireFox.user.js ../Castle-Age-Autoplayer.user.js
 if [ "$version" ]; then
     cp ../FireFox/Castle-Age-Autoplayer-FireFox.user.js ../FireFox/Castle-Age-Autoplayer-FireFox-v$version.user.js
 fi
@@ -93,6 +95,8 @@ else
     echo "Creating Chrome development version"
     sed -f version.sed ../Chrome/templates/manifest.dev > ../Chrome/unpacked/manifest.json
     sed -f version.sed ../Chrome/templates/updates.tmpl > ../Chrome/packed/updates.xml
+    # next line to be removed in the future once link changes are completed
+    cp ../Chrome/packed/updates.xml ../
     if [ -f ../Chrome/Chrome.pem ]; then
         #chromium-browser --no-message-box --pack-extension="Chrome" --pack-extension-key="../Chrome/Chrome.pem"
         google-chrome --no-message-box --pack-extension="Chrome" --pack-extension-key="../Chrome/Chrome.pem"
