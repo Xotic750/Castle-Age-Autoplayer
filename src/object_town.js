@@ -9,15 +9,9 @@
         /*jslint sub: true */
         'soldiers': [],
 
-        'soldiersSortable': [],
-
         'item': [],
 
-        'itemSortable': [],
-
         'magic': [],
-
-        'magicSortable': [],
 
         record: function () {
             this.data = {
@@ -37,25 +31,6 @@
         },
 
         types: ['soldiers', 'item', 'magic'],
-
-        copy2sortable: function (type) {
-            try {
-                if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to copy2sortable: ", type);
-                    throw "Invalid type value!";
-                }
-
-                var order = new sort.order();
-                $j.extend(true, order.data, state.getItem(type.ucFirst() + "Sort", order.data));
-                town[type + 'Sortable'] = [];
-                $j.merge(town[type + 'Sortable'], town[type]);
-                town[type + 'Sortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
-                return true;
-            } catch (err) {
-                $u.error("ERROR in town.copy2sortable: " + err);
-                return false;
-            }
-        },
         /*jslint sub: false */
 
         soldiershbest: 3,
@@ -78,7 +53,6 @@
 
                 town[type + "hbest"] = town[type + "hbest"] === false ? JSON.hbest(town[type]) : town[type + "hbest"];
                 $u.log(3, "town.load " + type + " Hbest", town[type + "hbest"]);
-                town.copy2sortable(type);
                 state.setItem(type.ucFirst() + "DashUpdate", true);
                 $u.log(3, "town.load", type, town[type]);
                 return true;
@@ -186,7 +160,6 @@
 
                 if (save) {
                     town.save(type);
-                    town.copy2sortable(type);
                     $u.log(2, "Got town details for", type);
                 } else {
                     $u.log(1, "Nothing to save for", type);
@@ -361,6 +334,151 @@
             }
         },
 
+        runReport: function () {
+            try {
+                var reportType = config.getItem("townReportType", "Units"),
+                    stance     = config.getItem("townReportStance", "Attack"),
+                    sizeStr    = config.getItem("townReportSize", "Army"),
+                    displayRef = reportType + stance + sizeStr;
+
+                return town.bestStuff(reportType, stance, sizeStr, displayRef);
+            } catch (err) {
+                $u.error("ERROR in town.runReport: " + err);
+                return undefined;
+            }
+        },
+
+        reportType: {
+            'Units'   : 'soldiers',
+            'Weapons' : 'item',
+            'Items'   : 'item',
+            'Magic'   : 'magic'
+        },
+
+        reportTypeList: function () {
+            try {
+                var list = [],
+                    it   = '';
+
+                for (it in town.reportType) {
+                    if (town.reportType.hasOwnProperty(it)) {
+                        list.push(it);
+                    }
+                }
+
+                return list;
+            } catch (err) {
+                $u.error("ERROR in town.menu: " + err);
+                return undefined;
+            }
+        },
+
+        bestStuffDialog: {},
+
+        bestStuff: function (reportType, stance, size, displayRef) {
+            try {
+                reportType = $u.setContent(reportType, "Units");
+                stance = stance !== "Attack" && stance !== "Defense" ? "Attack" : stance;
+                size = $u.isNaN(size) ? caap.stats['army']['capped'] : ($u.isNumber(size) ? size : size.parseInt());
+                displayRef = $u.setContent(displayRef, false);
+                $u.log(2, "reportType/stance/size/displayRef", reportType, stance, size, displayRef);
+                var h    = "<table>\n<tr><th style='white-space: nowrap;'>Name</th><th>Used</th><th>Attack</th><th>Defense</th><th>" + (stance === "attack" ? "API" : "DPI") + "</th></tr>\n",
+                    list = $u.owl.deepCopy(town[$u.setContent(town.reportType[reportType], "soldiers")]).sort($u.sortBy(true, stance === "Attack" ? "api" : "dpi", $u.sortBy(false, "cost", $u.sortBy(false, "name", $u.sortBy(true, "owned"))))),
+                    best = [],
+                    it   = 0,
+                    len  = list.length,
+                    cnt  = size,
+                    buy  = false;
+
+                function destroy(idx) {
+                    town.bestStuffDialog[idx].dialog("destroy").remove();
+                    delete town.bestStuffDialog[idx];
+                }
+
+                for (it = 0; it < len; it += 1) {
+                    if (cnt <= 0) {
+                        break;
+                    }
+
+                    if (list[it]['owned'] === 0 && list[it]['cost'] === 0) {
+                        continue;
+                    }
+
+                    if (list[it]['type'] === "Weapon") {
+                        if (reportType === "Items") {
+                            continue;
+                        }
+                    } else {
+                        if (reportType === "Weapons") {
+                            continue;
+                        }
+                    }
+
+                    buy = false;
+                    if (list[it]['cost'] !== 0) {
+                        buy = true;
+                    }
+
+                    if (list[it]['owned'] > cnt) {
+                        list[it]['owned'] = cnt;
+                    }
+
+                    best.push(list[it]);
+                    cnt -= list[it]['owned'];
+                    h += "<tr" + (buy ? " style='color: red;'" : "") + "><td style='white-space: nowrap;'>" + list[it]['name'] + "</td><td>" + list[it]['owned'] + "</td><td>" + list[it]['atk'] + "</td><td>" + list[it]['def'] + "</td><td>" + list[it][(stance === "Attack" ? "api" : "dpi")] + "</td></tr>\n";
+                }
+
+                h += "</table>\n";
+                if (displayRef && !$u.hasContent(town.bestStuffDialog[displayRef])) {
+                    town.bestStuffDialog[displayRef] = $j("<div id='caap_best_" + displayRef + "_report' class='caap_ff caap_fs' title='Best " + reportType + " " + stance + " Report: " + size + " Army'>" + h + "</div>").appendTo(document.body);
+                    town.bestStuffDialog[displayRef].dialog({
+                        resizable : false,
+                        width     : '400',
+                        height    : '400',
+                        buttons   : {
+                            Ok: function () {
+                                destroy(displayRef);
+                            }
+                        },
+                        close     : function () {
+                            destroy(displayRef);
+                        }
+                    });
+                }
+
+                $u.log(2, "town.bestStuff", best);
+                return best;
+            } catch (err) {
+                $u.error("ERROR in town.bestStuff: " + err);
+                return undefined;
+            }
+        },
+
+        menu: function () {
+            try {
+                var htmlCode = '';
+
+                htmlCode += caap.startToggle('Town', 'TOWN');
+                htmlCode += caap.makeDropDownTR("Report Type", 'townReportType', town.reportTypeList(), '', '', 'Units', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Stance", 'townReportStance', ["Attack", "Defense"], '', '', 'Attack', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Size", 'townReportSize', ['Army', '501', '521', '541'], '', '', 'Army', false, false, 62);
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_TownBestReport' value='Show Report' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "");
+                htmlCode += caap.endTR;
+                htmlCode += caap.makeCheckTR("Modify Timers", 'townModifyTimers', false, "Advanced timers for how often Town checks are performed.");
+                htmlCode += caap.startCheckHide('townModifyTimers');
+                htmlCode += caap.makeNumberFormTR("Soldiers Hours", 'checkSoldiers', "Check the Town Soldiers every X hours. Minimum 72.", 72, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Items Hours", 'checkItem', "Check the Town Items every X hours. Minimum 72.", 72, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Magic Hours", 'checkMagic', "Check the Town Magic every X hours. Minimum 72.", 72, '', '', true);
+                htmlCode += caap.endCheckHide('townModifyTimers');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in town.menu: " + err);
+                return '';
+            }
+        },
+
         dashboard: function () {
             try {
                 /*-------------------------------------------------------------------------------------\
@@ -368,10 +486,9 @@
                 We set our table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
                 if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
-                    var headers     = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
+                    var headers     = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
                         values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                        html        = '',
-                        townValues  = [],
+                        townValues  = values.slice(),
                         pp          = 0,
                         i           = 0,
                         valueCol    = 'red',
@@ -380,133 +497,109 @@
                         len1        = 0,
                         len2        = 0,
                         str         = '',
+                        num         = 0,
                         header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
                         statsRegExp = new RegExp("caap_.*Stats_"),
-                        handler     = null;
+                        handler     = null,
+                        head        = '',
+                        body        = '',
+                        row         = '';
 
-                    $j.merge(townValues, values);
                     for (i = 0, len = town.types.length; i < len; i += 1) {
                         if (config.getItem('DBDisplay', '') !== (town.types[i].ucFirst() + ' Stats')) {
                             continue;
                         }
 
-                        html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                         for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
                             if (town.types[i] !== 'item' && headers[pp] === 'Type') {
                                 continue;
                             }
 
                             header = {
-                                text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                                color : 'blue',
+                                text  : headers[pp],
+                                color : '',
                                 id    : '',
                                 title : '',
                                 width : ''
                             };
 
-                            html += caap.makeTh(header);
+                            switch (headers[pp]) {
+                            case 'Name' :
+                                header.width = '30%';
+                                break;
+                            case 'Type' :
+                                header.width = '7%';
+                                break;
+                            case 'Own' :
+                                header.width = '6%';
+                                break;
+                            case 'Atk' :
+                                header.width = '6%';
+                                break;
+                            case 'Def' :
+                                header.width = '6%';
+                                break;
+                            case 'API' :
+                                header.width = '6%';
+                                break;
+                            case 'DPI' :
+                                header.width = '6%';
+                                break;
+                            case 'MPI' :
+                                header.width = '6%';
+                                break;
+                            case 'Cost' :
+                                header.width = '9%';
+                                break;
+                            case 'Upkeep' :
+                                header.width = '9%';
+                                break;
+                            case 'Hourly' :
+                                header.width = '9%';
+                                break;
+                            default:
+                            }
+
+                            head += caap.makeTh(header);
                         }
 
-                        html += '</tr>';
-                        for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
-                            html += "<tr>";
+                        head = caap.makeTr(head);
+                        for (it = 0, len1 = town[town.types[i]].length; it < len1; it += 1) {
+                            row = "";
                             for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
                                 if (town.types[i] !== 'item' && values[pp] === 'type') {
                                     continue;
                                 }
 
-                                if ($u.isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
-                                    str = $u.setContent(town[town.types[i] + "Sortable"][it][values[pp]], '');
+                                if ($u.isNaN(town[town.types[i]][it][values[pp]]) || !$u.hasContent(town[town.types[i]][it][values[pp]])) {
+                                    str = $u.setContent(town[town.types[i]][it][values[pp]], '');
                                 } else {
-                                    str = town[town.types[i] + "Sortable"][it][values[pp]].addCommas();
-                                    str = $u.hasContent(str) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + str : str;
+                                    num = town[town.types[i]][it][values[pp]];
+                                    str = $u.hasContent(num) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + num.SI() : num.addCommas();
                                 }
 
-                                html += caap.makeTd({text: str, color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                                row += caap.makeTd({text: str, color: '', id: '', title: ''});
                             }
 
-                            html += '</tr>';
+                            body += caap.makeTr(row);
                         }
 
-                        html += '</table>';
-                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(html);
+                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(
+                            $j(caap.makeTable(town.types[i], head, body)).dataTable({
+                                "bAutoWidth"    : false,
+                                "bFilter"       : false,
+                                "bJQueryUI"     : false,
+                                "bInfo"         : false,
+                                "bLengthChange" : false,
+                                "bPaginate"     : false,
+                                "bProcessing"   : false,
+                                "bStateSave"    : true,
+                                "bSortClasses"  : false
+                            })
+                        );
+
                         state.setItem(town.types[i] + "DashUpdate", false);
                     }
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['soldiersSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("SoldiersSort", order.data);
-                            state.setItem("SoldiersDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Soldiers");
-                        }
-                    };
-
-                    $j("span[id*='caap_soldiersStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['itemSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("ItemSort", order.data);
-                            state.setItem("ItemDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Item");
-                        }
-                    };
-
-                    $j("span[id*='caap_itemStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (townValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            town['magicSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("MagicSort", order.data);
-                            state.setItem("MagicDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Magic");
-                        }
-                    };
-
-                    $j("span[id*='caap_magicStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
                 }
 
                 return true;

@@ -40,15 +40,30 @@
         }
     }
 
-    function caap_WaitForFarbtastic() {
-        if (window.jQuery.farbtastic) {
-            caap_log("farbtastic ready ...");
+    function caap_WaitForDataTable() {
+        if (window.jQuery().dataTable) {
+            caap_log("dataTable ready ...");
             if (!window.utility) {
                 caap_log("Inject utility.");
                 injectScript(caap.libs.utility);
             }
 
             caap_WaitForutility();
+        } else {
+            caap_log("Waiting for dataTable ...");
+            window.setTimeout(caap_WaitForDataTable, 100);
+        }
+    }
+
+    function caap_WaitForFarbtastic() {
+        if (window.jQuery.farbtastic) {
+            caap_log("farbtastic ready ...");
+            if (!window.jQuery().dataTable) {
+                caap_log("Inject dataTable.");
+                injectScript(caap.libs.dataTables);
+            }
+
+            caap_WaitForDataTable();
         } else {
             caap_log("Waiting for farbtastic ...");
             window.setTimeout(caap_WaitForFarbtastic, 100);
@@ -94,6 +109,7 @@
         caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
     }
 
+    //caap_log("ALPHA 2");
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery) {

@@ -22,10 +22,13 @@
                 'deityStr'        : '',
                 'invadewinsNum'   : 0,
                 'invadelossesNum' : 0,
+                'ibp'             : 0,
                 'duelwinsNum'     : 0,
                 'duellossesNum'   : 0,
+                'dbp'             : 0,
                 'warwinsNum'      : 0,
                 'warlossesNum'    : 0,
+                'wbp'             : 0,
                 'defendwinsNum'   : 0,
                 'defendlossesNum' : 0,
                 'statswinsNum'    : 0,
@@ -472,8 +475,10 @@
                 case 'Invade' :
                     if (result.win) {
                         battleRecord['invadewinsNum'] += 1;
+                        battleRecord['ibp'] += result.points;
                     } else {
                         battleRecord['invadelossesNum'] += 1;
+                        battleRecord['ibp'] -= result.points;
                         battleRecord['invadeLostTime'] = new Date().getTime();
                     }
 
@@ -481,8 +486,10 @@
                 case 'Duel' :
                     if (result.win) {
                         battleRecord['duelwinsNum'] += 1;
+                        battleRecord['dbp'] += result.points;
                     } else {
                         battleRecord['duellossesNum'] += 1;
+                        battleRecord['dbp'] -= result.points;
                         battleRecord['duelLostTime'] = new Date().getTime();
                     }
 
@@ -490,9 +497,11 @@
                 case 'War' :
                     if (result.win) {
                         battleRecord['warwinsNum'] += 1;
+                        battleRecord['wbp'] += result.points;
                         $u.log(1, "War Win", battleRecord['warwinsNum']);
                     } else {
                         battleRecord['warlossesNum'] += 1;
+                        battleRecord['wbp'] -= result.points;
                         battleRecord['warLostTime'] = new Date().getTime();
                         $u.log(1, "War Loss", battleRecord['userId'], battleRecord);
                     }
@@ -1330,31 +1339,57 @@
         /*jslint sub: true */
         dashboard: function () {
             try {
+                function points(num) {
+                    num = $u.setContent(num, 0);
+                    return num >= 0 ? "+" + num : num;
+                }
+
                 /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
                 if (config.getItem('DBDisplay', '') === 'Battle Stats' && state.getItem("BattleDashUpdate", true)) {
-                    var html                    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers                 = ['UserId', 'Name',    'BR#',     'WR#',        'Level',    'Army',    'I Win',         'I Lose',          'D Win',       'D Lose',        'W Win',      'W Lose'],
-                        values                  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'invadelossesNum', 'duelwinsNum', 'duellossesNum', 'warwinsNum', 'warlossesNum'],
+                    var headers                 = ['UserId', 'Name',    'BR',     'WR',        'Level',    'Army',    'Invade',           'Duel',        'War'],
+                        values                  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'duelwinsNum', 'warwinsNum'],
                         pp                      = 0,
                         i                       = 0,
                         userIdLink              = '',
                         userIdLinkInstructions  = '',
                         len                     = 0,
                         len1                    = 0,
-                        data                    = {text: '', color: '', bgcolor: '', id: '', title: ''};
+                        data                    = {text: '', color: '', bgcolor: '', id: '', title: ''},
+                        head                    = '',
+                        body                    = '',
+                        row                     = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        switch (headers[pp]) {
+                        case 'UserId':
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '16%'});
+                            break;
+                        case 'Name':
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '30%'});
+                            break;
+                        case 'Invade':
+                        case 'Duel':
+                        case 'War':
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '10%'});
+                            break;
+                        case 'BR':
+                        case 'WR':
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '5%'});
+                            break;
+                        default:
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '7%'});
+                        }
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     for (i = 0, len = battle.records.length; i < len; i += 1) {
-                        html += "<tr>";
+                        row = "";
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            if (/userId/.test(values[pp])) {
+                            switch (values[pp]) {
+                            case 'userId':
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
                                 userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
                                 data = {
@@ -1365,21 +1400,44 @@
                                     title : ''
                                 };
 
-                                html += caap.makeTd(data);
-                            } else if (/rankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
-                            } else if (/warRankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
-                            } else {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
+                                row += caap.makeTd(data);
+                                break;
+                            case 'rankNum':
+                                row += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
+                                break;
+                            case 'warRankNum':
+                                row += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
+                                break;
+                            case 'invadewinsNum':
+                                row += caap.makeTd({text: battle.records[i][values[pp]] + "/" + battle.records[i]['invadelossesNum'] + " " + points(battle.records[i]['ibp']), color: '', id: '', title: ''});
+                                break;
+                            case 'duelwinsNum':
+                                row += caap.makeTd({text: battle.records[i][values[pp]] + "/" + battle.records[i]['duellossesNum'] + " " + points(battle.records[i]['dbp']), color: '', id: '', title: ''});
+                                break;
+                            case 'warwinsNum':
+                                row += caap.makeTd({text: battle.records[i][values[pp]] + "/" + battle.records[i]['warlossesNum'] + " " + points(battle.records[i]['wbp']), color: '', id: '', title: ''});
+                                break;
+                            default:
+                                row += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
                             }
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_infoBattle", caap.caapTopObject).html(html);
+                    $j("#caap_infoBattle", caap.caapTopObject).html(
+                        $j(caap.makeTable("battle", head, body)).dataTable({
+                            "bAutoWidth"    : false,
+                            "bFilter"       : false,
+                            "bJQueryUI"     : false,
+                            "bInfo"         : false,
+                            "bLengthChange" : false,
+                            "bPaginate"     : false,
+                            "bProcessing"   : false,
+                            "bStateSave"    : true,
+                            "bSortClasses"  : false
+                        })
+                    );
 
                     $j("span[id*='caap_battle_']", caap.caapTopObject).click(function (e) {
                         var visitUserIdLink = {

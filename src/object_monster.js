@@ -96,7 +96,8 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_skaar_boss.jpg',
                 festival_dur : 120,
-                festival_ach : 1000000
+                festival_ach : 1000000,
+                newbg_img    : 'monster_header_skaar.jpg'
             },
             'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
@@ -122,7 +123,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_water_element.jpg',
                 festival_dur : 192,
-                festival_ach : 1000000
+                festival_ach : 1000000,
+                newbg_img    : 'monster_header_ragnorak.jpg'
             },
             'Genesis, The Earth Elemental' : {
                 duration     : 168,
@@ -149,7 +151,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_earth_element.jpg',
                 festival_dur : 192,
-                festival_ach : 1000000
+                festival_ach : 1000000,
+                newbg_img    : 'monster_header_genesis.jpg'
             },
             'Cronus, The World Hydra' : {
                 duration     : 168,
@@ -168,7 +171,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_hydra.jpg',
                 festival_dur : 192,
-                festival_ach : 500000
+                festival_ach : 500000,
+                newbg_img    : 'monster_header_cronus.jpg'
             },
             'Battle Of The Dark Legion' : {
                 duration     : 168,
@@ -188,7 +192,8 @@
                 levels       : [1,  30, 60, 90],
                 join         : [30, 30, 30, 40],
                 mClass       : 'Epic World',
-                mpool        : 3
+                mpool        : 3,
+                newbg_img    : 'monster_header_defend.jpg'
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -201,7 +206,8 @@
                     'serpent_10stam_attack.gif'
                 ],
                 mClass       : 'Epic Team',
-                mpool        : 2
+                mpool        : 2,
+                newbg_img    : 'monster_header_emeralddrag.jpg'
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -217,7 +223,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_dragon_blue.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_frostdrag.jpg'
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -233,7 +240,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_dragon_yellow.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_golddrag.jpg'
             },
             'Ancient Red Dragon' : {
                 duration     : 72,
@@ -249,7 +257,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_dragon_red.jpg',
                 festival_dur : 96,
-                festival_ach : 50000
+                festival_ach : 50000,
+                newbg_img    : 'monster_header_ancientreddrag.jpg'
             },
             'Gildamesh, The Orc King'      : {
                 duration     : 72,
@@ -259,7 +268,8 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_orcking.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_gildamesh.jpg'
             },
             'Colossus Of Terra'     : {
                 duration     : 72,
@@ -269,7 +279,8 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_stonegiant.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_colossus.jpg'
             },
             'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
@@ -282,14 +293,16 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_sylvanus.jpg',
                 festival_dur : 72,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_sylvanas.jpg'
             },
             'Lotus Ravenmoore' : {
                 duration     : 48,
                 ach          : 500000,
                 siege        : 0,
                 mClass       : 'Epic Boss',
-                mpool        : 1
+                mpool        : 1,
+                newbg_img    : 'monster_header_lotus.jpg'
             },
             'Keira The Dread Knight'    : {
                 duration     : 48,
@@ -299,7 +312,8 @@
                 pwrAtkButton : 'event_attack2.gif',
                 //defButton    : null,
                 mClass       : 'Epic Boss',
-                mpool        : 1
+                mpool        : 1,
+                newbg_img    : 'monster_header_keira.jpg'
             },
             'Amethyst Sea Serpent'   : {
                 duration     : 72,
@@ -319,7 +333,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_seamonster_purple.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_amyserpent.jpg'
             },
             'Ancient Sea Serpent'   : {
                 duration     : 72,
@@ -339,7 +354,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_seamonster_red.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_ancientserpent.jpg'
             },
             'Emerald Sea Serpent'   : {
                 duration     : 72,
@@ -359,7 +375,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_seamonster_green.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_emeraldserpent.jpg'
             },
             'Sapphire Sea Serpent'   : {
                 duration     : 72,
@@ -379,7 +396,8 @@
                 mpool        : 2,
                 festival_img : 'festival_monsters_top_seamonster_blue.jpg',
                 festival_dur : 96,
-                festival_ach : 30000
+                festival_ach : 30000,
+                newbg_img    : 'monster_header_sapphserpent.jpg'
             },
             'The Deathrune Siege'    : {
                 duration     : 232,
@@ -416,7 +434,8 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_mephistopheles.jpg',
                 festival_dur : 89,
-                festival_ach : 50000
+                festival_ach : 50000,
+                newbg_img    : 'monster_header_meph.jpg'
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
             'War Of The Red Plains' : {
@@ -443,7 +462,8 @@
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
-                mpool        : 3
+                mpool        : 3,
+                newbg_img    : 'monster_header_warredplains.jpg'
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
             'Bahamut, The Volcanic Dragon' : {
@@ -467,7 +487,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_volcanic_new.jpg',
                 festival_dur : 192,
-                festival_ach : 1000000
+                festival_ach : 1000000,
+                newbg_img    : 'monster_header_bahamut.jpg'
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -493,7 +514,8 @@
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 30,  60],
                 mClass       : 'Epic World',
-                mpool        : 3
+                mpool        : 3,
+                newbg_img    : 'monster_header_alphabahamut.jpg'
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
             'Azriel, The Angel Of Wrath' : {
@@ -521,7 +543,8 @@
                 mpool        : 1,
                 festival_img : 'festival_monsters_top_boss_azriel.jpg',
                 festival_dur : 192,
-                festival_ach : 4000000
+                festival_ach : 4000000,
+                newbg_img    : 'monster_header_azriel.jpg'
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -537,19 +560,21 @@
                     '/graphics/death_siege_small',
                     '/graphics/skaar_siege_small'
                 ],
-                fort         : true,
-                staUse       : 5,
-                staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
-                defense_img  : 'nm_green.jpg',
-                levels       : [1,  50, 100, 150],
-                join         : [30, 30, 30,  45],
-                mClass       : 'Epic Boss',
-                mpool        : 3,
-                festival_img : 'festival_monsters_top_alpha_mephistopheles.jpg',
-                festival_dur : 192,
-                festival_ach : 1000000
+                fort           : true,
+                staUse         : 5,
+                staLvl         : [0, 100, 200, 500],
+                staMax         : [5, 10, 20, 50],
+                nrgMax         : [10, 20, 40, 100],
+                defense_img    : 'nm_green.jpg',
+                levels         : [1,  50, 100, 150],
+                join           : [30, 30, 30,  45],
+                mClass         : 'Epic Boss',
+                mpool          : 3,
+                festival_img   : 'festival_monsters_top_alpha_mephistopheles.jpg',
+                festival_dur   : 192,
+                festival_ach   : 1000000,
+                festival_mpool : 1,
+                newbg_img    : 'monster_header_alphameph.jpg'
             },
             'Gehenna, The Fire Elemental' : {
                 alpha        : true,
@@ -577,7 +602,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_fire_element.jpg',
                 festival_dur : 96,
-                festival_ach : 3500000
+                festival_ach : 3500000,
+                newbg_img    : 'monster_header_gehenna.jpg'
             },
             "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
@@ -603,7 +629,8 @@
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
-                mpool        : 1
+                mpool        : 1,
+                newbg_img    : 'monster_header_lionrebellion.jpg'
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -628,7 +655,8 @@
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
-                mpool        : 1
+                mpool        : 1,
+                newbg_img    : 'monster_header_corvintheus.jpg'
             },
             'Valhalla, The Air Elemental' : {
                 alpha        : true,
@@ -657,7 +685,8 @@
                 mpool        : 3,
                 festival_img : 'festival_monsters_top_air_element.jpg',
                 festival_dur : 192,
-                festival_ach : 2500000
+                festival_ach : 2500000,
+                newbg_img    : 'monster_header_valhalla.jpg'
             },
             'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
@@ -682,7 +711,8 @@
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
-                mpool        : 1
+                mpool        : 1,
+                newbg_img    : 'monster_header_jahanna.jpg'
             },
             "Agamemnon The Overseer" : {
                 alpha        : true,
@@ -711,6 +741,32 @@
                 festival_img : 'festival_monsters_top_agamemnon.jpg',
                 festival_dur : 192,
                 festival_ach : 10000000
+            },
+            "Aurora" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 640000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                newbg_img    : 'monster_header_aurora.jpg'
             }
         },
 
@@ -756,6 +812,34 @@
                 return name;
             } catch (err) {
                 $u.error("ERROR in monster.getFestName: " + err);
+                return undefined;
+            }
+        },
+
+        getNewName: function (img) {
+            try {
+                if (!$u.hasContent(img) || !$u.isString(img)) {
+                    $u.warn("img", img);
+                    throw "Invalid identifying img!";
+                }
+
+                var i    = '',
+                    r    = {},
+                    name = '';
+
+                for (i in monster.info) {
+                    if (monster.info.hasOwnProperty(i)) {
+                        r = monster.info[i];
+                        if (img === r.newbg_img) {
+                            name = i;
+                            break;
+                        }
+                    }
+                }
+
+                return name;
+            } catch (err) {
+                $u.error("ERROR in monster.getNewName: " + err);
                 return undefined;
             }
         },
@@ -1473,10 +1557,11 @@
         confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
+                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     tempDiv     = $j(),
                     tempText    = '',
                     fMonstStyle = '',
+                    nMonstStyle = '',
                     feedMonster = '',
                     userName    = '',
                     mName       = '',
@@ -1487,11 +1572,20 @@
 
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
+                    $u.log(2, "confirmRightPage fMonstStyle", fMonstStyle);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + monster.getFestName(fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
-                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
+                        nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
+                        $u.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
+                        if ($u.hasContent(nMonstStyle)) {
+                            tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+                        } else {
+                            tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
+                        }
                     }
+
+                    $u.log(2, "confirmRightPage tempText", tempText);
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
@@ -1666,8 +1760,7 @@
         dashboard: function () {
             try {
                 if (config.getItem('DBDisplay', '') === 'Monster' && state.getItem("MonsterDashUpdate", true)) {
-                    var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers                  = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'],
+                    var headers                  = ['Name', 'Damage', 'Dmg%', 'Fort%', 'Str%', 'Time', 'T2K', 'Phase', '&nbsp;', '&nbsp;', '&nbsp;'],
                         values                   = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'],
                         pp                       = 0,
                         value                    = null,
@@ -1688,17 +1781,52 @@
                         duration                 = 0,
                         count                    = 0,
                         handler                  = null,
-                        monsterInfo              = {};
+                        monsterInfo              = {},
+                        head                     = '',
+                        body                     = '',
+                        row                      = '';
 
                     for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: headers[pp] === 'Name' ? '30%' : ''});
+                        switch (headers[pp]) {
+                        case 'Name' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '30%'});
+                            break;
+                        case 'Damage' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '13%'});
+                            break;
+                        case 'Dmg%' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '8%'});
+                            break;
+                        case 'Fort%' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '8%'});
+                            break;
+                        case 'Str%' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '8%'});
+                            break;
+                        case 'Time' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '8%'});
+                            break;
+                        case 'T2K' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '8%'});
+                            break;
+                        case 'Link' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '2%'});
+                            break;
+                        case 'Phase' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '13%'});
+                            break;
+                        case '&nbsp;' :
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '1%'});
+                            break;
+                        default:
+                        }
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     values.shift();
                     monster.records.forEach(function (monsterObj) {
+                        row = '';
                         monsterInfo = monster.getInfo(monsterObj);
-                        html += "<tr>";
                         color = monsterObj['color'];
                         if (monsterObj['md5'] === state.getItem('targetFromfortify', new monster.energyTarget().data)['md5']) {
                             color = 'blue';
@@ -1721,16 +1849,16 @@
                                 title : ''
                             };
 
-                            html += caap.makeTd(data);
+                            row += caap.makeTd(data);
                         } else {
-                            html += caap.makeTd({text: monsterObj['name'], color: color, id: '', title: ''});
+                            row += caap.makeTd({text: monsterObj['name'], color: color, id: '', title: ''});
                         }
 
                         values.forEach(function (displayItem) {
                             id = "caap_" + displayItem + "_" + count;
                             title = '';
                             if (displayItem === 'phase' && color === 'grey') {
-                                html += caap.makeTd({text: monsterObj['status'], color: color, id: '', title: ''});
+                                row += caap.makeTd({text: monsterObj['status'], color: color, id: '', title: ''});
                             } else {
                                 value = monsterObj[displayItem];
                                 if (value !== '' && (value >= 0 || value.length)) {
@@ -1781,9 +1909,9 @@
                                     default :
                                     }
 
-                                    html += caap.makeTd({text: value, color: color, id: id, title: title});
+                                    row += caap.makeTd({text: value, color: color, id: id, title: title});
                                 } else {
-                                    html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                                    row += caap.makeTd({text: '', color: color, id: '', title: ''});
                                 }
                             }
                         });
@@ -1796,9 +1924,9 @@
                                 title : ''
                             };
 
-                            html += caap.makeTd(data);
+                            row += caap.makeTd(data);
                         } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                            row += caap.makeTd({text: '', color: color, id: '', title: ''});
                         }
 
                         if (monsterObjLink) {
@@ -1812,17 +1940,38 @@
                                 title : ''
                             };
 
-                            html += caap.makeTd(data);
+                            row += caap.makeTd(data);
                         } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                            row += caap.makeTd({text: '', color: color, id: '', title: ''});
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                         count += 1;
                     });
 
-                    html += '</table>';
-                    $j("#caap_infoMonster", caap.caapTopObject).html(html);
+                    $j("#caap_infoMonster", caap.caapTopObject).html(
+                        $j(caap.makeTable("monster", head, body)).dataTable({
+                            "bAutoWidth"    : false,
+                            "bFilter"       : false,
+                            "bJQueryUI"     : false,
+                            "bInfo"         : false,
+                            "bLengthChange" : false,
+                            "bPaginate"     : false,
+                            "bProcessing"   : false,
+                            "bStateSave"    : true,
+                            "bSortClasses"  : false,
+                            "aoColumnDefs"  : [
+                                {
+                                    "bSortable" : false,
+                                    "aTargets"  : [8, 9, 10]
+                                },
+                                {
+                                    "sSortDataType" : "remaining-time",
+                                    "aTargets"      : [5, 6]
+                                }
+                            ]
+                        })
+                    );
 
                     handler = function (e) {
                         var visitMonsterLink = {

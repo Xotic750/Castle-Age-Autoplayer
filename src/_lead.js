@@ -2,6 +2,7 @@
 //////////////////////////////////
 //       Globals
 //////////////////////////////////
+
 (function () {
     var caapVersion   = "!version!",
         devVersion    = "!dev!",

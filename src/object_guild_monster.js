@@ -1009,8 +1009,7 @@
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
                 if (config.getItem('DBDisplay', '') === 'Guild Monster' && state.getItem("GuildMonsterDashUpdate", true)) {
-                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        color   = '',
+                    var color   = '',
                         headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'],
                         values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'],
                         pp      = 0,
@@ -1018,15 +1017,18 @@
                         len     = 0,
                         len1    = 0,
                         data    = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                        handler = null;
+                        handler = null,
+                        head    = '',
+                        body    = '',
+                        row     = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
-                        html += "<tr>";
+                        row = "";
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             switch (values[pp]) {
                             case 'name' :
@@ -1039,13 +1041,13 @@
                                     title : ''
                                 };
 
-                                html += caap.makeTd(data);
+                                row += caap.makeTd(data);
                                 break;
                             case 'ticker' :
-                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                                row += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: guild_monster.records[i]['color'], id: '', title: ''});
                                 break;
                             default :
-                                html += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '', color: guild_monster.records[i]['color'], id: '', title: ''});
+                                row += caap.makeTd({text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '', color: guild_monster.records[i]['color'], id: '', title: ''});
                             }
                         }
 
@@ -1057,7 +1059,7 @@
                             title : 'This is a siege link.'
                         };
 
-                        html += caap.makeTd(data);
+                        row += caap.makeTd(data);
 
                         if ($u.hasContent(guild_monster.records[i]['conditions']) && guild_monster.records[i]['conditions'] !== 'none') {
                             data = {
@@ -1067,16 +1069,15 @@
                                 title : ''
                             };
 
-                            html += caap.makeTd(data);
+                            row += caap.makeTd(data);
                         } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                            row += caap.makeTd({text: '', color: color, id: '', title: ''});
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_guildMonster", caap.caapTopObject).html(html);
+                    $j("#caap_guildMonster", caap.caapTopObject).html(caap.makeTable("guild_monster", head, body));
 
                     handler = function (e) {
                         var visitMonsterLink = {

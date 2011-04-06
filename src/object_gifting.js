@@ -5,6 +5,8 @@
     /////////////////////////////////////////////////////////////////////
 
     gifting = {
+        extraList: ['Recruiting', 'Sephora', 'Valiant'],
+
         cachedGiftEntry: {},
 
         types: ["gifts", "queue", "history"],
@@ -245,7 +247,7 @@
                     $u.log(1, 'On FB page with gift ready to go');
                     appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                     if ($u.hasContent(appDiv)) {
-                        giftsList = gifting.gifts.list();
+                        giftsList = gifting.gifts.list().concat(gifting.extraList);
                         appDiv.each(function (index) {
                             try {
                                 var giftRequest = $j(this),
@@ -254,7 +256,7 @@
                                     userId      = 0,
                                     name        = '',
                                     giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
-                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest);
+                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php'],input[name*='quests.php']", giftRequest);
 
                                 if ($u.hasContent(inputDiv)) {
                                     userId = $u.setContent(inputDiv.attr("name"), 'uid=0').regex(/uid=(\d+)/i);
@@ -265,8 +267,12 @@
                                     if ($u.hasContent(giftDiv)) {
                                         giftText = $u.setContent(giftDiv.text(), '').trim();
                                         giftType = giftText.regex(new RegExp("has sent you a (.*) in Castle Age!", "i"));
+                                        giftType = $u.setContent(giftType, $u.setContent(giftText.regex(new RegExp(".* army is (recruiting) .* in Castle Age!", "i")), '').ucFirst());
+                                        giftType = $u.setContent(giftType, giftText.regex(new RegExp(".* needs your help to persuade the great general (.*) to their side in Castle Age", "i")));
                                         name = giftText.regex(new RegExp("(.*) has sent you a .* in Castle Age!", "i"));
-                                        giftEntry['name'] = $u.hasContent(giftEntry['name']) ? giftEntry['name'] : ($u.hasContent(name) ? name : 'Unknown');
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) army is recruiting .* in Castle Age!", "i")));
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) needs your help to persuade the great general .* to their side in Castle Age", "i")));
+                                        giftEntry['name'] = $u.setContent(giftEntry['name'], $u.setContent(name, 'Unknown'));
                                         if (!$u.hasContent(giftType)) {
                                             $u.warn("No gift type found in ", giftText);
                                         }
@@ -1103,8 +1109,7 @@
                     table and then build the header row.
                     \-------------------------------------------------------------------------------------*/
                     if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
-                        var html                   = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                            headers                = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'],
+                        var headers                = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'],
                             values                 = ['userId', 'name', 'gift', 'found'],
                             pp                     = 0,
                             i                      = 0,
@@ -1115,15 +1120,18 @@
                             len1                   = 0,
                             str                    = '',
                             data                   = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                            handler                = null;
+                            handler                = null,
+                            head                   = '',
+                            body                   = '',
+                            row                    = '';
 
                         for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                         }
 
-                        html += '</tr>';
+                        head = caap.makeTr(head);
                         for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
-                            html += "<tr>";
+                            row = "";
                             for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                                 str = $u.setContent(gifting.queue.records[i][values[pp]], '');
                                 if (/userId/.test(values[pp])) {
@@ -1138,9 +1146,9 @@
                                         title : ''
                                     };
 
-                                    html += caap.makeTd(data);
+                                    row += caap.makeTd(data);
                                 } else {
-                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                    row += caap.makeTd({text: str, color: '', id: '', title: ''});
                                 }
                             }
 
@@ -1153,13 +1161,27 @@
                                 title : ''
                             };
 
-                            html += caap.makeTd(data);
-
-                            html += '</tr>';
+                            row += caap.makeTd(data);
+                            body += caap.makeTr(row);
                         }
 
-                        html += '</table>';
-                        $j("#caap_giftQueue", caap.caapTopObject).html(html);
+                        $j("#caap_giftQueue", caap.caapTopObject).html(
+                            $j(caap.makeTable("gifting_queue", head, body)).dataTable({
+                                "bAutoWidth"    : false,
+                                "bFilter"       : false,
+                                "bJQueryUI"     : false,
+                                "bInfo"         : false,
+                                "bLengthChange" : false,
+                                "bPaginate"     : false,
+                                "bProcessing"   : false,
+                                "bStateSave"    : true,
+                                "bSortClasses"  : false,
+                                "aoColumnDefs"  : [{
+                                    "bSortable" : false,
+                                    "aTargets"  : [4]
+                                }]
+                            })
+                        );
 
                         handler = function (e) {
                             var visitUserIdLink = {
@@ -1399,8 +1421,7 @@
                     table and then build the header row.
                     \-------------------------------------------------------------------------------------*/
                     if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
-                        var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                            headers                  = ['UserId', 'Name', 'Received', 'Sent'],
+                        var headers                  = ['UserId', 'Name', 'Received', 'Sent'],
                             values                   = ['userId', 'name', 'received', 'sent'],
                             pp                       = 0,
                             i                        = 0,
@@ -1410,15 +1431,18 @@
                             len1                     = 0,
                             str                      = '',
                             data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                            handler                  = null;
+                            handler                  = null,
+                            head                     = '',
+                            body                     = '',
+                            row                      = '';
 
                         for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                            head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                         }
 
-                        html += '</tr>';
+                        head = caap.makeTr(head);
                         for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
-                            html += "<tr>";
+                            row = "";
                             for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                                 str = $u.setContent(gifting.history.records[i][values[pp]], '');
                                 if (/userId/.test(values[pp])) {
@@ -1432,17 +1456,28 @@
                                         title : ''
                                     };
 
-                                    html += caap.makeTd(data);
+                                    row += caap.makeTd(data);
                                 } else {
-                                    html += caap.makeTd({text: str, color: '', id: '', title: ''});
+                                    row += caap.makeTd({text: str, color: '', id: '', title: ''});
                                 }
                             }
 
-                            html += '</tr>';
+                            body += caap.makeTr(row);
                         }
 
-                        html += '</table>';
-                        $j("#caap_giftStats", caap.caapTopObject).html(html);
+                        $j("#caap_giftStats", caap.caapTopObject).html(
+                            $j(caap.makeTable("gifting_history", head, body)).dataTable({
+                                "bAutoWidth"    : false,
+                                "bFilter"       : false,
+                                "bJQueryUI"     : false,
+                                "bInfo"         : false,
+                                "bLengthChange" : false,
+                                "bPaginate"     : false,
+                                "bProcessing"   : false,
+                                "bStateSave"    : true,
+                                "bSortClasses"  : false
+                            })
+                        );
 
                         handler = function (e) {
                             var visitUserIdLink = {

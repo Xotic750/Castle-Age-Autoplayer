@@ -39,7 +39,7 @@ cat object_town.js >> _buildcommon.tmp
 cat object_spreadsheet.js >> _buildcommon.tmp
 cat object_gifting.js >> _buildcommon.tmp
 cat object_army.js >> _buildcommon.tmp
-cat object_caap.js >> _buildcommon.tmp
+sed -f version.sed object_caap.js >> _buildcommon.tmp
 cat _main.js >> _buildcommon.tmp
 echo "Done."
 

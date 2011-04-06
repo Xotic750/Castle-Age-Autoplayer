@@ -699,5 +699,11 @@
                         "7oJgS7VJQAHBfO4RPgpdMyjArNat6CDwBgMVlqCCKwxvCdQKPAzIdnf8G4J618ve9raXuLHA3nFr" +
                         "l0AFtgB8ThXf+ERrPNAh77/kxRwR8GAE5fKvCwhOsIIXvGD4wmJ2KThgeQru8AIFMhC/t9Tvfgfx" +
                         "3w57OMBqG/AMlIve1HHhxChOsYpV7OBNKO4EMBbbHSZAObKFT8MiHIQB/uDhHqfvD3yIA/uGDIYR" +
-                        "sOALSE6ykpHMvzQ4+clQjnKUW6yJslnZyjfGcWj/4AEe+/jDojucmP0miP2NWcyZCAQAOw=="
+                        "sOALSE6ykpHMvzQ4+clQjnKUW6yJslnZyjfGcWj/4AEe+/jDojucmP0miP2NWcyZCAQAOw==",
+
+        'bg':           "R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==",
+
+        'desc':         "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7",
+
+        'asc':          "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7"
     };

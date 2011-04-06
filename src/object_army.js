@@ -33,8 +33,9 @@
             try {
                 var order = new sort.order();
                 $j.extend(true, order.data, state.getItem("ArmySort", order.data));
-                army.recordsSortable = [];
-                $j.merge(army.recordsSortable, army.records);
+                //army.recordsSortable = [];
+                //$j.merge(army.recordsSortable, army.records);
+                army.recordsSortable = $u.owl.deepCopy(army.records);
                 army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
                 return true;
             } catch (err) {
@@ -452,8 +453,7 @@
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
                 if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
-                    var html                     = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers                  = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'],
+                    var headers                  = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', '&nbsp;'],
                         values                   = ['userId', 'user', 'name', 'lvl',   'change'],
                         color                    = '',
                         pp                       = 0,
@@ -466,16 +466,20 @@
                         str                      = '',
                         header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
                         data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                        handler                  = null;
+                        handler                  = null,
+                        head                     = '',
+                        body                     = '',
+                        row                      = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
+                        sortable = true;
                         header = {
-                            text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                            color : 'blue',
+                            text    : headers[pp],
+                            color   : '',
                             bgcolor : '',
-                            id    : '',
-                            title : '',
-                            width : ''
+                            id      : '',
+                            title   : '',
+                            width   : ''
                         };
 
                         switch (headers[pp]) {
@@ -483,7 +487,7 @@
                             header.width = '18%';
                             break;
                         case 'User':
-                            header.width = '25%';
+                            header.width = '27%';
                             break;
                         case 'Name':
                             header.width = '30%';
@@ -495,25 +499,24 @@
                             header.width = '10%';
                             break;
                         case 'Elite':
-                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
-                            header.width = '5%';
+                            header.width = '7%';
+                            break;
+                        case '&nbsp;':
+                            header.width = '1%';
                             break;
                         default:
-                            header.text = headers[pp];
-                            header.width = '5%';
-                            header.color = '';
                         }
 
-                        html += caap.makeTh(header);
+                        head += caap.makeTh(header);
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
                         if (army.recordsSortable[i]["userId"] <= 0) {
                             continue;
                         }
 
-                        html += "<tr>";
+                        row = "";
                         if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
                         } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
@@ -528,12 +531,12 @@
 
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === "change") {
-                                html += caap.makeTd({
-                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                row += caap.makeTd({
+                                    text    : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
                                     bgcolor : color,
-                                    color : $u.bestTextColor(color),
-                                    id    : '',
-                                    title : ''
+                                    color   : $u.bestTextColor(color),
+                                    id      : '',
+                                    title   : ''
                                 });
                             } else if (values[pp] === "userId") {
                                 str = $u.setContent(army.recordsSortable[i][values[pp]], '');
@@ -547,9 +550,9 @@
                                     title : ''
                                 };
 
-                                html += caap.makeTd(data);
+                                row += caap.makeTd(data);
                             } else {
-                                html += caap.makeTd({
+                                row += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
                                     color : '',
                                     id    : '',
@@ -565,7 +568,7 @@
                             title : ''
                         };
 
-                        html += caap.makeTd(data);
+                        row += caap.makeTd(data);
 
                         removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
                         data = {
@@ -576,13 +579,33 @@
                             title : ''
                         };
 
-                        html += caap.makeTd(data);
-
-                        html += '</tr>';
+                        row += caap.makeTd(data);
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_army", caap.caapTopObject).html(html);
+                    $j("#caap_army", caap.caapTopObject).html(
+                        $j(caap.makeTable("army", head, body)).dataTable({
+                            "bAutoWidth"    : false,
+                            "bFilter"       : false,
+                            "bJQueryUI"     : false,
+                            "bInfo"         : false,
+                            "bLengthChange" : false,
+                            "bPaginate"     : false,
+                            "bProcessing"   : false,
+                            "bStateSave"    : true,
+                            "bSortClasses"  : false,
+                            "aoColumnDefs"  : [
+                                {
+                                    "bSortable" : false,
+                                    "aTargets"  : [6]
+                                },
+                                {
+                                    "sSortDataType" : "dom-checkbox",
+                                    "aTargets"      : [5]
+                                }
+                            ]
+                        })
+                    );
 
                     handler = function (e) {
                         var visitUserIdLink = {

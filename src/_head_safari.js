@@ -4,10 +4,11 @@
 // @description    Auto player for Castle Age
 // @version        !version!
 // @dev            !dev!
-// @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.5.1.min.js
-// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js
+// @require        http://castle-age-auto-player.googlecode.com/files/jquery-!jquery!.min.js
+// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/!jqueryui!/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
-// @require        http://utility-js.googlecode.com/files/utility-0.1.1.min.js
+// @require        http://utility-js.googlecode.com/files/jquery.dataTables-!datatables!.min.js
+// @require        http://utility-js.googlecode.com/files/utility-!utility!.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*

@@ -270,9 +270,13 @@
                         } else if ($u.hasContent(feed.scanRecord['md5'])) {
                             currentMonster = monster.getItem(feed.scanRecord['md5']);
                             $u.log(2, "feed.checked monster set from monster record", currentMonster);
+                        } else {
+                            $u.log(2, "feed.checked scanRecord doesn't have info required", feed.scanRecord);
                         }
 
                         feed.scanRecord = {};
+                    } else {
+                        $u.log(2, "feed.checked scanRecord empty");
                     }
                 }
 
@@ -580,8 +584,7 @@
         dashboard: function () {
             try {
                 if (config.getItem('DBDisplay', '') === 'Feed' && state.getItem("FeeedDashUpdate", true)) {
-                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers = ['Monster', 'Type', 'Damage%', 'TimeLeft', 'T2K', 'Reviewed'],
+                    var headers = ['Monster', 'Type', 'Damage%', 'TimeLeft', 'T2K', 'Reviewed'],
                         values  = ['monster', 'page', 'life',    'time',     't2k', 'review'],
                         pp      = 0,
                         i       = 0,
@@ -589,22 +592,26 @@
                         data    = {},
                         color   = '',
                         value   = null,
-                        handler = null;
+                        handler = null,
+                        head    = '',
+                        body    = '',
+                        row     = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     for (i = 0, len = feed.recordsSortable.length; i < len; i += 1) {
-                        html += "<tr>";
+                        row = '';
                         for (pp = 0; pp < values.length; pp += 1) {
                             if (feed.recordsSortable[i]['hide']) {
                                 continue;
                             }
 
                             value = feed.recordsSortable[i][values[pp]];
-                            if (values[pp] === 'monster') {
+                            switch (values[pp]) {
+                            case 'monster':
                                 data = {
                                     text  : '<span id="caap_feed_' + i + '" title="Clicking this link will take you to the monster" rlink="' + feed.recordsSortable[i]['url'] + '" mmd5="' + feed.recordsSortable[i]['md5'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + value + '</span>',
                                     color : 'blue',
@@ -612,25 +619,47 @@
                                     title : ''
                                 };
 
-                                html += caap.makeTd(data);
-                            } else if (values[pp] === 'review') {
-                                html += caap.makeTd({text: $u.makeTime(value, "d M H:i"), color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
-                            } else if (values[pp] === 'page') {
-                                html += caap.makeTd({text: value.hasIndexOf('festival') ? "Festival" : "Standard", color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
-                            } else if (values[pp] === 'life') {
-                                html += caap.makeTd({text: value, color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['life'] < 10 ? 'red' :'green') : color, id: '', title: ''});
-                            } else if (values[pp] === 't2k') {
-                                html += caap.makeTd({text: $u.minutes2hours(value), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['t2k'] < (feed.recordsSortable[i]['time'][0] + feed.recordsSortable[i]['time'][1] / 60) ? 'purple' : 'green') : color, id: '', title: ''});
-                            } else if (values[pp] === 'time') {
-                                html += caap.makeTd({text: value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['time'][0] < 2 ? 'red' : 'green') : color, id: '', title: ''});
+                                row += caap.makeTd(data);
+                                break;
+                            case 'review':
+                                row += caap.makeTd({text: $u.makeTime(value, "d M H:i"), color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
+                                break;
+                            case 'page':
+                                row += caap.makeTd({text: value.hasIndexOf('festival') ? "Festival" : "Standard", color: feed.recordsSortable[i]['checked'] ? 'green' : color, id: '', title: ''});
+                                break;
+                            case 'life':
+                                row += caap.makeTd({text: value, color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['life'] < 10 ? 'red' :'green') : color, id: '', title: ''});
+                                break;
+                            case 't2k':
+                                row += caap.makeTd({text: $u.minutes2hours(value), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['t2k'] < (feed.recordsSortable[i]['time'][0] + feed.recordsSortable[i]['time'][1] / 60) ? 'purple' : 'green') : color, id: '', title: ''});
+                                break;
+                            case 'time':
+                                row += caap.makeTd({text: value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['time'][0] < 2 ? 'red' : 'green') : color, id: '', title: ''});
+                                break;
+                            default:
                             }
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_feed", caap.caapTopObject).html(html);
+                    $j("#caap_feed", caap.caapTopObject).html(
+                        $j(caap.makeTable("feed", head, body)).dataTable({
+                            "bAutoWidth"    : false,
+                            "bFilter"       : false,
+                            "bJQueryUI"     : false,
+                            "bInfo"         : false,
+                            "bLengthChange" : false,
+                            "bPaginate"     : false,
+                            "bProcessing"   : false,
+                            "bStateSave"    : true,
+                            "bSortClasses"  : false,
+                            "aoColumnDefs"  : [{
+                                "sSortDataType" : "remaining-time",
+                                "aTargets"      : [3, 4]
+                            }]
+                        })
+                    );
 
                     handler = function (e) {
                         var visitMonsterLink = {

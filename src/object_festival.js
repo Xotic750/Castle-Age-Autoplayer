@@ -1197,26 +1197,28 @@
             }
         },
 
-        AddFestivalDashboard: function () {
+        dashboard: function () {
             try {
                 if (config.getItem('DBDisplay', '') === 'Festival' && state.getItem("FestivalDashUpdate", true)) {
-                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers = ['Festival', 'Damage',     'Team%',       'Enemy%',   'My Status', 'TimeLeft', 'Status'],
+                    var headers = ['Festival', 'Damage',     'Team%',       'Enemy%',   'My Status', 'TimeLeft', 'Status'],
                         values  = ['damage',   'teamHealth', 'enemyHealth', 'myStatus', 'ticker',    'state'],
                         pp      = 0,
                         i       = 0,
                         len     = 0,
                         data    = {},
                         color   = '',
-                        handler = null;
+                        handler = null,
+                        head    = '',
+                        body    = '',
+                        row     = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        head += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                     }
 
-                    html += '</tr>';
+                    head = caap.makeTr(head);
                     for (i = 0, len = festival.records.length; i < len; i += 1) {
-                        html += "<tr>";
+                        row = "";
                         data = {
                             text  : '<span id="caap_festival_1" title="Clicking this link will take you to the Festival" rlink="festival_battle_home.php" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">Festival</span>',
                             color : 'blue',
@@ -1224,15 +1226,15 @@
                             title : ''
                         };
 
-                        html += caap.makeTd(data);
+                        row += caap.makeTd(data);
                         color = festival.records[i]['state'] === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
                         color = festival.records[i]['state'] === 'Alive' && festival.records[i]['enemyHealth'] === festival.records[i]['teamHealth'] ? 'purple' : color;
                         color = festival.records[i]['enemyHealth'] > festival.records[i]['teamHealth'] ? 'red' : color;
                         for (pp = 0; pp < values.length; pp += 1) {
                             if (values[pp] === 'ticker') {
-                                html += caap.makeTd({text: $u.hasContent(festival.records[i][values[pp]]) ? festival.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: color, id: '', title: ''});
+                                row += caap.makeTd({text: $u.hasContent(festival.records[i][values[pp]]) ? festival.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: color, id: '', title: ''});
                             } else {
-                                html += caap.makeTd({
+                                row += caap.makeTd({
                                     text  : $u.hasContent(festival.records[i][values[pp]]) && ($u.isString(festival.records[i][values[pp]]) || festival.records[i][values[pp]] > 0) ? festival.records[i][values[pp]] : '',
                                     color : color,
                                     id    : '',
@@ -1241,11 +1243,10 @@
                             }
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_festival", caap.caapTopObject).html(html);
+                    $j("#caap_festival", caap.caapTopObject).html(caap.makeTable("festival", head, body));
 
                     handler = function (e) {
                         var visitMonsterLink = {
@@ -1273,7 +1274,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.AddFestivalDashboard: " + err);
+                $u.error("ERROR in festival.dashboard: " + err);
                 return false;
             }
         },

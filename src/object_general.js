@@ -37,20 +37,6 @@
                 'charge'     : 0
             };
         },
-
-        copy2sortable: function () {
-            try {
-                var order = new sort.order();
-                $j.extend(true, order.data, state.getItem("GeneralsSort", order.data));
-                general.recordsSortable = [];
-                $j.merge(general.recordsSortable, general.records);
-                general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
-                return true;
-            } catch (err) {
-                $u.error("ERROR in general.copy2sortable: " + err);
-                return false;
-            }
-        },
         /*jslint sub: false */
 
         hbest: 0,
@@ -62,7 +48,6 @@
                     general.records = gm.setItem('general.records', []);
                 }
 
-                general.copy2sortable();
                 general.BuildlLists();
                 general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
                 $u.log(3, "general.load Hbest", general.hbest);
@@ -377,7 +362,8 @@
                 general.CollectList = [
                     'Use Current',
                     'Angelica',
-                    'Morrigan'
+                    'Morrigan',
+                    'Valiant'
                 ].filter(crossList);
 
                 general.SubQuestList = [
@@ -547,7 +533,6 @@
                         caap.stats['generals']['invade'] = Math.min((caap.stats['army']['actual'] / 5).dp(), general.records.length);
                         general.save();
                         caap.saveStats();
-                        general.copy2sortable();
                         if (update) {
                             general.UpdateDropDowns();
                         }
@@ -666,7 +651,6 @@
                 return undefined;
             }
         },
-        /*jslint sub: false */
 
         Select: function (whichGeneral) {
             try {
@@ -739,8 +723,6 @@
 
         quickSwitch: false,
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         GetEquippedStats: function () {
             try {
                 general.quickSwitch = false;
@@ -791,7 +773,6 @@
                         general.records[it]['healthMax'] = caap.stats['healthT']['max'];
                         general.records[it]['last'] = new Date().getTime();
                         general.save();
-                        general.copy2sortable();
                         $u.log(3, "Got 'General' stats", general.records[it]);
                     } else {
                         $u.warn("Unable to get 'General' stats");
@@ -954,62 +935,95 @@
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
                 if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
-                    var html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
-                        headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
-                        values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
-                        generalValues            = [],
-                        pp                       = 0,
-                        link                     = '',
-                        instructions             = '',
-                        valueCol                 = 'red',
-                        it                       = 0,
-                        len                      = 0,
-                        len1                     = 0,
-                        data                     = {text: '', color: '', bgcolor: '', id: '',  title: ''},
-                        header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp              = new RegExp("caap_.*Stats_"),
-                        handler                  = null;
+                    var headers       = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
+                        values        = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
+                        generalValues = values.slice(),
+                        pp            = 0,
+                        link          = '',
+                        instructions  = '',
+                        valueCol      = 'red',
+                        it            = 0,
+                        len           = 0,
+                        len1          = 0,
+                        data          = {text: '', color: '', bgcolor: '', id: '',  title: ''},
+                        header        = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                        statsRegExp   = new RegExp("caap_.*Stats_"),
+                        handler       = null,
+                        head          = '',
+                        body          = '',
+                        row           = '';
 
-                    $j.merge(generalValues, values);
                     for (pp = 0, len = headers.length; pp < len; pp += 1) {
                         header = {
-                            text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                            color : 'blue',
+                            text  : headers[pp],
+                            color : '',
                             id    : '',
                             title : '',
-                            width : ''
+                            width : '7%'
                         };
 
-                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : '', id    : '', title : '', width : '25%'} : header;
-                        html += caap.makeTh(header);
+                        switch (headers[pp]) {
+                        case 'General' :
+                            header.width = '13%';
+                            break;
+                        case 'Lvl' :
+                        case 'Atk' :
+                        case 'Def' :
+                        case 'API' :
+                        case 'DPI' :
+                        case 'MPI' :
+                            header.width = '5.5%';
+                            break;
+                        case 'Special' :
+                            header.width = '19%';
+                            break;
+                        default:
+                        }
+
+                        head += caap.makeTh(header);
                     }
 
-                    html += '</tr>';
-                    for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
-                        html += "<tr>";
-                        for (pp = 0, len1 = values.length; pp < len; pp += 1) {
+                    head = caap.makeTr(head);
+                    for (it = 0, len = general.records.length; it < len; it += 1) {
+                        row = "";
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === 'name') {
-                                link = "generals.php?itype=" + general.recordsSortable[it]['itype'] + "&item=" + general.recordsSortable[it]['item'];
-                                instructions = "Clicking this link will change General to " + general.recordsSortable[it]['name'];
+                                link = "generals.php?itype=" + general.records[it]['itype'] + "&item=" + general.records[it]['item'];
+                                instructions = "Clicking this link will change General to " + general.records[it]['name'];
                                 data = {
-                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.recordsSortable[it]['name'] + '" rlink="' + link +
-                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.recordsSortable[it]['name'] + '</span>',
+                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it]['name'] + '</span>',
                                     color : 'blue',
                                     id    : '',
                                     title : ''
                                 };
 
-                                html += caap.makeTd(data);
+                                row += caap.makeTd(data);
                             } else {
-                                html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? '' : valueCol, id: '', title: ''});
+                                row += caap.makeTd({text: $u.setContent(general.records[it][values[pp]], ''), color: '', title: ''});
                             }
                         }
 
-                        html += '</tr>';
+                        body += caap.makeTr(row);
                     }
 
-                    html += '</table>';
-                    $j("#caap_generalsStats", caap.caapTopObject).html(html);
+                    $j("#caap_generalsStats", caap.caapTopObject).html(
+                        $j(caap.makeTable("general", head, body)).dataTable({
+                            "bAutoWidth"    : false,
+                            "bFilter"       : false,
+                            "bJQueryUI"     : false,
+                            "bInfo"         : false,
+                            "bLengthChange" : false,
+                            "bPaginate"     : false,
+                            "bProcessing"   : false,
+                            "bStateSave"    : true,
+                            "bSortClasses"  : false,
+                            "aoColumnDefs"  : [{
+                                "bSortable" : false,
+                                "aTargets"  : [12]
+                            }]
+                        })
+                    );
 
                     handler = function (e) {
                         var changeLink = {
@@ -1038,30 +1052,6 @@
 
                     $j("span[id*='caap_general_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    handler = function (e) {
-                        var clicked = '',
-                            order = new sort.order();
-
-                        if (e.target.id) {
-                            clicked = e.target.id.replace(statsRegExp, '');
-                        }
-
-                        if (generalValues.hasIndexOf(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            if (clicked !== 'name') {
-                                order.data['reverse']['a'] = true;
-                                order.data['value']['b'] = "name";
-                            }
-
-                            general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("GeneralsSort", order.data);
-                            state.setItem("GeneralsDashUpdate", true);
-                            sort.updateForm("Generals");
-                            caap.updateDashboard(true);
-                        }
-                    };
-
-                    $j("span[id*='caap_generalsStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("GeneralsDashUpdate", false);
                 }
 
