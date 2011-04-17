@@ -94,10 +94,11 @@
                 join         : [30, 50, 70, 70],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_skaar_boss.jpg',
+                festival_img : ['festival_monsters_top_skaar_boss.jpg'],
                 festival_dur : 120,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_skaar.jpg'
+                newbg_img    : ['monster_header_skaar.jpg'],
+                list_img     : ['death_list.jpg']
             },
             'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
@@ -121,10 +122,14 @@
                 join         : [30, 50, 70, 70],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_water_element.jpg',
+                festival_img : ['festival_monsters_top_water_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_ragnorak.jpg'
+                newbg_img    : [
+                    'monster_header_ragnorak.jpg',
+                    'monster_header_ragnarok.jpg'
+                ],
+                list_img     : ['water_list.jpg']
             },
             'Genesis, The Earth Elemental' : {
                 duration     : 168,
@@ -149,10 +154,11 @@
                 join         : [30, 30, 30, 40],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_earth_element.jpg',
+                festival_img : ['festival_monsters_top_earth_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_genesis.jpg'
+                newbg_img    : ['monster_header_genesis.jpg'],
+                list_img     : ['earth_element_list.jpg']
             },
             'Cronus, The World Hydra' : {
                 duration     : 168,
@@ -169,10 +175,11 @@
                 join         : [40, 30, 30, 30],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_hydra.jpg',
+                festival_img : ['festival_monsters_top_hydra.jpg'],
                 festival_dur : 192,
                 festival_ach : 500000,
-                newbg_img    : 'monster_header_cronus.jpg'
+                newbg_img    : ['monster_header_cronus.jpg'],
+                list_img     : ['hydra_head.jpg']
             },
             'Battle Of The Dark Legion' : {
                 duration     : 168,
@@ -193,7 +200,8 @@
                 join         : [30, 30, 30, 40],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_defend.jpg'
+                newbg_img    : ['monster_header_defend.jpg'],
+                list_img     : ['castle_siege_list.jpg']
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -207,7 +215,8 @@
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                newbg_img    : 'monster_header_emeralddrag.jpg'
+                newbg_img    : ['monster_header_emeralddrag.jpg'],
+                list_img     : ['dragon_list_green.jpg']
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -221,10 +230,11 @@
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_blue.jpg',
+                festival_img : ['festival_monsters_top_dragon_blue.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_frostdrag.jpg'
+                newbg_img    : ['monster_header_frostdrag.jpg'],
+                list_img     : ['dragon_list_blue.jpg']
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -238,10 +248,11 @@
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_yellow.jpg',
+                festival_img : ['festival_monsters_top_dragon_yellow.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_golddrag.jpg'
+                newbg_img    : ['monster_header_golddrag.jpg'],
+                list_img     : ['dragon_list_yellow.jpg']
             },
             'Ancient Red Dragon' : {
                 duration     : 72,
@@ -255,10 +266,21 @@
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_red.jpg',
+                festival_img : ['festival_monsters_top_dragon_red.jpg',
+                                'festival_monsters_top_dragon_monster.jpg'],
                 festival_dur : 96,
                 festival_ach : 50000,
-                newbg_img    : 'monster_header_ancientreddrag.jpg'
+                newbg_img    : ['monster_header_ancientreddrag.jpg'],
+                list_img     : ['dragon_list_red.jpg']
+            },
+            'Karn'      : {
+                duration     : 120,
+                ach          : 15000,
+                siege        : 0,
+                mClass       : 'Quest Mini-Boss',
+                mpool        : 4,
+                newbg_img    : ['monster_header_minotaur.jpg'],
+                list_img     : ['monster_minotaur_list.jpg']
             },
             'Gildamesh, The Orc King'      : {
                 duration     : 72,
@@ -266,10 +288,11 @@
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_orcking.jpg',
+                festival_img : ['festival_monsters_top_orcking.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_gildamesh.jpg'
+                newbg_img    : ['monster_header_gildamesh.jpg'],
+                list_img     : ['orc_boss_list.jpg']
             },
             'Colossus Of Terra'     : {
                 duration     : 72,
@@ -277,10 +300,11 @@
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_stonegiant.jpg',
+                festival_img : ['festival_monsters_top_stonegiant.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_colossus.jpg'
+                newbg_img    : ['monster_header_colossus.jpg'],
+                list_img     : ['stone_giant_list.jpg']
             },
             'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
@@ -291,10 +315,14 @@
                 siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif'],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_sylvanus.jpg',
+                festival_img : ['festival_monsters_top_sylvanus.jpg'],
                 festival_dur : 72,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_sylvanas.jpg'
+                newbg_img    : [
+                    'monster_header_sylvanas.jpg',
+                    'monster_header_sylvana.jpg'
+                ],
+                list_img     : ['boss_sylvanus_list.jpg']
             },
             'Lotus Ravenmoore' : {
                 duration     : 48,
@@ -302,7 +330,8 @@
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_lotus.jpg'
+                newbg_img    : ['monster_header_lotus.jpg'],
+                list_img     : ['boss_lotus_list.jpg']
             },
             'Keira The Dread Knight'    : {
                 duration     : 48,
@@ -313,7 +342,11 @@
                 //defButton    : null,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_keira.jpg'
+                newbg_img    : [
+                    'monster_header_keira.jpg',
+                    'monster_header_keira2.jpg'
+                ],
+                list_img     : ['boss_keira_list.jpg']
             },
             'Amethyst Sea Serpent'   : {
                 duration     : 72,
@@ -331,10 +364,11 @@
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_purple.jpg',
+                festival_img : ['festival_monsters_top_seamonster_purple.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_amyserpent.jpg'
+                newbg_img    : ['monster_header_amyserpent.jpg'],
+                list_img     : ['seamonster_list_purple.jpg']
             },
             'Ancient Sea Serpent'   : {
                 duration     : 72,
@@ -352,10 +386,11 @@
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_red.jpg',
+                festival_img : ['festival_monsters_top_seamonster_red.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_ancientserpent.jpg'
+                newbg_img    : ['monster_header_ancientserpent.jpg'],
+                list_img     : ['seamonster_list_red.jpg']
             },
             'Emerald Sea Serpent'   : {
                 duration     : 72,
@@ -373,10 +408,11 @@
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_green.jpg',
+                festival_img : ['festival_monsters_top_seamonster_green.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_emeraldserpent.jpg'
+                newbg_img    : ['monster_header_emeraldserpent.jpg'],
+                list_img     : ['seamonster_list_green.jpg']
             },
             'Sapphire Sea Serpent'   : {
                 duration     : 72,
@@ -394,10 +430,11 @@
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_blue.jpg',
+                festival_img : ['festival_monsters_top_seamonster_blue.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_sapphserpent.jpg'
+                newbg_img    : ['monster_header_sapphserpent.jpg'],
+                list_img     : ['seamonster_list_blue.jpg']
             },
             'The Deathrune Siege'    : {
                 duration     : 232,
@@ -432,10 +469,11 @@
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_mephistopheles.jpg',
+                festival_img : ['festival_monsters_top_mephistopheles.jpg'],
                 festival_dur : 89,
                 festival_ach : 50000,
-                newbg_img    : 'monster_header_meph.jpg'
+                newbg_img    : ['monster_header_meph.jpg'],
+                list_img     : ['boss_mephistopheles_list.jpg']
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
             'War Of The Red Plains' : {
@@ -463,7 +501,8 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_warredplains.jpg'
+                newbg_img    : ['monster_header_warredplains.jpg'],
+                list_img     : ['nm_war_list.jpg']
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
             'Bahamut, The Volcanic Dragon' : {
@@ -485,10 +524,11 @@
                 join         : [30, 30, 30,  20],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_volcanic_new.jpg',
+                festival_img : ['festival_monsters_top_volcanic_new.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_bahamut.jpg'
+                newbg_img    : ['monster_header_bahamut.jpg'],
+                list_img     : ['nm_volcanic_list.jpg']
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -515,7 +555,8 @@
                 join         : [30, 30, 30,  60],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_alphabahamut.jpg'
+                newbg_img    : ['monster_header_alphabahamut.jpg'],
+                list_img     : ['nm_volcanic_list_2.jpg']
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
             'Azriel, The Angel Of Wrath' : {
@@ -541,10 +582,11 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_boss_azriel.jpg',
+                festival_img : ['festival_monsters_top_boss_azriel.jpg'],
                 festival_dur : 192,
                 festival_ach : 4000000,
-                newbg_img    : 'monster_header_azriel.jpg'
+                newbg_img    : ['monster_header_azriel.jpg'],
+                list_img     : ['nm_azriel_list.jpg']
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -570,11 +612,12 @@
                 join           : [30, 30, 30,  45],
                 mClass         : 'Epic Boss',
                 mpool          : 3,
-                festival_img   : 'festival_monsters_top_alpha_mephistopheles.jpg',
+                festival_img   : ['festival_monsters_top_alpha_mephistopheles.jpg'],
                 festival_dur   : 192,
                 festival_ach   : 1000000,
                 festival_mpool : 1,
-                newbg_img    : 'monster_header_alphameph.jpg'
+                newbg_img      : ['monster_header_alphameph.jpg'],
+                list_img       : ['nm_alpha_mephistopheles_list.jpg']
             },
             'Gehenna, The Fire Elemental' : {
                 alpha        : true,
@@ -600,10 +643,11 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_fire_element.jpg',
+                festival_img : ['festival_monsters_top_fire_element.jpg'],
                 festival_dur : 96,
                 festival_ach : 3500000,
-                newbg_img    : 'monster_header_gehenna.jpg'
+                newbg_img    : ['monster_header_gehenna.jpg'],
+                list_img     : ['nm_gehenna_list.jpg']
             },
             "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
@@ -630,7 +674,8 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_lionrebellion.jpg'
+                newbg_img    : ['monster_header_lionrebellion.jpg'],
+                list_img     : ['nm_aurelius_list.jpg']
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -656,7 +701,8 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_corvintheus.jpg'
+                newbg_img    : ['monster_header_corvintheus.jpg'],
+                list_img     : ['corv_list.jpg']
             },
             'Valhalla, The Air Elemental' : {
                 alpha        : true,
@@ -683,10 +729,11 @@
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_air_element.jpg',
+                festival_img : ['festival_monsters_top_air_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 2500000,
-                newbg_img    : 'monster_header_valhalla.jpg'
+                newbg_img    : ['monster_header_valhalla.jpg'],
+                list_img     : ['monster_valhalla_list.jpg']
             },
             'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
@@ -712,7 +759,8 @@
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_jahanna.jpg'
+                newbg_img    : ['monster_header_jahanna.jpg'],
+                list_img     : ['boss_jahanna_list.jpg']
             },
             "Agamemnon The Overseer" : {
                 alpha        : true,
@@ -738,7 +786,7 @@
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_agamemnon.jpg',
+                festival_img : ['festival_monsters_top_agamemnon.jpg'],
                 festival_dur : 192,
                 festival_ach : 10000000
             },
@@ -766,7 +814,8 @@
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_aurora.jpg'
+                newbg_img    : ['monster_header_aurora.jpg'],
+                list_img     : ['boss_aurora_list.jpg']
             }
         },
 
@@ -789,57 +838,57 @@
         },
 
         getFestName: function (img) {
-            try {
-                if (!$u.hasContent(img) || !$u.isString(img)) {
-                    $u.warn("img", img);
-                    throw "Invalid identifying img!";
-                }
-
-                var i    = '',
-                    r    = {},
-                    name = '';
-
-                for (i in monster.info) {
-                    if (monster.info.hasOwnProperty(i)) {
-                        r = monster.info[i];
-                        if (img === r.festival_img) {
-                            name = i;
-                            break;
-                        }
-                    }
-                }
-
-                return name;
-            } catch (err) {
-                $u.error("ERROR in monster.getFestName: " + err);
-                return undefined;
-            }
+            return monster.which(img, "festival_img");
         },
 
         getNewName: function (img) {
+            return monster.which(img, "newbg_img");
+        },
+
+        getListName: function (img) {
+            return monster.which(img, "list_img");
+        },
+
+        which: function (img, entity) {
             try {
                 if (!$u.hasContent(img) || !$u.isString(img)) {
                     $u.warn("img", img);
                     throw "Invalid identifying img!";
                 }
 
+                if (!$u.hasContent(entity) || !$u.isString(entity)) {
+                    $u.warn("entity", entity);
+                    throw "Invalid entity name!";
+                }
+
                 var i    = '',
+                    k    = 0,
                     r    = {},
                     name = '';
 
                 for (i in monster.info) {
                     if (monster.info.hasOwnProperty(i)) {
-                        r = monster.info[i];
-                        if (img === r.newbg_img) {
-                            name = i;
+                        if ($u.hasContent(name)) {
                             break;
+                        }
+
+                        r = monster.info[i];
+                        if (!$u.hasContent(r) || !$u.hasContent(r[entity]) || !$j.isArray(r[entity])) {
+                            continue;
+                        }
+
+                        for (k = 0; k < r[entity].length; k += 1) {
+                            if (img === r[entity][k]) {
+                                name = i;
+                                break;
+                            }
                         }
                     }
                 }
 
                 return name;
             } catch (err) {
-                $u.error("ERROR in monster.getNewName: " + err);
+                $u.error("ERROR in monster.which: " + err);
                 return undefined;
             }
         },

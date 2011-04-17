@@ -793,16 +793,20 @@
                 var generalImage = '',
                     it           = 0,
                     len          = 0,
-                    theGeneral   = '';
+                    theGeneral   = '',
+                    time         = config.getItem("GeneralLastReviewed", 24);
 
+                time = (time < 24 ? 24 : time) * 3600;
                 for (it = 0, len = general.records.length; it < len; it += 1) {
-                    if (schedule.since(general.records[it]['last'], gm.getItem("GeneralLastReviewed", 24, hiddenVar) * 3600)) {
+                    if (schedule.since(general.records[it]['last'], time)) {
                         break;
                     }
                 }
 
                 if (it >= len) {
-                    schedule.setItem("allGenerals", gm.getItem("GetAllGenerals", 168, hiddenVar) * 3600, 300);
+                    time = config.getItem("GetAllGenerals", 7);
+                    time = (time < 7 ? 7 : time) * 86400;
+                    schedule.setItem("allGenerals", time, 300);
                     $u.log(2, "Finished visiting all Generals for their stats");
                     theGeneral = config.getItem('IdleGeneral', 'Use Current');
                     if (theGeneral !== 'Use Current') {
@@ -920,6 +924,12 @@
                 htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
                 htmlCode += caap.endDropHide('LevelUpGeneral');
                 htmlCode += caap.makeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.makeCheckTR("Modify Timers", 'generalModifyTimers', false, "Advanced timers for how often General checks are performed.");
+                htmlCode += caap.startCheckHide('generalModifyTimers');
+                htmlCode += caap.makeNumberFormTR("List Hours", 'checkGenerals', "Check the Generals list every X hours. Minimum 24.", 24, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Scan Days", 'GetAllGenerals', "Scan the Generals every X days. Minimum 7.", 7, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Checked Hours", 'GeneralLastReviewed', "Check the General during the scan if not visited in the last X hours. Minimum 24.", 24, '', '', true);
+                htmlCode += caap.endCheckHide('generalModifyTimers');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {

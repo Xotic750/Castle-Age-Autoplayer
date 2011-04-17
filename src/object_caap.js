@@ -2006,6 +2006,10 @@
         /*jslint sub: true */
         updateDashboard: function (force) {
             try {
+                if (config.getItem("dashMinimised", false)) {
+                    return false;
+                }
+
                 if (caap.caapTopObject.length === 0) {
                     throw "We are missing the Dashboard div!";
                 }
@@ -4148,7 +4152,8 @@
         checkResults_generals: function () {
             try {
                 var currentGeneral = '',
-                    html           = '';
+                    html           = '',
+                    time           = config.getItem("checkGenerals", 24);
 
                 general.GetGenerals();
                 currentGeneral = general.GetEquippedStats();
@@ -4159,7 +4164,8 @@
                     $j("#" + caap.domain.id[caap.domain.which] + "general_name_div_int", caap.appBodyDiv).append(html);
                 }
 
-                schedule.setItem("generals", gm.getItem("checkGenerals", 24, hiddenVar) * 3600, 300);
+                time = time < 24 ? 24 : time;
+                schedule.setItem("generals", time * 3600, 300);
                 return true;
             } catch (err) {
                 $u.error("ERROR in checkResults_generals: " + err);
@@ -4888,7 +4894,7 @@
             try {
                 caap.commonTown();
                 town.GetItems("soldiers");
-                var time = config.getItem("checkSoldiers", 72, hiddenVar);
+                var time = config.getItem("checkSoldiers", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("soldiers", time * 3600, 300);
                 return true;
@@ -4902,7 +4908,7 @@
             try {
                 caap.commonTown();
                 town.GetItems("item");
-                var time = config.getItem("checkItem", 72, hiddenVar);
+                var time = config.getItem("checkItem", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("item", time * 3600, 300);
                 return true;
@@ -4916,7 +4922,7 @@
             try {
                 caap.commonTown();
                 town.GetItems("magic");
-                var time = config.getItem("checkMagic", 72, hiddenVar);
+                var time = config.getItem("checkMagic", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("magic", time * 3600, 300);
                 return true;
@@ -4941,8 +4947,10 @@
 
         checkResults_gift: function () {
             try {
+                var time = config.getItem("checkGift", 3);
+                time = time < 3 ? 3 : time;
                 gifting.gifts.populate();
-                schedule.setItem("gift", gm.getItem("checkGift", 72, hiddenVar) * 3600, 300);
+                schedule.setItem("gift", time * 86400, 300);
                 return true;
             } catch (err) {
                 $u.error("ERROR in checkResults_gift: " + err);
@@ -5229,7 +5237,7 @@
             'Water II' : {
                 clas : 'quests_stage_11',
                 base : 'tab_water2',
-                next : 'Ambrosia',
+                next : 'Mist II',
                 area : '',
                 list : '',
                 boss : "Corvintheus",
@@ -6989,7 +6997,7 @@
                 }
 
                 $u.log(2, "Checking Monster Class to get Character Class Stats");
-                return caap.navigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+                return caap.navigateTo('keep,battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
             } catch (err) {
                 $u.error("ERROR in checkCharacterClasses: " + err);
                 return false;
@@ -7032,6 +7040,7 @@
                 }
 
                 $u.log(2, "Checking Ajax Feed");
+                feed.ajaxFeedWait = false;
                 feed.ajaxFeed();
                 return true;
             } catch (err) {
@@ -7047,10 +7056,59 @@
                 }
 
                 $u.log(2, "Checking Ajax Guild");
+                feed.ajaxGuildWait = false;
                 feed.ajaxGuild();
                 return true;
             } catch (err) {
                 $u.error("ERROR in ajaxCheckGuild: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic1: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder1', false) || !schedule.check("publicMonsterFinder1")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 1");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("1");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic1: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic2: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder2', false) || !schedule.check("publicMonsterFinder2")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 2");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("2");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic2: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic3: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder3', false) || !schedule.check("publicMonsterFinder3")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 3");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("3");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic3: " + err);
                 return false;
             }
         },
@@ -7941,28 +7999,17 @@
                             continue;
                         }
 
-                        monsterFull = monsterRow.text().trim().innerTrim();
-                        monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').replace(/COLLECTION: \d+:\d+:\d+/i, '').trim().innerTrim();
-                        if (/^Your /.test(monsterName)) {
-                            monsterText = monsterName.replace(/^Your /, '').trim().innerTrim().toLowerCase().ucWords();
-                            userName = "Your";
-                        } else if (/Aurelius, Lion's Rebellion/.test(monsterName)) {
-                            monsterText = "Aurelius, Lion's Rebellion";
-                            userName = monsterName.replace(monsterText, '').trim();
-                        } else {
-                            monsterText = monsterName.replace(new RegExp(".+'s (.+)$"), '$1');
-                            userName = monsterName.replace(monsterText, '').trim();
-                            monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
-                        }
-
-                        mName = userName + ' ' + monsterText;
-                        $u.log(2, "Monster Name", mName);
                         userId = $u.setContent($j("input[name='casuser']", monsterRow.eq(it)).val(), "0").parseInt();
                         if (!$u.hasContent(userId) || userId === 0) {
                             $u.log(2, "No userId found");
                             continue;
                         }
 
+                        userName = userId === caap.stats['FBID'] ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).text().trim();
+                        tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename();
+                        monsterText = monster.getListName(tempText);
+                        mName = userName + ' ' + monsterText;
+                        $u.log(2, "Monster Name", mName);
                         $u.log(3, "checkResults_fightList page", page);
                         md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
                         monsterReviewed = monster.getItem(md5);
@@ -7987,7 +8034,7 @@
                             if (!$u.hasContent(monster.completeButton["battle_monster"]['md5'])) {
                                 monster.completeButton["battle_monster"]['md5'] = $u.setContent(monsterReviewed['md5'], '');
                                 monster.completeButton["battle_monster"]['name'] = $u.setContent(monsterReviewed['name'], '');
-                                monster.completeButton["battle_monster"]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
+                                monster.completeButton["battle_monster"]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow.eq(it)), null);
                             }
 
                             monsterReviewed['status'] = 'Complete';
@@ -8219,15 +8266,15 @@
                     caap.chatLink(slice, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
                 }
 
-                $u.log(2, "monsterDiv", monsterDiv);
+                $u.log(4, "monsterDiv", monsterDiv);
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
-                    $u.log(2, "fMonstStyle", fMonstStyle);
+                    $u.log(3, "fMonstStyle", fMonstStyle);
                     if ($u.hasContent(fMonstStyle)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
                         nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
-                        $u.log(2, "nMonstStyle", nMonstStyle);
+                        $u.log(3, "nMonstStyle", nMonstStyle);
                         if ($u.hasContent(nMonstStyle)) {
                             tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
@@ -8235,7 +8282,7 @@
                         }
                     }
 
-                    $u.log(2, "tempText", tempText);
+                    $u.log(3, "tempText", tempText);
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", slice);
                     if ($u.hasContent(monsterDiv)) {
@@ -9233,7 +9280,7 @@
                         }
                     }
 
-                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : energyRequire;
+                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : monsterInfo.nrgMax ? monsterInfo.nrgMax[0] : energyRequire;
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
@@ -10315,7 +10362,8 @@
         checkResults_army: function () {
             var listHref = $j(),
                 link     = $j(),
-                autoGift = false;
+                autoGift = false,
+                time     = 0;
 
             autoGift = config.getItem('AutoGift', false);
             listHref = caap.appBodyDiv.find("div[class='messages'] a[href*='army.php?act=ignore']");
@@ -10341,7 +10389,9 @@
             }
 
             if (autoGift) {
-                schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                time = config.getItem('CheckGiftMins', 15);
+                time = time < 15 ? 15 : time;
+                schedule.setItem("ajaxGiftCheck", time * 60, 300);
             }
         },
 
@@ -10462,6 +10512,7 @@
                 // Check for new gifts
                 // A warrior wants to join your Army!
                 // Send Gifts to Friends
+
                 if (config.getItem('AutoGift', false)) {
                     if ($u.hasContent(caap.resultsText) && /Send Gifts to Friends/.test(caap.resultsText)) {
                         $u.log(1, 'We have a gift waiting!');
@@ -10471,7 +10522,9 @@
                         state.setItem('HaveGift', false);
                     }
 
-                    schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                    var time = config.getItem('CheckGiftMins', 15);
+                    time = time < 15 ? 15 : time;
+                    schedule.setItem("ajaxGiftCheck", time * 60, 300);
                 }
 
                 //arena.index();
@@ -10494,7 +10547,8 @@
                 }
 
                 $u.log(3, "Performing AjaxGiftCheck");
-                var theUrl = caap.domain.link + '/army.php';
+                var theUrl = caap.domain.link + '/army.php',
+                    time = config.getItem('CheckGiftMins', 15);
 
                 $j.ajax({
                     url: theUrl,
@@ -10505,7 +10559,8 @@
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                $u.log(4, "AjaxGiftCheck.ajax: Checking data.");
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "ajaxGiftCheck", [data, textStatus, XMLHttpRequest]);
                                 if ($j(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
                                     $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
                                     state.setItem('HaveGift', true);
@@ -10521,7 +10576,8 @@
                         }
                 });
 
-                schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                time = time < 15 ? 15 : time;
+                schedule.setItem("ajaxGiftCheck", time * 60, 300);
                 $u.log(4, "Completed AjaxGiftCheck");
                 return true;
             } catch (err) {
@@ -11075,32 +11131,27 @@
                     } else {
                         $j.ajax({
                             url: caap.domain.link + listType.url,
+                            dataType: "html text",
                             error:
                                 function (XMLHttpRequest, textStatus, errorThrown) {
                                     state.setItem(listType.name + 'Requested', false);
-                                    $u.log(4, "getFriendList(" + listType.name + "): ", textStatus);
+                                    $u.error("getFriendList(" + listType.name + "): ", textStatus);
                                 },
                             success:
                                 function (data, textStatus, XMLHttpRequest) {
                                     try {
-                                        $u.log(4, "getFriendList.ajax splitting data");
-                                        data = data.split('<div class="unselected_list">');
-                                        if (data.length < 2) {
-                                            throw "Could not locate 'unselected_list'";
+                                        data = data.unescapeCAHTML().regex(new RegExp('<div class="unselected_list".*?>(.*)<\\/div><div class="selected_list"'));
+                                        $u.log(2, "getFriendList.ajax data", [data]);
+                                        if (!$u.isDefined(data)) {
+                                            $u.warn("getFriendList.ajax regex returned 'null' or 'undefined'");
                                         }
 
-                                        data = data[1].split('</div><div class="selected_list">');
-                                        if (data.length < 2) {
-                                            throw "Could not locate 'selected_list'";
-                                        }
-
-                                        $u.log(4, "getFriendList.ajax data split ok");
                                         var friendList = [];
-                                        $j('<div></div>').html(data[0]).find('input').each(function (index) {
+                                        $j('<div></div>').html($u.setContent(data, '').toString()).find('input').each(function (index) {
                                             friendList.push($j(this).val().parseInt());
                                         });
 
-                                        $u.log(4, "getFriendList.ajax saving friend list of: ", friendList.length);
+                                        $u.log(2, "getFriendList.ajax saving friend list of: ", friendList.length);
                                         if (friendList.length) {
                                             state.setItem(listType.name + 'Responded', friendList);
                                         } else {
@@ -11141,7 +11192,7 @@
                 function addFriend(id) {
                     try {
                         var theUrl = '',
-                            responseCallback = function (XMLHttpRequest, textStatus, errorThrown) {
+                            responseCallback = function (data, textStatus, XMLHttpRequest) {
                             if (caap.addFriendSpamCheck > 0) {
                                 caap.addFriendSpamCheck -= 1;
                             }
@@ -11359,6 +11410,8 @@
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "reconPlayers", [data, textStatus, XMLHttpRequest]);
                                 var found       = 0,
                                     regex       = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*War: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
                                     regex2      = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
@@ -11601,8 +11654,11 @@
             0x25: 'festivalBless',
             0x26: 'ajaxCheckFeed',
             0x27: 'ajaxCheckGuild',
-            0x28: 'feedScan',
-            0x29: 'idle'
+            0x28: 'ajaxCheckPublic1',
+            0x29: 'ajaxCheckPublic2',
+            0x2A: 'ajaxCheckPublic3',
+            0x2B: 'feedScan',
+            0x2C: 'idle'
         },
 
         actionsList: [],
@@ -11782,9 +11838,9 @@
                 }
 
                 //We don't need to send out any notifications
-                button = $j("a[class*='undo_link']");
+                button = $j("a[class*='undo_link'], div[style*='army_popup_barbackground.jpg'] img[src*='request_skip2.gif']");
                 if ($u.hasContent(button)) {
-                    $u.log(1, 'Undoing notification');
+                    $u.log(1, 'Undoing/skipping notification');
                     caap.click(button);
                 }
 

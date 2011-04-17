@@ -9,7 +9,7 @@
 
         hbest: 2,
 
-        compress: true,
+        compress: $u.is_firefox ? false : true,
 
         load: function () {
             try {
@@ -22,7 +22,7 @@
                     spreadsheet.records = [];
                     $j.ajax({
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
-                        dataType: (navigator.userAgent.toLowerCase().hasIndexOf('opera') ? "jsonp" : "json"),
+                        dataType: ($u.is_opera ? "jsonp" : "json"),
                         error:
                             function (XMLHttpRequest, textStatus, errorThrown) {
                                 $u.log(1, "Using offline items");

@@ -4,7 +4,7 @@
     //////////////////////////////////
 
     function caap_log(msg) {
-        if (console && typeof console.log === 'function') {
+        if (window.console && typeof console.log === 'function') {
             console.log(caapVersion + (devVersion !== '0' ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
@@ -86,9 +86,16 @@
     }
 
     function caap_WaitForjQuery() {
-        if (window.jQuery) {
+        if (window.jQuery && window.jQuery().jquery === "1.5.2") {
             caap_log("jQuery ready ...");
-            $j = window.jQuery.noConflict();
+            if (!window.$j) {
+                window.$j = window.jQuery.noConflict();
+            } else {
+                if (!window.caapop) {
+                    throw "$j is already in use!";
+                }
+            }
+
             if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
                 injectScript(caap.libs.jQueryUI);
@@ -104,15 +111,14 @@
     /////////////////////////////////////////////////////////////////////
     //                         Begin
     /////////////////////////////////////////////////////////////////////
-    caap_log(navigator.userAgent);
+    caap_log(window.navigator.userAgent);
     if (typeof CAAP_SCOPE_RUN !== 'undefined') {
         caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
     }
 
-    //caap_log("ALPHA 2");
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
-    if (!window.jQuery) {
+    if (!window.jQuery || window.jQuery().jquery !== "1.5.2") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
     }

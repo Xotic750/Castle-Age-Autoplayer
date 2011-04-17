@@ -10,10 +10,11 @@
               "farbtastic.min.js",
               "jquery.dataTables-!datatables!.min.js",
               "utility-!utility!.min.js",
-              "Castle-Age-Autoplayer-Chrome.user.js" ],
+              "Castle-Age-Autoplayer.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]
    } ],
+   "background_page" : "background.html",
    "converted_from_user_script": true,
    "description": "Autoplayer for Castle Age game on Facebook.",
    "browser_action": {

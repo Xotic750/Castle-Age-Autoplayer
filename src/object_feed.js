@@ -413,11 +413,73 @@
             }
         },
 
+        publicItems: function (slice) {
+            try {
+                $j("div[style*='pubmonster_middlef.gif']", slice).each(function () {
+                    var post = $j(this),
+                        userId = 0,
+                        mpool = '',
+                        link = '',
+                        mon  = '',
+                        img  = '';
+
+                    if (!$u.hasContent(post)) {
+                        $u.log(2, "No pubmonster_middlef content");
+                        return true;
+                    }
+
+                    userId = $u.setContent($j("input[name='casuser']", post).val(), "0").parseInt();
+                    if (!$u.hasContent(userId) || userId === 0) {
+                        $u.log(2, "No userId found");
+                        return true;
+                    }
+
+                    img = $j("img", post).eq(0).attr("src").basename();
+                    if (!$u.hasContent(img)) {
+                        $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    mon = monster.getListName(img);
+                    if (!$u.hasContent(mon)) {
+                        $u.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("No item monster text, skipping<br />" + mon + '<br />' + link + '<br />' + img);
+                        }
+
+                        return true;
+                    }
+
+                    mpool = $j("input[name='mpool']", post).val();
+                    if (!$u.hasContent(mpool)) {
+                        $u.log(2, "No mpool, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    link = "battle_monster.php?casuser=" + userId + "&mpool=" + mpool;
+                    $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
+                    if (!$u.hasContent(link)) {
+                        $u.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    feed.setItem(link, mon);
+                    return true;
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.publicItems: " + err);
+                return false;
+            }
+        },
+
         ajaxFeedWait: false,
 
         ajaxFeed: function () {
             try {
                 if (feed.ajaxFeedWait) {
+                    schedule.setItem("feedMonsterFinder", 300, 300);
                     return true;
                 }
 
@@ -431,12 +493,9 @@
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                feed.items("feed", data);
-                            } catch (err) {
-                                $u.error("ERROR in feed.ajaxFeed: " + err);
-                            }
-
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxFeed", [data, textStatus, XMLHttpRequest]);
+                            feed.items("feed", data);
                             feed.ajaxFeedWait = false;
                         }
                 });
@@ -456,6 +515,7 @@
         ajaxGuild: function () {
             try {
                 if (feed.ajaxGuildWait) {
+                    schedule.setItem("guildMonsterFinder", 300, 300);
                     return true;
                 }
 
@@ -469,12 +529,9 @@
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                feed.items("guild", data);
-                            } catch (err) {
-                                $u.error("ERROR in feed.ajaxGuild: " + err);
-                            }
-
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxGuild", [data, textStatus, XMLHttpRequest]);
+                            feed.items("guild", data);
                             feed.ajaxGuildWait = false;
                         }
                 });
@@ -485,6 +542,74 @@
                 return true;
             } catch (err) {
                 $u.error("ERROR in feed.ajaxGuild: " + err);
+                return false;
+            }
+        },
+
+        opMessage: function (event) {
+            event.responseText = event.responseText.unescapeCAHTML();
+            $u.log(2, "ajaxPublic opera", event);
+            console.log(event.responseText);
+            feed.publicItems(event.responseText);
+            feed.ajaxPublicWait = false;
+        },
+
+        ajaxPublicWait: false,
+
+        ajaxPublic: function (tier) {
+            try {
+                if (feed.ajaxPublicWait) {
+                    schedule.setItem("publicMonsterFinder" + tier, 300, 300);
+                    return true;
+                }
+
+                feed.ajaxPublicWait = true;
+                var url = 'public_monster_list.php?monster_tier=' + tier;
+                if (caap.domain.which === 2) {
+                    url = "http://apps.facebook.com/castle_age/" + url;
+                    if ($u.hasContent(window.chrome)) {
+                        chrome.extension.sendRequest({'action': 'getPage', 'url': url}, function (data, textStatus, XMLHttpRequest) {
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxPublic chrome", [data, textStatus, XMLHttpRequest]);
+                            feed.publicItems(data);
+                            feed.ajaxPublicWait = false;
+                        });
+                    } else if ($u.hasContent(window.caap_comms)) {
+                        window.caap_comms.prepMessage('getPage', url, function (event) {
+                            event.responseText = event.responseText.unescapeCAHTML();
+                            $u.log(3, "ajaxPublic firefox", event);
+                            feed.publicItems(event.responseText);
+                            feed.ajaxPublicWait = false;
+                        });
+
+                        window.caap_comms.sendMessage();
+                    } else if ($u.hasContent(window.caap_op)) {
+                        window.caap_op.source.postMessage({action : "getPage", id: "feed", value: url});
+                    }
+                } else {
+                    $j.ajax({
+                        url: caap.domain.link + '/' + url,
+                        error:
+                            function (XMLHttpRequest, textStatus, errorThrown) {
+                                $u.error("feed.ajaxPublic", textStatus);
+                                feed.ajaxPublicWait = false;
+                            },
+                        success:
+                            function (data, textStatus, XMLHttpRequest) {
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "ajaxPublic", [data, textStatus, XMLHttpRequest]);
+                                feed.publicItems(data);
+                                feed.ajaxPublicWait = false;
+                            }
+                    });
+                }
+
+                var minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
+                minutes = minutes >= 15 ? minutes : 15;
+                schedule.setItem("publicMonsterFinder" + tier, minutes * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.ajaxPublic: " + err);
                 return false;
             }
         },
@@ -500,17 +625,22 @@
                 }
 
                 feed.ajaxScanWait = true;
-                caap.tempAjax.load(caap.domain.link + '/' + record['url'] + ' #' + caap.domain.id[caap.domain.which] + 'globalContainer',
-                    function (data, textStatus, XMLHttpRequest) {
-                        try {
+                $j.ajax({
+                    url: caap.domain.link + '/' + record['url'],
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            $u.error("feed.ajaxScan", textStatus);
+                            feed.ajaxScanWait = false;
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            data = $j(data.unescapeCAHTML()).find('#' + caap.domain.id[caap.domain.which] + 'globalContainer').html();
+                            $u.log(3, "ajaxScan", [data, textStatus, XMLHttpRequest]);
+                            caap.tempAjax.html(data);
                             caap.checkResults_viewFight(record);
-                        } catch (err) {
-                            $u.error("ERROR in feed.ajaxScan: " + err);
+                            feed.ajaxScanWait = false;
                         }
-
-                        feed.ajaxScanWait = false;
-                    }
-                );
+                });
 
                 return true;
             } catch (err) {
@@ -709,6 +839,28 @@
                 htmlCode += caap.startCheckHide('guildMonsterFinder');
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
+
+                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms) || $u.hasContent(window.caap_op) && caap.domain.which === 2))) {
+                    htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder1');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder1');
+
+                    htmlCode += caap.makeCheckTR("Enable Tier 2", 'publicMonsterFinder2', false, "Find monsters in the Public Tier 2 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder2');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins2', "Check the Public Tier 2 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder2');
+
+                    htmlCode += caap.makeCheckTR("Enable Tier 3", 'publicMonsterFinder3', false, "Find monsters in the Public Tier 3 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder3');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder3');
+                } else {
+                    config.setItem("publicMonsterFinder1", false);
+                    config.setItem("publicMonsterFinder2", false);
+                    config.setItem("publicMonsterFinder3", false);
+                }
+
                 htmlCode += caap.makeCheckTR("Status Scan", 'feedScan', false, "Scan the feed monsters to check their status.");
                 htmlCode += caap.startCheckHide('feedScan');
                 htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status. Minimum 1.", 6, '', '', true);
@@ -748,3 +900,9 @@
             }
         }
     };
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    window['feed'] = feed;
+    caap['opMessage'] = feed.opMessage;
+    /*jslint sub: false */

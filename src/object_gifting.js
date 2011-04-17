@@ -240,6 +240,8 @@
 
                 giftEntry = gifting.getCurrent();
                 if ($j.isEmptyObject(giftEntry)) {
+                    $u.log(1, 'On FB page with but no gift');
+                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php?bm=1&ref=bookmarks&count=0");
                     return false;
                 }
 
@@ -478,6 +480,17 @@
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
+
+                htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
+                htmlCode += caap.startCheckHide('giftModifyTimers');
+                htmlCode += caap.makeNumberFormTR("Max Gift Hours", 'MaxGiftsExceededDelaySecs', "When Max Gifts is exceeded wait X hours before attempting to send gifts. Minimum 1.", 3, '', '', true);
+                htmlCode += caap.makeNumberFormTR("One Gift Hours", 'OneGiftPerPersonDelaySecs', "When '1 Gift Per Person Per 24hrs' is enabled this is the timer used and is normally 24. Minimum 1.", 24, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Last Tried Delay", 'LastGiftUserDelaySecs', "If we tried to send a gift to a users and they were not in the gifting list then wait X hours before attempting to send a gift to this user again. Minimum 1.", 1, '', '', true);
+                htmlCode += caap.makeNumberFormTR("No Gift Delay", 'NoGiftDelaySecs', "When no return gift could be found then wait X minutes before attempting to send gift again. Minimum 30.", 30, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Gift List Days", 'checkGift', "Check gift list every X days. Minimum 3.", 3, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Ajax Gift Check", 'CheckGiftMins', "Check gifts waiting every X minutes. Minimum 15.", 15, '', '', true);
+                htmlCode += caap.endCheckHide('giftModifyTimers');
+
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -809,7 +822,8 @@
                         filterGift     = false,
                         filterGiftList = [],
                         filterGiftLen  = 0,
-                        filterGiftCont = false;
+                        filterGiftCont = false,
+                        time           = 0;
 
                     filterId = config.getItem("FilterReturnId", false);
                     if (filterId) {
@@ -824,8 +838,10 @@
                     }
 
                     choice = config.getItem("GiftChoice", gifting.gifts.options[0]);
+                    time = config.getItem("LastGiftUserDelaySecs", 1);
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
+                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
                             continue;
                         }
 
@@ -868,7 +884,9 @@
                     }
 
                     if (!gift) {
-                        schedule.setItem("NoGiftDelay", gm.getItem("NoGiftDelaySecs", 1800, hiddenVar), 300);
+                        time = config.getItem("NoGiftDelaySecs", 30);
+                        time = (time < 30 ? 30 : time) * 60;
+                        schedule.setItem("NoGiftDelay", time, 300);
                     }
 
                     return gift;
@@ -902,7 +920,8 @@
                         searchStr      = '',
                         clickedList    = [],
                         pendingList    = [],
-                        chosenList     = [];
+                        chosenList     = [],
+                        time           = 0;
 
                     if ($u.isNaN(howmany) || howmany < 1) {
                         throw "Invalid howmany! (" + howmany + ")";
@@ -925,6 +944,8 @@
                         same = false;
                     }
 
+                    time = config.getItem("LastGiftUserDelaySecs", 1);
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
                         gifting.queue.records[it]['chosen'] = false;
 
@@ -932,7 +953,7 @@
                             continue;
                         }
 
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
+                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
                             continue;
                         }
 
@@ -1062,7 +1083,8 @@
                 try {
                     var it         = 0,
                         resultText = '',
-                        sentok     = false;
+                        sentok     = false,
+                        time       = 0;
 
                     if (window.location.href.hasIndexOf('act=create')) {
                         if ($u.hasContent(caap.resultsWrapperDiv)) {
@@ -1082,7 +1104,9 @@
                                     gifting.save("queue");
                                 } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                     $u.log(1, 'Exceeded daily gift limit.');
-                                    schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
+                                    time = config.getItem("MaxGiftsExceededDelaySecs", 3);
+                                    time = time < 1 ? 1 : time;
+                                    schedule.setItem("MaxGiftsExceeded", time * 3600, 300);
                                     caap.setDivContent('gifting_mess', "Max gift limit");
                                 } else {
                                     $u.log(2, 'Result message', resultText);
@@ -1384,14 +1408,16 @@
 
                     var it       = 0,
                         len      = 0,
-                        sentOnce = false;
+                        sentOnce = false,
+                        time     = config.getItem("OneGiftPerPersonDelaySecs", 24);
 
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.history.records.length; it < len; it += 1) {
                         if (gifting.history.records[it]['userId'] !== userId) {
                             continue;
                         }
 
-                        sentOnce = !schedule.since(gifting.history.records[it]['lastSent'] || 0, gm.getItem("OneGiftPerPersonDelaySecs", 86400, hiddenVar));
+                        sentOnce = !schedule.since(gifting.history.records[it]['lastSent'] || 0, time);
                         break;
                     }
 

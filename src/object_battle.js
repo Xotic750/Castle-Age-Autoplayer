@@ -307,7 +307,7 @@
                             return result;
                         } else {
                             result.unknown = true;
-                            $u.warn("Unable to determine won, lost or hiding!");
+                            $u.warn("Unable to determine won, lost or hiding!", caap.resultsText);
                             return result;
                         }
                     } else {
@@ -810,7 +810,8 @@
                     form            = $j(),
                     firstId         = '',
                     lastBattleID    = 0,
-                    engageButton    = null;
+                    engageButton    = null,
+                    time            = 0;
 
                 if (!$u.hasContent(inputDiv)) {
                     $u.warn('Not on battlepage');
@@ -1190,7 +1191,9 @@
                     if (state.getItem("page", '') === 'raid' && engageButton) {
                         caap.click(engageButton);
                     } else {
-                        schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
+                        time = config.getItem("RaidNoTargetDelay", 45);
+                        time = time < 10 ? 10 : time;
+                        schedule.setItem("RaidNoTargetDelay", time);
                         caap.navigateTo(caap.battlePage + ',raid');
                     }
                 } else {
@@ -1327,6 +1330,10 @@
                 htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
                 htmlCode += caap.endDropHide('TargetType', 'UserId');
                 htmlCode += caap.endDropHide('WhenBattle');
+                htmlCode += caap.makeCheckTR("Modify Timers", 'battleModifyTimers', false, "Advanced timers for how often Battle functions are performed.");
+                htmlCode += caap.startCheckHide('battleModifyTimers');
+                htmlCode += caap.makeNumberFormTR("Raid scan seconds", 'RaidNoTargetDelay', "Check the Raid every X seconds when no target available. Minimum 10.", 45, '', '', true);
+                htmlCode += caap.endCheckHide('battleModifyTimers');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {

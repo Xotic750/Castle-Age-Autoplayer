@@ -1,6 +1,6 @@
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
-/*global window,escape,jQuery,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,CAAP_SCOPE_RUN */
+/*global window,escape,jQuery,$j,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,chrome,CAAP_SCOPE_RUN */
 /*jslint maxlen: 512 */
 
 // If we are running Greasemonkey (FireFox) then we inject CAAP directly into the page and check for updates.

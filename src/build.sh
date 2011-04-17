@@ -6,85 +6,110 @@ if grep -e s/\!dev\!/0/g version.sed; then
 fi
 
 echo -n "Deleting old build files : "
-rm -f _buildcommon.tmp
+rm -f ../common/_buildcommon.tmp
+rm -f ../common/Castle-Age-Autoplayer.js
 rm -f ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
 rm -f ../FireFox/Castle-Age-Autoplayer-FireFox.min.user.js
+rm -f ../FireFox/unpacked/chrome/contentCastle-Age-Autoplayer-Chrome.js
+rm -f ../Opera/unpacked/Castle-Age-Autoplayer-Chrome.js
 rm -f ../Opera/Castle-Age-Autoplayer-Opera.user.js
 rm -f ../Opera/Castle-Age-Autoplayer-Opera.min.user.js
+rm -f ../Opera/unpacked/resources/Castle-Age-Autoplayer-Chrome.js
 rm -f ../Safari/Castle-Age-Autoplayer-Safari.user.js
 rm -f ../Safari/Castle-Age-Autoplayer-Safari.min.user.js
 rm -f ../IE/Castle-Age-Autoplayer-IE.ieuser.js
 rm -f ../IE/Castle-Age-Autoplayer-IE.min.ieuser.js
 rm -f ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.user.js
 rm -f ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.min.user.js
+rm -f ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.js
 echo "Done."
 
 echo -n "Joining common files : "
-sed -f version.sed _lead.js > _buildcommon.tmp
-cat object_image64.js >> _buildcommon.tmp
-cat object_offline.js >> _buildcommon.tmp
-cat object_config.js >> _buildcommon.tmp
-cat object_state.js >> _buildcommon.tmp
-cat object_css.js >> _buildcommon.tmp
-cat object_sort.js >> _buildcommon.tmp
-cat object_schedule.js >> _buildcommon.tmp
-cat object_general.js >> _buildcommon.tmp
-cat object_monster.js >> _buildcommon.tmp
-cat object_guild_monster.js >> _buildcommon.tmp
-#cat object_arena.js >> _buildcommon.tmp
-cat object_festival.js >> _buildcommon.tmp
-cat object_feed.js >> _buildcommon.tmp
-cat object_battle.js >> _buildcommon.tmp
-cat object_town.js >> _buildcommon.tmp
-cat object_spreadsheet.js >> _buildcommon.tmp
-cat object_gifting.js >> _buildcommon.tmp
-cat object_army.js >> _buildcommon.tmp
-sed -f version.sed object_caap.js >> _buildcommon.tmp
-cat _main.js >> _buildcommon.tmp
+sed -f version.sed _lead.js > ../common/_buildcommon.tmp
+cat object_image64.js >> ../common/_buildcommon.tmp
+cat object_offline.js >> ../common/_buildcommon.tmp
+cat object_config.js >> ../common/_buildcommon.tmp
+cat object_state.js >> ../common/_buildcommon.tmp
+cat object_css.js >> ../common/_buildcommon.tmp
+cat object_sort.js >> ../common/_buildcommon.tmp
+cat object_schedule.js >> ../common/_buildcommon.tmp
+cat object_general.js >> ../common/_buildcommon.tmp
+cat object_monster.js >> ../common/_buildcommon.tmp
+cat object_guild_monster.js >> ../common/_buildcommon.tmp
+#cat object_arena.js >> ../common/_buildcommon.tmp
+cat object_festival.js >> ../common/_buildcommon.tmp
+cat object_feed.js >> ../common/_buildcommon.tmp
+cat object_battle.js >> ../common/_buildcommon.tmp
+cat object_town.js >> ../common/_buildcommon.tmp
+cat object_spreadsheet.js >> ../common/_buildcommon.tmp
+cat object_gifting.js >> ../common/_buildcommon.tmp
+cat object_army.js >> ../common/_buildcommon.tmp
+sed -f version.sed object_caap.js >> ../common/_buildcommon.tmp
+cat _main.js >> ../common/_buildcommon.tmp
+sed -f version.sed _head_common.js > ../common/Castle-Age-Autoplayer.js
+sed -f version.sed _pre_common.js >> ../common/Castle-Age-Autoplayer.js
+cat ../common/_buildcommon.tmp >> ../common/Castle-Age-Autoplayer.js
 echo "Done."
 
 echo -n "Creating Firefox version : "
-sed -f version.sed _head_firefox.js > ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
-sed -f version.sed _pre_firefox.js >> ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
-cat _buildcommon.tmp >> ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
 # next line to be removed in the future once link changes are completed
-cp ../FireFox/Castle-Age-Autoplayer-FireFox.user.js ../Castle-Age-Autoplayer.user.js
+sed -f version.sed _head_firefox.js > ../Castle-Age-Autoplayer.user.js
+sed -f version.sed _pre_firefox.js >> ../Castle-Age-Autoplayer.user.js
+cat ../common/_buildcommon.tmp >> ../Castle-Age-Autoplayer.user.js
+
 if [ "$version" ]; then
-    cp ../FireFox/Castle-Age-Autoplayer-FireFox.user.js ../FireFox/Castle-Age-Autoplayer-FireFox-v$version.user.js
+    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
+    sed -f version.sed ../FireFox/templates/install.rdf.rel > ../FireFox/unpacked/install.rdf
+    sed -f version.sed ../FireFox/templates/about.xul.rel > ../FireFox/unpacked/chrome/content/about.xul
+    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp
+
+
+else
+    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
+    sed -f version.sed ../FireFox/templates/install.rdf.dev > ../FireFox/unpacked/install.rdf
+    sed -f version.sed ../FireFox/templates/about.xul.dev > ../FireFox/unpacked/chrome/content/about.xul
+    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp
 fi
+
+cp ../common/Castle-Age-Autoplayer.js ../FireFox/unpacked/chrome/content/Castle-Age-Autoplayer.js
+rm -f ../FireFox/packed/caap.xpi
+cd ../FireFox/unpacked/
+zip -r ../packed/caap.xpi *
+cd ../../src/
+shasum=`shasum ../FireFox/packed/caap.xpi | grep -Eo "^[A-Fa-f0-9]+?"`
+sed "s/!sha!/$shasum/g" ../FireFox/update.rdf.tmp > ../FireFox/update.rdf
+rm -f ../FireFox/update.rdf.tmp
 echo "Done."
 
 echo -n "Creating Opera version : "
-sed -f version.sed _head_opera.js > ../Opera/Castle-Age-Autoplayer-Opera.user.js
-sed -f version.sed _pre_opera.js >> ../Opera/Castle-Age-Autoplayer-Opera.user.js
-cat _buildcommon.tmp >> ../Opera/Castle-Age-Autoplayer-Opera.user.js
 if [ "$version" ]; then
-    cp ../Opera/Castle-Age-Autoplayer-Opera.user.js ../Opera/Castle-Age-Autoplayer-Opera-v$version.user.js
+    sed -f version.sed ../Opera/templates/config.xml.rel > ../Opera/unpacked/config.xml
+    sed -f version.sed ../Opera/templates/index.html > ../Opera/unpacked/index.html
+    sed -f version.sed ../Opera/templates/options.html.rel > ../Opera/unpacked/options.html
+    sed -f version.sed ../Opera/templates/user.js > ../Opera/unpacked/includes/user.js
+else
+    sed -f version.sed ../Opera/templates/config.xml.dev > ../Opera/unpacked/config.xml
+    sed -f version.sed ../Opera/templates/index.html > ../Opera/unpacked/index.html
+    sed -f version.sed ../Opera/templates/options.html.dev > ../Opera/unpacked/options.html
+    sed -f version.sed ../Opera/templates/user.js > ../Opera/unpacked/includes/user.js
+    sed -f version.sed ../Opera/templates/updates.xml > ../Opera/packed/updates.xml
 fi
+
+cp ../common/Castle-Age-Autoplayer.js ../Opera/unpacked/resources/Castle-Age-Autoplayer.js
+rm -f ../Opera/packed/caap.oex
+cd ../Opera/unpacked/
+zip -r ../packed/caap.oex *
+cd ../../src/
 echo "Done."
 
 echo -n "Creating Safari version : "
-sed -f version.sed _head_safari.js > ../Safari/Castle-Age-Autoplayer-Safari.user.js
-sed -f version.sed _pre_safari.js >> ../Safari/Castle-Age-Autoplayer-Safari.user.js
-cat _buildcommon.tmp >> ../Safari/Castle-Age-Autoplayer-Safari.user.js
-if [ "$version" ]; then
-    cp ../Safari/Castle-Age-Autoplayer-Safari.user.js ../Safari/Castle-Age-Autoplayer-Safari-v$version.user.js
-fi
 echo "Done."
 
 echo -n "Creating IE version : "
-sed -f version.sed _head_ie.js > ../IE/Castle-Age-Autoplayer-IE.ieuser.js
-sed -f version.sed _pre_ie.js >> ../IE/Castle-Age-Autoplayer-IE.ieuser.js
-cat _buildcommon.tmp >> ../IE/Castle-Age-Autoplayer-IE.ieuser.js
-if [ "$version" ]; then
-    cp ../IE/Castle-Age-Autoplayer-IE.user.js ../IE/Castle-Age-Autoplayer-IE-v$version.user.js
-fi
 echo "Done."
 
 echo -n "Creating Chrome version : "
-sed -f version.sed _head_chrome.js > ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.user.js
-sed -f version.sed _pre_chrome.js >> ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.user.js
-cat _buildcommon.tmp >> ../Chrome/unpacked/Castle-Age-Autoplayer-Chrome.user.js
+cp ../common/Castle-Age-Autoplayer.js ../Chrome/unpacked/Castle-Age-Autoplayer.js
 
 if [ "$version" ]; then
     echo "Creating Chrome release version"
@@ -95,14 +120,11 @@ else
     echo "Creating Chrome development version"
     sed -f version.sed ../Chrome/templates/manifest.dev > ../Chrome/unpacked/manifest.json
     sed -f version.sed ../Chrome/templates/updates.tmpl > ../Chrome/packed/updates.xml
-    # next line to be removed in the future once link changes are completed
     cp ../Chrome/packed/updates.xml ../
     if [ -f ../Chrome/Chrome.pem ]; then
         chromium-browser --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
         #google-chrome --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
         mv ../Chrome/unpacked.crx ../Chrome/packed/Chrome.crx
-        # next line to be removed in the future once link changes are completed
-        cp ../Chrome/packed/Chrome.crx ../Chrome/Chrome.crx
     else
         echo "Would create packed Chrome extension, but you are missing Chrome.pem file"
     fi
@@ -121,5 +143,5 @@ echo "Done."
 #echo "Done."
 
 echo -n "Deleting old build files : "
-rm -f _buildcommon.tmp
+rm -f ../common/_buildcommon.tmp
 echo "Done."

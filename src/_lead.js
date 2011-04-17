@@ -28,11 +28,14 @@
         spreadsheet   = {},
         gifting       = {},
         army          = {},
-        caap          = {},
-        $j            = {};
+        caap          = {};
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
+    String.prototype['unescapeCAHTML'] = String.prototype.unescapeCAHTML = function () {
+        return this.replace(/\\u003c/g, "<").stripTRN().replace(/\\\//g, "/").replace(/\\"/g, "\"");
+    };
+
     String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
         return this.replace(/caap_/i, '');
     };

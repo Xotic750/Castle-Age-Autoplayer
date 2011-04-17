@@ -7,8 +7,6 @@
     army = {
         records: [],
 
-        recordsSortable: [],
-
         recordsTemp: [],
 
         perPage: 25,
@@ -28,21 +26,6 @@
                 'elite'  : false
             };
         },
-
-        copy2sortable: function () {
-            try {
-                var order = new sort.order();
-                $j.extend(true, order.data, state.getItem("ArmySort", order.data));
-                //army.recordsSortable = [];
-                //$j.merge(army.recordsSortable, army.records);
-                army.recordsSortable = $u.owl.deepCopy(army.records);
-                army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
-                return true;
-            } catch (err) {
-                $u.error("ERROR in army.copy2sortable: " + err);
-                return false;
-            }
-        },
         /*jslint sub: false */
 
         hbest: 3,
@@ -54,7 +37,6 @@
                     army.records = gm.setItem('army.records', []);
                 }
 
-                army.copy2sortable();
                 army.hbest = army.hbest === false ? JSON.hbest(army.records) : army.hbest;
                 $u.log(3, "army.load Hbest", army.hbest);
                 state.setItem("ArmyDashUpdate", true);
@@ -147,7 +129,6 @@
                 }
 
                 army.save();
-                army.copy2sortable();
                 return record;
             } catch (err) {
                 $u.error("ERROR in army.setItem: " + err);
@@ -197,7 +178,6 @@
                     $u.log(3, "Unable to find 'userId'", userId);
                 } else {
                     army.save();
-                    army.copy2sortable();
                 }
 
                 return true;
@@ -365,7 +345,6 @@
 
                 army.records = army.recordsTemp.slice();
                 army.save();
-                army.copy2sortable();
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.merge: " + err);
@@ -472,7 +451,6 @@
                         row                      = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        sortable = true;
                         header = {
                             text    : headers[pp],
                             color   : '',
@@ -511,19 +489,19 @@
                     }
 
                     head = caap.makeTr(head);
-                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
-                        if (army.recordsSortable[i]["userId"] <= 0) {
+                    for (i = 0, len = army.records.length; i < len; i += 1) {
+                        if (army.records[i]["userId"] <= 0) {
                             continue;
                         }
 
                         row = "";
-                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                        if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor2", 'gold');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
                         } else {
                             color = config.getItem("ArmyAgeDaysColor0", 'green');
@@ -532,14 +510,14 @@
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === "change") {
                                 row += caap.makeTd({
-                                    text    : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                    text    : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? $u.makeTime(army.records[i][values[pp]], "d-m-Y") : '',
                                     bgcolor : color,
                                     color   : $u.bestTextColor(color),
                                     id      : '',
                                     title   : ''
                                 });
                             } else if (values[pp] === "userId") {
-                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
+                                str = $u.setContent(army.records[i][values[pp]], '');
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
                                 userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
                                 data = {
@@ -553,7 +531,7 @@
                                 row += caap.makeTd(data);
                             } else {
                                 row += caap.makeTd({
-                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
+                                    text  : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? army.records[i][values[pp]] : '',
                                     color : '',
                                     id    : '',
                                     title : ''
@@ -562,7 +540,7 @@
                         }
 
                         data = {
-                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i]['userId'] + '" cstate="' + (army.records[i]['elite'] ? 'true' : 'false') + '" ' + (army.records[i]['elite'] ? ' checked' : '') + ' />',
                             color : 'blue',
                             id    : '',
                             title : ''
@@ -570,9 +548,9 @@
 
                         row += caap.makeTd(data);
 
-                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
+                        removeLinkInstructions = "Clicking this link will remove " + army.records[i]['user'].escapeHTML() + " from your army!";
                         data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + army.records[i]['user'].escapeHTML() +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -678,26 +656,6 @@
                     };
 
                     $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    handler = function (e) {
-                        var clicked  = '',
-                            order    = new sort.order(),
-                            oldOrder = state.getItem("ArmySort", order.data);
-
-                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
-                        if ($u.hasContent(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
-                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
-                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("ArmySort", order.data);
-                            state.setItem("ArmyDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Army");
-                        }
-                    };
-
-                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     state.setItem("ArmyDashUpdate", false);
                 }

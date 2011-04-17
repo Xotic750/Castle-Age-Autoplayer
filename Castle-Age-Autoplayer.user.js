@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            4
+// @dev            5
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -14,7 +14,7 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
-/*global window,escape,jQuery,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,CAAP_SCOPE_RUN */
+/*global window,escape,jQuery,$j,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,chrome,CAAP_SCOPE_RUN */
 /*jslint maxlen: 512 */
 
 // If we are running Greasemonkey (FireFox) then we inject CAAP directly into the page and check for updates.
@@ -24,7 +24,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "4",
+                devVersion = "5",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -112,7 +112,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "4",
+        devVersion    = "5",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -135,11 +135,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         spreadsheet   = {},
         gifting       = {},
         army          = {},
-        caap          = {},
-        $j            = {};
+        caap          = {};
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
+    String.prototype['unescapeCAHTML'] = String.prototype.unescapeCAHTML = function () {
+        return this.replace(/\\u003c/g, "<").stripTRN().replace(/\\\//g, "/").replace(/\\"/g, "\"");
+    };
+
     String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
         return this.replace(/caap_/i, '');
     };
@@ -877,7 +880,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     };
 
     ////////////////////////////////////////////////////////////////////
-    //                      offline OBJECT
+    //                  offline OBJECT
     // this is the object for offline items database
     /////////////////////////////////////////////////////////////////////
 
@@ -1047,7 +1050,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Amethyst Egg",
-                "image": null,
+                "image": "gift_sea_egg_amethyst.jpg",
                 "type": "Alchemy",
                 "attack": null,
                 "defense": null,
@@ -1061,11 +1064,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Amethyst Sea Serpent",
-                "comment": null
+                "comment": "Obtained from the Serpent Egg gifts"
             },
             {
                 "name": "Ancient Egg",
-                "image": null,
+                "image": "gift_sea_egg_ancient.jpg",
                 "type": "Alchemy",
                 "attack": null,
                 "defense": null,
@@ -1079,7 +1082,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Ancient Sea Serpent",
-                "comment": null
+                "comment": "Obtained from the Serpent Egg gifts"
             },
             {
                 "name": "Ancient Frost Hilt",
@@ -1640,24 +1643,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Bloodwell Pendant",
-                "image": "eq_vincent_amulet.jpg",
-                "type": "Alchemy",
-                "attack": null,
-                "defense": null,
-                "hero": "Vincent",
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": null
-            },
-            {
                 "name": "Bull Totem",
                 "image": "gift_zarevok_2.jpg",
                 "type": "Alchemy",
@@ -2090,13 +2075,13 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Dragonbloom",
-                "image": "gift_dragan_2.jpg",
+                "name": "Dragon Blood",
+                "image": null,
                 "type": "Alchemy",
                 "attack": null,
                 "defense": null,
                 "hero": null,
-                "recipe1": "Dragan Protector",
+                "recipe1": "Dragon Charm",
                 "recipe1image": null,
                 "recipe2": null,
                 "recipe2image": null,
@@ -2108,13 +2093,13 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Dragon Blood",
-                "image": null,
+                "name": "Dragonbloom",
+                "image": "gift_dragan_2.jpg",
                 "type": "Alchemy",
                 "attack": null,
                 "defense": null,
                 "hero": null,
-                "recipe1": "Dragon Charm",
+                "recipe1": "Dragan Protector",
                 "recipe1image": null,
                 "recipe2": null,
                 "recipe2image": null,
@@ -2303,7 +2288,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Emerald Sea Serpent",
-                "comment": null
+                "comment": "Obtained from the Serpent Egg gifts"
             },
             {
                 "name": "Enchanted Mythril",
@@ -2612,6 +2597,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Fire Lizard Claw",
+                "image": "gift_araxis2_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Conflagration Shield",
+                "recipe1image": "gift_araxis2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Shield gifts"
+            },
+            {
                 "name": "Flameshrooms",
                 "image": "gift_vanquish3_1.jpg",
                 "type": "Alchemy",
@@ -2664,6 +2667,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": "Dragon",
                 "comment": null
+            },
+            {
+                "name": "Frostwyrm Hide",
+                "image": "gift_edea2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystic Robe",
+                "recipe1image": "gift_edea2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from Mystery Robe Gifts"
             },
             {
                 "name": "Frostwyrm Scales",
@@ -2736,6 +2757,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Glowing Spessartite",
+                "image": "gift_araxis2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Conflagration Shield",
+                "recipe1image": "gift_araxis2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Shield gifts"
             },
             {
                 "name": "Gold Egg",
@@ -3008,6 +3047,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Collected from receiving Mystery Amulet Gifts"
             },
             {
+                "name": "Jackelope Paw",
+                "image": "gift_edea2_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystic Robe",
+                "recipe1image": "gift_edea2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from Mystery Robe Gifts"
+            },
+            {
+                "name": "Lava Core",
+                "image": "gift_araxis2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Conflagration Shield",
+                "recipe1image": "gift_araxis2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from receiving Mystery Shield Gifts"
+            },
+            {
                 "name": "Lava Plant",
                 "image": "gift_dante_1.jpg",
                 "type": "Alchemy",
@@ -3242,6 +3317,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Nether Flask",
+                "image": "gift_morrigan2_3.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nether Tome",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Obtained from Mystery Tome Gifts"
+            },
+            {
                 "name": "Nether Soulstone",
                 "image": "eq_red_soul.jpg",
                 "type": "Alchemy",
@@ -3258,6 +3351,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying War of the Red Plains"
+            },
+            {
+                "name": "Otherworldly Vortex",
+                "image": "gift_edea2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Mystic Robe",
+                "recipe1image": "gift_edea2_complete.jpg",
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Collected from Mystery Robe Gifts"
             },
             {
                 "name": "Owl Totem",
@@ -3458,6 +3569,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Rune of Life",
+                "image": null,
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Heart of the Woods",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped after slaying Aurora. "
+            },
+            {
                 "name": "Sands of Fire",
                 "image": "gift_vanquish3_2.jpg",
                 "type": "Alchemy",
@@ -3491,7 +3620,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Sapphire Sea Serpent",
-                "comment": null
+                "comment": "Obtained from the Serpent Egg gifts"
             },
             {
                 "name": "Scepter Shard 1 of 6",
@@ -3600,6 +3729,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Shadow Rune",
+                "image": "gift_morrigan2_1.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nether Tome",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Obtained from Mystery Tome Gifts"
+            },
+            {
+                "name": "Shadowbloom",
+                "image": "gift_morrigan2_2.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Nether Tome",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Obtained from Mystery Tome Gifts"
             },
             {
                 "name": "Shield Shard",
@@ -4142,24 +4307,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "All-Seeing Eye",
-                "image": null,
-                "type": "Amulet",
-                "attack": 11,
-                "defense": 8,
-                "hero": null,
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": "+1 stamina when Gorlak is equipped"
-            },
-            {
                 "name": "Air Orb",
                 "image": "gift_valhalla_complete.jpg",
                 "type": "Amulet",
@@ -4178,8 +4325,26 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Amulet of Cefka",
+                "name": "All-Seeing Eye",
                 "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 stamina when Gorlak is equipped"
+            },
+            {
+                "name": "Amulet of Cefka",
+                "image": "item_cefka.jpg",
                 "type": "Amulet",
                 "attack": 6,
                 "defense": 12,
@@ -4214,8 +4379,44 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Amulet of the Tempest",
+                "name": "Amulet of Despair",
                 "image": null,
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 5,
+                "hero": "Strider",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amulet of Shadows",
+                "image": null,
+                "type": "Amulet",
+                "attack": 17,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Amulet of the Tempest",
+                "image": "demi_energy_amu.jpg",
                 "type": "Amulet",
                 "attack": 10,
                 "defense": 11,
@@ -4251,7 +4452,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Armageddon Pendant",
-                "image": null,
+                "image": "eq_mephistopheles2_amulet.jpg",
                 "type": "Amulet",
                 "attack": 23,
                 "defense": 18,
@@ -4269,7 +4470,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Avenger Amulet",
-                "image": null,
+                "image": "demi_stamina_amu.jpg",
                 "type": "Amulet",
                 "attack": 5,
                 "defense": 2,
@@ -4287,7 +4488,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Berserker Amulet",
-                "image": null,
+                "image": "demi_attack_amu.jpg",
                 "type": "Amulet",
                 "attack": 5,
                 "defense": 4,
@@ -4305,7 +4506,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Blazerune Necklace",
-                "image": null,
+                "image": "eq_volcanic_amulet.jpg",
                 "type": "Amulet",
                 "attack": 9,
                 "defense": 8,
@@ -4323,7 +4524,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Blazerune Ring",
-                "image": null,
+                "image": "eq_volcanic_ring.jpg",
                 "type": "Amulet",
                 "attack": 7,
                 "defense": 10,
@@ -4341,7 +4542,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Blood Flask",
-                "image": null,
+                "image": "eq_zealot_amulet.jpg",
                 "type": "Amulet",
                 "attack": 20,
                 "defense": 20,
@@ -4358,8 +4559,26 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Stamina to Morrigan"
             },
             {
+                "name": "Bloodwell Pendant",
+                "image": "eq_vincent_amulet.jpg",
+                "type": "Amulet",
+                "attack": 28,
+                "defense": 28,
+                "hero": "Vincent",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Blue Lotus Petal",
-                "image": null,
+                "image": "eq_frost_lotus.jpg",
                 "type": "Amulet",
                 "attack": 0,
                 "defense": 0,
@@ -4435,6 +4654,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Amulet",
                 "attack": 4,
                 "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Crusaders Cross",
+                "image": null,
+                "type": "Amulet",
+                "attack": 12,
+                "defense": 12,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -4646,6 +4883,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Eye of the Storm",
+                "image": null,
+                "type": "Amulet",
+                "attack": 28,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Eye of the Triangle",
                 "image": null,
                 "type": "Amulet",
@@ -4700,6 +4955,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Components are Collected from receiving Mystery Amulet Gifts, +4 Energy when Vanquish is equipped"
             },
             {
+                "name": "Force of Nature",
+                "image": null,
+                "type": "Amulet",
+                "attack": 35,
+                "defense": 50,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Divine Power: 80, must be level 175 to create this item.  Currently best defensive amulet in game."
+            },
+            {
                 "name": "Frost Tear Jewel",
                 "image": null,
                 "type": "Amulet",
@@ -4736,24 +5009,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Force of Nature",
-                "image": null,
-                "type": "Amulet",
-                "attack": 35,
-                "defense": 50,
-                "hero": null,
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": "Divine Power: 80, must be level 175 to create this item.  Currently best defensive amulet in game."
-            },
-            {
                 "name": "Gildamesh's Charm",
                 "image": null,
                 "type": "Amulet",
@@ -4770,6 +5025,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Gladiator Pendant",
+                "image": "arena3_amulet.jpg",
+                "type": "Amulet",
+                "attack": 30,
+                "defense": 26,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 3, Tier 4 Award"
             },
             {
                 "name": "Gold Bar",
@@ -4916,7 +5189,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Dropped from Season 2 Arena, Tier 3 Award, +8 defense when Shino is equipped"
             },
             {
-                "name": "Holy Talisman ",
+                "name": "Holy Talisman",
                 "image": null,
                 "type": "Amulet",
                 "attack": 7,
@@ -4952,11 +5225,47 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Illusia's Bauble",
+                "image": null,
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Ivory Tower Insignia",
+                "image": null,
+                "type": "Amulet",
+                "attack": 13,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Jadan Signet",
                 "image": null,
                 "type": "Amulet",
                 "attack": 9,
-                "defense": 10,
+                "defense": 12,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -4986,6 +5295,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Juggernaut Medallion",
+                "image": "divinedemi_malk_amulet.jpg",
+                "type": "Amulet",
+                "attack": 30,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Demi Reward: Malekus, Divine Power +10"
             },
             {
                 "name": "Keira's Soul",
@@ -5024,11 +5351,47 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Lifedrop Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 25,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Lionheart Amulet",
                 "image": null,
                 "type": "Amulet",
                 "attack": 1,
                 "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Lionheart Seal",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 30,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5118,7 +5481,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "image": null,
                 "type": "Amulet",
                 "attack": 1,
-                "defense": 3,
+                "defense": 2,
                 "hero": null,
                 "recipe1": "Ring of Bahamut",
                 "recipe1image": null,
@@ -5168,11 +5531,65 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Necronic Ring",
+                "image": null,
+                "type": "Amulet",
+                "attack": 20,
+                "defense": 24,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Obsidian Amulet",
                 "image": null,
                 "type": "Amulet",
                 "attack": 2,
                 "defense": 2,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Opal Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Overseer Amulet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 15,
+                "defense": 11,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5348,11 +5765,65 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Seal of Agamemnon",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Serpentine Ring",
                 "image": null,
                 "type": "Amulet",
                 "attack": 20,
                 "defense": 21,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadowfel Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 14,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadowmoon",
+                "image": null,
+                "type": "Amulet",
+                "attack": 7,
+                "defense": 7,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5387,8 +5858,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Signet of Azriel",
                 "image": null,
                 "type": "Amulet",
-                "attack": 20,
-                "defense": 35,
+                "attack": 15,
+                "defense": 40,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5423,8 +5894,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Signet of Lotus",
                 "image": null,
                 "type": "Amulet",
-                "attack": 20,
-                "defense": 35,
+                "attack": 40,
+                "defense": 15,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5582,6 +6053,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 max stamina when Suri is equipped"
             },
             {
+                "name": "Temptations Lure",
+                "image": null,
+                "type": "Amulet",
+                "attack": 15,
+                "defense": 11,
+                "hero": "Syren",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Terra's Heart",
                 "image": null,
                 "type": "Amulet",
@@ -5690,6 +6179,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+4 Stamina when Crissana is equipped"
             },
             {
+                "name": "Truthseeker Pendant",
+                "image": null,
+                "type": "Amulet",
+                "attack": 8,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Valerian Signet",
+                "image": null,
+                "type": "Amulet",
+                "attack": 6,
+                "defense": 3,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Vincents Soul",
                 "image": null,
                 "type": "Amulet",
@@ -5706,6 +6231,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Vinewrap Ring",
+                "image": null,
+                "type": "Amulet",
+                "attack": 13,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vortex Seal",
+                "image": "eq_valhalla_ring.jpg",
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Dropped by Valhalla, the Air Elemental"
             },
             {
                 "name": "Warriors Insignia",
@@ -5799,7 +6360,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Angelic Plate",
-                "image": null,
+                "image": "eq_angelica_armor.jpg",
                 "type": "Armor",
                 "attack": 3,
                 "defense": 3,
@@ -5816,8 +6377,26 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Archangels Battlegear",
+                "name": "Arachnid Carapace",
                 "image": null,
+                "type": "Armor",
+                "attack": 0,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Archangels Battlegear",
+                "image": "eq_azriel_armor.jpg",
                 "type": "Armor",
                 "attack": 26,
                 "defense": 14,
@@ -5873,8 +6452,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Armor of Arielle",
                 "image": null,
                 "type": "Armor",
-                "attack": 7,
-                "defense": 7,
+                "attack": 6,
+                "defense": 6,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -5889,7 +6468,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Armor of Vengeance",
-                "image": null,
+                "image": "demi_aze_8.jpg",
                 "type": "Armor",
                 "attack": 13,
                 "defense": 10,
@@ -5925,7 +6504,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Armor",
-                "image": null,
+                "image": "eq_seamonster_plate.jpg",
                 "type": "Armor",
                 "attack": 4,
                 "defense": 10,
@@ -5943,7 +6522,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Avenger Platemail",
-                "image": null,
+                "image": "demi_stamina_armor.jpg",
                 "type": "Armor",
                 "attack": 1,
                 "defense": 5,
@@ -5999,8 +6578,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Belt of Abaddon",
                 "image": null,
                 "type": "Armor",
-                "attack": 14,
-                "defense": 18,
+                "attack": 13,
+                "defense": 14,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -6015,7 +6594,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Berserker Platemail",
-                "image": null,
+                "image": "demi_attack_armor.jpg",
                 "type": "Armor",
                 "attack": 4,
                 "defense": 2,
@@ -6086,6 +6665,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Braving the Storm",
+                "image": null,
+                "type": "Armor",
+                "attack": 16,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Carmine Robes",
                 "image": null,
                 "type": "Armor",
@@ -6119,6 +6716,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Battle of the Dark Legion",
+                "comment": null
+            },
+            {
+                "name": "Chaos Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 17,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
                 "comment": null
             },
             {
@@ -6356,6 +6971,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Defense to Gawain"
             },
             {
+                "name": "Empyrean Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Epaulets of Might",
                 "image": null,
                 "type": "Armor",
@@ -6518,11 +7151,47 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Dropped from Season 2 Arena, Tier 4 Award, +1% critical when Shino is equipped"
             },
             {
+                "name": "Gladiator Raiments",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Glorious Plate",
                 "image": null,
                 "type": "Armor",
                 "attack": 20,
                 "defense": 31,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Griffinhyde Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 16,
+                "defense": 19,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -6593,8 +7262,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Hunters Raiments",
                 "image": null,
                 "type": "Armor",
-                "attack": 14,
-                "defense": 11,
+                "attack": 12,
+                "defense": 8,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -6613,6 +7282,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Armor",
                 "attack": 12,
                 "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Innocence",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 22,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -6734,6 +7421,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+0.5% Critical when Fenris is equipped"
             },
             {
+                "name": "Magus Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Minotaurs Battle Armor",
                 "image": null,
                 "type": "Armor",
@@ -6750,6 +7455,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "+1 defense to Karn"
+            },
+            {
+                "name": "Moonfall Battlegear",
+                "image": "divinedemi_aurora_armor.jpg",
+                "type": "Armor",
+                "attack": 10,
+                "defense": 26,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Divine Item (Divine Power 10).  Granted at 6500 demi-points with Aurora"
             },
             {
                 "name": "Moonfall Robes",
@@ -6786,6 +7509,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Mystic Robe",
+                "image": "gift_edea2_complete.jpg",
+                "type": "Armor",
+                "attack": 7,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +3 Defense to Edea"
             },
             {
                 "name": "Nightcraft Plate",
@@ -6842,6 +7583,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+1 defense to Gorlak"
             },
             {
+                "name": "Overseer Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Pauldrons of Light",
                 "image": null,
                 "type": "Armor",
@@ -6878,11 +7637,47 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Plate of the Wild",
+                "image": null,
+                "type": "Armor",
+                "attack": 23,
+                "defense": 30,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Plated Earth",
                 "image": null,
                 "type": "Armor",
                 "attack": 8,
                 "defense": 11,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Platinum Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 6,
+                "defense": 10,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -6968,6 +7763,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Robe of the Fang",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 15,
+                "hero": "Aethyx",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Robes of the Tempest",
                 "image": null,
                 "type": "Armor",
@@ -6993,6 +7806,78 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "defense": 3,
                 "hero": null,
                 "recipe1": "Mystic Armor",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Saintly Robes",
+                "image": null,
+                "type": "Armor",
+                "attack": 14,
+                "defense": 14,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadowfel Cloak",
+                "image": null,
+                "type": "Armor",
+                "attack": 16,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Shadowsilk Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 10,
+                "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Silverfist Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 13,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
                 "recipe2image": null,
@@ -7076,6 +7961,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Swordsman Battlegear",
+                "image": "arena3_armor.jpg",
+                "type": "Armor",
+                "attack": 10,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Season 3 Arena Tier 2 Award"
+            },
+            {
                 "name": "Swordsmans Plate",
                 "image": null,
                 "type": "Armor",
@@ -7094,6 +7997,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Dropped from Season 1 Arena, Tier 2 Award"
             },
             {
+                "name": "Tempest Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Terran Plate",
                 "image": null,
                 "type": "Armor",
@@ -7110,6 +8031,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "+8 Health when Darius is equipped"
+            },
+            {
+                "name": "Terrorshard Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 15,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Vinemenders Armor",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Whisper Cloak",
@@ -7203,7 +8160,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Gauntlet",
-                "image": null,
+                "image": "eq_seamonster_gauntlet.jpg",
                 "type": "Glove",
                 "attack": 4,
                 "defense": 4,
@@ -7236,6 +8193,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "+1% crit when Miri is equipped"
+            },
+            {
+                "name": "Brawler Gloves",
+                "image": "arena3_gauntlet.jpg",
+                "type": "Glove",
+                "attack": 8,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Season 3 Arena Tier 1 Award"
             },
             {
                 "name": "Cloudslayer Gauntlet",
@@ -7418,6 +8393,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+1% critical chance when Azul is equipped"
             },
             {
+                "name": "Hand of Life",
+                "image": null,
+                "type": "Glove",
+                "attack": 10,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Hand of the Ruler",
+                "image": null,
+                "type": "Glove",
+                "attack": 8,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Hand of Valhalla",
                 "image": null,
                 "type": "Glove",
@@ -7562,6 +8573,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+3 Stamina when Darius is equipped"
             },
             {
+                "name": "Natures Reach",
+                "image": null,
+                "type": "Glove",
+                "attack": 11,
+                "defense": 8,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Nightcraft Gauntlets",
                 "image": null,
                 "type": "Glove",
@@ -7585,6 +8614,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Glove",
                 "attack": 3,
                 "defense": 4,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Poisons Touch",
+                "image": null,
+                "type": "Glove",
+                "attack": 11,
+                "defense": 9,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -7706,6 +8753,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Stormbringer",
+                "image": null,
+                "type": "Glove",
+                "attack": 18,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Tempered Steel",
                 "image": null,
                 "type": "Glove",
@@ -7742,11 +8807,29 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+1% critical chance when Elora is equipped"
             },
             {
+                "name": "Timewarp Gauntlet",
+                "image": null,
+                "type": "Glove",
+                "attack": 9,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Virtue of Temperance",
                 "image": null,
                 "type": "Glove",
-                "attack": 7,
-                "defense": 4,
+                "attack": 6,
+                "defense": 14,
                 "hero": "Hyperion",
                 "recipe1": null,
                 "recipe1image": null,
@@ -7833,7 +8916,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Helm",
-                "image": null,
+                "image": "eq_seamonster_helm.jpg",
                 "type": "Helmet",
                 "attack": 4,
                 "defense": 5,
@@ -7851,7 +8934,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Berserker Helm",
-                "image": null,
+                "image": "demi_attack_helm.jpg",
                 "type": "Helmet",
                 "attack": 12,
                 "defense": 10,
@@ -7958,6 +9041,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Stamina when Darius is equipped"
             },
             {
+                "name": "Crown of Deliverance",
+                "image": null,
+                "type": "Helmet",
+                "attack": 13,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Crown of Flames",
                 "image": null,
                 "type": "Helmet",
@@ -7999,6 +9100,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Helmet",
                 "attack": 6,
                 "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Devout Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 12,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -8228,6 +9347,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+3 energy when Lilith & Riku is equipped"
             },
             {
+                "name": "Guardian Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 10,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Helm of Dragon Power",
                 "image": null,
                 "type": "Helmet",
@@ -8300,6 +9437,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Lifegiver Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 13,
+                "defense": 17,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Lion Scar Helm",
                 "image": null,
                 "type": "Helmet",
@@ -8323,6 +9478,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Helmet",
                 "attack": 4,
                 "defense": 6,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mane of Maalvus",
+                "image": null,
+                "type": "Helmet",
+                "attack": 15,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mask of Agamemnon",
+                "image": null,
+                "type": "Helmet",
+                "attack": 32,
+                "defense": 29,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -8444,6 +9635,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
             },
             {
+                "name": "Silverfist Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 11,
+                "defense": 13,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Spartan Helm",
                 "image": null,
                 "type": "Helmet",
@@ -8552,6 +9761,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+1 energy to Terra"
             },
             {
+                "name": "Thornguard Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 18,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Titan Helm",
                 "image": null,
                 "type": "Helmet",
@@ -8586,6 +9813,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Vanguard Doomhelm",
+                "image": "arena3_helm.jpg",
+                "type": "Helmet",
+                "attack": 45,
+                "defense": 45,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 3, Tier 6 Reward"
             },
             {
                 "name": "Vanguard Helm",
@@ -8631,6 +9876,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "defense": 14,
                 "hero": null,
                 "recipe1": "Volcanic Knight",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Windchaser Helm",
+                "image": null,
+                "type": "Helmet",
+                "attack": 29,
+                "defense": 29,
+                "hero": null,
+                "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
                 "recipe2image": null,
@@ -8733,7 +9996,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Angelic Blessing",
-                "image": null,
+                "image": "magic_divine_blessings.jpg",
                 "type": "Magic",
                 "attack": 0,
                 "defense": 2,
@@ -8786,8 +10049,26 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Arcane Blast",
+                "name": "Arachnid Poison",
                 "image": null,
+                "type": "Magic",
+                "attack": 5,
+                "defense": 5,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Arcane Blast",
+                "image": "war_reward_3.jpg",
                 "type": "Magic",
                 "attack": 4,
                 "defense": 4,
@@ -8804,8 +10085,26 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Atlantean Forcefield",
+                "name": "Arcane Vortex",
                 "image": null,
+                "type": "Magic",
+                "attack": 15,
+                "defense": 15,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Forcefield",
+                "image": "eq_seamonster_magic.jpg",
                 "type": "Magic",
                 "attack": 10,
                 "defense": 17,
@@ -8877,7 +10176,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Blessing of Nature",
-                "image": null,
+                "image": "demi_aur_8.jpg",
                 "type": "Magic",
                 "attack": 12,
                 "defense": 16,
@@ -9008,6 +10307,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "attack": 9,
                 "defense": 6,
                 "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Discombobulate",
+                "image": null,
+                "type": "Magic",
+                "attack": 13,
+                "defense": 17,
+                "hero": "Syren",
                 "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
@@ -9200,6 +10517,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Heroic Inspiration",
+                "image": "arena3_spell.jpg",
+                "type": "Magic",
+                "attack": 25,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Arena Season 3, Tier 5 Award"
+            },
+            {
                 "name": "Heros Resolve",
                 "image": null,
                 "type": "Magic",
@@ -9380,6 +10715,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Maelstrom",
+                "image": "eq_valhalla_spell.jpg",
+                "type": "Magic",
+                "attack": 16,
+                "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Magic Missile",
                 "image": "magic_magic_missile.jpg",
                 "type": "Magic",
@@ -9452,6 +10805,42 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Natures Sunder",
+                "image": null,
+                "type": "Magic",
+                "attack": 15,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Necronic Blast",
+                "image": null,
+                "type": "Magic",
+                "attack": 18,
+                "defense": 18,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Orb of Alpha Mephistopheles",
                 "image": null,
                 "type": "Magic",
@@ -9488,6 +10877,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Orb of Aurora",
+                "image": "boss_aurora_orb.jpg",
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Aurora",
+                "comment": null
+            },
+            {
                 "name": "Orb of Azriel",
                 "image": null,
                 "type": "Magic",
@@ -9507,7 +10914,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Orb of Corvintheus",
-                "image": null,
+                "image": "orb_corvintheus.jpg",
                 "type": "Magic",
                 "attack": 0,
                 "defense": 0,
@@ -9539,6 +10946,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": "Gildamesh",
+                "comment": null
+            },
+            {
+                "name": "Orb of Jahanna",
+                "image": "boss_jahanna_orb.jpg",
+                "type": "Magic",
+                "attack": 0,
+                "defense": 0,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": "Jahanna",
                 "comment": null
             },
             {
@@ -9602,6 +11027,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "attack": 7,
                 "defense": 9,
                 "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Redeeming Light",
+                "image": null,
+                "type": "Magic",
+                "attack": 3,
+                "defense": 5,
+                "hero": "Strider",
                 "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
@@ -9691,6 +11134,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Magic",
                 "attack": 7,
                 "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Strangling Vines",
+                "image": null,
+                "type": "Magic",
+                "attack": 15,
+                "defense": 18,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -9866,6 +11327,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Defense to Azul"
             },
             {
+                "name": "Aegis of Earth",
+                "image": "eq_darius_shield.jpg",
+                "type": "Shield",
+                "attack": 9,
+                "defense": 7,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "+1 Defense to Darius"
+            },
+            {
                 "name": "Aegis of Kings",
                 "image": null,
                 "type": "Shield",
@@ -9900,6 +11379,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "Sometimes dropped by Agamemnon, the Overseer. Used to create the Aegis of Kings (Divine Power 120, must be level 175 to create)."
+            },
+            {
+                "name": "Aegis of the Winds",
+                "image": null,
+                "type": "Shield",
+                "attack": 28,
+                "defense": 22,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Ancient Shield",
@@ -9957,7 +11454,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Berserker Shield",
-                "image": null,
+                "image": "demi_attack_shield.jpg",
                 "type": "Shield",
                 "attack": 3,
                 "defense": 2,
@@ -9975,10 +11472,46 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Buckler",
-                "image": null,
+                "image": "eq_buckler.jpg",
                 "type": "Shield",
                 "attack": 0,
                 "defense": 1,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Conflagration Shield",
+                "image": "gift_araxis2_complete.jpg",
+                "type": "Shield",
+                "attack": 7,
+                "defense": 10,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +1 Defense to Araxis, Obtained from Mystery Shield gifts"
+            },
+            {
+                "name": "Crest of the Griffin",
+                "image": null,
+                "type": "Shield",
+                "attack": 15,
+                "defense": 16,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -10046,6 +11579,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Defender of the Wild",
+                "image": null,
+                "type": "Shield",
+                "attack": 24,
+                "defense": 26,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Dragan Protector",
                 "image": "gift_dragan_complete.jpg",
                 "type": "Shield",
@@ -10089,6 +11640,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "defense": 2,
                 "hero": null,
                 "recipe1": "Whisper Bow",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Forsaken Tome",
+                "image": null,
+                "type": "Shield",
+                "attack": 13,
+                "defense": 11,
+                "hero": null,
+                "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
                 "recipe2image": null,
@@ -10244,24 +11813,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Illusia's Bauble",
-                "image": null,
-                "type": "Shield",
-                "attack": 8,
-                "defense": 9,
-                "hero": null,
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": null
-            },
-            {
                 "name": "Illvasan Crest",
                 "image": null,
                 "type": "Shield",
@@ -10350,6 +11901,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Nether Tome",
+                "image": "gift_morrigan2_complete.jpg",
+                "type": "Shield",
+                "attack": 6,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +3 Defense to Morrigan.  Obtained from Mystery Tome Gifts."
             },
             {
                 "name": "Obsidian Shield",
@@ -10445,8 +12014,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "name": "Shield of Arielle",
                 "image": null,
                 "type": "Shield",
-                "attack": 6,
-                "defense": 6,
+                "attack": 7,
+                "defense": 7,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -10694,6 +12263,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Attack to Barbarus"
             },
             {
+                "name": "Zarevok Defender",
+                "image": null,
+                "type": "Shield",
+                "attack": 5,
+                "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
                 "name": "Zenarean Crest",
                 "image": null,
                 "type": "Shield",
@@ -10713,7 +12300,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Air Elemental",
-                "image": null,
+                "image": "soldier_lightning.jpg",
                 "type": "Soldier",
                 "attack": 14,
                 "defense": 12,
@@ -10821,7 +12408,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Angel",
-                "image": null,
+                "image": "upgrade_angel.gif",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 7,
@@ -10839,7 +12426,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Angelic Sentinel",
-                "image": null,
+                "image": "soldier_angelic_sentinel.jpg",
                 "type": "Soldier",
                 "attack": 20,
                 "defense": 24,
@@ -10857,7 +12444,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Arcanist",
-                "image": null,
+                "image": "soldier_arcanis.jpg",
                 "type": "Soldier",
                 "attack": 23,
                 "defense": 20,
@@ -10875,28 +12462,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Archangel",
-                "image": null,
+                "image": "archangel.jpg",
                 "type": "Soldier",
                 "attack": 25,
                 "defense": 20,
-                "hero": null,
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": null
-            },
-            {
-                "name": "Atlantean Archer",
-                "image": null,
-                "type": "Soldier",
-                "attack": 12,
-                "defense": 10,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -10915,6 +12484,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 9,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Atlantean Archer",
+                "image": "soldier_a_archer.jpg",
+                "type": "Soldier",
+                "attack": 12,
+                "defense": 10,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -10947,7 +12534,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Barbarian",
-                "image": null,
+                "image": "soldier_barbarian.jpg",
                 "type": "Soldier",
                 "attack": 10,
                 "defense": 6,
@@ -10965,7 +12552,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Barbarian Captain",
-                "image": null,
+                "image": "war_reward_2.jpg",
                 "type": "Soldier",
                 "attack": 23,
                 "defense": 20,
@@ -10983,7 +12570,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Black Knight",
-                "image": null,
+                "image": "soldier_knight_160.jpg",
                 "type": "Soldier",
                 "attack": 5,
                 "defense": 5,
@@ -11019,7 +12606,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Cleric",
-                "image": null,
+                "image": "upgrade_cleric.jpg",
                 "type": "Soldier",
                 "attack": 1,
                 "defense": 5,
@@ -11037,7 +12624,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Cronus, The World Hydra",
-                "image": null,
+                "image": "soldier_hydra_final.jpg",
                 "type": "Soldier",
                 "attack": 60,
                 "defense": 60,
@@ -11055,7 +12642,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Death Knight",
-                "image": null,
+                "image": "soldier_deathknight.jpg",
                 "type": "Soldier",
                 "attack": 9,
                 "defense": 6,
@@ -11073,7 +12660,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Demonic Stalker",
-                "image": null,
+                "image": "soldier_demonic_stalker.jpg",
                 "type": "Soldier",
                 "attack": 25,
                 "defense": 20,
@@ -11091,7 +12678,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Dragon",
-                "image": null,
+                "image": "upgrade_dragon.jpg",
                 "type": "Soldier",
                 "attack": 16,
                 "defense": 14,
@@ -11109,7 +12696,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Dwarven Battlemaster",
-                "image": null,
+                "image": "soldier_battlemaster.jpg",
                 "type": "Soldier",
                 "attack": 9,
                 "defense": 7,
@@ -11199,7 +12786,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Fire Elemental",
-                "image": null,
+                "image": "soldier_fire_elemental.jpg",
                 "type": "Soldier",
                 "attack": 8,
                 "defense": 5,
@@ -11235,7 +12822,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Footman",
-                "image": null,
+                "image": "upgrade_footmen.jpg",
                 "type": "Soldier",
                 "attack": 1,
                 "defense": 1,
@@ -11271,7 +12858,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gehenna",
-                "image": null,
+                "image": "arena3_gehenna.jpg",
                 "type": "Soldier",
                 "attack": 110,
                 "defense": 110,
@@ -11307,7 +12894,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Angel",
-                "image": null,
+                "image": "upgrade_angel.gif",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 7,
@@ -11325,7 +12912,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Cleric",
-                "image": null,
+                "image": "upgrade_cleric.jpg",
                 "type": "Soldier",
                 "attack": 1,
                 "defense": 5,
@@ -11343,7 +12930,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Dragon",
-                "image": null,
+                "image": "upgrade_dragon.jpg",
                 "type": "Soldier",
                 "attack": 16,
                 "defense": 14,
@@ -11361,7 +12948,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Footman",
-                "image": null,
+                "image": "upgrade_footmen.jpg",
                 "type": "Soldier",
                 "attack": 1,
                 "defense": 1,
@@ -11379,7 +12966,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Knight",
-                "image": null,
+                "image": "upgrade_knight.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 2,
@@ -11397,7 +12984,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Paladin",
-                "image": null,
+                "image": "upgrade_paladin.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 4,
@@ -11415,7 +13002,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Phoenix",
-                "image": null,
+                "image": "upgrade_phoenix.jpg",
                 "type": "Soldier",
                 "attack": 20,
                 "defense": 16,
@@ -11433,7 +13020,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Ranger",
-                "image": null,
+                "image": "upgrade_ranger.gif",
                 "type": "Soldier",
                 "attack": 2,
                 "defense": 1,
@@ -11451,7 +13038,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Tree Ent",
-                "image": null,
+                "image": "upgrade_tree.jpg",
                 "type": "Soldier",
                 "attack": 4,
                 "defense": 5,
@@ -11469,7 +13056,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gift Wizard",
-                "image": null,
+                "image": "upgrade_wizard.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 5,
@@ -11487,7 +13074,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Gladiator",
-                "image": null,
+                "image": "soldier_volcanic_gladiator.jpg",
                 "type": "Soldier",
                 "attack": 35,
                 "defense": 24,
@@ -11523,7 +13110,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Greater Werewolf",
-                "image": null,
+                "image": "soldier_werewolf.jpg",
                 "type": "Soldier",
                 "attack": 27,
                 "defense": 18,
@@ -11541,7 +13128,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Griffin",
-                "image": null,
+                "image": "soldier_griffin_160.jpg",
                 "type": "Soldier",
                 "attack": 6,
                 "defense": 6,
@@ -11577,7 +13164,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hellkite Minion",
-                "image": null,
+                "image": "soldier_hellkite.jpg",
                 "type": "Soldier",
                 "attack": 32,
                 "defense": 27,
@@ -11595,7 +13182,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hellslayer Knight",
-                "image": null,
+                "image": "solider_hellslayer.jpg",
                 "type": "Soldier",
                 "attack": 29,
                 "defense": 33,
@@ -11613,7 +13200,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hydra: Atlas",
-                "image": null,
+                "image": "soldier_hydra_2.jpg",
                 "type": "Soldier",
                 "attack": 23,
                 "defense": 28,
@@ -11631,7 +13218,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hydra: Epimetheus",
-                "image": null,
+                "image": "soldier_hydra_4.jpg",
                 "type": "Soldier",
                 "attack": 18,
                 "defense": 24,
@@ -11649,7 +13236,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hydra: Prometheus",
-                "image": null,
+                "image": "soldier_hydra_1.jpg",
                 "type": "Soldier",
                 "attack": 35,
                 "defense": 25,
@@ -11667,7 +13254,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hydra: Rhea",
-                "image": null,
+                "image": "soldier_hydra_5.jpg",
                 "type": "Soldier",
                 "attack": 24,
                 "defense": 18,
@@ -11685,7 +13272,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Hydra: Tethys",
-                "image": null,
+                "image": "soldier_hydra_3.jpg",
                 "type": "Soldier",
                 "attack": 21,
                 "defense": 21,
@@ -11721,7 +13308,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Knight",
-                "image": null,
+                "image": "upgrade_knight.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 2,
@@ -11739,7 +13326,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Lich",
-                "image": null,
+                "image": "soldier_lich.jpg",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 5,
@@ -11775,7 +13362,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Mercenary",
-                "image": null,
+                "image": "soldier_mercenary.jpg",
                 "type": "Soldier",
                 "attack": 5,
                 "defense": 3,
@@ -11829,7 +13416,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Orc Champion",
-                "image": null,
+                "image": "soldier_orc_champion.jpg",
                 "type": "Soldier",
                 "attack": 50,
                 "defense": 50,
@@ -11865,7 +13452,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Orc Grunt",
-                "image": null,
+                "image": "soldier_orc.jpg",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 5,
@@ -11901,7 +13488,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Paladin",
-                "image": null,
+                "image": "upgrade_paladin.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 4,
@@ -11955,7 +13542,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Platinum Knight",
-                "image": null,
+                "image": "soldier_heaven.jpg",
                 "type": "Soldier",
                 "attack": 23,
                 "defense": 27,
@@ -12009,7 +13596,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Ranger",
-                "image": null,
+                "image": "upgrade_ranger.gif",
                 "type": "Soldier",
                 "attack": 2,
                 "defense": 1,
@@ -12027,7 +13614,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Rogue Assassin",
-                "image": null,
+                "image": "soldier_rogue.jpg",
                 "type": "Soldier",
                 "attack": 34,
                 "defense": 24,
@@ -12045,7 +13632,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Seraphim Angel",
-                "image": null,
+                "image": "soldier_seraphim.jpg",
                 "type": "Soldier",
                 "attack": 24,
                 "defense": 21,
@@ -12063,7 +13650,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Shadow",
-                "image": null,
+                "image": "soldier_shadow.jpg",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 5,
@@ -12153,7 +13740,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Skeleton Knight",
-                "image": null,
+                "image": "soldier_skeleton_knight.jpg",
                 "type": "Soldier",
                 "attack": 18,
                 "defense": 27,
@@ -12171,7 +13758,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Skeleton Warrior",
-                "image": null,
+                "image": "soldier_skeleton.jpg",
                 "type": "Soldier",
                 "attack": 4,
                 "defense": 4,
@@ -12207,7 +13794,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Spartan Warrior",
-                "image": null,
+                "image": "soldier_spartan.jpg",
                 "type": "Soldier",
                 "attack": 2,
                 "defense": 1,
@@ -12225,7 +13812,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Succubus",
-                "image": null,
+                "image": "soldier_succubus.jpg",
                 "type": "Soldier",
                 "attack": 19,
                 "defense": 17,
@@ -12243,7 +13830,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Sun Eagle",
-                "image": null,
+                "image": "soldier_eagle.jpg",
                 "type": "Soldier",
                 "attack": 15,
                 "defense": 12,
@@ -12315,7 +13902,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Valerian Assassin",
-                "image": null,
+                "image": "soldier_assassin_1.jpg",
                 "type": "Soldier",
                 "attack": 1,
                 "defense": 0,
@@ -12333,7 +13920,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Valerian Guard",
-                "image": null,
+                "image": "soldier_guard.jpg",
                 "type": "Soldier",
                 "attack": 7,
                 "defense": 9,
@@ -12351,7 +13938,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Valerian Mystic",
-                "image": null,
+                "image": "eq_valerian_mystic.jpg",
                 "type": "Soldier",
                 "attack": 11,
                 "defense": 11,
@@ -12387,7 +13974,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Valor Knight",
-                "image": null,
+                "image": "redknight.jpg",
                 "type": "Soldier",
                 "attack": 22,
                 "defense": 18,
@@ -12405,7 +13992,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Vampire",
-                "image": null,
+                "image": "soldier_vampire.jpg",
                 "type": "Soldier",
                 "attack": 8,
                 "defense": 7,
@@ -12423,7 +14010,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Vampire Lord",
-                "image": null,
+                "image": "soldier_vampire2.jpg",
                 "type": "Soldier",
                 "attack": 20,
                 "defense": 18,
@@ -12459,7 +14046,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "War Bear",
-                "image": null,
+                "image": "soldier_bear.jpg",
                 "type": "Soldier",
                 "attack": 5,
                 "defense": 4,
@@ -12477,7 +14064,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "War Lion",
-                "image": null,
+                "image": "soldier_lion_160.jpg",
                 "type": "Soldier",
                 "attack": 6,
                 "defense": 6,
@@ -12495,7 +14082,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Water Demon",
-                "image": null,
+                "image": "soldier_assassin_4.jpg",
                 "type": "Soldier",
                 "attack": 14,
                 "defense": 12,
@@ -12513,7 +14100,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Water Elemental",
-                "image": null,
+                "image": "soldier_water_elemental.jpg",
                 "type": "Soldier",
                 "attack": 14,
                 "defense": 15,
@@ -12531,7 +14118,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Water Sprite",
-                "image": null,
+                "image": "soldier_water_sprite.jpg",
                 "type": "Soldier",
                 "attack": 6,
                 "defense": 6,
@@ -12549,7 +14136,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Willow Wisp",
-                "image": null,
+                "image": "soldier_wisp.jpg",
                 "type": "Soldier",
                 "attack": 4,
                 "defense": 4,
@@ -12567,7 +14154,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Wizard",
-                "image": null,
+                "image": "upgrade_wizard.jpg",
                 "type": "Soldier",
                 "attack": 3,
                 "defense": 5,
@@ -12584,26 +14171,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Aegis of Earth",
-                "image": null,
-                "type": "Weapon",
-                "attack": 9,
-                "defense": 7,
-                "hero": null,
-                "recipe1": null,
-                "recipe1image": null,
-                "recipe2": null,
-                "recipe2image": null,
-                "recipe3": null,
-                "recipe3image": null,
-                "recipe4": null,
-                "recipe4image": null,
-                "summon": null,
-                "comment": "+1 Defense to Darius"
-            },
-            {
                 "name": "Aeris Dagger",
-                "image": null,
+                "image": "gift_aeris2_complete.jpg",
                 "type": "Weapon",
                 "attack": 4,
                 "defense": 10,
@@ -12675,7 +14244,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Arctic Blade",
-                "image": null,
+                "image": "eq_water_rare_dagger.jpg",
                 "type": "Weapon",
                 "attack": 9,
                 "defense": 13,
@@ -12693,7 +14262,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Assassins Blade",
-                "image": null,
+                "image": "eq_strider_complete.jpg",
                 "type": "Weapon",
                 "attack": 7,
                 "defense": 4,
@@ -12711,7 +14280,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Mace",
-                "image": null,
+                "image": "eq_seamonster_mace.jpg",
                 "type": "Weapon",
                 "attack": 6,
                 "defense": 3,
@@ -12729,7 +14298,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Spear",
-                "image": null,
+                "image": "eq_seamonster_spear.jpg",
                 "type": "Weapon",
                 "attack": 7,
                 "defense": 7,
@@ -12747,7 +14316,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Atlantean Sword",
-                "image": null,
+                "image": "eq_seamonster_sword.jpg",
                 "type": "Weapon",
                 "attack": 7,
                 "defense": 3,
@@ -12783,7 +14352,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Avenger",
-                "image": null,
+                "image": "eq_castle_axe2.jpg",
                 "type": "Weapon",
                 "attack": 14,
                 "defense": 0,
@@ -12819,7 +14388,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Battle Axe",
-                "image": null,
+                "image": "eq_axe.jpg",
                 "type": "Weapon",
                 "attack": 4,
                 "defense": 0,
@@ -12837,7 +14406,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Battle Spear",
-                "image": null,
+                "image": "spear_160_160.jpg",
                 "type": "Weapon",
                 "attack": 2,
                 "defense": 1,
@@ -12855,7 +14424,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Berserker Axe",
-                "image": null,
+                "image": "demi_attack_weapon.jpg",
                 "type": "Weapon",
                 "attack": 20,
                 "defense": 13,
@@ -12909,7 +14478,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Blade of Vengeance",
-                "image": null,
+                "image": "demi_stamina_weapon.jpg",
                 "type": "Weapon",
                 "attack": 17,
                 "defense": 15,
@@ -12945,7 +14514,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Bloodblade",
-                "image": null,
+                "image": "gift_vanquish2_complete.jpg",
                 "type": "Weapon",
                 "attack": 5,
                 "defense": 5,
@@ -12963,7 +14532,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Bonecrusher",
-                "image": null,
+                "image": "eq_gehenna_sword_2.jpg",
                 "type": "Weapon",
                 "attack": 18,
                 "defense": 21,
@@ -12981,7 +14550,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Bramble Blade",
-                "image": null,
+                "image": "eq_earth_rare_sword.jpg",
                 "type": "Weapon",
                 "attack": 10,
                 "defense": 8,
@@ -12999,7 +14568,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Burning Blade",
-                "image": null,
+                "image": "eq_volcanic_weapon3.jpg",
                 "type": "Weapon",
                 "attack": 16,
                 "defense": 13,
@@ -13050,6 +14619,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4image": null,
                 "summon": null,
                 "comment": "+3% Critical when Celesta is equipped"
+            },
+            {
+                "name": "Chaos Staff",
+                "image": null,
+                "type": "Weapon",
+                "attack": 18,
+                "defense": 19,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Cid Saber",
@@ -13592,6 +15179,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
+                "name": "Festivus Sword",
+                "image": "eq_festival_battle_weapon.jpg",
+                "type": "Weapon",
+                "attack": 33,
+                "defense": 33,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Gives +9 Health when Deianira is equipped.  Obtained by going to the bottom of the Guild Shop and recruiting 25 friends to click on your gift link.  Available as part of the Festival celebration."
+            },
+            {
                 "name": "Fiery Blade",
                 "image": "gift_dante_complete.jpg",
                 "type": "Weapon",
@@ -13683,7 +15288,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             },
             {
                 "name": "Fury Maul Axe",
-                "image": null,
+                "image": "eq_barbarian_axe.jpg",
                 "type": "Weapon",
                 "attack": 11,
                 "defense": 7,
@@ -13697,7 +15302,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": null,
-                "comment": null
+                "comment": "Common drop from Vanguard Chest."
             },
             {
                 "name": "Genesis Sword",
@@ -13880,6 +15485,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": "+2 Attack to Halycon"
             },
             {
+                "name": "Heart of the Woods",
+                "image": null,
+                "type": "Weapon",
+                "attack": 30,
+                "defense": 44,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Divine Power 120.  The ingredients can be obtained by defeating Aurora.  Currently the Best Overall Weapon in the game"
+            },
+            {
                 "name": "Hellblade",
                 "image": null,
                 "type": "Weapon",
@@ -13993,6 +15616,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "type": "Weapon",
                 "attack": 16,
                 "defense": 16,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Inoculator",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 17,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -14276,11 +15917,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": null,
+                "name": "Meat Cleaver",
                 "image": null,
-                "type": null,
-                "attack": null,
-                "defense": null,
+                "type": "Weapon",
+                "attack": 44,
+                "defense": 22,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -14960,11 +16601,29 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Staff of the Tempest",
+                "name": "Staff of the Lifeless",
+                "image": "eq_aurora_staff.jpg",
+                "type": "Weapon",
+                "attack": 25,
+                "defense": 20,
+                "hero": null,
+                "recipe1": "Heart of the Woods",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": "Sometimes dropped by Aurora. Used to create Heart of the Woods."
+            },
+            {
+                "name": "Staff of the Martyr",
                 "image": null,
                 "type": "Weapon",
-                "attack": 4,
-                "defense": 2,
+                "attack": 15,
+                "defense": 19,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -14978,11 +16637,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "comment": null
             },
             {
-                "name": "Staff of the Martyr",
+                "name": "Staff of the Tempest",
                 "image": null,
                 "type": "Weapon",
-                "attack": 15,
-                "defense": 19,
+                "attack": 4,
+                "defense": 2,
                 "hero": null,
                 "recipe1": null,
                 "recipe1image": null,
@@ -15128,6 +16787,24 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "attack": 5,
                 "defense": 4,
                 "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Syrens Call",
+                "image": null,
+                "type": "Weapon",
+                "attack": 20,
+                "defense": 18,
+                "hero": "Syren",
                 "recipe1": null,
                 "recipe1image": null,
                 "recipe2": null,
@@ -15335,7 +17012,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 "recipe4": null,
                 "recipe4image": null,
                 "summon": null,
-                "comment": null
+                "comment": "Arena Season 3, Tier 3 reward"
             },
             {
                 "name": "Whisper Bow",
@@ -16865,16 +18542,20 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 var generalImage = '',
                     it           = 0,
                     len          = 0,
-                    theGeneral   = '';
+                    theGeneral   = '',
+                    time         = config.getItem("GeneralLastReviewed", 24);
 
+                time = (time < 24 ? 24 : time) * 3600;
                 for (it = 0, len = general.records.length; it < len; it += 1) {
-                    if (schedule.since(general.records[it]['last'], gm.getItem("GeneralLastReviewed", 24, hiddenVar) * 3600)) {
+                    if (schedule.since(general.records[it]['last'], time)) {
                         break;
                     }
                 }
 
                 if (it >= len) {
-                    schedule.setItem("allGenerals", gm.getItem("GetAllGenerals", 168, hiddenVar) * 3600, 300);
+                    time = config.getItem("GetAllGenerals", 7);
+                    time = (time < 7 ? 7 : time) * 86400;
+                    schedule.setItem("allGenerals", time, 300);
                     $u.log(2, "Finished visiting all Generals for their stats");
                     theGeneral = config.getItem('IdleGeneral', 'Use Current');
                     if (theGeneral !== 'Use Current') {
@@ -16992,6 +18673,12 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
                 htmlCode += caap.endDropHide('LevelUpGeneral');
                 htmlCode += caap.makeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.makeCheckTR("Modify Timers", 'generalModifyTimers', false, "Advanced timers for how often General checks are performed.");
+                htmlCode += caap.startCheckHide('generalModifyTimers');
+                htmlCode += caap.makeNumberFormTR("List Hours", 'checkGenerals', "Check the Generals list every X hours. Minimum 24.", 24, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Scan Days", 'GetAllGenerals', "Scan the Generals every X days. Minimum 7.", 7, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Checked Hours", 'GeneralLastReviewed', "Check the General during the scan if not visited in the last X hours. Minimum 24.", 24, '', '', true);
+                htmlCode += caap.endCheckHide('generalModifyTimers');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -17231,10 +18918,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 50, 70, 70],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_skaar_boss.jpg',
+                festival_img : ['festival_monsters_top_skaar_boss.jpg'],
                 festival_dur : 120,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_skaar.jpg'
+                newbg_img    : ['monster_header_skaar.jpg'],
+                list_img     : ['death_list.jpg']
             },
             'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
@@ -17258,10 +18946,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 50, 70, 70],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_water_element.jpg',
+                festival_img : ['festival_monsters_top_water_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_ragnorak.jpg'
+                newbg_img    : [
+                    'monster_header_ragnorak.jpg',
+                    'monster_header_ragnarok.jpg'
+                ],
+                list_img     : ['water_list.jpg']
             },
             'Genesis, The Earth Elemental' : {
                 duration     : 168,
@@ -17286,10 +18978,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30, 40],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_earth_element.jpg',
+                festival_img : ['festival_monsters_top_earth_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_genesis.jpg'
+                newbg_img    : ['monster_header_genesis.jpg'],
+                list_img     : ['earth_element_list.jpg']
             },
             'Cronus, The World Hydra' : {
                 duration     : 168,
@@ -17306,10 +18999,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [40, 30, 30, 30],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_hydra.jpg',
+                festival_img : ['festival_monsters_top_hydra.jpg'],
                 festival_dur : 192,
                 festival_ach : 500000,
-                newbg_img    : 'monster_header_cronus.jpg'
+                newbg_img    : ['monster_header_cronus.jpg'],
+                list_img     : ['hydra_head.jpg']
             },
             'Battle Of The Dark Legion' : {
                 duration     : 168,
@@ -17330,7 +19024,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30, 40],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_defend.jpg'
+                newbg_img    : ['monster_header_defend.jpg'],
+                list_img     : ['castle_siege_list.jpg']
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -17344,7 +19039,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                newbg_img    : 'monster_header_emeralddrag.jpg'
+                newbg_img    : ['monster_header_emeralddrag.jpg'],
+                list_img     : ['dragon_list_green.jpg']
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -17358,10 +19054,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_blue.jpg',
+                festival_img : ['festival_monsters_top_dragon_blue.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_frostdrag.jpg'
+                newbg_img    : ['monster_header_frostdrag.jpg'],
+                list_img     : ['dragon_list_blue.jpg']
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -17375,10 +19072,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_yellow.jpg',
+                festival_img : ['festival_monsters_top_dragon_yellow.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_golddrag.jpg'
+                newbg_img    : ['monster_header_golddrag.jpg'],
+                list_img     : ['dragon_list_yellow.jpg']
             },
             'Ancient Red Dragon' : {
                 duration     : 72,
@@ -17392,10 +19090,21 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 ],
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_dragon_red.jpg',
+                festival_img : ['festival_monsters_top_dragon_red.jpg',
+                                'festival_monsters_top_dragon_monster.jpg'],
                 festival_dur : 96,
                 festival_ach : 50000,
-                newbg_img    : 'monster_header_ancientreddrag.jpg'
+                newbg_img    : ['monster_header_ancientreddrag.jpg'],
+                list_img     : ['dragon_list_red.jpg']
+            },
+            'Karn'      : {
+                duration     : 120,
+                ach          : 15000,
+                siege        : 0,
+                mClass       : 'Quest Mini-Boss',
+                mpool        : 4,
+                newbg_img    : ['monster_header_minotaur.jpg'],
+                list_img     : ['monster_minotaur_list.jpg']
             },
             'Gildamesh, The Orc King'      : {
                 duration     : 72,
@@ -17403,10 +19112,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_orcking.jpg',
+                festival_img : ['festival_monsters_top_orcking.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_gildamesh.jpg'
+                newbg_img    : ['monster_header_gildamesh.jpg'],
+                list_img     : ['orc_boss_list.jpg']
             },
             'Colossus Of Terra'     : {
                 duration     : 72,
@@ -17414,10 +19124,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_stonegiant.jpg',
+                festival_img : ['festival_monsters_top_stonegiant.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_colossus.jpg'
+                newbg_img    : ['monster_header_colossus.jpg'],
+                list_img     : ['stone_giant_list.jpg']
             },
             'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
@@ -17428,10 +19139,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif'],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_sylvanus.jpg',
+                festival_img : ['festival_monsters_top_sylvanus.jpg'],
                 festival_dur : 72,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_sylvanas.jpg'
+                newbg_img    : [
+                    'monster_header_sylvanas.jpg',
+                    'monster_header_sylvana.jpg'
+                ],
+                list_img     : ['boss_sylvanus_list.jpg']
             },
             'Lotus Ravenmoore' : {
                 duration     : 48,
@@ -17439,7 +19154,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_lotus.jpg'
+                newbg_img    : ['monster_header_lotus.jpg'],
+                list_img     : ['boss_lotus_list.jpg']
             },
             'Keira The Dread Knight'    : {
                 duration     : 48,
@@ -17450,7 +19166,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 //defButton    : null,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_keira.jpg'
+                newbg_img    : [
+                    'monster_header_keira.jpg',
+                    'monster_header_keira2.jpg'
+                ],
+                list_img     : ['boss_keira_list.jpg']
             },
             'Amethyst Sea Serpent'   : {
                 duration     : 72,
@@ -17468,10 +19188,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_purple.jpg',
+                festival_img : ['festival_monsters_top_seamonster_purple.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_amyserpent.jpg'
+                newbg_img    : ['monster_header_amyserpent.jpg'],
+                list_img     : ['seamonster_list_purple.jpg']
             },
             'Ancient Sea Serpent'   : {
                 duration     : 72,
@@ -17489,10 +19210,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_red.jpg',
+                festival_img : ['festival_monsters_top_seamonster_red.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_ancientserpent.jpg'
+                newbg_img    : ['monster_header_ancientserpent.jpg'],
+                list_img     : ['seamonster_list_red.jpg']
             },
             'Emerald Sea Serpent'   : {
                 duration     : 72,
@@ -17510,10 +19232,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_green.jpg',
+                festival_img : ['festival_monsters_top_seamonster_green.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_emeraldserpent.jpg'
+                newbg_img    : ['monster_header_emeraldserpent.jpg'],
+                list_img     : ['seamonster_list_green.jpg']
             },
             'Sapphire Sea Serpent'   : {
                 duration     : 72,
@@ -17531,10 +19254,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 defense_img  : 'seamonster_ship_health.jpg',
                 mClass       : 'Epic Team',
                 mpool        : 2,
-                festival_img : 'festival_monsters_top_seamonster_blue.jpg',
+                festival_img : ['festival_monsters_top_seamonster_blue.jpg'],
                 festival_dur : 96,
                 festival_ach : 30000,
-                newbg_img    : 'monster_header_sapphserpent.jpg'
+                newbg_img    : ['monster_header_sapphserpent.jpg'],
+                list_img     : ['seamonster_list_blue.jpg']
             },
             'The Deathrune Siege'    : {
                 duration     : 232,
@@ -17569,10 +19293,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 siege        : 0,
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_mephistopheles.jpg',
+                festival_img : ['festival_monsters_top_mephistopheles.jpg'],
                 festival_dur : 89,
                 festival_ach : 50000,
-                newbg_img    : 'monster_header_meph.jpg'
+                newbg_img    : ['monster_header_meph.jpg'],
+                list_img     : ['boss_mephistopheles_list.jpg']
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
             'War Of The Red Plains' : {
@@ -17600,7 +19325,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_warredplains.jpg'
+                newbg_img    : ['monster_header_warredplains.jpg'],
+                list_img     : ['nm_war_list.jpg']
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
             'Bahamut, The Volcanic Dragon' : {
@@ -17622,10 +19348,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  20],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_volcanic_new.jpg',
+                festival_img : ['festival_monsters_top_volcanic_new.jpg'],
                 festival_dur : 192,
                 festival_ach : 1000000,
-                newbg_img    : 'monster_header_bahamut.jpg'
+                newbg_img    : ['monster_header_bahamut.jpg'],
+                list_img     : ['nm_volcanic_list.jpg']
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -17652,7 +19379,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  60],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                newbg_img    : 'monster_header_alphabahamut.jpg'
+                newbg_img    : ['monster_header_alphabahamut.jpg'],
+                list_img     : ['nm_volcanic_list_2.jpg']
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
             'Azriel, The Angel Of Wrath' : {
@@ -17678,10 +19406,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_boss_azriel.jpg',
+                festival_img : ['festival_monsters_top_boss_azriel.jpg'],
                 festival_dur : 192,
                 festival_ach : 4000000,
-                newbg_img    : 'monster_header_azriel.jpg'
+                newbg_img    : ['monster_header_azriel.jpg'],
+                list_img     : ['nm_azriel_list.jpg']
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -17707,11 +19436,12 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join           : [30, 30, 30,  45],
                 mClass         : 'Epic Boss',
                 mpool          : 3,
-                festival_img   : 'festival_monsters_top_alpha_mephistopheles.jpg',
+                festival_img   : ['festival_monsters_top_alpha_mephistopheles.jpg'],
                 festival_dur   : 192,
                 festival_ach   : 1000000,
                 festival_mpool : 1,
-                newbg_img    : 'monster_header_alphameph.jpg'
+                newbg_img      : ['monster_header_alphameph.jpg'],
+                list_img       : ['nm_alpha_mephistopheles_list.jpg']
             },
             'Gehenna, The Fire Elemental' : {
                 alpha        : true,
@@ -17737,10 +19467,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_fire_element.jpg',
+                festival_img : ['festival_monsters_top_fire_element.jpg'],
                 festival_dur : 96,
                 festival_ach : 3500000,
-                newbg_img    : 'monster_header_gehenna.jpg'
+                newbg_img    : ['monster_header_gehenna.jpg'],
+                list_img     : ['nm_gehenna_list.jpg']
             },
             "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
@@ -17767,7 +19498,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_lionrebellion.jpg'
+                newbg_img    : ['monster_header_lionrebellion.jpg'],
+                list_img     : ['nm_aurelius_list.jpg']
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -17793,7 +19525,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_corvintheus.jpg'
+                newbg_img    : ['monster_header_corvintheus.jpg'],
+                list_img     : ['corv_list.jpg']
             },
             'Valhalla, The Air Elemental' : {
                 alpha        : true,
@@ -17820,10 +19553,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 30,  45],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : 'festival_monsters_top_air_element.jpg',
+                festival_img : ['festival_monsters_top_air_element.jpg'],
                 festival_dur : 192,
                 festival_ach : 2500000,
-                newbg_img    : 'monster_header_valhalla.jpg'
+                newbg_img    : ['monster_header_valhalla.jpg'],
+                list_img     : ['monster_valhalla_list.jpg']
             },
             'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
@@ -17849,7 +19583,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_jahanna.jpg'
+                newbg_img    : ['monster_header_jahanna.jpg'],
+                list_img     : ['boss_jahanna_list.jpg']
             },
             "Agamemnon The Overseer" : {
                 alpha        : true,
@@ -17875,7 +19610,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : 'festival_monsters_top_agamemnon.jpg',
+                festival_img : ['festival_monsters_top_agamemnon.jpg'],
                 festival_dur : 192,
                 festival_ach : 10000000
             },
@@ -17903,7 +19638,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                newbg_img    : 'monster_header_aurora.jpg'
+                newbg_img    : ['monster_header_aurora.jpg'],
+                list_img     : ['boss_aurora_list.jpg']
             }
         },
 
@@ -17926,57 +19662,57 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         },
 
         getFestName: function (img) {
-            try {
-                if (!$u.hasContent(img) || !$u.isString(img)) {
-                    $u.warn("img", img);
-                    throw "Invalid identifying img!";
-                }
-
-                var i    = '',
-                    r    = {},
-                    name = '';
-
-                for (i in monster.info) {
-                    if (monster.info.hasOwnProperty(i)) {
-                        r = monster.info[i];
-                        if (img === r.festival_img) {
-                            name = i;
-                            break;
-                        }
-                    }
-                }
-
-                return name;
-            } catch (err) {
-                $u.error("ERROR in monster.getFestName: " + err);
-                return undefined;
-            }
+            return monster.which(img, "festival_img");
         },
 
         getNewName: function (img) {
+            return monster.which(img, "newbg_img");
+        },
+
+        getListName: function (img) {
+            return monster.which(img, "list_img");
+        },
+
+        which: function (img, entity) {
             try {
                 if (!$u.hasContent(img) || !$u.isString(img)) {
                     $u.warn("img", img);
                     throw "Invalid identifying img!";
                 }
 
+                if (!$u.hasContent(entity) || !$u.isString(entity)) {
+                    $u.warn("entity", entity);
+                    throw "Invalid entity name!";
+                }
+
                 var i    = '',
+                    k    = 0,
                     r    = {},
                     name = '';
 
                 for (i in monster.info) {
                     if (monster.info.hasOwnProperty(i)) {
-                        r = monster.info[i];
-                        if (img === r.newbg_img) {
-                            name = i;
+                        if ($u.hasContent(name)) {
                             break;
+                        }
+
+                        r = monster.info[i];
+                        if (!$u.hasContent(r) || !$u.hasContent(r[entity]) || !$j.isArray(r[entity])) {
+                            continue;
+                        }
+
+                        for (k = 0; k < r[entity].length; k += 1) {
+                            if (img === r[entity][k]) {
+                                name = i;
+                                break;
+                            }
                         }
                     }
                 }
 
                 return name;
             } catch (err) {
-                $u.error("ERROR in monster.getNewName: " + err);
+                $u.error("ERROR in monster.which: " + err);
                 return undefined;
             }
         },
@@ -22245,11 +23981,73 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             }
         },
 
+        publicItems: function (slice) {
+            try {
+                $j("div[style*='pubmonster_middlef.gif']", slice).each(function () {
+                    var post = $j(this),
+                        userId = 0,
+                        mpool = '',
+                        link = '',
+                        mon  = '',
+                        img  = '';
+
+                    if (!$u.hasContent(post)) {
+                        $u.log(2, "No pubmonster_middlef content");
+                        return true;
+                    }
+
+                    userId = $u.setContent($j("input[name='casuser']", post).val(), "0").parseInt();
+                    if (!$u.hasContent(userId) || userId === 0) {
+                        $u.log(2, "No userId found");
+                        return true;
+                    }
+
+                    img = $j("img", post).eq(0).attr("src").basename();
+                    if (!$u.hasContent(img)) {
+                        $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    mon = monster.getListName(img);
+                    if (!$u.hasContent(mon)) {
+                        $u.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
+                        if (config.getItem("DebugLevel", 1) > 1) {
+                            $j().alert("No item monster text, skipping<br />" + mon + '<br />' + link + '<br />' + img);
+                        }
+
+                        return true;
+                    }
+
+                    mpool = $j("input[name='mpool']", post).val();
+                    if (!$u.hasContent(mpool)) {
+                        $u.log(2, "No mpool, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    link = "battle_monster.php?casuser=" + userId + "&mpool=" + mpool;
+                    $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
+                    if (!$u.hasContent(link)) {
+                        $u.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
+                        return true;
+                    }
+
+                    feed.setItem(link, mon);
+                    return true;
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.publicItems: " + err);
+                return false;
+            }
+        },
+
         ajaxFeedWait: false,
 
         ajaxFeed: function () {
             try {
                 if (feed.ajaxFeedWait) {
+                    schedule.setItem("feedMonsterFinder", 300, 300);
                     return true;
                 }
 
@@ -22263,12 +24061,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                feed.items("feed", data);
-                            } catch (err) {
-                                $u.error("ERROR in feed.ajaxFeed: " + err);
-                            }
-
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxFeed", [data, textStatus, XMLHttpRequest]);
+                            feed.items("feed", data);
                             feed.ajaxFeedWait = false;
                         }
                 });
@@ -22288,6 +24083,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         ajaxGuild: function () {
             try {
                 if (feed.ajaxGuildWait) {
+                    schedule.setItem("guildMonsterFinder", 300, 300);
                     return true;
                 }
 
@@ -22301,12 +24097,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                feed.items("guild", data);
-                            } catch (err) {
-                                $u.error("ERROR in feed.ajaxGuild: " + err);
-                            }
-
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxGuild", [data, textStatus, XMLHttpRequest]);
+                            feed.items("guild", data);
                             feed.ajaxGuildWait = false;
                         }
                 });
@@ -22317,6 +24110,74 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 return true;
             } catch (err) {
                 $u.error("ERROR in feed.ajaxGuild: " + err);
+                return false;
+            }
+        },
+
+        opMessage: function (event) {
+            event.responseText = event.responseText.unescapeCAHTML();
+            $u.log(2, "ajaxPublic opera", event);
+            console.log(event.responseText);
+            feed.publicItems(event.responseText);
+            feed.ajaxPublicWait = false;
+        },
+
+        ajaxPublicWait: false,
+
+        ajaxPublic: function (tier) {
+            try {
+                if (feed.ajaxPublicWait) {
+                    schedule.setItem("publicMonsterFinder" + tier, 300, 300);
+                    return true;
+                }
+
+                feed.ajaxPublicWait = true;
+                var url = 'public_monster_list.php?monster_tier=' + tier;
+                if (caap.domain.which === 2) {
+                    url = "http://apps.facebook.com/castle_age/" + url;
+                    if ($u.hasContent(window.chrome)) {
+                        chrome.extension.sendRequest({'action': 'getPage', 'url': url}, function (data, textStatus, XMLHttpRequest) {
+                            data = data.unescapeCAHTML();
+                            $u.log(3, "ajaxPublic chrome", [data, textStatus, XMLHttpRequest]);
+                            feed.publicItems(data);
+                            feed.ajaxPublicWait = false;
+                        });
+                    } else if ($u.hasContent(window.caap_comms)) {
+                        window.caap_comms.prepMessage('getPage', url, function (event) {
+                            event.responseText = event.responseText.unescapeCAHTML();
+                            $u.log(3, "ajaxPublic firefox", event);
+                            feed.publicItems(event.responseText);
+                            feed.ajaxPublicWait = false;
+                        });
+
+                        window.caap_comms.sendMessage();
+                    } else if ($u.hasContent(window.caap_op)) {
+                        window.caap_op.source.postMessage({action : "getPage", id: "feed", value: url});
+                    }
+                } else {
+                    $j.ajax({
+                        url: caap.domain.link + '/' + url,
+                        error:
+                            function (XMLHttpRequest, textStatus, errorThrown) {
+                                $u.error("feed.ajaxPublic", textStatus);
+                                feed.ajaxPublicWait = false;
+                            },
+                        success:
+                            function (data, textStatus, XMLHttpRequest) {
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "ajaxPublic", [data, textStatus, XMLHttpRequest]);
+                                feed.publicItems(data);
+                                feed.ajaxPublicWait = false;
+                            }
+                    });
+                }
+
+                var minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
+                minutes = minutes >= 15 ? minutes : 15;
+                schedule.setItem("publicMonsterFinder" + tier, minutes * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in feed.ajaxPublic: " + err);
                 return false;
             }
         },
@@ -22332,17 +24193,22 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 feed.ajaxScanWait = true;
-                caap.tempAjax.load(caap.domain.link + '/' + record['url'] + ' #' + caap.domain.id[caap.domain.which] + 'globalContainer',
-                    function (data, textStatus, XMLHttpRequest) {
-                        try {
+                $j.ajax({
+                    url: caap.domain.link + '/' + record['url'],
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            $u.error("feed.ajaxScan", textStatus);
+                            feed.ajaxScanWait = false;
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            data = $j(data.unescapeCAHTML()).find('#' + caap.domain.id[caap.domain.which] + 'globalContainer').html();
+                            $u.log(3, "ajaxScan", [data, textStatus, XMLHttpRequest]);
+                            caap.tempAjax.html(data);
                             caap.checkResults_viewFight(record);
-                        } catch (err) {
-                            $u.error("ERROR in feed.ajaxScan: " + err);
+                            feed.ajaxScanWait = false;
                         }
-
-                        feed.ajaxScanWait = false;
-                    }
-                );
+                });
 
                 return true;
             } catch (err) {
@@ -22541,6 +24407,28 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 htmlCode += caap.startCheckHide('guildMonsterFinder');
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
+
+                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms) || $u.hasContent(window.caap_op) && caap.domain.which === 2))) {
+                    htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder1');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder1');
+
+                    htmlCode += caap.makeCheckTR("Enable Tier 2", 'publicMonsterFinder2', false, "Find monsters in the Public Tier 2 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder2');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins2', "Check the Public Tier 2 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder2');
+
+                    htmlCode += caap.makeCheckTR("Enable Tier 3", 'publicMonsterFinder3', false, "Find monsters in the Public Tier 3 Feed.");
+                    htmlCode += caap.startCheckHide('publicMonsterFinder3');
+                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                    htmlCode += caap.endCheckHide('publicMonsterFinder3');
+                } else {
+                    config.setItem("publicMonsterFinder1", false);
+                    config.setItem("publicMonsterFinder2", false);
+                    config.setItem("publicMonsterFinder3", false);
+                }
+
                 htmlCode += caap.makeCheckTR("Status Scan", 'feedScan', false, "Scan the feed monsters to check their status.");
                 htmlCode += caap.startCheckHide('feedScan');
                 htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status. Minimum 1.", 6, '', '', true);
@@ -22580,6 +24468,12 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             }
         }
     };
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    window['feed'] = feed;
+    caap['opMessage'] = feed.opMessage;
+    /*jslint sub: false */
     ////////////////////////////////////////////////////////////////////
     //                          battle OBJECT
     // this is the main object for dealing with battles
@@ -22889,7 +24783,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             return result;
                         } else {
                             result.unknown = true;
-                            $u.warn("Unable to determine won, lost or hiding!");
+                            $u.warn("Unable to determine won, lost or hiding!", caap.resultsText);
                             return result;
                         }
                     } else {
@@ -23392,7 +25286,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     form            = $j(),
                     firstId         = '',
                     lastBattleID    = 0,
-                    engageButton    = null;
+                    engageButton    = null,
+                    time            = 0;
 
                 if (!$u.hasContent(inputDiv)) {
                     $u.warn('Not on battlepage');
@@ -23772,7 +25667,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     if (state.getItem("page", '') === 'raid' && engageButton) {
                         caap.click(engageButton);
                     } else {
-                        schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
+                        time = config.getItem("RaidNoTargetDelay", 45);
+                        time = time < 10 ? 10 : time;
+                        schedule.setItem("RaidNoTargetDelay", time);
                         caap.navigateTo(caap.battlePage + ',raid');
                     }
                 } else {
@@ -23909,6 +25806,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
                 htmlCode += caap.endDropHide('TargetType', 'UserId');
                 htmlCode += caap.endDropHide('WhenBattle');
+                htmlCode += caap.makeCheckTR("Modify Timers", 'battleModifyTimers', false, "Advanced timers for how often Battle functions are performed.");
+                htmlCode += caap.startCheckHide('battleModifyTimers');
+                htmlCode += caap.makeNumberFormTR("Raid scan seconds", 'RaidNoTargetDelay', "Check the Raid every X seconds when no target available. Minimum 10.", 45, '', '', true);
+                htmlCode += caap.endCheckHide('battleModifyTimers');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -24136,7 +26037,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv = $j("div[style*='town_unit_bar']", caap.appBodyDiv),
+                var rowDiv = $j("div[style*='town_unit_bar.jpg'],div[style*='town_unit_bar_owned.jpg']", caap.appBodyDiv),
                     passed = true,
                     save   = false;
 
@@ -24673,7 +26574,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
         hbest: 2,
 
-        compress: true,
+        compress: $u.is_firefox ? false : true,
 
         load: function () {
             try {
@@ -24686,7 +26587,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     spreadsheet.records = [];
                     $j.ajax({
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
-                        dataType: (navigator.userAgent.toLowerCase().hasIndexOf('opera') ? "jsonp" : "json"),
+                        dataType: ($u.is_opera ? "jsonp" : "json"),
                         error:
                             function (XMLHttpRequest, textStatus, errorThrown) {
                                 $u.log(1, "Using offline items");
@@ -25226,6 +27127,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
                 giftEntry = gifting.getCurrent();
                 if ($j.isEmptyObject(giftEntry)) {
+                    $u.log(1, 'On FB page with but no gift');
+                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php?bm=1&ref=bookmarks&count=0");
                     return false;
                 }
 
@@ -25464,6 +27367,17 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
+
+                htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
+                htmlCode += caap.startCheckHide('giftModifyTimers');
+                htmlCode += caap.makeNumberFormTR("Max Gift Hours", 'MaxGiftsExceededDelaySecs', "When Max Gifts is exceeded wait X hours before attempting to send gifts. Minimum 1.", 3, '', '', true);
+                htmlCode += caap.makeNumberFormTR("One Gift Hours", 'OneGiftPerPersonDelaySecs', "When '1 Gift Per Person Per 24hrs' is enabled this is the timer used and is normally 24. Minimum 1.", 24, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Last Tried Delay", 'LastGiftUserDelaySecs', "If we tried to send a gift to a users and they were not in the gifting list then wait X hours before attempting to send a gift to this user again. Minimum 1.", 1, '', '', true);
+                htmlCode += caap.makeNumberFormTR("No Gift Delay", 'NoGiftDelaySecs', "When no return gift could be found then wait X minutes before attempting to send gift again. Minimum 30.", 30, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Gift List Days", 'checkGift', "Check gift list every X days. Minimum 3.", 3, '', '', true);
+                htmlCode += caap.makeNumberFormTR("Ajax Gift Check", 'CheckGiftMins', "Check gifts waiting every X minutes. Minimum 15.", 15, '', '', true);
+                htmlCode += caap.endCheckHide('giftModifyTimers');
+
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -25795,7 +27709,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         filterGift     = false,
                         filterGiftList = [],
                         filterGiftLen  = 0,
-                        filterGiftCont = false;
+                        filterGiftCont = false,
+                        time           = 0;
 
                     filterId = config.getItem("FilterReturnId", false);
                     if (filterId) {
@@ -25810,8 +27725,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     }
 
                     choice = config.getItem("GiftChoice", gifting.gifts.options[0]);
+                    time = config.getItem("LastGiftUserDelaySecs", 1);
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
+                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
                             continue;
                         }
 
@@ -25854,7 +27771,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     }
 
                     if (!gift) {
-                        schedule.setItem("NoGiftDelay", gm.getItem("NoGiftDelaySecs", 1800, hiddenVar), 300);
+                        time = config.getItem("NoGiftDelaySecs", 30);
+                        time = (time < 30 ? 30 : time) * 60;
+                        schedule.setItem("NoGiftDelay", time, 300);
                     }
 
                     return gift;
@@ -25888,7 +27807,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         searchStr      = '',
                         clickedList    = [],
                         pendingList    = [],
-                        chosenList     = [];
+                        chosenList     = [],
+                        time           = 0;
 
                     if ($u.isNaN(howmany) || howmany < 1) {
                         throw "Invalid howmany! (" + howmany + ")";
@@ -25911,6 +27831,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         same = false;
                     }
 
+                    time = config.getItem("LastGiftUserDelaySecs", 1);
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
                         gifting.queue.records[it]['chosen'] = false;
 
@@ -25918,7 +27840,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             continue;
                         }
 
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
+                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
                             continue;
                         }
 
@@ -26048,7 +27970,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 try {
                     var it         = 0,
                         resultText = '',
-                        sentok     = false;
+                        sentok     = false,
+                        time       = 0;
 
                     if (window.location.href.hasIndexOf('act=create')) {
                         if ($u.hasContent(caap.resultsWrapperDiv)) {
@@ -26068,7 +27991,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                     gifting.save("queue");
                                 } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                     $u.log(1, 'Exceeded daily gift limit.');
-                                    schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
+                                    time = config.getItem("MaxGiftsExceededDelaySecs", 3);
+                                    time = time < 1 ? 1 : time;
+                                    schedule.setItem("MaxGiftsExceeded", time * 3600, 300);
                                     caap.setDivContent('gifting_mess', "Max gift limit");
                                 } else {
                                     $u.log(2, 'Result message', resultText);
@@ -26370,14 +28295,16 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
                     var it       = 0,
                         len      = 0,
-                        sentOnce = false;
+                        sentOnce = false,
+                        time     = config.getItem("OneGiftPerPersonDelaySecs", 24);
 
+                    time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.history.records.length; it < len; it += 1) {
                         if (gifting.history.records[it]['userId'] !== userId) {
                             continue;
                         }
 
-                        sentOnce = !schedule.since(gifting.history.records[it]['lastSent'] || 0, gm.getItem("OneGiftPerPersonDelaySecs", 86400, hiddenVar));
+                        sentOnce = !schedule.since(gifting.history.records[it]['lastSent'] || 0, time);
                         break;
                     }
 
@@ -26513,8 +28440,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     army = {
         records: [],
 
-        recordsSortable: [],
-
         recordsTemp: [],
 
         perPage: 25,
@@ -26534,21 +28459,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 'elite'  : false
             };
         },
-
-        copy2sortable: function () {
-            try {
-                var order = new sort.order();
-                $j.extend(true, order.data, state.getItem("ArmySort", order.data));
-                //army.recordsSortable = [];
-                //$j.merge(army.recordsSortable, army.records);
-                army.recordsSortable = $u.owl.deepCopy(army.records);
-                army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
-                return true;
-            } catch (err) {
-                $u.error("ERROR in army.copy2sortable: " + err);
-                return false;
-            }
-        },
         /*jslint sub: false */
 
         hbest: 3,
@@ -26560,7 +28470,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     army.records = gm.setItem('army.records', []);
                 }
 
-                army.copy2sortable();
                 army.hbest = army.hbest === false ? JSON.hbest(army.records) : army.hbest;
                 $u.log(3, "army.load Hbest", army.hbest);
                 state.setItem("ArmyDashUpdate", true);
@@ -26653,7 +28562,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 army.save();
-                army.copy2sortable();
                 return record;
             } catch (err) {
                 $u.error("ERROR in army.setItem: " + err);
@@ -26703,7 +28611,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     $u.log(3, "Unable to find 'userId'", userId);
                 } else {
                     army.save();
-                    army.copy2sortable();
                 }
 
                 return true;
@@ -26871,7 +28778,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
                 army.records = army.recordsTemp.slice();
                 army.save();
-                army.copy2sortable();
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.merge: " + err);
@@ -26978,7 +28884,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         row                      = '';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
-                        sortable = true;
                         header = {
                             text    : headers[pp],
                             color   : '',
@@ -27017,19 +28922,19 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     }
 
                     head = caap.makeTr(head);
-                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
-                        if (army.recordsSortable[i]["userId"] <= 0) {
+                    for (i = 0, len = army.records.length; i < len; i += 1) {
+                        if (army.records[i]["userId"] <= 0) {
                             continue;
                         }
 
                         row = "";
-                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                        if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor2", 'gold');
-                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
                         } else {
                             color = config.getItem("ArmyAgeDaysColor0", 'green');
@@ -27038,14 +28943,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === "change") {
                                 row += caap.makeTd({
-                                    text    : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                    text    : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? $u.makeTime(army.records[i][values[pp]], "d-m-Y") : '',
                                     bgcolor : color,
                                     color   : $u.bestTextColor(color),
                                     id      : '',
                                     title   : ''
                                 });
                             } else if (values[pp] === "userId") {
-                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
+                                str = $u.setContent(army.records[i][values[pp]], '');
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
                                 userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
                                 data = {
@@ -27059,7 +28964,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                 row += caap.makeTd(data);
                             } else {
                                 row += caap.makeTd({
-                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
+                                    text  : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? army.records[i][values[pp]] : '',
                                     color : '',
                                     id    : '',
                                     title : ''
@@ -27068,7 +28973,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         }
 
                         data = {
-                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i]['userId'] + '" cstate="' + (army.records[i]['elite'] ? 'true' : 'false') + '" ' + (army.records[i]['elite'] ? ' checked' : '') + ' />',
                             color : 'blue',
                             id    : '',
                             title : ''
@@ -27076,9 +28981,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
                         row += caap.makeTd(data);
 
-                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
+                        removeLinkInstructions = "Clicking this link will remove " + army.records[i]['user'].escapeHTML() + " from your army!";
                         data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + army.records[i]['user'].escapeHTML() +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -27185,26 +29090,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
                     $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    handler = function (e) {
-                        var clicked  = '',
-                            order    = new sort.order(),
-                            oldOrder = state.getItem("ArmySort", order.data);
-
-                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
-                        if ($u.hasContent(clicked)) {
-                            order.data['value']['a'] = clicked;
-                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
-                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
-                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
-                            state.setItem("ArmySort", order.data);
-                            state.setItem("ArmyDashUpdate", true);
-                            caap.updateDashboard(true);
-                            sort.updateForm("Army");
-                        }
-                    };
-
-                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
-
                     state.setItem("ArmyDashUpdate", false);
                 }
 
@@ -27244,7 +29129,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             jQuery     : 'http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js',
             jQueryUI   : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js',
             farbtastic : 'http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
-            utility    : 'http://utility-js.googlecode.com/files/utility-0.1.3.min.js',
+            utility    : 'http://utility-js.googlecode.com/files/utility-0.1.6.min.js',
             dataTables : 'http://castle-age-auto-player.googlecode.com/files/jquery.dataTables-1.7.6.min.js'
         },
         removeLibs   : [],
@@ -29224,6 +31109,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /*jslint sub: true */
         updateDashboard: function (force) {
             try {
+                if (config.getItem("dashMinimised", false)) {
+                    return false;
+                }
+
                 if (caap.caapTopObject.length === 0) {
                     throw "We are missing the Dashboard div!";
                 }
@@ -31366,7 +33255,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         checkResults_generals: function () {
             try {
                 var currentGeneral = '',
-                    html           = '';
+                    html           = '',
+                    time           = config.getItem("checkGenerals", 24);
 
                 general.GetGenerals();
                 currentGeneral = general.GetEquippedStats();
@@ -31377,7 +33267,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     $j("#" + caap.domain.id[caap.domain.which] + "general_name_div_int", caap.appBodyDiv).append(html);
                 }
 
-                schedule.setItem("generals", gm.getItem("checkGenerals", 24, hiddenVar) * 3600, 300);
+                time = time < 24 ? 24 : time;
+                schedule.setItem("generals", time * 3600, 300);
                 return true;
             } catch (err) {
                 $u.error("ERROR in checkResults_generals: " + err);
@@ -32106,7 +33997,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             try {
                 caap.commonTown();
                 town.GetItems("soldiers");
-                var time = config.getItem("checkSoldiers", 72, hiddenVar);
+                var time = config.getItem("checkSoldiers", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("soldiers", time * 3600, 300);
                 return true;
@@ -32120,7 +34011,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             try {
                 caap.commonTown();
                 town.GetItems("item");
-                var time = config.getItem("checkItem", 72, hiddenVar);
+                var time = config.getItem("checkItem", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("item", time * 3600, 300);
                 return true;
@@ -32134,7 +34025,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             try {
                 caap.commonTown();
                 town.GetItems("magic");
-                var time = config.getItem("checkMagic", 72, hiddenVar);
+                var time = config.getItem("checkMagic", 72);
                 time = time < 72 ? 72 : time;
                 schedule.setItem("magic", time * 3600, 300);
                 return true;
@@ -32159,8 +34050,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
         checkResults_gift: function () {
             try {
+                var time = config.getItem("checkGift", 3);
+                time = time < 3 ? 3 : time;
                 gifting.gifts.populate();
-                schedule.setItem("gift", gm.getItem("checkGift", 72, hiddenVar) * 3600, 300);
+                schedule.setItem("gift", time * 86400, 300);
                 return true;
             } catch (err) {
                 $u.error("ERROR in checkResults_gift: " + err);
@@ -32447,7 +34340,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             'Water II' : {
                 clas : 'quests_stage_11',
                 base : 'tab_water2',
-                next : 'Ambrosia',
+                next : 'Mist II',
                 area : '',
                 list : '',
                 boss : "Corvintheus",
@@ -34207,7 +36100,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 $u.log(2, "Checking Monster Class to get Character Class Stats");
-                return caap.navigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+                return caap.navigateTo('keep,battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
             } catch (err) {
                 $u.error("ERROR in checkCharacterClasses: " + err);
                 return false;
@@ -34250,6 +36143,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 $u.log(2, "Checking Ajax Feed");
+                feed.ajaxFeedWait = false;
                 feed.ajaxFeed();
                 return true;
             } catch (err) {
@@ -34265,10 +36159,59 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 $u.log(2, "Checking Ajax Guild");
+                feed.ajaxGuildWait = false;
                 feed.ajaxGuild();
                 return true;
             } catch (err) {
                 $u.error("ERROR in ajaxCheckGuild: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic1: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder1', false) || !schedule.check("publicMonsterFinder1")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 1");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("1");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic1: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic2: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder2', false) || !schedule.check("publicMonsterFinder2")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 2");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("2");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic2: " + err);
+                return false;
+            }
+        },
+
+        ajaxCheckPublic3: function () {
+            try {
+                if (!config.getItem('enableMonsterFinder', false) || !config.getItem('publicMonsterFinder3', false) || !schedule.check("publicMonsterFinder3")) {
+                    return false;
+                }
+
+                $u.log(2, "Checking Ajax Public Tier 3");
+                feed.ajaxPublicWait = false;
+                feed.ajaxPublic("3");
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajaxCheckPublic3: " + err);
                 return false;
             }
         },
@@ -35159,28 +37102,17 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             continue;
                         }
 
-                        monsterFull = monsterRow.text().trim().innerTrim();
-                        monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').replace(/COLLECTION: \d+:\d+:\d+/i, '').trim().innerTrim();
-                        if (/^Your /.test(monsterName)) {
-                            monsterText = monsterName.replace(/^Your /, '').trim().innerTrim().toLowerCase().ucWords();
-                            userName = "Your";
-                        } else if (/Aurelius, Lion's Rebellion/.test(monsterName)) {
-                            monsterText = "Aurelius, Lion's Rebellion";
-                            userName = monsterName.replace(monsterText, '').trim();
-                        } else {
-                            monsterText = monsterName.replace(new RegExp(".+'s (.+)$"), '$1');
-                            userName = monsterName.replace(monsterText, '').trim();
-                            monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
-                        }
-
-                        mName = userName + ' ' + monsterText;
-                        $u.log(2, "Monster Name", mName);
                         userId = $u.setContent($j("input[name='casuser']", monsterRow.eq(it)).val(), "0").parseInt();
                         if (!$u.hasContent(userId) || userId === 0) {
                             $u.log(2, "No userId found");
                             continue;
                         }
 
+                        userName = userId === caap.stats['FBID'] ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).text().trim();
+                        tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename();
+                        monsterText = monster.getListName(tempText);
+                        mName = userName + ' ' + monsterText;
+                        $u.log(2, "Monster Name", mName);
                         $u.log(3, "checkResults_fightList page", page);
                         md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
                         monsterReviewed = monster.getItem(md5);
@@ -35205,7 +37137,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             if (!$u.hasContent(monster.completeButton["battle_monster"]['md5'])) {
                                 monster.completeButton["battle_monster"]['md5'] = $u.setContent(monsterReviewed['md5'], '');
                                 monster.completeButton["battle_monster"]['name'] = $u.setContent(monsterReviewed['name'], '');
-                                monster.completeButton["battle_monster"]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
+                                monster.completeButton["battle_monster"]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow.eq(it)), null);
                             }
 
                             monsterReviewed['status'] = 'Complete';
@@ -35437,15 +37369,15 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     caap.chatLink(slice, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
                 }
 
-                $u.log(2, "monsterDiv", monsterDiv);
+                $u.log(4, "monsterDiv", monsterDiv);
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
-                    $u.log(2, "fMonstStyle", fMonstStyle);
+                    $u.log(3, "fMonstStyle", fMonstStyle);
                     if ($u.hasContent(fMonstStyle)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
                         nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
-                        $u.log(2, "nMonstStyle", nMonstStyle);
+                        $u.log(3, "nMonstStyle", nMonstStyle);
                         if ($u.hasContent(nMonstStyle)) {
                             tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
@@ -35453,7 +37385,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         }
                     }
 
-                    $u.log(2, "tempText", tempText);
+                    $u.log(3, "tempText", tempText);
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", slice);
                     if ($u.hasContent(monsterDiv)) {
@@ -36451,7 +38383,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         }
                     }
 
-                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : energyRequire;
+                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : monsterInfo.nrgMax ? monsterInfo.nrgMax[0] : energyRequire;
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
@@ -37533,7 +39465,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         checkResults_army: function () {
             var listHref = $j(),
                 link     = $j(),
-                autoGift = false;
+                autoGift = false,
+                time     = 0;
 
             autoGift = config.getItem('AutoGift', false);
             listHref = caap.appBodyDiv.find("div[class='messages'] a[href*='army.php?act=ignore']");
@@ -37559,7 +39492,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             }
 
             if (autoGift) {
-                schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                time = config.getItem('CheckGiftMins', 15);
+                time = time < 15 ? 15 : time;
+                schedule.setItem("ajaxGiftCheck", time * 60, 300);
             }
         },
 
@@ -37680,6 +39615,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 // Check for new gifts
                 // A warrior wants to join your Army!
                 // Send Gifts to Friends
+
                 if (config.getItem('AutoGift', false)) {
                     if ($u.hasContent(caap.resultsText) && /Send Gifts to Friends/.test(caap.resultsText)) {
                         $u.log(1, 'We have a gift waiting!');
@@ -37689,7 +39625,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         state.setItem('HaveGift', false);
                     }
 
-                    schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                    var time = config.getItem('CheckGiftMins', 15);
+                    time = time < 15 ? 15 : time;
+                    schedule.setItem("ajaxGiftCheck", time * 60, 300);
                 }
 
                 //arena.index();
@@ -37712,7 +39650,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 $u.log(3, "Performing AjaxGiftCheck");
-                var theUrl = caap.domain.link + '/army.php';
+                var theUrl = caap.domain.link + '/army.php',
+                    time = config.getItem('CheckGiftMins', 15);
 
                 $j.ajax({
                     url: theUrl,
@@ -37723,7 +39662,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                $u.log(4, "AjaxGiftCheck.ajax: Checking data.");
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "ajaxGiftCheck", [data, textStatus, XMLHttpRequest]);
                                 if ($j(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
                                     $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
                                     state.setItem('HaveGift', true);
@@ -37739,7 +39679,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         }
                 });
 
-                schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+                time = time < 15 ? 15 : time;
+                schedule.setItem("ajaxGiftCheck", time * 60, 300);
                 $u.log(4, "Completed AjaxGiftCheck");
                 return true;
             } catch (err) {
@@ -38293,32 +40234,27 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     } else {
                         $j.ajax({
                             url: caap.domain.link + listType.url,
+                            dataType: "html text",
                             error:
                                 function (XMLHttpRequest, textStatus, errorThrown) {
                                     state.setItem(listType.name + 'Requested', false);
-                                    $u.log(4, "getFriendList(" + listType.name + "): ", textStatus);
+                                    $u.error("getFriendList(" + listType.name + "): ", textStatus);
                                 },
                             success:
                                 function (data, textStatus, XMLHttpRequest) {
                                     try {
-                                        $u.log(4, "getFriendList.ajax splitting data");
-                                        data = data.split('<div class="unselected_list">');
-                                        if (data.length < 2) {
-                                            throw "Could not locate 'unselected_list'";
+                                        data = data.unescapeCAHTML().regex(new RegExp('<div class="unselected_list".*?>(.*)<\\/div><div class="selected_list"'));
+                                        $u.log(2, "getFriendList.ajax data", [data]);
+                                        if (!$u.isDefined(data)) {
+                                            $u.warn("getFriendList.ajax regex returned 'null' or 'undefined'");
                                         }
 
-                                        data = data[1].split('</div><div class="selected_list">');
-                                        if (data.length < 2) {
-                                            throw "Could not locate 'selected_list'";
-                                        }
-
-                                        $u.log(4, "getFriendList.ajax data split ok");
                                         var friendList = [];
-                                        $j('<div></div>').html(data[0]).find('input').each(function (index) {
+                                        $j('<div></div>').html($u.setContent(data, '').toString()).find('input').each(function (index) {
                                             friendList.push($j(this).val().parseInt());
                                         });
 
-                                        $u.log(4, "getFriendList.ajax saving friend list of: ", friendList.length);
+                                        $u.log(2, "getFriendList.ajax saving friend list of: ", friendList.length);
                                         if (friendList.length) {
                                             state.setItem(listType.name + 'Responded', friendList);
                                         } else {
@@ -38359,7 +40295,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 function addFriend(id) {
                     try {
                         var theUrl = '',
-                            responseCallback = function (XMLHttpRequest, textStatus, errorThrown) {
+                            responseCallback = function (data, textStatus, XMLHttpRequest) {
                             if (caap.addFriendSpamCheck > 0) {
                                 caap.addFriendSpamCheck -= 1;
                             }
@@ -38577,6 +40513,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
+                                data = data.unescapeCAHTML();
+                                $u.log(3, "reconPlayers", [data, textStatus, XMLHttpRequest]);
                                 var found       = 0,
                                     regex       = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*War: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
                                     regex2      = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
@@ -38819,8 +40757,11 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             0x25: 'festivalBless',
             0x26: 'ajaxCheckFeed',
             0x27: 'ajaxCheckGuild',
-            0x28: 'feedScan',
-            0x29: 'idle'
+            0x28: 'ajaxCheckPublic1',
+            0x29: 'ajaxCheckPublic2',
+            0x2A: 'ajaxCheckPublic3',
+            0x2B: 'feedScan',
+            0x2C: 'idle'
         },
 
         actionsList: [],
@@ -39000,9 +40941,9 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 }
 
                 //We don't need to send out any notifications
-                button = $j("a[class*='undo_link']");
+                button = $j("a[class*='undo_link'], div[style*='army_popup_barbackground.jpg'] img[src*='request_skip2.gif']");
                 if ($u.hasContent(button)) {
-                    $u.log(1, 'Undoing notification');
+                    $u.log(1, 'Undoing/skipping notification');
                     caap.click(button);
                 }
 
@@ -39786,7 +41727,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     //////////////////////////////////
 
     function caap_log(msg) {
-        if (console && typeof console.log === 'function') {
+        if (window.console && typeof console.log === 'function') {
             console.log(caapVersion + (devVersion !== '0' ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
@@ -39868,9 +41809,16 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     }
 
     function caap_WaitForjQuery() {
-        if (window.jQuery) {
+        if (window.jQuery && window.jQuery().jquery === "1.5.2") {
             caap_log("jQuery ready ...");
-            $j = window.jQuery.noConflict();
+            if (!window.$j) {
+                window.$j = window.jQuery.noConflict();
+            } else {
+                if (!window.caapop) {
+                    throw "$j is already in use!";
+                }
+            }
+
             if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
                 injectScript(caap.libs.jQueryUI);
@@ -39886,15 +41834,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     /////////////////////////////////////////////////////////////////////
     //                         Begin
     /////////////////////////////////////////////////////////////////////
-    caap_log(navigator.userAgent);
+    caap_log(window.navigator.userAgent);
     if (typeof CAAP_SCOPE_RUN !== 'undefined') {
         caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
     }
 
-    //caap_log("ALPHA 2");
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
-    if (!window.jQuery) {
+    if (!window.jQuery || window.jQuery().jquery !== "1.5.2") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
     }
