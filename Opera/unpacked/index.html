@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
+        /*global window,widget,Firebug */
+        /*jslint maxlen: 512 */
+        var caapop = {
+            version: "140.25.0",
+
+            dev: "5",
+
+            theButton: null,
+
+            files: {
+                'caap'       : "widget://" + document.location.host + "/resources/Castle-Age-Autoplayer.js",
+                'utility'    : "widget://" + document.location.host + "/resources/utility-0.1.6.min.js",
+                'jquery'     : "widget://" + document.location.host + "/resources/jquery-1.5.2.min.js",
+                'jqueryui'   : "widget://" + document.location.host + "/resources/jquery-ui-1.8.11.min.js",
+                'farbtastic' : "widget://" + document.location.host + "/resources/farbtastic.min.js",
+                'datatables' : "widget://" + document.location.host + "/resources/jquery.dataTables-1.7.6.min.js"
+            },
+
+            pages: [
+                document.location.host,
+                'apps.facebook.com/castle_age/',
+                'apps.facebook.com/reqs.php#confirm_46755028429_0',
+                'web3.castleagegame.com/castle_ws/',
+                '.facebook.com/common/error.html',
+                'apps.facebook.com/sorry.php'
+            ],
+
+            init: function (event) {
+                try {
+                    caapop.log("Init");
+                    caapop.tool();
+                    caapop.setupConnection();
+                } catch (err) {
+                    caapop.error("Init: " + err);
+                }
+            },
+
+            setupConnection: function () {
+                try {
+                    opera.extension.onconnect = function (event) {
+                        if (caapop.isPage(event.origin)) {
+                            caapop.log(event.origin + " : " + event.data);
+                            event.source.postMessage({action : "begin", id: 'connected', value: true});
+                        }
+                    };
+
+                    opera.extension.ondisconnect = function (event) {
+                        if (caapop.isPage(event.origin)) {
+                            caapop.log(event.origin + " : " + event.data);
+                        }
+                    };
+
+                    // Listen for messages
+                    opera.extension.onmessage = function (event) {
+                        var message = event.data,
+                            autorun = widget.preferences.autorun === "true" ? true : false;
+
+                        caapop.log(event.origin + " sent a message: " + message.action + ' ' + message.id + ' ' + message.value);
+                        if (message && message.action && message.value && message.id) {
+                            if (message.action === "getPage") {
+                                caapop.getPage(event, message);
+                            } else if (autorun && (message.action === "get" || (message.action === "injected" && message.id === false))) {
+                                caapop.getFile(event, caapop.files[message.value], message.id);
+                            } else if (message.action === "autorun") {
+                                caapop.theButton.icon = message.value === "true" ? "icons/icon.png" : "icons/disabled.png";
+                            } else if (message.action === "hello") {
+                                event.source.postMessage({action : "hello", id: 'connected', value: true});
+                            } else if (message.action === "cookie") {
+                                document.cookie = message.value;
+                                caapop.log(document.cookie);
+                            }
+                        }
+                    };
+                } catch (err) {
+                    caapop.error("setupConnection: " + err);
+                }
+            },
+
+            isPage: function (href) {
+                try {
+                    var it     = 0,
+                        len    = caapop.pages.length,
+                        onPage = false;
+
+                    for (it = 0; it < len; it += 1) {
+                        if (href.search(caapop.pages[it]) > -1) {
+                            onPage = true;
+                            break;
+                        }
+                    }
+
+                    return onPage;
+                } catch (err) {
+                    caapop.error("isPage: " + err);
+                    return false;
+                }
+            },
+
+            getFile: function (event, path) {
+                try {
+                    caapop.log('getFile: ' + path);
+                    // Try to get the contents of the file.
+                    var req = new XMLHttpRequest();
+                    req.onreadystatechange = function () {
+                        if (req.readyState !== 4) {
+                            return;
+                        }
+
+                        // Error check for reading the file.
+                        if (!req.responseText) {
+                            throw "Can't read " + path;
+                        }
+
+                        event.source.postMessage({action: "script", id: event.data.value, value: req.responseText});
+                    };
+
+                    req.open('GET', path, false);
+                    req.send();
+                } catch (err) {
+                    caapop.error("getFile: " + err);
+                    event.source.postMessage({action: "script", id: err, value: null});
+                }
+            },
+
+            getPage: function (event, message) {
+                var respObj = {"status": -1, "statusText": "", "responseText": "", "errorThrown": ""};
+                try {
+                    caapop.log("getPage");
+                    var req = new XMLHttpRequest();
+                    req.onreadystatechange = function () {
+                        if (req.readyState !== 4) {
+                            return;
+                        }
+
+                        respObj.status = req.status;
+                        respObj.statusText = req.statusText;
+                        respObj.responseText = req.responseText;
+                        caapop.log(respObj);
+                        event.source.postMessage({action: "data", id: message.id, value: respObj});
+                    };
+
+                    req.open('GET', message.value, false);
+                    req.send(null);
+                } catch (err) {
+                    caapop.error("getPage: " + err);
+                    respObj.errorThrown = err.toString();
+                    event.source.postMessage({action: "data", id: message.id, value: respObj});
+                }
+            },
+
+            tool: function () {
+                try {
+                    var ToolbarUIItemProperties = {
+                            title: "CAAP",
+                            icon: widget.preferences.autorun === "true" ? "icons/icon.png" : "icons/disabled.png",
+                            popup: {href: "http://x.facebook.com/#/home.php?v=livefeed", width: 350, height: 500}
+                        };
+
+                    caapop.theButton = opera.contexts.toolbar.createItem(ToolbarUIItemProperties);
+                    opera.contexts.toolbar.addItem(caapop.theButton);
+                } catch (err) {
+                    caapop.error("tool: " + err);
+                }
+            },
+
+            log: function (aMessage) {
+                try {
+                    if (window.Firebug && Firebug.Console && typeof Firebug.Console.log === "function") {
+                        Firebug.Console.log([caapop.version + (caapop.dev !== '0' ? 'd' + caapop.dev : '') + ' |' + (new Date()).toLocaleTimeString() + '| ', aMessage]);
+                    } else {
+                        opera.postError(caapop.version + (caapop.dev !== '0' ? 'd' + caapop.dev : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + aMessage);
+                    }
+                } catch (err) {
+                    caapop.error("log: " + err);
+                }
+            },
+
+            error: function (aMessage) {
+                if (window.Firebug && Firebug.Console && typeof Firebug.Console.error !== "function") {
+                    Firebug.Console.log([caapop.version + (caapop.dev !== '0' ? 'd' + caapop.dev : '') + ' |' + (new Date()).toLocaleTimeString() + '| ERROR: ', aMessage]);
+                } else {
+                    opera.postError(caapop.version + (caapop.dev !== '0' ? 'd' + caapop.dev : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + aMessage);
+                }
+            }
+        };
+
+        window.addEventListener("load", caapop.init, false);
+    </script>
+</head>
+<body>
+
+</body>
+</html>

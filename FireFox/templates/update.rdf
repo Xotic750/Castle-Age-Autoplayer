@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:NC="http://home.netscape.com/NC-rdf#"
+         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Description RDF:about="rdf:#$7praC"
+                   em:version="!version!.!dev!">
+    <em:targetApplication RDF:resource="rdf:#$apraC"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mozilla:extension:xotic750@gmail.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBADqgsuZbP2uDGLerRFOdj90dueFyMun4DNgNxd7Is5Qmhvof33qfRvhhOsRApsXUADzf7wg/nMIDYa25kLQh4/RSdAde8EpfMALiWneK6SKM9ec+j8F2h1NzbYdMFHEzoU9Lyc9mVVgm6kNASPo4xjGVrkSnijBtMwbTwWYLzKiQ">
+    <em:updates RDF:resource="rdf:#$6praC"/>
+  </RDF:Description>
+  <RDF:Seq RDF:about="rdf:#$6praC">
+    <RDF:li RDF:resource="rdf:#$7praC"/>
+  </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$apraC"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="3.5"
+                   em:maxVersion="4.0.*"
+                   em:updateLink="http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/packed/caap.xpi"
+                   em:updateInfoURL="http://code.google.com/p/castle-age-auto-player/updates/list"
+                   em:updateHash="sha1:!sha!" />
+</RDF:RDF>

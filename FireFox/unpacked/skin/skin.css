@@ -1,0 +1,13 @@
+.toolbar_button_enabled {
+    list-style-image: url("chrome://caap/skin/toolbar-large.png");
+}
+
+.toolbar_button_disabled {
+    list-style-image: url("chrome://caap/skin/disabled.png");
+}
+
+#status_bar_icon {
+    width: 16px;
+    height: 16px;
+    margin: 0 5px;
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:NC="http://home.netscape.com/NC-rdf#"
+         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Description RDF:about="rdf:#$P8lB02"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:unpack="true"
+                   em:minVersion="3.5"
+                   em:maxVersion="4.0.*" />
+  <RDF:Description RDF:about="urn:mozilla:install-manifest"
+                   em:id="xotic750@gmail.com"
+                   em:name="Castle Age Autoplayer"
+                   em:version="!version!"
+                   em:type="2"
+                   em:creator="Xotic750"
+                   em:description="Autoplayer for Castle Age game on Facebook."
+                   em:homepageURL="http://code.google.com/p/castle-age-auto-player/"
+                   em:optionsURL="chrome://caap/content/options.xul"
+                   em:aboutURL="chrome://caap/content/about.xul"
+                   em:iconURL="chrome://caap/skin/48x48.png"
+                   em:icon64URL="chrome://caap/skin/64x64.png">
+    <em:targetApplication RDF:resource="rdf:#$P8lB02"/>
+  </RDF:Description>
+</RDF:RDF>

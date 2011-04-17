@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://caap/skin/skin.css" type="text/css"?>
+<!DOCTYPE caap SYSTEM "chrome://caap/locale/translations.dtd">
+<overlay id="sample" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script src="caapff.js" />
+
+    <menupopup id="menu_ToolsPopup">
+        <menuitem id="tools_menu_autorun" label="&caapautorun;" key="keyset_autorun" type="checkbox" autocheck="false" onclick="caapff.checkBoxListener(event)"/>
+    </menupopup>
+
+    <keyset>
+        <key id="keyset_autorun" modifiers="accel alt shift" key="A" oncommand="caapff.keysetListener(event)"/>
+    </keyset>
+
+    <popupset>
+        <menupopup id="status_menu">
+            <menuitem id="status_menu_autorun" label="&autorun;" type="checkbox" autocheck="false" onclick="caapff.checkBoxListener(event)"/>
+        </menupopup>
+    </popupset>
+
+    <popupset>
+        <menupopup id="tool_bar_menu">
+            <menuitem id="tool_bar_menu_autorun" label="&autorun;" type="checkbox" autocheck="false" onclick="caapff.checkBoxListener(event)"/>
+        </menupopup>
+    </popupset>
+
+    <statusbar id="status-bar">
+        <statusbarpanel id="status_bar_icon" class="statusbarpanel-menu-iconic" src="chrome://caap/skin/status-bar.png" tooltiptext="&caap;" context="status_menu"/>
+    </statusbar>
+
+    <toolbarpalette id="BrowserToolbarPalette">
+        <toolbarbutton id="toolbar_button" label="&caap;" class="toolbar_button_enabled" tooltiptext="&caap;" context="status_menu"/>
+    </toolbarpalette>
+</overlay>

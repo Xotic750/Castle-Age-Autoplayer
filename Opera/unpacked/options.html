@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="options.css">
+        <title>Castle Age Autoplayer options page</title>
+    </head>
+    <body>
+        <header>
+            <img src="icons/Castle-Age-Autoplayer.png">
+            <h1 id="widget-name">Castle Age Autoplayer v140.25.0.5</h1>
+            <h2>Made by <span id="widget-author">Xotc750</h2>
+        </header>
+
+        <section>
+            <h1>Options</h1>
+            <fieldset>
+                <form>
+                    <ul>
+                        <li><label for="autorun">Autorun:</label>
+                        <input id="autorun" type='checkbox' />
+                        </li>
+                    </ul>
+                </form>
+            </fieldset>
+            <p>Development site <a href="http://code.google.com/p/castle-age-auto-player">link</a>.</p>
+        </section>
+
+        <footer>
+            <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&amp;business=xotic750%40gmail%2ecom&amp;lc=SE&amp;item_name=Castle%20Age%20Auto%20Player&amp;item_number=CAAP&amp;currency_code=SEK&amp;bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted" rel="nofollow"><img src="icons/btn_donateCC_LG.gif"></a></p>
+        </footer>
+
+        <script>
+            window.addEventListener('load', function () {
+                opera.extension.onmessage = function (event) {
+                    var message = event.data;
+                    opera.postError(event.origin + " sent a message: " + message.action + ' ' + message.id + ' ' + message.value);
+                    if (message.action === "begin") {
+                        var autorun = document.getElementById('autorun'),
+                            value   = widget.preferences.autorun === "true" ? true : false;
+
+                        autorun.addEventListener('change', function() {
+                            widget.preferences.autorun = this.checked;
+                            opera.postError("Autorun changed: " + widget.preferences.autorun);
+                            event.source.postMessage({action : "autorun", id: 'changed', value: widget.preferences.autorun});
+                        }, false);
+
+                        if (widget.preferences.autorun) {
+                            opera.postError("Autorun value: " + widget.preferences.autorun);
+                            autorun.checked = value;
+                            event.source.postMessage({action : "autorun", id: 'load', value: widget.preferences.autorun});
+                        }
+                    }
+                }
+            }, false);
+        </script>
+    </body>
+</html>
