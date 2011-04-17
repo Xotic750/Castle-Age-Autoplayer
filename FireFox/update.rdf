@@ -3,7 +3,7 @@
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <RDF:Description RDF:about="rdf:#$7praC"
-                   em:version="140.25.0.5">
+                   em:version="140.25.0.6">
     <em:targetApplication RDF:resource="rdf:#$apraC"/>
   </RDF:Description>
   <RDF:Description RDF:about="urn:mozilla:extension:xotic750@gmail.com"
@@ -19,5 +19,5 @@
                    em:maxVersion="4.0.*"
                    em:updateLink="http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/packed/caap.xpi"
                    em:updateInfoURL="http://code.google.com/p/castle-age-auto-player/updates/list"
-                   em:updateHash="sha1:98032c630ef15fead0f684d3d788d78b42e06fe6" />
+                   em:updateHash="sha1:9622e64572bfc2237838fc421061b7c7153f5f7e" />
 </RDF:RDF>

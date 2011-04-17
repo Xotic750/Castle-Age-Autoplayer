@@ -11410,7 +11410,7 @@
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                data = data.unescapeCAHTML();
+                                data = data.unescapeCAHTML().stripCATN().uni2char();
                                 $u.log(3, "reconPlayers", [data, textStatus, XMLHttpRequest]);
                                 var found       = 0,
                                     regex       = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*War: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
