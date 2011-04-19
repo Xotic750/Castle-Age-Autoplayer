@@ -1,0 +1,3 @@
+locale branding en-US jar:mccoy.jar!/branding/
+content branding jar:mccoy.jar!/branding/
+content mccoy jar:mccoy.jar!/content/

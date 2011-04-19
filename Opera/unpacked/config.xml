@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<widget xmlns="http://www.w3.org/ns/widgets" id="http://code.google.com/p/castle-age-auto-player" version="140.25.0.8">
+<widget xmlns="http://www.w3.org/ns/widgets" id="http://code.google.com/p/castle-age-auto-player" version="140.25.0.9">
     <name short="CAAP">Castle Age Autoplayer</name>
     <description xml:lang="en">Autoplayer for Castle Age game on Facebook.</description>
     <author href="http://code.google.com/p/castle-age-auto-player/" email="xotic750@gmail.com">Xotic750</author>

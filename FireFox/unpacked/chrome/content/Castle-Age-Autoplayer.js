@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            8
+// @dev            9
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "8",
+        devVersion    = "9",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -18562,7 +18562,7 @@
                     //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                     LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                     LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
-                    LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
+                    //LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
                     dropDownItem = 0,
                     coolDown = '',
                     haveZin = general.getItem("Zin", true) === false ? false : true,
@@ -18626,17 +18626,14 @@
                 if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
                     var headers       = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
                         values        = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
-                        generalValues = values.slice(),
                         pp            = 0,
                         link          = '',
                         instructions  = '',
-                        valueCol      = 'red',
                         it            = 0,
                         len           = 0,
                         len1          = 0,
                         data          = {text: '', color: '', bgcolor: '', id: '',  title: ''},
                         header        = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp   = new RegExp("caap_.*Stats_"),
                         handler       = null,
                         head          = '',
                         body          = '',
@@ -26350,10 +26347,8 @@
                 if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
                     var headers     = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
                         values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                        townValues  = values.slice(),
                         pp          = 0,
                         i           = 0,
-                        valueCol    = 'red',
                         it          = 0,
                         len         = 0,
                         len1        = 0,
@@ -26361,8 +26356,6 @@
                         str         = '',
                         num         = 0,
                         header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp = new RegExp("caap_.*Stats_"),
-                        handler     = null,
                         head        = '',
                         body        = '',
                         row         = '';
@@ -28922,6 +28915,10 @@
                                 {
                                     "sSortDataType" : "dom-checkbox",
                                     "aTargets"      : [5]
+                                },
+                                {
+                                    "sSortDataType" : "scan-date",
+                                    "aTargets"      : [4]
                                 }
                             ]
                         })
@@ -40417,8 +40414,7 @@
                             levelMultiplier = 0,
                             armyRatio       = 0,
                             goodTarget      = true,
-                            len             = 0,
-                            tStr            = '';
+                            len             = 0;
 
                         if ($tempObj.length) {
                             UserRecord.data['userID'] = $u.setContent($j("a", $tempObj).eq(0).attr("href").regex(/user=(\d+)/), 0);
@@ -41583,6 +41579,15 @@
                     var aData = [];
                     jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
                         aData.push(jQuery(this).text().lpad("0", 9));
+                    });
+
+                    return aData;
+                };
+
+                jQuery.fn.dataTableExt.afnSortData['scan-date'] = function (oSettings, iColumn) {
+                    var aData = [];
+                    jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
+                        aData.push(jQuery(this).text().split("-").reverse().join("-"));
                     });
 
                     return aData;

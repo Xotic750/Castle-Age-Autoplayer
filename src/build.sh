@@ -61,24 +61,30 @@ if [ "$version" ]; then
     sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
     sed -f version.sed ../FireFox/templates/install.rdf.rel > ../FireFox/unpacked/install.rdf
     sed -f version.sed ../FireFox/templates/about.xul.rel > ../FireFox/unpacked/chrome/content/about.xul
-    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp
-
-
+    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp1
+    sed -f version.sed ../FireFox/templates/update.xhtml.head.rel > ../FireFox/update.xhtml
 else
     sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
     sed -f version.sed ../FireFox/templates/install.rdf.dev > ../FireFox/unpacked/install.rdf
     sed -f version.sed ../FireFox/templates/about.xul.dev > ../FireFox/unpacked/chrome/content/about.xul
-    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp
+    sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf.tmp1
+    sed -f version.sed ../FireFox/templates/update.xhtml.head.dev > ../FireFox/update.xhtml
 fi
 
+cat ../FireFox/templates/update.xhtml.body >> ../FireFox/update.xhtml
 cp ../common/Castle-Age-Autoplayer.js ../FireFox/unpacked/chrome/content/Castle-Age-Autoplayer.js
 rm -f ../FireFox/packed/caap.xpi
 cd ../FireFox/unpacked/
 zip -r ../packed/caap.xpi *
 cd ../../src/
-shasum=`shasum ../FireFox/packed/caap.xpi | grep -Eo "^[A-Fa-f0-9]+?"`
-sed "s/!sha!/$shasum/g" ../FireFox/update.rdf.tmp > ../FireFox/update.rdf
-rm -f ../FireFox/update.rdf.tmp
+if [ !"$version" ]; then
+    shasum=`shasum ../FireFox/packed/caap.xpi | grep -Eo "^[A-Fa-f0-9]+?"`
+    sed "s/!sha!/$shasum/g" ../FireFox/update.rdf.tmp1 > ../FireFox/update.rdf.tmp2
+    #cp ../FireFox/update.rdf.tmp2 ../FireFox/update.rdf
+    #./bin/mccoy/mccoy&
+    ./bin/mxtools/uhura -i ../FireFox/update.rdf.tmp2 -o ../FireFox/update.rdf -k ../FireFox/keyfile.pem
+    rm -f ../FireFox/update.rdf.tmp1 ../FireFox/update.rdf.tmp2
+fi
 echo "Done."
 
 echo -n "Creating Opera version : "

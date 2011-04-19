@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            8
+// @dev            9
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -24,7 +24,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "8",
+                devVersion = "9",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -112,7 +112,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "8",
+        devVersion    = "9",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -18657,7 +18657,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                     LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                     LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
-                    LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
+                    //LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
                     dropDownItem = 0,
                     coolDown = '',
                     haveZin = general.getItem("Zin", true) === false ? false : true,
@@ -18721,17 +18721,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
                     var headers       = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
                         values        = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
-                        generalValues = values.slice(),
                         pp            = 0,
                         link          = '',
                         instructions  = '',
-                        valueCol      = 'red',
                         it            = 0,
                         len           = 0,
                         len1          = 0,
                         data          = {text: '', color: '', bgcolor: '', id: '',  title: ''},
                         header        = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp   = new RegExp("caap_.*Stats_"),
                         handler       = null,
                         head          = '',
                         body          = '',
@@ -26445,10 +26442,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
                     var headers     = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
                         values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                        townValues  = values.slice(),
                         pp          = 0,
                         i           = 0,
-                        valueCol    = 'red',
                         it          = 0,
                         len         = 0,
                         len1        = 0,
@@ -26456,8 +26451,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                         str         = '',
                         num         = 0,
                         header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp = new RegExp("caap_.*Stats_"),
-                        handler     = null,
                         head        = '',
                         body        = '',
                         row         = '';
@@ -29017,6 +29010,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                 {
                                     "sSortDataType" : "dom-checkbox",
                                     "aTargets"      : [5]
+                                },
+                                {
+                                    "sSortDataType" : "scan-date",
+                                    "aTargets"      : [4]
                                 }
                             ]
                         })
@@ -40512,8 +40509,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             levelMultiplier = 0,
                             armyRatio       = 0,
                             goodTarget      = true,
-                            len             = 0,
-                            tStr            = '';
+                            len             = 0;
 
                         if ($tempObj.length) {
                             UserRecord.data['userID'] = $u.setContent($j("a", $tempObj).eq(0).attr("href").regex(/user=(\d+)/), 0);
@@ -41678,6 +41674,15 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     var aData = [];
                     jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
                         aData.push(jQuery(this).text().lpad("0", 9));
+                    });
+
+                    return aData;
+                };
+
+                jQuery.fn.dataTableExt.afnSortData['scan-date'] = function (oSettings, iColumn) {
+                    var aData = [];
+                    jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
+                        aData.push(jQuery(this).text().split("-").reverse().join("-"));
                     });
 
                     return aData;

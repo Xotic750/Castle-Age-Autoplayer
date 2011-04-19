@@ -5,7 +5,7 @@
 var caapff = {
     version: "140.25.0",
 
-    dev: "8",
+    dev: "9",
 
     files: [
         "chrome://caap/content/caap_comms.js",

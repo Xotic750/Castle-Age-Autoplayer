@@ -488,10 +488,8 @@
                 if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
                     var headers     = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
                         values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                        townValues  = values.slice(),
                         pp          = 0,
                         i           = 0,
-                        valueCol    = 'red',
                         it          = 0,
                         len         = 0,
                         len1        = 0,
@@ -499,8 +497,6 @@
                         str         = '',
                         num         = 0,
                         header      = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
-                        statsRegExp = new RegExp("caap_.*Stats_"),
-                        handler     = null,
                         head        = '',
                         body        = '',
                         row         = '';

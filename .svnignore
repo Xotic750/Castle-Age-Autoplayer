@@ -1,4 +1,4 @@
 .git
-Chrome.pem
+*.pem
 Castle-Age-Autoplayer-*-v*.user.js
 _buildcommon.tmp

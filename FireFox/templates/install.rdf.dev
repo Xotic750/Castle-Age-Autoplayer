@@ -2,11 +2,6 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$P8lB02"
-                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:unpack="true"
-                   em:minVersion="3.5"
-                   em:maxVersion="4.0.*" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="xotic750@gmail.com"
                    em:name="Castle Age Autoplayer"
@@ -20,7 +15,12 @@
                    em:iconURL="chrome://caap/skin/48x48.png"
                    em:icon64URL="chrome://caap/skin/64x64.png"
                    em:updateURL="http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/update.rdf"
-                   em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSb95IYPUtJe/Ivgb8wtS4XRKqieah8MWSgHZnqiWUEm3ME0fD0pcP3/7zugXd2o4OkG1gvnm9/T2EHGvIom9tu4VIydz1kwf1x3JH8gASOd3XQi3kC1U2HyDOZNFJgJnp+GPyJPIilsuTclkQV08j+igDiy8yQ9tfgWAp+75n7QIDAQAB">
+                   em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDHsKPTy9VrnanDSiaO+BcGIiKrqGHL2QeeMwiCMdINJGGP77icDzwOd2aigo9KHHTP6MiezklsB2i+HmXHbTWRzJQNGqnrEXYN0rE7x3/GhPgiFKHeRJRrK51+RuSLx2jppg/M1eMRQVpkpE4nFJjGebmejkfh8152aJ4UIs8YcQIDAQAB">
     <em:targetApplication RDF:resource="rdf:#$P8lB02"/>
   </RDF:Description>
+  <RDF:Description RDF:about="rdf:#$P8lB02"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:unpack="true"
+                   em:minVersion="3.5"
+                   em:maxVersion="4.0.*" />
 </RDF:RDF>

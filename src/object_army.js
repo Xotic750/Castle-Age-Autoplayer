@@ -580,6 +580,10 @@
                                 {
                                     "sSortDataType" : "dom-checkbox",
                                     "aTargets"      : [5]
+                                },
+                                {
+                                    "sSortDataType" : "scan-date",
+                                    "aTargets"      : [4]
                                 }
                             ]
                         })

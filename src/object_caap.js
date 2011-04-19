@@ -11405,8 +11405,7 @@
                             levelMultiplier = 0,
                             armyRatio       = 0,
                             goodTarget      = true,
-                            len             = 0,
-                            tStr            = '';
+                            len             = 0;
 
                         if ($tempObj.length) {
                             UserRecord.data['userID'] = $u.setContent($j("a", $tempObj).eq(0).attr("href").regex(/user=(\d+)/), 0);
@@ -12571,6 +12570,15 @@
                     var aData = [];
                     jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
                         aData.push(jQuery(this).text().lpad("0", 9));
+                    });
+
+                    return aData;
+                };
+
+                jQuery.fn.dataTableExt.afnSortData['scan-date'] = function (oSettings, iColumn) {
+                    var aData = [];
+                    jQuery('td:eq(' + iColumn + ')', oSettings.oApi._fnGetTrNodes(oSettings)).each(function () {
+                        aData.push(jQuery(this).text().split("-").reverse().join("-"));
                     });
 
                     return aData;

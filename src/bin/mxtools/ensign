@@ -1,0 +1,255 @@
+#!/usr/bin/perl
+#*******************************************************************************
+#   Mozilla Extension Installation Package Signer, version 1.0
+#   Copyright (C) 2008, 2009 Sergei Zhirikov (sfzhi@yahoo.com)
+#   This software is available under the GNU General Public License v3.0
+#       (http://www.gnu.org/licenses/gpl-3.0.txt)
+#*******************************************************************************
+use strict;
+use warnings;
+use Pod::Usage;
+use File::Find;
+use Getopt::Std;
+use Digest::MD5;
+use Digest::SHA1;
+use File::Spec::Functions qw(splitdir catfile curdir abs2rel);
+#*******************************************************************************
+use constant CreatedBy => 'MX-Tools 1.0';
+#*******************************************************************************
+@ARGV or pod2usage(-exitval => 1, -verbose => 99, -sections => 'NAME|SYNOPSIS');
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
+sub VERSION_MESSAGE {
+    pod2usage(-exitval => 'NOEXIT', -verbose => 99, -sections => 'NAME');
+}
+sub HELP_MESSAGE {
+    pod2usage(-exitval => 'NOEXIT', -verbose => 1);
+}
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+our %opt;
+getopts('k:p:c:', \%opt) or die "Use '--help' for available options\n";
+our ($key, $pwd, $inc) = @opt{qw[k p c]};
+@ARGV == 3 or pod2usage(-exitval => 1, -verbose => 99, -sections => 'SYNOPSIS');
+our ($src, $xpi, $cer) = @ARGV;
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# http://www.openssl.org/docs/apps/openssl.html#PASS_PHRASE_ARGUMENTS
+(!$pwd || (($pwd eq '-')? ($pwd = 'stdin'): ($pwd =~ s{^([=\@\$\&])}
+    {{'=' => 'pass:', '@' => 'file:', '$' => 'env:', '&' => 'fd:'}->{$1}}e)))
+    or die "Invalid private key password parameter: '$pwd'\n";
+#*******************************************************************************
+our @src = ();
+if ($src eq '-') {
+    !$pwd or $pwd ne 'stdin'
+        or die "Can't read both password and source list from stdin\n";
+    chomp(@src = <STDIN>);
+} elsif ($src eq '.') {
+    my $dir = curdir();
+    find({follow => 0, no_chdir => 1, wanted => sub {
+        push(@src, abs2rel($_, $dir)) if (-f $_);
+    }}, $dir);
+} else {
+    open(SRC, '<', $src) or die "Failed to open the source list '$src': $!\n";
+    chomp(@src = <SRC>);
+    close(SRC);
+}
+@src > 0 or die "The source file set does not contain files to process\n";
+our %src = map { join('/', splitdir($_)) => $_ } @src;
+@src = sort(keys(%src));
+#*******************************************************************************
+our %inf = (
+    'manifest.mf' => catfile('META-INF', 'manifest.mf'),
+    'zigbert.rsa' => catfile('META-INF', 'zigbert.rsa'),
+    'zigbert.sf' => catfile('META-INF', 'zigbert.sf'),
+);
+mkdir('META-INF')
+    or die "Failed to create directory 'META-INF': $!\n" unless (-d 'META-INF');
+open(MMF, '>', $inf{'manifest.mf'})
+    or die "Failed to create file 'manifest.mf': $!\n";
+open(ZSF, '>', $inf{'zigbert.sf'})
+    or die "Failed to create file 'zigbert.sf': $!\n";
+binmode(MMF); binmode(ZSF);
+our $md5 = Digest::MD5->new;
+our $sha = Digest::SHA1->new;
+our $hdr =
+    "Manifest-Version: 1.0\n".
+    "Created-By: ".CreatedBy()."\n";
+print MMF $hdr;
+print ZSF
+    "Signature-Version: 1.0\n".
+    "Created-By: ".CreatedBy()."\n".
+    "Digest-Algorithms: MD5 SHA1\n".
+    "MD5-Digest: ".$md5->add($hdr)->b64digest."==\n".
+    "SHA1-Digest: ".$sha->add($hdr)->b64digest."=\n";
+for my $src (@src) {
+    my $hdr =
+        "Name: $src\n".
+        "Digest-Algorithms: MD5 SHA1\n";
+    open(SRC, '<', $src{$src}) or die "Failed to open file '$src{$src}': $!\n";
+    binmode(SRC);
+    $md5->reset->addfile(*SRC);
+    seek(SRC, 0, 0) or die "Failed to rewind file '$src{$src}': $!\n";
+    $sha->reset->addfile(*SRC);
+    close(SRC);
+    my $txt = $hdr.
+        "MD5-Digest: ".$md5->b64digest."==\n".
+        "SHA1-Digest: ".$sha->b64digest."=\n";
+    print MMF "\n$txt";
+    print ZSF "\n".$hdr.
+        "MD5-Digest: ".$md5->reset->add($txt)->b64digest."==\n".
+        "SHA1-Digest: ".$sha->reset->add($txt)->b64digest."=\n";
+}
+close(ZSF);
+close(MMF);
+#*******************************************************************************
+our ($bin, $sig) = @inf{'zigbert.sf', 'zigbert.rsa'};
+our $cmd = qq[openssl smime -in "$bin" -sign -nosmimecap -binary -outform der].
+    qq[ -out "$sig" -signer "$cer"].($key? qq[ -inkey "$key"]: '').
+    ($pwd? qq[ -passin "$pwd"]: '').($inc? qq[ -certfile "$inc"]: '');
+system($cmd) == 0 or die "OpenSSL failed to generate the signature\n";
+if ($xpi) {
+    unlink($xpi) or die "Failed to delete file '$xpi': $!\n" if (-e $xpi);
+    open(ZIP, '|-', qq[zip -qoD9@ "$xpi"])
+        or die "Failed to invoke 'zip' to create the package: $!\n";
+    print ZIP $inf{'zigbert.rsa'}, "\n";
+    print ZIP $inf{'manifest.mf'}, "\n";
+    print ZIP $inf{'zigbert.sf'}, "\n";
+    print ZIP "$src{$_}\n" for (@src);
+    close(ZIP);
+    $? == 0 or die "Failure during creating the package\n";
+}
+#*******************************************************************************
+=pod
+
+=head1 NAME
+
+ensign - Mozilla Extension Installation Package Signer, v1.0
+
+=head1 SYNOPSIS
+
+ensign [options] source package.xpi signer.crt
+
+=head1 ARGUMENTS
+
+=over 2
+
+=item B<source>
+
+The list of the files to be included in the installation package. This should
+be a text file containing one file name per line with the path relative to the
+current directory. If the value of this parameter is C<-> (dash) the file list
+will be read from the standard input. If the value is C<.> (dot) the file list
+will be constructed internally based on the contents of the current directory,
+which means that all the files in the current directory and subdirectories will
+be included.
+
+=item B<package.xpi>
+
+The file name of the output installation package. If the file exists it will
+be overwritten.
+
+=item B<signer.crt>
+
+The certificate to sign the package with. It must be an x509 code signing
+certificate in PEM format.
+
+=back
+
+Additionally, the following options may be specified:
+
+=over 2
+
+=item B<-k keyfile.pem>
+
+The private key for the signer certificate. If this parameter is omitted the
+key must be contained in the same file as the certificate itself (B<signer.crt>
+above).
+
+=item B<-p passwarg>
+
+The password for the private key. This parameter is required when the key is
+encrypted (which is almost always the case).
+
+The B<passwarg> parameter can have one of the following forms (where the first
+character indicates which form is used):
+
+=over 2
+
+=item B<=password>
+
+The password is specified literally. This is the easiest way, but in many cases
+it may be insecure on a multi-user system, since any user can see the password
+using C<ps> utility or alike.
+
+=item B<@filename>
+
+The password is read from the specified file. The first line of the file is
+assumed to contain the password.
+
+=item B<$ENV_VAR>
+
+The password is fetched from the specified environment variable. This is not
+the same as having the environment variable expanded by the shell when invoking
+the command. The syntax is very similar to most UNIX shells, but here the C<$>
+character is passed literally (thus must be escaped properly when using a
+UNIX-like shell).
+
+=item B<&fd>
+
+The password is read from the specified file descriptor. Depending on the OS
+this may or may not be supported (usually supported on UNIX-like OS). The first
+line read from the file descriptor is assumed to contain the password.
+
+=item B<->
+
+The password is read from the standard input. The first line of the input
+stream is assumed to contain the password.
+
+=back
+
+The password argument is converted to one of the forms accepted by OpenSSL
+B<-passin> argument, as described in the OpenSSL manual:
+L<http://www.openssl.org/docs/apps/openssl.html#PASS_PHRASE_ARGUMENTS>. So the
+security considerations applicable to OpenSSL invocation also apply here.
+
+=item B<-c cacerts.pem>
+
+Extra certificates to be included in the signature. Typically these are the
+intermediate CA certificates. The file must contain one or more concatenated
+x509 certificates in PEM format.
+
+=back
+
+=head1 DESCRIPTION
+
+The command must be run in the root of the directory hierarchy to be included
+in the installation package. The names of the subdirectories (if any) will be
+a part of each file path inside the package.
+
+In the current directory Ensign creates B<META-INF> subdirectory (unless it
+already exists) and there it creates the files that constitute the signature:
+B<manifest.mf>, B<zigbert.sf>, and B<zigbert.rsa>. If some of those files
+already exist they are overwritten.
+
+Subsequently the signature files and the files specified by the source argument
+are put into a zip file with the signature files first. If the source list is
+specified (either as a file name or via the standard input stream) it must
+B<not> contain the signature files (regardless of whether those exist prior to
+invoking the command).
+
+=head1 KNOWN ISSUES
+
+None so far.
+
+=head1 DEPENDENCIES
+
+Digest::MD5, Digest::SHA1, OpenSSL, zip
+
+=head1 HOME PAGE
+
+L<http://www.softlights.net/projects/mxtools/>
+
+=head1 AUTHORS
+
+Copyright (C) 2008, 2009 Sergei Zhirikov (sfzhi@yahoo.com)
+
+=cut
