@@ -484,22 +484,17 @@
                 }
 
                 feed.ajaxFeedWait = true;
-                $j.ajax({
-                    url: caap.domain.link + '/army_news_feed.php',
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.error("feed.ajaxFeed", textStatus);
-                            feed.ajaxFeedWait = false;
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            data = data.unescapeCAHTML();
-                            $u.log(3, "ajaxFeed", [data, textStatus, XMLHttpRequest]);
-                            feed.items("feed", data);
-                            feed.ajaxFeedWait = false;
-                        }
-                });
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("feed.ajaxFeed", textStatus);
+                    feed.ajaxFeedWait = false;
+                }
 
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.items("feed", data);
+                    feed.ajaxFeedWait = false;
+                }
+
+                caap.ajax(caap.domain.link + '/army_news_feed.php', onError, onSuccess);
                 var minutes = config.getItem('CheckFeedMonsterFinderMins', 15);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("feedMonsterFinder", minutes * 60, 300);
@@ -520,22 +515,17 @@
                 }
 
                 feed.ajaxGuildWait = true;
-                $j.ajax({
-                    url: caap.domain.link + '/guild.php',
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.error("feed.ajaxGuild", textStatus);
-                            feed.ajaxGuildWait = false;
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            data = data.unescapeCAHTML();
-                            $u.log(3, "ajaxGuild", [data, textStatus, XMLHttpRequest]);
-                            feed.items("guild", data);
-                            feed.ajaxGuildWait = false;
-                        }
-                });
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("feed.ajaxGuild", textStatus);
+                    feed.ajaxGuildWait = false;
+                }
 
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.items("guild", data);
+                    feed.ajaxGuildWait = false;
+                }
+
+                caap.ajax(caap.domain.link + '/guild.php', onError, onSuccess);
                 var minutes = config.getItem('CheckGuildMonsterFinderMins', 60);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("guildMonsterFinder", minutes * 60, 300);
@@ -563,6 +553,16 @@
                     return true;
                 }
 
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("feed.ajaxPublic", textStatus);
+                    feed.ajaxPublicWait = false;
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.publicItems(data);
+                    feed.ajaxPublicWait = false;
+                }
+
                 feed.ajaxPublicWait = true;
                 var url = 'public_monster_list.php?monster_tier=' + tier;
                 if (caap.domain.which === 2) {
@@ -587,21 +587,7 @@
                         window.caap_op.source.postMessage({action : "getPage", id: "feed", value: url});
                     }
                 } else {
-                    $j.ajax({
-                        url: caap.domain.link + '/' + url,
-                        error:
-                            function (XMLHttpRequest, textStatus, errorThrown) {
-                                $u.error("feed.ajaxPublic", textStatus);
-                                feed.ajaxPublicWait = false;
-                            },
-                        success:
-                            function (data, textStatus, XMLHttpRequest) {
-                                data = data.unescapeCAHTML();
-                                $u.log(3, "ajaxPublic", [data, textStatus, XMLHttpRequest]);
-                                feed.publicItems(data);
-                                feed.ajaxPublicWait = false;
-                            }
-                    });
+                    caap.ajax(caap.domain.link + '/' + url, onError, onSuccess);
                 }
 
                 var minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
@@ -625,23 +611,17 @@
                 }
 
                 feed.ajaxScanWait = true;
-                $j.ajax({
-                    url: caap.domain.link + '/' + record['url'],
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.error("feed.ajaxScan", textStatus);
-                            feed.ajaxScanWait = false;
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            data = $j(data.unescapeCAHTML()).find('#' + caap.domain.id[caap.domain.which] + 'globalContainer').html();
-                            $u.log(3, "ajaxScan", [data, textStatus, XMLHttpRequest]);
-                            caap.tempAjax.html(data);
-                            caap.checkResults_viewFight(record);
-                            feed.ajaxScanWait = false;
-                        }
-                });
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("feed.ajaxScan", textStatus);
+                    feed.ajaxScanWait = false;
+                }
 
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    caap.checkResults_viewFight(record);
+                    feed.ajaxScanWait = false;
+                }
+
+                caap.ajax(caap.domain.link + '/' + record['url'], onError, onSuccess);
                 return true;
             } catch (err) {
                 $u.error("ERROR in feed.ajaxScan: " + err);
@@ -701,7 +681,6 @@
                     }
                 } else {
                     feed.scanRecord = {};
-                    caap.tempAjax.html("");
                 }
 
                 return true;

@@ -14,5 +14,5 @@
     <access origin="http://www.facebook.com" subdomains="true"/>
     <access origin="https://www.facebook.com" subdomains="true"/>
     <access origin="http://web3.castleagegame.com" subdomains="true"/>
-    <update-description href="http://castle-age-auto-player.googlecode.com/svn/trunk/Opera/updates.xml"/>
+    <update-description href="http://castle-age-auto-player.googlecode.com/svn/trunk/Opera/packed/updates.xml"/>
 </widget>

@@ -9,7 +9,7 @@
 
         hbest: 2,
 
-        compress: $u.is_firefox ? false : true,
+        compress: true,
 
         load: function () {
             try {
@@ -114,7 +114,7 @@
             try {
                 spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
                 $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
-                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
+                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, $u.is_firefox ? false : spreadsheet.compress);
                 $u.log(3, "spreadsheet.save", spreadsheet.records);
                 return true;
             } catch (err) {

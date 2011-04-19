@@ -116,6 +116,18 @@
         caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
     }
 
+    (function () {
+        function setDSMSupported() {
+            caap.isDOMSubtreeModifiedSupported = true;
+        }
+
+        var el = document.createElement('div');
+        el.addEventListener("DOMSubtreeModified", setDSMSupported, false);
+        el.innerHTML = "set";
+        el.removeEventListener("DOMSubtreeModified", setDSMSupported, false);
+        el = null;
+    }());
+
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery || window.jQuery().jquery !== "1.5.2") {

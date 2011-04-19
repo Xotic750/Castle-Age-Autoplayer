@@ -20,6 +20,7 @@
         ajaxLoadIcon        : {},
         globalContainer     : {},
         appBodyDiv          : {},
+        tempAjax            : {},
         resultsWrapperDiv   : {},
         resultsText         : '',
         libs                : {
@@ -1207,6 +1208,29 @@
                 return true;
             } catch (err) {
                 $u.error("ERROR in addCaapAjax: " + err);
+                return false;
+            }
+        },
+
+        ajax: function (url, cbError, cbSuccess) {
+            try {
+                $j.ajax({
+                    url: url,
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            cbError(XMLHttpRequest, textStatus, errorThrown);
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            data = caap.tempAjax.html($j('#' + caap.domain.id[caap.domain.which] + 'globalContainer', data.unescapeCAHTML()).html());
+                            $u.log(3, "ajaxScan", [data, textStatus, XMLHttpRequest]);
+                            cbSuccess(data, textStatus, XMLHttpRequest);
+                        }
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ajax: " + err);
                 return false;
             }
         },
@@ -3657,10 +3681,13 @@
             try {
                 $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
-                $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
-                $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
-                $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
-                $j("span[id*='health_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
+                if (caap.isDOMSubtreeModifiedSupported) {
+                    $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
+                    $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
+                    $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
+                    $j("span[id*='health_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
+                }
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in whatFriendBox: " + err, event);
@@ -3765,10 +3792,13 @@
                 // Fires once when page loads
                 $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
-                $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
-                $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
-                $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
-                $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
+                if (!caap.isDOMSubtreeModifiedSupported) {
+                    $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
+                    $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
+                    $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
+                    $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
+                }
+
                 //arena.addListeners();
                 festival.addListeners();
 
@@ -10546,39 +10576,24 @@
                     return false;
                 }
 
-                $u.log(3, "Performing AjaxGiftCheck");
-                var theUrl = caap.domain.link + '/army.php',
-                    time = config.getItem('CheckGiftMins', 15);
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("AjaxGiftCheck.ajax", textStatus);
+                }
 
-                $j.ajax({
-                    url: theUrl,
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.error("AjaxGiftCheck.ajax", textStatus);
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                data = data.unescapeCAHTML();
-                                $u.log(3, "ajaxGiftCheck", [data, textStatus, XMLHttpRequest]);
-                                if ($j(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
-                                    $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
-                                    state.setItem('HaveGift', true);
-                                } else {
-                                    $u.log(2, 'AjaxGiftCheck.ajax: No gifts waiting.');
-                                    state.setItem('HaveGift', false);
-                                }
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    if ($j("a[href*='reqs.php#confirm_46755028429_0']", caap.tempAjax).length) {
+                        $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
+                        state.setItem('HaveGift', true);
+                    } else {
+                        $u.log(2, 'AjaxGiftCheck.ajax: No gifts waiting.');
+                        state.setItem('HaveGift', false);
+                    }
+                }
 
-                                $u.log(4, "AjaxGiftCheck.ajax: Done.");
-                            } catch (err) {
-                                $u.error("ERROR in AjaxGiftCheck.ajax: " + err);
-                            }
-                        }
-                });
-
+                caap.ajax(caap.domain.link + '/army.php', onError, onSuccess);
+                var time = config.getItem('CheckGiftMins', 15);
                 time = time < 15 ? 15 : time;
                 schedule.setItem("ajaxGiftCheck", time * 60, 300);
-                $u.log(4, "Completed AjaxGiftCheck");
                 return true;
             } catch (err) {
                 $u.error("ERROR in AjaxGiftCheck: " + err);
@@ -11004,7 +11019,7 @@
                 if (caap.waitLoadCTA) {
                     $j.ajax({
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFhvYkltNVdVNlRfSzZWV0xCQXQtR3c%26hl%3Den%26output%3Dcsv'&format=json",
-                        dataType: "json",
+                        dataType: ($u.is_opera ? "jsonp" : "json"),
                         error: function () {
                             caap.loadedCTA = true;
                         },
@@ -11113,58 +11128,30 @@
                     state.setItem(listType.name + 'Responded', []);
                 }
 
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    state.setItem(listType.name + 'Requested', false);
+                    $u.error("getFriendList(" + listType.name + "): ", textStatus);
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    var friendList = [];
+                    $j("div[class='unselected_list'] input", caap.tempAjax).each(function () {
+                        friendList.push($j(this).val().parseInt());
+                    });
+
+                    $u.log(2, "getFriendList.ajax saving friend list of: ", friendList.length);
+                    state.setItem(listType.name + 'Responded', $u.setContent(friendList, true));
+                }
+
                 if (!state.getItem(listType.name + 'Requested', false)) {
                     $u.log(3, "Getting Friend List: ", listType.name);
                     state.setItem(listType.name + 'Requested', true);
                     if (caap.domain.which > 1) {
-                        if (listType.name === "giftc") {
-                            var armyList = army.getIdList();
-                            $u.log(4, "armyList", armyList);
-                            if ($u.hasContent(armyList)) {
-                                state.setItem(listType.name + 'Responded', army.getIdList());
-                            } else {
-                                state.setItem(listType.name + 'Responded', true);
-                            }
-                        } else {
-                            state.setItem(listType.name + 'Responded', true);
-                        }
+                        var armyList = army.getIdList();
+                        $u.log(3, "armyList", armyList);
+                        state.setItem(listType.name + 'Responded', listType.name === "giftc" && $u.hasContent(armyList) ? armyList : true);
                     } else {
-                        $j.ajax({
-                            url: caap.domain.link + listType.url,
-                            dataType: "html text",
-                            error:
-                                function (XMLHttpRequest, textStatus, errorThrown) {
-                                    state.setItem(listType.name + 'Requested', false);
-                                    $u.error("getFriendList(" + listType.name + "): ", textStatus);
-                                },
-                            success:
-                                function (data, textStatus, XMLHttpRequest) {
-                                    try {
-                                        data = data.unescapeCAHTML().regex(new RegExp('<div class="unselected_list".*?>(.*)<\\/div><div class="selected_list"'));
-                                        $u.log(2, "getFriendList.ajax data", [data]);
-                                        if (!$u.isDefined(data)) {
-                                            $u.warn("getFriendList.ajax regex returned 'null' or 'undefined'");
-                                        }
-
-                                        var friendList = [];
-                                        $j('<div></div>').html($u.setContent(data, '').toString()).find('input').each(function (index) {
-                                            friendList.push($j(this).val().parseInt());
-                                        });
-
-                                        $u.log(2, "getFriendList.ajax saving friend list of: ", friendList.length);
-                                        if (friendList.length) {
-                                            state.setItem(listType.name + 'Responded', friendList);
-                                        } else {
-                                            state.setItem(listType.name + 'Responded', true);
-                                        }
-
-                                        $u.log(4, "getFriendList(" + listType.name + "): ", textStatus);
-                                    } catch (err) {
-                                        state.setItem(listType.name + 'Requested', false);
-                                        $u.error("ERROR in getFriendList.ajax: " + err);
-                                    }
-                                }
-                        });
+                        caap.ajax(caap.domain.link + listType.url, onError, onSuccess);
                     }
                 } else {
                     $u.log(4, "Already requested getFriendList for: ", listType.name);
@@ -11191,23 +11178,15 @@
 
                 function addFriend(id) {
                     try {
-                        var theUrl = '',
-                            responseCallback = function (data, textStatus, XMLHttpRequest) {
+                        function responseCallback(data, textStatus, XMLHttpRequest) {
                             if (caap.addFriendSpamCheck > 0) {
                                 caap.addFriendSpamCheck -= 1;
                             }
 
                             $u.log(1, "AddFriend(" + id + "): ", textStatus);
-                        };
+                        }
 
-                        theUrl = caap.domain.link + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf';
-
-                        $j.ajax({
-                            url: theUrl,
-                            error: responseCallback,
-                            success: responseCallback
-                        });
-
+                        caap.ajax(caap.domain.link + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf', responseCallback, responseCallback);
                         return true;
                     } catch (err) {
                         $u.error("ERROR in addFriend(" + id + "): " + err);
@@ -11396,146 +11375,136 @@
                     return false;
                 }
 
-                var theUrl = '';
                 caap.setDivContent('idle_mess', 'Player Recon: In Progress');
                 $u.log(1, "Player Recon: In Progress");
-                theUrl = caap.domain.link + '/battle.php';
 
-                $j.ajax({
-                    url: theUrl,
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.error("ReconPlayers2.ajax", textStatus);
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            try {
-                                data = data.unescapeCAHTML().stripCATN().uni2char();
-                                $u.log(3, "reconPlayers", [data, textStatus, XMLHttpRequest]);
-                                var found       = 0,
-                                    regex       = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*War: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
-                                    regex2      = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
-                                    entryLimit  = config.getItem('LimitTargets', 100),
-                                    reconRank   = config.getItem('ReconPlayerRank', 99),
-                                    reconLevel  = config.getItem('ReconPlayerLevel', 999),
-                                    reconARBase = config.getItem('ReconPlayerARBase', 999);
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("ReconPlayers.ajax", textStatus);
+                }
 
-                                $u.log(3, "reconPlayers.ajax: Checking data.");
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    $u.log(3, "reconPlayers", [data, textStatus, XMLHttpRequest]);
+                    var found       = 0,
+                        regex       = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*War: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
+                        regex2      = new RegExp('(.+)\\s*\\(Level (\\d+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank (\\d+)\\)\\s*(\\d+)', 'i'),
+                        entryLimit  = config.getItem('LimitTargets', 100),
+                        reconRank   = config.getItem('ReconPlayerRank', 99),
+                        reconLevel  = config.getItem('ReconPlayerLevel', 999),
+                        reconARBase = config.getItem('ReconPlayerARBase', 999);
 
-                                $j(data).find("img[src*='symbol_']").not("[src*='symbol_tiny_']").each(function (index) {
-                                    var UserRecord      = new caap.reconRecord(),
-                                        row             = $j(this),
-                                        $tempObj        = row.parent().parent().parent().parent().parent(),
-                                        tempArray       = [],
-                                        txt             = '',
-                                        i               = 0,
-                                        OldRecord       = {},
-                                        levelMultiplier = 0,
-                                        armyRatio       = 0,
-                                        goodTarget      = true,
-                                        len             = 0,
-                                        tStr            = '';
+                    $u.log(3, "reconPlayers.ajax: Checking data.");
 
-                                    if ($tempObj.length) {
-                                        UserRecord.data['userID'] = $u.setContent($j("a", $tempObj).eq(0).attr("href").regex(/user=(\d+)/), 0);
-                                        if (!$u.hasContent(UserRecord.data['userID']) || UserRecord.data['userID'] <= 0) {
-                                            $u.log(2, "reconPlayers: No userId, skipping");
-                                            return true;
-                                        }
+                    $j("img[src*='symbol_']", caap.tempAjax).not("img[src*='symbol_tiny_']", caap.tempAjax).each(function (index) {
+                        var UserRecord      = new caap.reconRecord(),
+                            row             = $j(this),
+                            $tempObj        = row.parent().parent().parent().parent().parent(),
+                            tempArray       = [],
+                            txt             = '',
+                            i               = 0,
+                            OldRecord       = {},
+                            levelMultiplier = 0,
+                            armyRatio       = 0,
+                            goodTarget      = true,
+                            len             = 0,
+                            tStr            = '';
 
-                                        for (i = 0, len = caap.reconRecords.length; i < len; i += 1) {
-                                            if (caap.reconRecords[i]['userID'] === UserRecord.data['userID']) {
-                                                UserRecord.data = caap.reconRecords[i];
-                                                caap.reconRecords.splice(i, 1);
-                                                $u.log(3, "UserRecord exists. Loaded and removed.", UserRecord);
-                                                break;
-                                            }
-                                        }
+                        if ($tempObj.length) {
+                            UserRecord.data['userID'] = $u.setContent($j("a", $tempObj).eq(0).attr("href").regex(/user=(\d+)/), 0);
+                            if (!$u.hasContent(UserRecord.data['userID']) || UserRecord.data['userID'] <= 0) {
+                                $u.log(2, "reconPlayers: No userId, skipping");
+                                return true;
+                            }
 
-                                        UserRecord.data['deityNum'] = $u.setContent(row.attr("src").regex(/symbol_(\d)\.jpg/), 1);
-                                        txt = $u.setContent($tempObj.text(), '').trim();
-                                        if (txt.length) {
-                                            if (battle.battles['Freshmeat']['warLevel']) {
-                                                tempArray = regex.exec(txt);
-                                                if (!tempArray) {
-                                                    tempArray = regex2.exec(txt);
-                                                    battle.battles['Freshmeat']['warLevel'] = false;
-                                                }
-                                            } else {
-                                                tempArray = regex2.exec(txt);
-                                                if (!tempArray) {
-                                                    tempArray = regex.exec(txt);
-                                                    battle.battles['Freshmeat']['warLevel'] = true;
-                                                }
-                                            }
+                            for (i = 0, len = caap.reconRecords.length; i < len; i += 1) {
+                                if (caap.reconRecords[i]['userID'] === UserRecord.data['userID']) {
+                                    UserRecord.data = caap.reconRecords[i];
+                                    caap.reconRecords.splice(i, 1);
+                                    $u.log(3, "UserRecord exists. Loaded and removed.", UserRecord);
+                                    break;
+                                }
+                            }
 
-                                            if (tempArray) {
-                                                UserRecord.data['aliveTime']      = new Date().getTime();
-                                                UserRecord.data['nameStr']        = tempArray[1] ? tempArray[1].trim() : '';
-                                                UserRecord.data['levelNum']       = tempArray[2] ? tempArray[2].parseInt() : 0;
-                                                UserRecord.data['rankNum']        = tempArray[4] ? tempArray[4].parseInt() : 0;
-                                                if (battle.battles['Freshmeat']['warLevel']) {
-                                                    UserRecord.data['warRankNum'] = tempArray[6] ? tempArray[6].parseInt() : 0;
-                                                    UserRecord.data['armyNum']    = tempArray[7] ? tempArray[7].parseInt() : 0;
-                                                } else {
-                                                    UserRecord.data['armyNum']    = tempArray[5] ? tempArray[5].parseInt() : 0;
-                                                }
+                            UserRecord.data['deityNum'] = $u.setContent(row.attr("src").regex(/symbol_(\d)\.jpg/), 1);
+                            txt = $u.setContent($tempObj.text(), '').trim();
+                            if (txt.length) {
+                                if (battle.battles['Freshmeat']['warLevel']) {
+                                    tempArray = regex.exec(txt);
+                                    if (!tempArray) {
+                                        tempArray = regex2.exec(txt);
+                                        battle.battles['Freshmeat']['warLevel'] = false;
+                                    }
+                                } else {
+                                    tempArray = regex2.exec(txt);
+                                    if (!tempArray) {
+                                        tempArray = regex.exec(txt);
+                                        battle.battles['Freshmeat']['warLevel'] = true;
+                                    }
+                                }
 
-                                                if (UserRecord.data['levelNum'] - caap.stats['level'] > reconLevel) {
-                                                    $u.log(3, 'Level above reconLevel max', reconLevel, UserRecord);
-                                                    goodTarget = false;
-                                                } else if (caap.stats['rank']['battle'] - UserRecord.data['rankNum'] > reconRank) {
-                                                    $u.log(3, 'Rank below reconRank min', reconRank, UserRecord);
-                                                    goodTarget = false;
-                                                } else {
-                                                    levelMultiplier = caap.stats['level'] / UserRecord.data['levelNum'];
-                                                    armyRatio = reconARBase * levelMultiplier;
-                                                    if (armyRatio <= 0) {
-                                                        $u.log(3, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
-                                                        goodTarget = false;
-                                                    } else if (UserRecord.data['armyNum']  > (caap.stats['army']['capped'] * armyRatio)) {
-                                                        $u.log(3, 'Army above armyRatio adjustment', armyRatio, UserRecord);
-                                                        goodTarget = false;
-                                                    }
-                                                }
-
-                                                if (goodTarget) {
-                                                    while (caap.reconRecords.length >= entryLimit) {
-                                                        OldRecord = caap.reconRecords.shift();
-                                                        $u.log(3, "Entry limit matched. Deleted an old record", OldRecord);
-                                                    }
-
-                                                    $u.log(3, "UserRecord", UserRecord);
-                                                    caap.reconRecords.push(UserRecord.data);
-                                                    found += 1;
-                                                }
-                                            } else {
-                                                $u.warn('Recon can not parse target text string', txt);
-                                            }
-                                        } else {
-                                            $u.warn("Can't find txt in $tempObj", $tempObj);
-                                        }
+                                if (tempArray) {
+                                    UserRecord.data['aliveTime']      = new Date().getTime();
+                                    UserRecord.data['nameStr']        = tempArray[1] ? tempArray[1].trim() : '';
+                                    UserRecord.data['levelNum']       = tempArray[2] ? tempArray[2].parseInt() : 0;
+                                    UserRecord.data['rankNum']        = tempArray[4] ? tempArray[4].parseInt() : 0;
+                                    if (battle.battles['Freshmeat']['warLevel']) {
+                                        UserRecord.data['warRankNum'] = tempArray[6] ? tempArray[6].parseInt() : 0;
+                                        UserRecord.data['armyNum']    = tempArray[7] ? tempArray[7].parseInt() : 0;
                                     } else {
-                                        $u.warn("$tempObj is empty");
+                                        UserRecord.data['armyNum']    = tempArray[5] ? tempArray[5].parseInt() : 0;
                                     }
 
-                                    return true;
-                                });
+                                    if (UserRecord.data['levelNum'] - caap.stats['level'] > reconLevel) {
+                                        $u.log(3, 'Level above reconLevel max', reconLevel, UserRecord);
+                                        goodTarget = false;
+                                    } else if (caap.stats['rank']['battle'] - UserRecord.data['rankNum'] > reconRank) {
+                                        $u.log(3, 'Rank below reconRank min', reconRank, UserRecord);
+                                        goodTarget = false;
+                                    } else {
+                                        levelMultiplier = caap.stats['level'] / UserRecord.data['levelNum'];
+                                        armyRatio = reconARBase * levelMultiplier;
+                                        if (armyRatio <= 0) {
+                                            $u.log(3, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
+                                            goodTarget = false;
+                                        } else if (UserRecord.data['armyNum']  > (caap.stats['army']['capped'] * armyRatio)) {
+                                            $u.log(3, 'Army above armyRatio adjustment', armyRatio, UserRecord);
+                                            goodTarget = false;
+                                        }
+                                    }
 
-                                caap.saveRecon();
-                                caap.setDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.reconRecords.length);
-                                $u.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.reconRecords.length);
-                                window.setTimeout(function () {
-                                    caap.setDivContent('idle_mess', '');
-                                }, 5000);
+                                    if (goodTarget) {
+                                        while (caap.reconRecords.length >= entryLimit) {
+                                            OldRecord = caap.reconRecords.shift();
+                                            $u.log(3, "Entry limit matched. Deleted an old record", OldRecord);
+                                        }
 
-                                $u.log(4, "reconPlayers.ajax: Done.", caap.reconRecords);
-                            } catch (err) {
-                                $u.error("ERROR in reconPlayers.ajax: " + err);
+                                        $u.log(3, "UserRecord", UserRecord);
+                                        caap.reconRecords.push(UserRecord.data);
+                                        found += 1;
+                                    }
+                                } else {
+                                    $u.warn('Recon can not parse target text string', txt);
+                                }
+                            } else {
+                                $u.warn("Can't find txt in $tempObj", $tempObj);
                             }
+                        } else {
+                            $u.warn("$tempObj is empty");
                         }
-                });
 
+                        return true;
+                    });
+
+                    caap.saveRecon();
+                    caap.setDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.reconRecords.length);
+                    $u.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.reconRecords.length);
+                    window.setTimeout(function () {
+                        caap.setDivContent('idle_mess', '');
+                    }, 5000);
+
+                    $u.log(4, "reconPlayers.ajax: Done.", caap.reconRecords);
+                }
+
+                caap.ajax(caap.domain.link + '/battle.php', onError, onSuccess);
                 schedule.setItem('PlayerReconTimer', gm.getItem('PlayerReconRetry', 60, hiddenVar), 60);
                 return true;
             } catch (err) {
@@ -11818,6 +11787,53 @@
             }
         },
 
+        isDOMSubtreeModifiedSupported: false,
+
+        stsPoll: function () {
+            try {
+                var gtv = $j("span[id*='gold_time_value']", caap.globalContainer).text(),
+                    ecv = $j("span[id*='energy_current_value']", caap.globalContainer).text(),
+                    scv = $j("span[id*='stamina_current_value']", caap.globalContainer).text(),
+                    hcv = $j("span[id*='health_current_value']", caap.globalContainer).text(),
+                    arr = [],
+                    num = 0;
+
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                arr = $u.setContent($u.setContent(gtv, '').regex(/(\d+):(\d+)/), []);
+                if ($u.hasContent(arr) && arr.length === 2) {
+                    caap.stats['gold']['ticker'] = arr;
+                    $u.log(3, "stsPoll gtv", arr[0] + ":" + (arr[1] < 10 ? '0' + arr[1] : arr[1]));
+                }
+
+                num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
+                if (num > 0 && !$u.isNaN(num)) {
+                    caap.stats['energy'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
+                    caap.stats['energyT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
+                    $u.log(3, "stsPoll ecv", num);
+                }
+
+                num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
+                if (num > 0 && !$u.isNaN(num)) {
+                    caap.stats['health'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
+                    caap.stats['healthT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
+                    $u.log(3, "stsPoll hcv", num);
+                }
+
+                num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
+                if (num > 0 && !$u.isNaN(num)) {
+                    caap.stats['stamina'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
+                    caap.stats['staminaT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
+                    $u.log(3, "stsPoll scv", num);
+                }
+                /*jslint sub: false */
+                return true;
+            } catch (err) {
+                $u.error("ERROR in stsPoll: " + err);
+                return false;
+            }
+        },
+
         mainLoop: function () {
             try {
                 var button          = null,
@@ -11842,6 +11858,10 @@
                 if ($u.hasContent(button)) {
                     $u.log(1, 'Undoing/skipping notification');
                     caap.click(button);
+                }
+
+                if (!caap.isDOMSubtreeModifiedSupported) {
+                    caap.stsPoll();
                 }
 
                 if (config.getItem('Disabled', false)) {
