@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            9
+// @dev            10
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -24,7 +24,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "9",
+                devVersion = "10",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -112,7 +112,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "9",
+        devVersion    = "10",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -32786,6 +32786,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
                 if (caap.isDOMSubtreeModifiedSupported) {
+                    $u.log(3, "reBind sts");
                     $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
                     $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
                     $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
@@ -32896,7 +32897,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 // Fires once when page loads
                 $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
-                if (!caap.isDOMSubtreeModifiedSupported) {
+                if (caap.isDOMSubtreeModifiedSupported) {
+                    $u.log(3, "Bind sts onload");
                     $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
                     $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
                     $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
@@ -39460,13 +39462,18 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /////////////////////////////////////////////////////////////////////
 
         passiveGeneral: function () {
-            if (config.getItem('IdleGeneral', 'Use Current') !== 'Use Current') {
-                if (general.Select('IdleGeneral')) {
-                    return true;
+            try {
+                if (config.getItem('IdleGeneral', 'Use Current') !== 'Use Current') {
+                    if (general.Select('IdleGeneral')) {
+                        return true;
+                    }
                 }
-            }
 
-            return false;
+                return false;
+            } catch (err) {
+                $u.error("ERROR in passiveGeneral: " + err);
+                return false;
+            }
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -39476,16 +39483,21 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         autoIncome: function () {
-            if (config.getItem("NoIncomeAfterLvl", true) && state.getItem('KeepLevelUpGeneral', false)) {
+            try {
+                if (!config.setItem("disAutoIncome", false) || (config.getItem("NoIncomeAfterLvl", true) && state.getItem('KeepLevelUpGeneral', false))) {
+                    return false;
+                }
+
+                if ($u.hasContent(caap.stats['gold']['ticker']) && caap.stats['gold']['ticker'][0] < 1  && config.getItem('IncomeGeneral', 'Use Current') !== 'Use Current') {
+                    general.Select('IncomeGeneral');
+                    return true;
+                }
+
+                return false;
+            } catch (err) {
+                $u.error("ERROR in autoIncome: " + err);
                 return false;
             }
-
-            if ($u.hasContent(caap.stats['gold']['ticker']) && caap.stats['gold']['ticker'][0] < 1  && config.getItem('IncomeGeneral', 'Use Current') !== 'Use Current') {
-                general.Select('IncomeGeneral');
-                return true;
-            }
-
-            return false;
         },
         /*jslint sub: false */
 
@@ -39494,43 +39506,56 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /////////////////////////////////////////////////////////////////////
 
         checkResults_army: function () {
-            var listHref = $j(),
-                link     = $j(),
-                autoGift = false,
-                time     = 0;
+            try {
+                var listHref = $j(),
+                    link     = $j(),
+                    autoGift = false,
+                    time     = 0;
 
-            autoGift = config.getItem('AutoGift', false);
-            listHref = caap.appBodyDiv.find("div[class='messages'] a[href*='army.php?act=ignore']");
-            if (listHref && listHref.length) {
-                if (autoGift) {
-                    $u.log(1, 'We have a gift waiting!');
-                    state.setItem('HaveGift', true);
+                autoGift = config.getItem('AutoGift', false);
+                listHref = caap.appBodyDiv.find("div[class='messages'] a[href*='army.php?act=ignore']");
+                if (listHref && listHref.length) {
+                    if (autoGift) {
+                        $u.log(1, 'We have a gift waiting!');
+                        state.setItem('HaveGift', true);
+                    }
+
+                    listHref.each(function () {
+                        var row = $j(this);
+                        link = $j("<br /><a title='This link can be used to collect the " +
+                            "gift when it has been lost on Facebook. !!If you accept a gift " +
+                            "in this manner then it will leave an orphan request on Facebook!!' " +
+                            "href='" + row.attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>");
+                        link.insertAfter(row);
+                    });
+                } else {
+                    if (autoGift) {
+                        $u.log(2, 'No gifts waiting.');
+                        state.setItem('HaveGift', false);
+                    }
                 }
 
-                listHref.each(function () {
-                    var row = $j(this);
-                    link = $j("<br /><a title='This link can be used to collect the " +
-                        "gift when it has been lost on Facebook. !!If you accept a gift " +
-                        "in this manner then it will leave an orphan request on Facebook!!' " +
-                        "href='" + row.attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>");
-                    link.insertAfter(row);
-                });
-            } else {
                 if (autoGift) {
-                    $u.log(2, 'No gifts waiting.');
-                    state.setItem('HaveGift', false);
+                    time = config.getItem('CheckGiftMins', 15);
+                    time = time < 15 ? 15 : time;
+                    schedule.setItem("ajaxGiftCheck", time * 60, 300);
                 }
-            }
 
-            if (autoGift) {
-                time = config.getItem('CheckGiftMins', 15);
-                time = time < 15 ? 15 : time;
-                schedule.setItem("ajaxGiftCheck", time * 60, 300);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in checkResults_army: " + err);
+                return false;
             }
         },
 
         checkResults_army_member: function () {
-            army.page();
+            try {
+                army.page();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in checkResults_army_member: " + err);
+                return false;
+            }
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -41016,7 +41041,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     return true;
                 }
 
-                if (!config.setItem("disAutoIncome", false) && caap.autoIncome()) {
+                if (caap.autoIncome()) {
                     caap.checkLastAction('autoIncome');
                     caap.waitMainLoop();
                     return true;

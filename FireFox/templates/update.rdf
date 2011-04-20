@@ -6,11 +6,9 @@
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.5"
                    em:maxVersion="4.0.*"
-                   em:updateLink="http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/packed/caap.xpi"
-                   em:updateInfoURL="http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/update.xhtml"
-                   em:updateHash="sha1:!sha!" />
-  <RDF:Description RDF:about="urn:mozilla:extension:xotic750@gmail.com"
-                   em:signature="">
+                   em:updateLink="https://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/packed/caap.xpi"
+                   em:updateInfoURL="https://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/update.xhtml" />
+  <RDF:Description RDF:about="urn:mozilla:extension:xotic750@gmail.com">
     <em:updates RDF:resource="rdf:#$6praC"/>
   </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$6praC">

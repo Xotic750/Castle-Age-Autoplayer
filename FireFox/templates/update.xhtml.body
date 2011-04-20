@@ -1,6 +1,4 @@
 <ul>
-<li>Fix for FireFox dev channel auto-updates, requires d9 and later</li>
-<li>Fix dashboard sort for army scan date</li>
-<li>Minor unused variable cleanup</li>
+<li>Fix for STS events not binding on page load</li>
 </ul>
 </html>

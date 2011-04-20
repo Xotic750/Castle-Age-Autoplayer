@@ -7,7 +7,7 @@
     <description id="title" value="Castle Age Autoplayer"/>
     <hbox align="start">
         <label control="version" value="&version.title;"/>
-        <text  id="version" value="140.25.0.9"/>
+        <text  id="version" value="140.25.0.10"/>
     </hbox>
 
     <groupbox id="mainGroup">
