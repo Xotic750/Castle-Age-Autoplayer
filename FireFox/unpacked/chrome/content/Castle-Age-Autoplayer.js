@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            10
+// @dev            11
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "10",
+        devVersion    = "11",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -18716,9 +18716,10 @@
                                 mname     : '',
                                 rlink     : ''
                             },
-                            i        = 0,
-                            len      = 0,
-                            clickUrl = state.getItem('clickUrl', '');
+                            container  = '',
+                            i          = 0,
+                            len        = 0,
+                            clickUrl   = state.getItem('clickUrl', '');
 
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'mname') {
@@ -18729,10 +18730,12 @@
                         }
 
                         if (clickUrl.hasIndexOf("generals.php")) {
-                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "globalContainer", ".game", clickUrl);
+                            container = "#" + caap.domain.id[caap.domain.which] + "globalContainer";
+                            caap.ajaxLoad(changeLink.rlink, container, "", clickUrl);
                         } else {
                             general.quickSwitch = true;
-                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", ".equippedGeneralCnt2", clickUrl);
+                            container = "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer";
+                            caap.ajaxLoad(changeLink.rlink, container, container, clickUrl);
                         }
                     };
 
@@ -29362,6 +29365,21 @@
         //                          NAVIGATION FUNCTIONS
         /////////////////////////////////////////////////////////////////////
 
+        skipArmyPopup: function () {
+            try {
+                var button = $j("div[style*='army_popup_barbackground.jpg'] img[src*='request_skip2.gif']");
+                if ($u.hasContent(button)) {
+                    $u.log(1, 'Skipping Army Popup');
+                    caap.click(button);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in caap.skipArmyPopup: " + err);
+                return false;
+            }
+        },
+
         waitTime: 5000,
 
         visitUrl: function (url, loadWaitTime) {
@@ -29478,10 +29496,7 @@
                     throw 'No selector_dom passed to ajaxLoad';
                 }
 
-                if (!$u.hasContent(selector_load)) {
-                    throw 'No selector_load passed to ajaxLoad';
-                }
-
+                selector_load = $u.setContent(selector_load, "");
                 caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
                 if (!state.getItem('clickUrl', '').hasIndexOf($u.setContent(result, link))) {
                     state.setItem('clickUrl', caap.domain.link + '/' + $u.setContent(result, link));
@@ -29493,6 +29508,21 @@
                 }
 
                 caap.ajaxLoadIcon.css("display", "block");
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    $u.error("caap.ajaxLoad", textStatus);
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    $j(selector_dom).html(selector_load === "" ? caap.tempAjax.html() : $j(selector_load, caap.tempAjax).html());
+                    caap.ajaxLoadIcon.css("display", "none");
+                    caap.reBind();
+                    caap.waitingForDomLoad = false;
+                    caap.checkResults();
+                }
+
+                caap.ajax(caap.domain.link + '/' + link, onError, onSuccess);
+
+                /*
                 $j(selector_dom).load(caap.domain.link + '/' + link + ' ' + selector_load,
                     function (data, textStatus, XMLHttpRequest) {
                         caap.ajaxLoadIcon.css("display", "none");
@@ -29501,6 +29531,7 @@
                         caap.checkResults();
                     }
                 );
+                */
 
                 return true;
             } catch (err) {
@@ -32646,7 +32677,7 @@
 
             caap.stats['gold']['ticker'] = tArr;
             if (tArr[1] === 0 || $u.get_log_level() >= 4) {
-                $u.log(3, "goldTimeListenerr", tArr[0] + ":" + (tArr[1] < 10 ? '0' + tArr[1] : tArr[1]));
+                $u.log(3, "goldTimeListener", tArr[0] + ":" + (tArr[1] < 10 ? '0' + tArr[1] : tArr[1]));
             }
         },
 
@@ -39389,7 +39420,7 @@
         /*jslint sub: true */
         autoIncome: function () {
             try {
-                if (!config.setItem("disAutoIncome", false) || (config.getItem("NoIncomeAfterLvl", true) && state.getItem('KeepLevelUpGeneral', false))) {
+                if (config.setItem("disAutoIncome", false) || (config.getItem("NoIncomeAfterLvl", true) && state.getItem('KeepLevelUpGeneral', false))) {
                     return false;
                 }
 
@@ -40887,7 +40918,7 @@
                 }
 
                 //We don't need to send out any notifications
-                button = $j("a[class*='undo_link'], div[style*='army_popup_barbackground.jpg'] img[src*='request_skip2.gif']");
+                button = $j("a[class*='undo_link']");
                 if ($u.hasContent(button)) {
                     $u.log(1, 'Undoing/skipping notification');
                     caap.click(button);

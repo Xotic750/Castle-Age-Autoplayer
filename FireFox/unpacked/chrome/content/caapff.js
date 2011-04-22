@@ -5,7 +5,7 @@
 var caapff = {
     version: "140.25.0",
 
-    dev: "10",
+    dev: "11",
 
     files: [
         "chrome://caap/content/caap_comms.js",
@@ -38,10 +38,14 @@ var caapff = {
             if (caapff.appcontent) {
                 caapff.initPrefListener();
                 caapff.prefListener.register();
-                caapff.appcontent.addEventListener("DOMContentLoaded", caapff.onPageLoad, true);
+                caapff.appcontent.addEventListener("DOMContentLoaded", function (evtDOMLoad) {
+                    caapff.onPageLoad(evtDOMLoad);
+                }, true);
             } else {
                 caapff.log("Init retry");
-                window.setTimeout(caapff.init, 5000);
+                window.setTimeout(function (evtRetry) {
+                    caapff.init(evtRetry);
+                }, 5000);
             }
         } catch (err) {
             caapff.error("init: " + err);
@@ -50,12 +54,25 @@ var caapff = {
 
     shutdown: function (event) {
         try {
-            caapff.log("shutdown");
-            caapff.appcontent.removeEventListener("DOMContentLoaded", caapff.onPageLoad, true);
-            caapff.prefListener.unregister();
-            window.removeEventListener("load", caapff.init, false);
-            window.removeEventListener("unload", caapff.shutdown, false);
-            document.removeEventListener("CaapMessageEvent", caapff.receiveMessage, false, true);
+            if (event.originalTarget instanceof HTMLDocument) {
+                caapff.log("shutdown");
+                caapff.appcontent.removeEventListener("DOMContentLoaded", function (evtDOMLoad) {
+                    caapff.onPageLoad(evtDOMLoad);
+                }, true);
+
+                caapff.prefListener.unregister();
+                window.removeEventListener("load", function (evtLoad) {
+                    caapff.init(evtLoad);
+                }, false);
+
+                window.removeEventListener("unload", function (evtUnLoad) {
+                    caapff.shutdown(evtUnLoad);
+                }, false);
+
+                document.removeEventListener("CaapMessageEvent", function (evtMsg) {
+                    caapff.receiveMessage(evtMsg);
+                }, false, true);
+            }
         } catch (err) {
             caapff.error("shutdown: " + err);
         }
@@ -78,7 +95,10 @@ var caapff = {
             if (nodeName && nodeName === "#document" && href && caapff.isPage(href) && defaultView && defaultView.location.href === gBrowser.currentURI.spec && gBrowser.currentURI.spec !== "about:blank") {
                 caapff.log("onPageLoad: " + nodeName + " href: " + href);
                 caapff.log(event);
-                defaultView.addEventListener("unload", caapff.unloadListener, true);
+                defaultView.addEventListener("unload", function (evtPUnLoad) {
+                    caapff.unloadListener(evtPUnLoad);
+                }, true);
+
                 autorun = caapff.prefManager.getBoolPref("extensions.caap.autorun");
                 if (autorun && doc && !caapff.isRunning(doc)) {
                     caapff.log("autorun");
@@ -96,13 +116,17 @@ var caapff = {
 
     onPageUnload: function (event) {
         try {
-            caapff.running = false;
-            var defaultView = event.originalTarget.defaultView;
-            if (defaultView) {
-                defaultView.removeEventListener("unload", caapff.unloadListener, true);
+            if (event.originalTarget instanceof HTMLDocument) {
+                caapff.running = false;
+                var defaultView = event.originalTarget.defaultView;
+                if (defaultView) {
+                    defaultView.removeEventListener("unload", function (evtPUnLoad) {
+                        caapff.unloadListener(evtPUnLoad);
+                    }, true);
+                }
+    
+                caapff.log("onPageUnload");
             }
-
-            caapff.log("onPageUnload");
         } catch (err) {
             caapff.error("onPageUnload: " + err);
         }
@@ -307,9 +331,7 @@ var caapff = {
     initPrefListener: function () {
         try {
             caapff.prefListener = new caapff.PrefListener("extensions.caap.", function (branch, name) {
-                var value = caapff.prefManager.getBoolPref("extensions.caap." + name),
-                    element;
-
+                var value = caapff.prefManager.getBoolPref("extensions.caap." + name);
                 caapff.log("initPrefListener: " + name + " = " + value);
                 if (name === "autorun") {
                     caapff.updateStatusBar(name, value);
@@ -341,6 +363,14 @@ var caapff = {
     }
 };
 
-window.addEventListener("load", caapff.init, false);
-window.addEventListener("unload", caapff.shutdown, false);
-document.addEventListener("CaapMessageEvent", caapff.receiveMessage, false, true);
+window.addEventListener("load", function (evtLoad) {
+    caapff.init(evtLoad);
+}, false);
+
+window.addEventListener("unload", function (evtUnLoad) {
+    caapff.shutdown(evtUnLoad);
+}, false);
+
+document.addEventListener("CaapMessageEvent", function (evtMsg) {
+    caapff.receiveMessage(evtMsg);
+}, false, true);

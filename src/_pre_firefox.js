@@ -25,7 +25,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     if (forced || (parseInt(GM_getValue('SUC_last_update', 0), 10) + 86400000) < new Date().getTime()) {
                         GM_xmlhttpRequest({
                             method: 'GET',
-                            url: devVersion !== '0' ? 'http://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/Castle-Age-Autoplayer-FireFox.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            url: devVersion !== '0' ? 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
                             headers: {'Cache-Control': 'no-cache'},
                             onerror: function (resp) {
                                 GM_log('scriptUpdate:' + resp.status);

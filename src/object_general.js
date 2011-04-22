@@ -1037,9 +1037,10 @@
                                 mname     : '',
                                 rlink     : ''
                             },
-                            i        = 0,
-                            len      = 0,
-                            clickUrl = state.getItem('clickUrl', '');
+                            container  = '',
+                            i          = 0,
+                            len        = 0,
+                            clickUrl   = state.getItem('clickUrl', '');
 
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'mname') {
@@ -1050,10 +1051,12 @@
                         }
 
                         if (clickUrl.hasIndexOf("generals.php")) {
-                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "globalContainer", ".game", clickUrl);
+                            container = "#" + caap.domain.id[caap.domain.which] + "globalContainer";
+                            caap.ajaxLoad(changeLink.rlink, container, "", clickUrl);
                         } else {
                             general.quickSwitch = true;
-                            caap.ajaxLoad(changeLink.rlink, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", ".equippedGeneralCnt2", clickUrl);
+                            container = "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer";
+                            caap.ajaxLoad(changeLink.rlink, container, container, clickUrl);
                         }
                     };
 

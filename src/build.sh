@@ -75,7 +75,7 @@ cat ../FireFox/templates/update.xhtml.body >> ../FireFox/update.xhtml
 cp ../common/Castle-Age-Autoplayer.js ../FireFox/unpacked/chrome/content/Castle-Age-Autoplayer.js
 rm -f ../FireFox/packed/caap.xpi
 cd ../FireFox/unpacked/
-zip -r ../packed/caap.xpi *
+zip -x '*/.svn/*' -x '*/.git/' -r ../packed/caap.xpi *
 cd ../../src/
 echo "Done."
 
@@ -96,7 +96,7 @@ fi
 cp ../common/Castle-Age-Autoplayer.js ../Opera/unpacked/resources/Castle-Age-Autoplayer.js
 rm -f ../Opera/packed/caap.oex
 cd ../Opera/unpacked/
-zip -r ../packed/caap.oex *
+zip -x '*/.svn/*' -x '*/.git/' -r ../packed/caap.oex *
 cd ../../src/
 echo "Done."
 
@@ -113,7 +113,7 @@ if [ "$version" ]; then
     echo "Creating Chrome release version"
     sed -f version.sed ../Chrome/templates/manifest.rel > ../Chrome/unpacked/manifest.json
     rm -f ../Chrome/upload/Chrome.zip
-    zip -j ../Chrome/upload/Chrome.zip ../Chrome/unpacked/*
+    zip -x '*/.svn/*' -x '*/.git/' -j ../Chrome/upload/Chrome.zip ../Chrome/unpacked/*
 else
     echo "Creating Chrome development version"
     sed -f version.sed ../Chrome/templates/manifest.dev > ../Chrome/unpacked/manifest.json
