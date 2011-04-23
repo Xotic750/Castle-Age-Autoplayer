@@ -21,6 +21,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
             },
@@ -39,6 +41,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
             },
@@ -57,6 +61,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
             },
@@ -75,6 +81,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
             },
@@ -93,6 +101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": "Piece is used to create Air Orb which in turn is used to summon Valhalla, The Air Elemental"
             },
@@ -111,6 +121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -129,6 +141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -147,6 +161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -165,6 +181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -183,6 +201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Amethyst Sea Serpent",
                 "comment": "Obtained from the Serpent Egg gifts"
             },
@@ -201,6 +221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ancient Sea Serpent",
                 "comment": "Obtained from the Serpent Egg gifts"
             },
@@ -219,6 +241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -237,6 +261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -255,6 +281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -273,6 +301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -291,6 +321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -309,6 +341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -327,6 +361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -345,6 +381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -363,6 +401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -381,6 +421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -399,6 +441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -417,6 +461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -435,6 +481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -453,6 +501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -471,6 +521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -489,6 +541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -507,6 +561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -525,6 +581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -543,6 +601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -561,6 +621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -579,6 +641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -597,6 +661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -615,6 +681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -633,6 +701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -651,6 +721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -669,6 +741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -687,6 +761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -705,6 +781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -723,6 +801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -741,6 +821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -759,6 +841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -777,6 +861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -795,6 +881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -813,6 +901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -831,6 +921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -849,6 +941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -867,6 +961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -885,6 +981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -903,6 +1001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Relic (Terra) gifts"
             },
@@ -921,6 +1021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -939,6 +1041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "War of the Red Plains",
                 "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
             },
@@ -957,6 +1061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "War of the Red Plains",
                 "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
             },
@@ -975,6 +1081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "War of the Red Plains",
                 "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
             },
@@ -993,6 +1101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "War of the Red Plains",
                 "comment": "Crest Shard creates Zenarean Crest which in turn summons War of the Red Plains"
             },
@@ -1011,6 +1121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1029,6 +1141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1047,6 +1161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1065,6 +1181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1083,6 +1201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1101,6 +1221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1119,6 +1241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1137,6 +1261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1155,6 +1281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1173,6 +1301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1191,6 +1321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1209,6 +1341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1227,6 +1361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1245,6 +1381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1263,6 +1401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1281,6 +1421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1299,6 +1441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1317,6 +1461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Army of the Apocalypse"
             },
@@ -1335,6 +1481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Army of the Apocalypse"
             },
@@ -1353,6 +1501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Army of the Apocalypse"
             },
@@ -1371,6 +1521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Army of the Apocalypse"
             },
@@ -1389,6 +1541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Dragon",
                 "comment": null
             },
@@ -1407,6 +1561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Emerald Sea Serpent",
                 "comment": "Obtained from the Serpent Egg gifts"
             },
@@ -1425,6 +1581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1443,6 +1601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1461,6 +1621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1479,6 +1641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Used to create Stormbinder.  This item can be dropped by Agamemnon, the Overseer or created via Alchemy."
             },
@@ -1497,6 +1661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1515,6 +1681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1533,6 +1701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1551,6 +1721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1569,6 +1741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1587,6 +1761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1605,6 +1781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1623,6 +1801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1641,6 +1821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1659,6 +1841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1677,6 +1861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1695,6 +1881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1713,6 +1901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1731,6 +1921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Shield gifts"
             },
@@ -1749,6 +1941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Amulet Gifts"
             },
@@ -1767,6 +1961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1785,6 +1981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Dragon",
                 "comment": null
             },
@@ -1803,6 +2001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from Mystery Robe Gifts"
             },
@@ -1821,6 +2021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Axe Gifts"
             },
@@ -1839,6 +2041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1857,6 +2061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1875,6 +2081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1893,6 +2101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Shield gifts"
             },
@@ -1911,6 +2121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Dragon",
                 "comment": "Piece is also used to summon Cronus, The World Hydra"
             },
@@ -1929,6 +2141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -1947,6 +2161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Relic (Terra) gifts"
             },
@@ -1965,8 +2181,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Heart of Ice",
+                "image": "eq_glacius_ingredient.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Hammer of Storms",
+                "recipe1image": null,
+                "recipe2": "Aegis of Stone",
+                "recipe2image": null,
+                "recipe3": "Helm of Frost",
+                "recipe3image": null,
+                "recipe4": "Glacial Plate",
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Glacius"
             },
             {
                 "name": "Hellstone",
@@ -1983,6 +2221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2001,6 +2241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2019,6 +2261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Axe Gifts"
             },
@@ -2037,6 +2281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2055,6 +2301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, the Ice Elemental",
                 "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
             },
@@ -2073,6 +2321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, the Ice Elemental",
                 "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
             },
@@ -2091,6 +2341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, the Ice Elemental",
                 "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
             },
@@ -2109,6 +2361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, the Ice Elemental",
                 "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
             },
@@ -2127,6 +2381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, the Ice Elemental",
                 "comment": "Piece is used to create Ice Orb which in turn is used to summon Ragnarok, the Ice Elemental"
             },
@@ -2145,6 +2401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2163,6 +2421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Amulet Gifts"
             },
@@ -2181,6 +2441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from Mystery Robe Gifts"
             },
@@ -2199,8 +2461,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Shield Gifts"
+            },
+            {
+                "name": "Lava Flask",
+                "image": "eq_magmos_ingredient.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Hammer of Storms",
+                "recipe1image": null,
+                "recipe2": "Aegis of Stone",
+                "recipe2image": null,
+                "recipe3": "Glacial Plate",
+                "recipe3image": null,
+                "recipe4": "Pyromaniac Plate",
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Magmos"
             },
             {
                 "name": "Lava Plant",
@@ -2217,6 +2501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2235,6 +2521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
             },
@@ -2253,6 +2541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
             },
@@ -2271,6 +2561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
             },
@@ -2289,6 +2581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
             },
@@ -2307,6 +2601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": "Piece is used to create Lava Orb which in turn is used to summon Gehenna, The Fire Elemental"
             },
@@ -2325,6 +2621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2343,6 +2641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Life force is used to create divine item Force of Nature (DP 80), must be level 175 to create.  Life force is sometimes dropped by Jahanna, Priestess of Nature."
             },
@@ -2361,6 +2661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2379,6 +2681,28 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Mountain Core",
+                "image": "eq_shardros_ingredient.jpg",
+                "type": "eq_shardros_ingredient.jpg",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Hammer of Storms",
+                "recipe1image": " ",
+                "recipe2": "Stonebreaker",
+                "recipe2image": " ",
+                "recipe3": "Aegis of Stone",
+                "recipe3image": null,
+                "recipe4": "Glacial Plate",
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2397,6 +2721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2415,6 +2741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Relic (Terra) gifts"
             },
@@ -2433,6 +2761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2451,6 +2781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Obtained from Mystery Tome Gifts"
             },
@@ -2469,6 +2801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying War of the Red Plains"
             },
@@ -2487,6 +2821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from Mystery Robe Gifts"
             },
@@ -2505,6 +2841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2523,6 +2861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2541,6 +2881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2559,6 +2901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Dragon",
                 "comment": "Piece is also used to summon Cronus, The World Hydra"
             },
@@ -2577,6 +2921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2595,6 +2941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2613,6 +2961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2631,6 +2981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Aegis of Kings is a divine item (divine power 120), must be level 175 to create.  Rune of Agamemnon is sometimes dropped by Agamemnon, the Overseer"
             },
@@ -2649,6 +3001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2667,6 +3021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2685,6 +3041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2703,6 +3061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Aurora. "
             },
@@ -2721,6 +3081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Amulet Gifts"
             },
@@ -2739,6 +3101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Sapphire Sea Serpent",
                 "comment": "Obtained from the Serpent Egg gifts"
             },
@@ -2757,6 +3121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2775,6 +3141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2793,6 +3161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2811,6 +3181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2829,6 +3201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2847,6 +3221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2865,6 +3241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Obtained from Mystery Tome Gifts"
             },
@@ -2883,6 +3261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Obtained from Mystery Tome Gifts"
             },
@@ -2901,6 +3281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Cronus, The World Hydra",
                 "comment": "Piece is used to create Serpentine Shield which in turn summons Cronus, The World Hydra"
             },
@@ -2919,6 +3301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2937,6 +3321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Aegis of Kings is a divine item (divine power 120), must be level 175 to create.  Soul of Agamemnon is sometimes dropped by Agamemnon, the Overseer, but only for the summoner."
             },
@@ -2955,6 +3341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -2973,6 +3361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
             },
@@ -2991,6 +3381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
             },
@@ -3009,8 +3401,50 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
+            },
+            {
+                "name": "Storm Essence",
+                "image": "eq_kromash_ingredient.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Storms",
+                "recipe1image": null,
+                "recipe2": "Hammer of Storms",
+                "recipe2image": null,
+                "recipe3": "Aegis of Stone",
+                "recipe3image": null,
+                "recipe4": "Glacial Plate",
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
+            },
+            {
+                "name": "Storm Symbol",
+                "image": "gift_giant_storm.jpg",
+                "type": "Alchemy",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": "Kromash",
+                "comment": null
             },
             {
                 "name": "Sword Shard",
@@ -3027,6 +3461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3045,6 +3481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3063,6 +3501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3081,6 +3521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3099,6 +3541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3117,6 +3561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3135,6 +3581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3153,6 +3601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Valhalla, the Air Elemental.  Used to create Hand of Valhalla and Essence of Valhalla which in turn are used to create Stormbinder"
             },
@@ -3171,6 +3621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3189,6 +3641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3207,6 +3661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3225,6 +3681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3243,6 +3701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Bahamut and Alpha Bahamut",
                 "comment": null
             },
@@ -3261,6 +3721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Bahamut and Alpha Bahamut",
                 "comment": null
             },
@@ -3279,6 +3741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Bahamut and Alpha Bahamut",
                 "comment": null
             },
@@ -3297,6 +3761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Bahamut and Alpha Bahamut",
                 "comment": null
             },
@@ -3315,6 +3781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3333,6 +3801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3351,6 +3821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3369,6 +3841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3387,6 +3861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3405,6 +3881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Collected from receiving Mystery Axe Gifts"
             },
@@ -3423,6 +3901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3441,6 +3921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Valhalla, The Air Elemental",
                 "comment": null
             },
@@ -3459,6 +3941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 stamina when Gorlak is equipped"
             },
@@ -3477,6 +3961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
             },
@@ -3495,6 +3981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3513,6 +4001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3531,6 +4021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3549,6 +4041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3567,6 +4061,8 @@
                 "recipe3image": null,
                 "recipe4": "Signet of Azriel",
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Army of the Apocalypse"
             },
@@ -3585,6 +4081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Araxis"
             },
@@ -3603,6 +4101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3621,6 +4121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3639,6 +4141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3657,6 +4161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3675,6 +4181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina to Morrigan"
             },
@@ -3693,6 +4201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3711,6 +4221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3729,6 +4241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3747,6 +4261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +2 Defense when Chase is equipped"
             },
@@ -3765,6 +4281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stam when Delfina equipped"
             },
@@ -3783,6 +4301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3801,6 +4321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3819,6 +4341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3837,6 +4361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 attack to Skaar"
             },
@@ -3855,6 +4381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -3873,6 +4401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Deathrune Campaign Raid",
                 "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
             },
@@ -3891,6 +4421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": null
             },
@@ -3909,6 +4441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
             },
@@ -3927,6 +4461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
             },
@@ -3945,6 +4481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
             },
@@ -3963,6 +4501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
             },
@@ -3981,6 +4521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Genesis, The Earth Elemental",
                 "comment": "Piece is used to create Earth Orb which in turn summons Genesis, The Earth Elemental"
             },
@@ -3999,6 +4541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4017,6 +4561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4035,6 +4581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4053,6 +4601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4071,6 +4621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Components are Collected from receiving Mystery Amulet Gifts, +4 Energy when Vanquish is equipped"
             },
@@ -4089,6 +4641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Divine Power: 80, must be level 175 to create this item.  Currently best defensive amulet in game."
             },
@@ -4107,6 +4661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4125,6 +4681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4143,6 +4701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4161,6 +4721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 3, Tier 4 Award"
             },
@@ -4179,6 +4741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Deathrune Campaign Raid",
                 "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
             },
@@ -4197,6 +4761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4215,6 +4781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4233,6 +4801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 energy when Aria is equipped"
             },
@@ -4251,6 +4821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina when Halycon is equipped"
             },
@@ -4269,6 +4841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 stamina when Lyra is equipped"
             },
@@ -4287,6 +4861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4305,6 +4881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped from Season 2 Arena, Tier 3 Award, +8 defense when Shino is equipped"
             },
@@ -4323,6 +4901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4341,6 +4921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Ragnarok, The Ice Elemental",
                 "comment": null
             },
@@ -4359,6 +4941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4377,6 +4961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4395,6 +4981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Energy when Jada is equipped"
             },
@@ -4413,6 +5001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4431,6 +5021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Demi Reward: Malekus, Divine Power +10"
             },
@@ -4449,6 +5041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4467,6 +5061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gehenna, The Fire Elemental",
                 "comment": null
             },
@@ -4485,6 +5081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4503,6 +5101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4521,6 +5121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4539,6 +5141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4557,6 +5161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical chance when Azalia is equipped"
             },
@@ -4575,6 +5181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Energy when Scarlett is Equipped"
             },
@@ -4593,6 +5201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4611,6 +5221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4629,6 +5241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4647,6 +5261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4665,6 +5281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4683,6 +5301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4701,6 +5321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4719,6 +5341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4737,6 +5361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4755,6 +5381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 stamina when Karn is equipped"
             },
@@ -4773,6 +5401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4791,6 +5421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4809,6 +5441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4827,6 +5461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4845,8 +5481,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Energy when Elizabeth Lione is equipped"
+            },
+            {
+                "name": "Ring of the Prophets",
+                "image": null,
+                "type": "Amulet",
+                "attack": 11,
+                "defense": 15,
+                "hero": "Shivak",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Ruby Ore",
@@ -4863,6 +5521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4881,6 +5541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4899,6 +5561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4917,6 +5581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4935,6 +5601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4953,6 +5621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -4971,6 +5641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Stamina when Elora is equipped"
             },
@@ -4989,6 +5661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Heal +10 additional health upon victory as Cleric in Guild Battles when Azriel is equipped"
             },
@@ -5007,6 +5681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gain +3 additional attack and defense as Warrior in Guild Battles when Keira is equipped"
             },
@@ -5025,6 +5701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Inflict +30 additional damage upon victory as Rogue in Guild Battles when Lotus is equipped"
             },
@@ -5043,6 +5721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Inflict +1 additional damage upon victory as Mage in Guild Battles when Sylvana is equipped, must be Level 150 to create."
             },
@@ -5061,6 +5741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5079,6 +5761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 Energy when Solara is equipped"
             },
@@ -5097,6 +5781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2% crit while Adriana is equipped"
             },
@@ -5115,6 +5801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5133,6 +5821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5151,6 +5841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5169,6 +5861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 max stamina when Suri is equipped"
             },
@@ -5187,6 +5881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5205,6 +5901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical when Terra is equipped"
             },
@@ -5223,6 +5921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 defense to Lilith & Riku"
             },
@@ -5241,6 +5941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5259,6 +5961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5277,6 +5981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% crit when Kataan is equipped"
             },
@@ -5295,6 +6001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 Stamina when Crissana is equipped"
             },
@@ -5313,6 +6021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5331,8 +6041,10 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
-                "comment": null
+                "comment": "Dropped by Aurora, Valhalla, Jahanna and Kromash"
             },
             {
                 "name": "Vincents Soul",
@@ -5349,6 +6061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5367,6 +6081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5385,6 +6101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped by Valhalla, the Air Elemental"
             },
@@ -5403,6 +6121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped from Arena Season 1, Tier 3 Award."
             },
@@ -5421,6 +6141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 energy when Anwar is equipped"
             },
@@ -5439,6 +6161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Energy when Mercedes is equipped"
             },
@@ -5457,6 +6181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to player when Fenris is equipped"
             },
@@ -5475,6 +6201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% Critical when Darius is equipped"
             },
@@ -5493,6 +6221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5511,6 +6241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5529,6 +6261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5547,6 +6281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Azalia"
             },
@@ -5565,6 +6301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5583,6 +6321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Arielle"
             },
@@ -5601,6 +6341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5619,6 +6361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+5 Defense to Strider"
             },
@@ -5637,6 +6381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5655,6 +6401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5673,6 +6421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Kaylen"
             },
@@ -5691,6 +6441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5709,6 +6461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Crom"
             },
@@ -5727,6 +6481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5745,6 +6501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Miri"
             },
@@ -5763,6 +6521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Slayer"
             },
@@ -5781,6 +6541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5799,6 +6561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5817,6 +6581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Scarlett"
             },
@@ -5835,6 +6601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Battle of the Dark Legion",
                 "comment": null
             },
@@ -5853,6 +6621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5871,6 +6641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5889,6 +6661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5907,6 +6681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5925,6 +6701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5943,6 +6721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Adriana"
             },
@@ -5961,6 +6741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical when Skaar is equipped"
             },
@@ -5979,6 +6761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -5997,6 +6781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Defense to Gallador"
             },
@@ -6015,6 +6801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 defense to Draconius"
             },
@@ -6033,6 +6821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6051,6 +6841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6069,6 +6861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6087,6 +6881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Gawain"
             },
@@ -6105,6 +6901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6123,6 +6921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6141,6 +6941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6159,6 +6961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6177,6 +6981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6195,6 +7001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6213,6 +7021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+5 Defense when Garlan is equipped"
             },
@@ -6231,6 +7041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6249,6 +7061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6267,6 +7081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped from Season 2 Arena, Tier 4 Award, +1% critical when Shino is equipped"
             },
@@ -6285,6 +7101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6303,6 +7121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6321,6 +7141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6339,6 +7161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6357,6 +7181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6375,6 +7201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6393,6 +7221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 defense to Kataan"
             },
@@ -6411,6 +7241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6429,6 +7261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6447,8 +7281,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Jada"
+            },
+            {
+                "name": "Kromash Karapace",
+                "image": "eq_kromash_armor.jpg",
+                "type": "Armor",
+                "attack": 9,
+                "defense": 12,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
             },
             {
                 "name": "Lava Plate",
@@ -6465,6 +7321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Sano"
             },
@@ -6483,6 +7341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6501,6 +7361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6519,6 +7381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6537,6 +7401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+0.5% Critical when Fenris is equipped"
             },
@@ -6555,6 +7421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6573,6 +7441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Karn"
             },
@@ -6591,6 +7461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Divine Item (Divine Power 10).  Granted at 6500 demi-points with Aurora"
             },
@@ -6609,6 +7481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6627,6 +7501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6645,6 +7521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +3 Defense to Edea"
             },
@@ -6663,6 +7541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Scourge"
             },
@@ -6681,6 +7561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6699,6 +7581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Gorlak"
             },
@@ -6717,6 +7601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6735,6 +7621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6753,6 +7641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6771,6 +7661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6789,6 +7681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6807,6 +7701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6825,8 +7721,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Lailah"
+            },
+            {
+                "name": "Pyromaniac Plate",
+                "image": null,
+                "type": "Armor",
+                "attack": 20,
+                "defense": 20,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Raven Cloak",
@@ -6843,6 +7761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6861,6 +7781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Dexter"
             },
@@ -6879,6 +7801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6897,6 +7821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6915,6 +7841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6933,6 +7861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6951,6 +7881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6969,6 +7901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -6987,6 +7921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7005,6 +7941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7023,6 +7961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 Energy when Sophia is equipped"
             },
@@ -7041,6 +7981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Godric"
             },
@@ -7059,6 +8001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7077,6 +8021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7095,6 +8041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Season 3 Arena Tier 2 Award"
             },
@@ -7113,6 +8061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped from Season 1 Arena, Tier 2 Award"
             },
@@ -7131,6 +8081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7149,6 +8101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+8 Health when Darius is equipped"
             },
@@ -7167,6 +8121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7185,6 +8141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7203,6 +8161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7221,6 +8181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Anwar"
             },
@@ -7239,6 +8201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 defense to Zarevok"
             },
@@ -7257,6 +8221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7275,6 +8241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7293,6 +8261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7311,6 +8281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% crit when Miri is equipped"
             },
@@ -7329,6 +8301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Season 3 Arena Tier 1 Award"
             },
@@ -7347,6 +8321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Delfina"
             },
@@ -7365,6 +8341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7383,6 +8361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+5 attack to Lotus Ravenmoore"
             },
@@ -7401,6 +8381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Stamina when Mephistopheles is equipped"
             },
@@ -7419,6 +8401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina when Dante is equipped"
             },
@@ -7437,6 +8421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Stamina when Elin is equipped"
             },
@@ -7455,6 +8441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7473,6 +8461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7491,6 +8481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Halycon"
             },
@@ -7509,6 +8501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical chance when Azul is equipped"
             },
@@ -7527,6 +8521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7545,6 +8541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7563,6 +8561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Hand of Valhalla is also used to create Stormbinder.  This item can be dropped by Agamemnon, the Overseer or created via Alchemy."
             },
@@ -7581,6 +8581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7599,6 +8601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7617,6 +8621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7635,6 +8641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7653,6 +8661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7671,8 +8681,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Kromash Krusher",
+                "image": "eq_kromash_gauntlet.jpg",
+                "type": "Glove",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
             },
             {
                 "name": "Mythril Fists",
@@ -7689,6 +8721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Stamina when Darius is equipped"
             },
@@ -7707,6 +8741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7725,6 +8761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% crit when Scourge is equipped"
             },
@@ -7743,6 +8781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7761,6 +8801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7779,6 +8821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7797,6 +8841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 energy when Slayer is equipped"
             },
@@ -7815,6 +8861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7833,6 +8881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7851,6 +8901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7869,6 +8921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7887,6 +8941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7905,6 +8961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7923,6 +8981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical chance when Elora is equipped"
             },
@@ -7941,6 +9001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -7959,6 +9021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical when Hyperion is equipped"
             },
@@ -7977,6 +9041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Dropped from Season 2 Arena, Tier 2 Award, +8 attack when Shino is equipped"
             },
@@ -7995,6 +9061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8013,6 +9081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8031,6 +9101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8049,6 +9121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8067,6 +9141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8085,6 +9161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8103,6 +9181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8121,6 +9201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Defense to Cid"
             },
@@ -8139,6 +9221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8157,6 +9241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina when Darius is equipped"
             },
@@ -8175,6 +9261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8193,6 +9281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8211,6 +9301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8229,6 +9321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8247,6 +9341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8265,6 +9361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina when Gallador is equipped"
             },
@@ -8283,6 +9381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Deathrune Campaign Raid",
                 "comment": null
             },
@@ -8301,6 +9401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 energy when Draconius is equipped"
             },
@@ -8319,6 +9421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8337,6 +9441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8355,6 +9461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 Defense when Aeris is equipped"
             },
@@ -8373,6 +9481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Stamina when Gawain is equipped"
             },
@@ -8391,6 +9501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8409,6 +9521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Garlan"
             },
@@ -8427,6 +9541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8445,6 +9561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 defense to Suri"
             },
@@ -8463,6 +9581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 energy when Lilith & Riku is equipped"
             },
@@ -8481,6 +9601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8499,6 +9621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8517,6 +9641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8535,6 +9661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8553,8 +9681,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Kromash Krown",
+                "image": "eq_kromash_helm.jpg",
+                "type": "Helmet",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
             },
             {
                 "name": "Lifegiver Helm",
@@ -8571,6 +9721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8589,6 +9741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8607,6 +9761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8625,6 +9781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8643,6 +9801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8661,6 +9821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8679,6 +9841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Stamina when Scourge is equipped"
             },
@@ -8697,6 +9861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8715,6 +9881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "damage received reduced by 1 when Dexter is equipped"
             },
@@ -8733,6 +9901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8751,6 +9921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Deathrune Campaign Raid",
                 "comment": "Piece is used to create Drake Helm which in turn summons Deathrune Campaign Raid"
             },
@@ -8769,6 +9941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8787,6 +9961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8805,6 +9981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8823,6 +10001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Season 2 Arena, Tier 1 Award, +3 stamina when Shino is equipped"
             },
@@ -8841,6 +10021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8859,6 +10041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8877,6 +10061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 energy to Terra"
             },
@@ -8895,6 +10081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8913,6 +10101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Max Stamina to player when Minerva is equipped"
             },
@@ -8931,6 +10121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -8949,6 +10141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 3, Tier 6 Reward"
             },
@@ -8967,6 +10161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Season 2 Arena, Tier 6 Award."
             },
@@ -8985,6 +10181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Hyperion"
             },
@@ -9003,6 +10201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9021,6 +10221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9039,6 +10241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Energy when Zin is equipped"
             },
@@ -9057,6 +10261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% crit when Kaylen is equipped"
             },
@@ -9075,6 +10281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9093,6 +10301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% crit when Barbarus is equipped"
             },
@@ -9111,6 +10321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9129,6 +10341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Battle of the Dark Legion",
                 "comment": null
             },
@@ -9147,6 +10361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Azriel"
             },
@@ -9165,6 +10381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9183,6 +10401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9201,6 +10421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9219,6 +10441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9237,6 +10461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9255,6 +10481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9273,6 +10501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical when Kaiser is equipped"
             },
@@ -9291,6 +10521,28 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Binding Will",
+                "image": null,
+                "type": "Magic",
+                "attack": 14,
+                "defense": 15,
+                "hero": "Shivak",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9309,6 +10561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9327,6 +10581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Dante"
             },
@@ -9345,6 +10601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9363,6 +10621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Colossus of Terra",
                 "comment": null
             },
@@ -9381,6 +10641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9399,6 +10661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9417,6 +10681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9435,6 +10701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9453,6 +10721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9471,6 +10741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9489,8 +10761,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Empowering Storm",
+                "image": "eq_kromash_spell.jpg",
+                "type": "Magic",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
             },
             {
                 "name": "Energy Bolt",
@@ -9507,6 +10801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9525,6 +10821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9543,6 +10841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Medius"
             },
@@ -9561,6 +10861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 1, Tier 4 Award"
             },
@@ -9579,6 +10881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9597,6 +10901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9615,6 +10921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9633,6 +10941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9651,6 +10961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 3, Tier 5 Award"
             },
@@ -9669,6 +10981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Battle of the Dark Legion",
                 "comment": null
             },
@@ -9687,6 +11001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9705,6 +11021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9723,6 +11041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9741,6 +11061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Dante"
             },
@@ -9759,8 +11081,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Lava Inferno",
+                "image": null,
+                "type": "magic",
+                "attack": 35,
+                "defense": 19,
+                "hero": null,
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Divine Power: 40"
             },
             {
                 "name": "Lightning Bolt",
@@ -9777,6 +11121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9795,6 +11141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9813,6 +11161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Lotus",
                 "comment": null
             },
@@ -9831,6 +11181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9849,6 +11201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9867,6 +11221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9885,6 +11241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Energy when Darius is equipped"
             },
@@ -9903,6 +11261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Aria"
             },
@@ -9921,6 +11281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9939,6 +11301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9957,6 +11321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -9975,6 +11341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Alpha Mephistopheles",
                 "comment": null
             },
@@ -9993,6 +11361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Lion's Rebellion",
                 "comment": null
             },
@@ -10011,6 +11381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Aurora",
                 "comment": null
             },
@@ -10029,6 +11401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Azriel",
                 "comment": null
             },
@@ -10047,6 +11421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Corvintheus",
                 "comment": null
             },
@@ -10065,6 +11441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Gildamesh",
                 "comment": null
             },
@@ -10083,6 +11461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Jahanna",
                 "comment": null
             },
@@ -10101,6 +11481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Keira",
                 "comment": null
             },
@@ -10119,6 +11501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Mephistopheles",
                 "comment": null
             },
@@ -10137,6 +11521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Skaar Deathrune",
                 "comment": null
             },
@@ -10155,6 +11541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10173,6 +11561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10191,6 +11581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10209,6 +11601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack to Morrigan"
             },
@@ -10227,6 +11621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10245,6 +11641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10263,6 +11661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10281,6 +11681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10299,6 +11701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": " ",
                 "comment": "Sometimes dropped after slaying Vincent or Alpha Vincent"
             },
@@ -10317,6 +11721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Sylvanas",
                 "comment": null
             },
@@ -10335,6 +11741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10353,6 +11761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Stamina when Godric is equipped"
             },
@@ -10371,6 +11781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10389,6 +11801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10407,6 +11821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10425,6 +11841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Vanquish"
             },
@@ -10443,6 +11861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Azul"
             },
@@ -10461,6 +11881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Darius"
             },
@@ -10479,6 +11901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "This is a divine item, must be level 175 to create.  Divine power: 120"
             },
@@ -10497,6 +11921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped by Agamemnon, the Overseer. Used to create the Aegis of Kings (Divine Power 120, must be level 175 to create)."
             },
@@ -10515,6 +11941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10533,6 +11961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Zin"
             },
@@ -10551,6 +11981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 defense to Lyra"
             },
@@ -10569,6 +12001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10587,6 +12021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10605,6 +12041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10623,6 +12061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +1 Defense to Araxis, Obtained from Mystery Shield gifts"
             },
@@ -10641,6 +12081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10659,6 +12101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10677,6 +12121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 stamina when Skaar is equipped"
             },
@@ -10695,6 +12141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10713,6 +12161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10731,6 +12181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+5 Defense when Dragan is equipped"
             },
@@ -10749,6 +12201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10767,6 +12221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10785,6 +12241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10803,6 +12261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10821,6 +12281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "damage received reduced by 1 when Lailah is equipped"
             },
@@ -10839,6 +12301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10857,6 +12321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10875,6 +12341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10893,6 +12361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10911,6 +12381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10929,6 +12401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10947,6 +12421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 defense to Minerva"
             },
@@ -10965,6 +12441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -10983,6 +12461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11001,6 +12481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11019,6 +12501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11037,6 +12521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +3 Defense to Morrigan.  Obtained from Mystery Tome Gifts."
             },
@@ -11055,6 +12541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11073,6 +12561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11091,6 +12581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Solara"
             },
@@ -11109,6 +12601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% Critical when Serene is equipped"
             },
@@ -11127,6 +12621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "Cronus, The World Hydra",
                 "comment": null
             },
@@ -11145,6 +12641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Arielle"
             },
@@ -11163,6 +12661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11181,6 +12681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Defense when Dante is equipped"
             },
@@ -11199,6 +12701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Elin"
             },
@@ -11217,6 +12721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Defense to Elizabeth Lione"
             },
@@ -11235,6 +12741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11253,6 +12761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11271,8 +12781,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
+            },
+            {
+                "name": "Storm Buckler",
+                "image": "eq_kromash_shield.jpg",
+                "type": "Shield",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Shield of Storms",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": "Dropped by Kromash"
             },
             {
                 "name": "Sword of Redemption",
@@ -11289,6 +12821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11307,6 +12841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11325,6 +12861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 defense to Terra"
             },
@@ -11343,6 +12881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11361,6 +12901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Defense to Crissana"
             },
@@ -11379,6 +12921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Barbarus"
             },
@@ -11397,6 +12941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11415,6 +12961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": "War of the Red Plains",
                 "comment": null
             },
@@ -11433,6 +12981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11451,6 +13001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11469,6 +13021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11487,6 +13041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11505,6 +13061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11523,6 +13081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11541,6 +13101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11559,6 +13121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11577,6 +13141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11595,6 +13161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11613,6 +13181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11631,6 +13201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11649,6 +13221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11667,6 +13241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11685,6 +13261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11703,6 +13281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11721,6 +13301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11739,6 +13321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11757,6 +13341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11775,6 +13361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11793,6 +13381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11811,6 +13401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11829,6 +13421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11847,6 +13441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11865,6 +13461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11883,6 +13481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11901,6 +13501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11919,6 +13521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11937,6 +13541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11955,6 +13561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11973,6 +13581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -11991,6 +13601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12009,6 +13621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 1, Tier 6 Award."
             },
@@ -12027,6 +13641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12045,6 +13661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12063,6 +13681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12081,6 +13701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12099,6 +13721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12117,6 +13741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12135,6 +13761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12153,6 +13781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12171,6 +13801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12189,6 +13821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12207,6 +13841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12225,6 +13861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12243,6 +13881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12261,6 +13901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12279,6 +13921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12297,6 +13941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12315,6 +13961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12333,6 +13981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12351,6 +14001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12369,6 +14021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12387,6 +14041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12405,6 +14061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12423,6 +14081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12441,6 +14101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12459,6 +14121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12477,6 +14141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12495,6 +14161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12513,6 +14181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12531,6 +14201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12549,6 +14221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12567,6 +14241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12585,6 +14261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12603,6 +14281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12621,6 +14301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12639,6 +14321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12657,6 +14341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12675,6 +14361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12693,6 +14381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12711,6 +14401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12729,6 +14421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12747,6 +14441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12765,6 +14461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12783,6 +14481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12801,6 +14501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12819,6 +14521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12837,6 +14541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12855,6 +14561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12873,6 +14581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12891,6 +14601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12909,6 +14621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12927,6 +14641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12945,6 +14661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12963,6 +14681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12981,6 +14701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -12999,6 +14721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13017,6 +14741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13035,6 +14761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13053,6 +14781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13071,6 +14801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13089,6 +14821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13107,6 +14841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13125,6 +14861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13143,6 +14881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13161,6 +14901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13179,6 +14921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13197,6 +14941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13215,6 +14961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13233,6 +14981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13251,6 +15001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13269,6 +15021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13287,6 +15041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13305,6 +15061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+5 Attack to Aeris"
             },
@@ -13323,6 +15081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13341,6 +15101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13359,6 +15121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Bonus: +1 Attack to Araxis"
             },
@@ -13377,6 +15141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13395,6 +15161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack to Strider"
             },
@@ -13413,6 +15181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13431,6 +15201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13449,6 +15221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13467,6 +15241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Azul"
             },
@@ -13485,6 +15261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13503,6 +15281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13521,6 +15301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13539,6 +15321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13557,6 +15341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13575,6 +15361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack to Arielle"
             },
@@ -13593,6 +15381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13611,6 +15401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13629,6 +15421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Miri"
             },
@@ -13647,6 +15441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Vanquish"
             },
@@ -13665,6 +15461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Sano"
             },
@@ -13683,6 +15481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13701,6 +15501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13719,6 +15521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Garlan"
             },
@@ -13737,6 +15541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3% Critical when Celesta is equipped"
             },
@@ -13755,6 +15561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13773,6 +15581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Cid"
             },
@@ -13791,6 +15601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Delfina"
             },
@@ -13809,6 +15621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13827,6 +15641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13845,6 +15661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 energy when Elena is equipped"
             },
@@ -13863,6 +15681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13881,6 +15701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13899,6 +15721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Darius"
             },
@@ -13917,6 +15741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13935,6 +15761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Defense to Scarlett"
             },
@@ -13953,6 +15781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13971,6 +15801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -13989,6 +15821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14007,6 +15841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Kaiser"
             },
@@ -14025,6 +15861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Barbarus"
             },
@@ -14043,6 +15881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14061,6 +15901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14079,6 +15921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14097,6 +15941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14115,6 +15961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Gallador"
             },
@@ -14133,6 +15981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack when Dragan is equipped"
             },
@@ -14151,6 +16001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14169,6 +16021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14187,6 +16041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack to Draconius"
             },
@@ -14205,6 +16061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14223,6 +16081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14241,6 +16101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Aria"
             },
@@ -14259,6 +16121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Gawain"
             },
@@ -14277,6 +16141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14295,6 +16161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14313,6 +16181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +9 Health when Deianira is equipped.  Obtained by going to the bottom of the Guild Shop and recruiting 25 friends to click on your gift link.  Available as part of the Festival celebration."
             },
@@ -14331,6 +16201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Dante"
             },
@@ -14349,6 +16221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14367,6 +16241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Lilith & Riku"
             },
@@ -14385,6 +16261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14403,6 +16281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Components collected from Mystery Axe Gifts, +1 attack when Shino is equipped"
             },
@@ -14421,6 +16301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Common drop from Vanguard Chest."
             },
@@ -14439,6 +16321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Medius"
             },
@@ -14457,6 +16341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14475,6 +16361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14493,6 +16381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14511,6 +16401,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14529,6 +16421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Elora"
             },
@@ -14547,6 +16441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Dexter"
             },
@@ -14565,6 +16461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Gorlak"
             },
@@ -14583,6 +16481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14601,6 +16501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Halycon"
             },
@@ -14619,6 +16521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Divine Power 120.  The ingredients can be obtained by defeating Aurora.  Currently the Best Overall Weapon in the game"
             },
@@ -14637,6 +16541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped after slaying Alpha Mephistopheles, +5 Attack to Chimerus"
             },
@@ -14655,6 +16561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14673,6 +16581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14691,6 +16601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Piece is used to create Excalibur which in turn creates Soulforge"
             },
@@ -14709,6 +16621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14727,6 +16641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Lailah"
             },
@@ -14745,6 +16661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14763,6 +16681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14781,6 +16701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14799,6 +16721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14817,6 +16741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Jada"
             },
@@ -14835,6 +16761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14853,6 +16781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14871,6 +16801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14889,6 +16821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14907,6 +16841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14925,6 +16861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Adriana"
             },
@@ -14943,6 +16881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14961,6 +16901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14979,6 +16921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -14997,6 +16941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15015,6 +16961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15033,6 +16981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15051,6 +17001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15069,6 +17021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+0.5% Critical when Fenris is equipped"
             },
@@ -15087,6 +17041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15105,6 +17061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15123,6 +17081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack when Edea is equipped"
             },
@@ -15141,6 +17101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": " +2 Attack to Nautica"
             },
@@ -15159,6 +17121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15177,6 +17141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15195,6 +17161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15213,6 +17181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15231,6 +17201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15249,6 +17221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15267,6 +17241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Kaiser"
             },
@@ -15285,6 +17261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15303,8 +17281,30 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Azalia"
+            },
+            {
+                "name": "Prophetic Wand",
+                "image": null,
+                "type": "Weapon",
+                "attack": 17,
+                "defense": 21,
+                "hero": "Shivak",
+                "recipe1": null,
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
             },
             {
                 "name": "Punisher",
@@ -15321,6 +17321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15339,6 +17341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Godric"
             },
@@ -15357,6 +17361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Minerva"
             },
@@ -15375,6 +17381,28 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
+                "summon": null,
+                "comment": null
+            },
+            {
+                "name": "Rocklasher",
+                "image": "eq_shardros_weapon1.jpg",
+                "type": "Weapon",
+                "attack": null,
+                "defense": null,
+                "hero": null,
+                "recipe1": "Stonebreaker",
+                "recipe1image": null,
+                "recipe2": null,
+                "recipe2image": null,
+                "recipe3": null,
+                "recipe3image": null,
+                "recipe4": null,
+                "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15393,6 +17421,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15411,6 +17441,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15429,6 +17461,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Lyra"
             },
@@ -15447,6 +17481,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Defense when Penelope is equipped"
             },
@@ -15465,6 +17501,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Crissana"
             },
@@ -15483,6 +17521,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Zin"
             },
@@ -15501,6 +17541,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15519,6 +17561,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15537,6 +17581,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15555,6 +17601,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15573,6 +17621,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15591,6 +17641,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15609,6 +17661,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15627,6 +17681,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Karn"
             },
@@ -15645,6 +17701,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Solara"
             },
@@ -15663,6 +17721,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15681,6 +17741,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% Crit when Strider, Dragan, Sophia or Penelope is equipped"
             },
@@ -15699,6 +17761,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15717,6 +17781,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15735,6 +17801,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Sometimes dropped by Aurora. Used to create Heart of the Woods."
             },
@@ -15753,6 +17821,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15771,6 +17841,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15789,6 +17861,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+4 Stamina to Elizabeth Lione"
             },
@@ -15807,6 +17881,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15825,6 +17901,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 Attack to Kaylen"
             },
@@ -15843,6 +17921,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15861,6 +17941,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15879,6 +17961,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Elin"
             },
@@ -15897,6 +17981,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15915,6 +18001,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15933,6 +18021,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -15951,6 +18041,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Gives +3 Attack to Terra"
             },
@@ -15969,6 +18061,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Kataan"
             },
@@ -15987,6 +18081,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16005,6 +18101,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16023,6 +18121,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+3 Attack to Titania"
             },
@@ -16041,6 +18141,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16059,6 +18161,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16077,6 +18181,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 attack to Slayer"
             },
@@ -16095,6 +18201,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1 Attack to Hyperion"
             },
@@ -16113,6 +18221,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16131,6 +18241,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 3, Tier 3 reward"
             },
@@ -16149,6 +18261,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16167,6 +18281,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16185,6 +18301,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+1% critical when Anwar is equipped"
             },
@@ -16203,6 +18321,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "+2 attack to Suri"
             },
@@ -16221,6 +18341,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": "Arena Season 1, Tier 5 reward. +3 attack, +3 defense to Zarevok when equipped."
             },
@@ -16239,6 +18361,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             },
@@ -16257,6 +18381,8 @@
                 "recipe3image": null,
                 "recipe4": null,
                 "recipe4image": null,
+                "recipe5": null,
+                "recipe5image": null,
                 "summon": null,
                 "comment": null
             }

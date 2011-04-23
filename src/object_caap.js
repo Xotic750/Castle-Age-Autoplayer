@@ -5587,9 +5587,7 @@
                     }
 
                     state.setItem('storeRetrieve', '');
-                    costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling
-                        .previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling
-                        .firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
+                    costToBuy = $j("strong", button.parents("form").eq(0)).text().replace(new RegExp("[^0-9]", "g"), '');
                     $u.log(2, "costToBuy", costToBuy);
                     if (caap.stats['gold']['cash'] < costToBuy) {
                         //Retrieving from Bank
