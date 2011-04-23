@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            12
+// @dev            13
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -24,7 +24,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "12",
+                devVersion = "13",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -112,7 +112,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "12",
+        devVersion    = "13",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -26910,6 +26910,13 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     if ($u.hasContent(spreadsheet.records[tempIt]['recipe4'])) {
                         titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
+                        titleStr += " (Owned: " + owned + ")";
+                        hide = (owned ? false : true);
+                    }
+
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe5'])) {
+                        titleStr += ", Recipe5: " + spreadsheet.records[tempIt]['recipe5'];
+                        owned = town.getCount(spreadsheet.records[tempIt]['recipe5'], spreadsheet.records[tempIt]['recipe5image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }

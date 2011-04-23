@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            12
+// @dev            13
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "12",
+        devVersion    = "13",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -26815,6 +26815,13 @@
                     if ($u.hasContent(spreadsheet.records[tempIt]['recipe4'])) {
                         titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
+                        titleStr += " (Owned: " + owned + ")";
+                        hide = (owned ? false : true);
+                    }
+
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe5'])) {
+                        titleStr += ", Recipe5: " + spreadsheet.records[tempIt]['recipe5'];
+                        owned = town.getCount(spreadsheet.records[tempIt]['recipe5'], spreadsheet.records[tempIt]['recipe5image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }

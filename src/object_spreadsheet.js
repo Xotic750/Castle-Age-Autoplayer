@@ -241,6 +241,13 @@
                         hide = (owned ? false : true);
                     }
 
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe5'])) {
+                        titleStr += ", Recipe5: " + spreadsheet.records[tempIt]['recipe5'];
+                        owned = town.getCount(spreadsheet.records[tempIt]['recipe5'], spreadsheet.records[tempIt]['recipe5image']);
+                        titleStr += " (Owned: " + owned + ")";
+                        hide = (owned ? false : true);
+                    }
+
                     if ($u.hasContent(spreadsheet.records[tempIt]['summon'])) {
                         titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
                         opacity = true;
