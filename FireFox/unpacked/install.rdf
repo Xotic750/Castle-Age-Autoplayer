@@ -5,7 +5,7 @@
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="xotic750@gmail.com"
                    em:name="Castle Age Autoplayer"
-                   em:version="140.25.0.11"
+                   em:version="140.25.0.12"
                    em:type="2"
                    em:creator="Xotic750"
                    em:description="Autoplayer for Castle Age game on Facebook."
