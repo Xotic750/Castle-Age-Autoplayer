@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            14
+// @dev            15
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -24,7 +24,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "14",
+                devVersion = "15",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -112,7 +112,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "14",
+        devVersion    = "15",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -22798,14 +22798,14 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         menu: function () {
             try {
                 var XMonsterInstructions = "Start attacking if stamina is above this points",
-                    XMinMonsterInstructions = "Don't attack if stamina is below this points",
+                    XMinMonsterInstructions = "Don not attack if stamina is below this points",
                     attackOrderInstructions = "List of search words that decide which monster to attack first. " +
                         "Use words in player name or in monster name. To specify max damage follow keyword with " +
                         ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " +
                         "To override achievement use the ach: token and specify damage values.",
                     fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",
                     questFortifyInstructions = "Do quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
-                    stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
+                    stopAttackInstructions = "Do not attack if ship health is below this % (leave blank to disable)",
                     monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
                     demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster' or 'Demi Points Only'. Be sure to set battle to Invade or Duel, War does not give you Demi Points.",
                     powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
@@ -22816,7 +22816,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                     useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                     collectRewardInstructions = "Automatically collect monster rewards.",
-                    strengthenTo100Instructions = "Don't wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
+                    strengthenTo100Instructions = "Do not wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
                     mbattleList = [
                         'Stamina Available',
                         'At Max Stamina',
@@ -39497,6 +39497,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
                         }
 
+                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(/.*\/(.*\.jpg)/);
+                        monsterText = $u.setContent(monster.getListName(tempText), monsterText);
                         mName = userName + ' ' + monsterText;
                         $u.log(2, "Monster Name", mName);
                         userId = $u.setContent(url.regex(/user=(\d+)/), 0);

@@ -8149,6 +8149,8 @@
                             monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
                         }
 
+                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(/.*\/(.*\.jpg)/);
+                        monsterText = $u.setContent(monster.getListName(tempText), monsterText);
                         mName = userName + ' ' + monsterText;
                         $u.log(2, "Monster Name", mName);
                         userId = $u.setContent(url.regex(/user=(\d+)/), 0);
