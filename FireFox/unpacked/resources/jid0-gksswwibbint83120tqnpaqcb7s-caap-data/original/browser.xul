@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://caap/skin/skin.css" type="text/css"?>
+<!DOCTYPE caap SYSTEM "chrome://caap/locale/translations.dtd">
+<overlay id="caap_browser_overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <script type="application/javascript;version=1.7" src="chrome://caap/content/original/caapff.js" />
+
+    <statusbar id="status-bar">
+        <statusbarpanel id="caap_status_bar_icon" class="statusbarpanel-menu-iconic" src="chrome://caap/content/widget/enabled.png" tooltiptext="&caap;" onclick="caapff.autorunListener(event)"/>
+    </statusbar>
+</overlay>

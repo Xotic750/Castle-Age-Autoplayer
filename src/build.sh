@@ -10,7 +10,7 @@ rm -f ../common/_buildcommon.tmp
 rm -f ../common/Castle-Age-Autoplayer.js
 rm -f ../FireFox/Castle-Age-Autoplayer-FireFox.user.js
 rm -f ../FireFox/Castle-Age-Autoplayer-FireFox.min.user.js
-rm -f ../FireFox/unpacked/chrome/contentCastle-Age-Autoplayer-Chrome.js
+rm -f ../FireFox/unpacked/chrome/content/Castle-Age-Autoplayer-Chrome.js
 rm -f ../Opera/unpacked/Castle-Age-Autoplayer-Chrome.js
 rm -f ../Opera/Castle-Age-Autoplayer-Opera.user.js
 rm -f ../Opera/Castle-Age-Autoplayer-Opera.min.user.js
@@ -30,7 +30,7 @@ cat object_image64.js >> ../common/_buildcommon.tmp
 cat object_offline.js >> ../common/_buildcommon.tmp
 cat object_config.js >> ../common/_buildcommon.tmp
 cat object_state.js >> ../common/_buildcommon.tmp
-cat object_css.js >> ../common/_buildcommon.tmp
+sed -f version.sed object_css.js >> ../common/_buildcommon.tmp
 cat object_sort.js >> ../common/_buildcommon.tmp
 cat object_schedule.js >> ../common/_buildcommon.tmp
 cat object_general.js >> ../common/_buildcommon.tmp
@@ -45,7 +45,7 @@ cat object_spreadsheet.js >> ../common/_buildcommon.tmp
 cat object_gifting.js >> ../common/_buildcommon.tmp
 cat object_army.js >> ../common/_buildcommon.tmp
 sed -f version.sed object_caap.js >> ../common/_buildcommon.tmp
-cat _main.js >> ../common/_buildcommon.tmp
+sed -f version.sed _main.js >> ../common/_buildcommon.tmp
 sed -f version.sed _head_common.js > ../common/Castle-Age-Autoplayer.js
 sed -f version.sed _pre_common.js >> ../common/Castle-Age-Autoplayer.js
 cat ../common/_buildcommon.tmp >> ../common/Castle-Age-Autoplayer.js
@@ -58,21 +58,23 @@ sed -f version.sed _pre_firefox.js >> ../Castle-Age-Autoplayer.user.js
 cat ../common/_buildcommon.tmp >> ../Castle-Age-Autoplayer.user.js
 
 if [ "$version" ]; then
-    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
+    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/original/caapff.js
+    sed -f version.sed ../FireFox/templates/caap_comms.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/caap_comms.js
+    sed -f version.sed ../FireFox/templates/main.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/main.js
     sed -f version.sed ../FireFox/templates/install.rdf.rel > ../FireFox/unpacked/install.rdf
-    sed -f version.sed ../FireFox/templates/about.xul.rel > ../FireFox/unpacked/chrome/content/about.xul
     sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf
     sed -f version.sed ../FireFox/templates/update.xhtml.head.rel > ../FireFox/update.xhtml
 else
-    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/chrome/content/caapff.js
+    sed -f version.sed ../FireFox/templates/caapff.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/original/caapff.js
+    sed -f version.sed ../FireFox/templates/caap_comms.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/caap_comms.js
+    sed -f version.sed ../FireFox/templates/main.js > ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/main.js
     sed -f version.sed ../FireFox/templates/install.rdf.dev > ../FireFox/unpacked/install.rdf
-    sed -f version.sed ../FireFox/templates/about.xul.dev > ../FireFox/unpacked/chrome/content/about.xul
     sed -f version.sed ../FireFox/templates/update.rdf > ../FireFox/update.rdf
     sed -f version.sed ../FireFox/templates/update.xhtml.head.dev > ../FireFox/update.xhtml
 fi
 
 cat ../FireFox/templates/update.xhtml.body >> ../FireFox/update.xhtml
-cp ../common/Castle-Age-Autoplayer.js ../FireFox/unpacked/chrome/content/Castle-Age-Autoplayer.js
+cp ../common/Castle-Age-Autoplayer.js ../FireFox/unpacked/resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/Castle-Age-Autoplayer.js
 rm -f ../FireFox/packed/caap.xpi
 cd ../FireFox/unpacked/
 zip -x '*/.svn/*' -x '*/.git/' -r ../packed/caap.xpi *
@@ -118,6 +120,7 @@ else
     echo "Creating Chrome development version"
     sed -f version.sed ../Chrome/templates/manifest.dev > ../Chrome/unpacked/manifest.json
     sed -f version.sed ../Chrome/templates/updates.tmpl > ../Chrome/packed/updates.xml
+    sed -f version.sed ../Chrome/templates/background.html > ../Chrome/unpacked/background.html
     cp ../Chrome/packed/updates.xml ../
     if [ -f ../Chrome/Chrome.pem ]; then
         chromium-browser --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"

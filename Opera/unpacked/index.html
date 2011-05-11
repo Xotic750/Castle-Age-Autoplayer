@@ -8,15 +8,15 @@
         var caapop = {
             version: "140.25.0",
 
-            dev: "15",
+            dev: "16",
 
             theButton: null,
 
             files: {
                 'caap'       : "widget://" + document.location.host + "/resources/Castle-Age-Autoplayer.js",
                 'utility'    : "widget://" + document.location.host + "/resources/utility-0.1.6.min.js",
-                'jquery'     : "widget://" + document.location.host + "/resources/jquery-1.5.2.min.js",
-                'jqueryui'   : "widget://" + document.location.host + "/resources/jquery-ui-1.8.11.min.js",
+                'jquery'     : "widget://" + document.location.host + "/resources/jquery-1.6.min.js",
+                'jqueryui'   : "widget://" + document.location.host + "/resources/jquery-ui-1.8.12.min.js",
                 'farbtastic' : "widget://" + document.location.host + "/resources/farbtastic.min.js",
                 'datatables' : "widget://" + document.location.host + "/resources/jquery.dataTables-1.7.6.min.js"
             },
@@ -45,7 +45,7 @@
                     opera.extension.onconnect = function (event) {
                         if (caapop.isPage(event.origin)) {
                             caapop.log(event.origin + " : " + event.data);
-                            event.source.postMessage({action : "begin", id: 'connected', value: true});
+                            event.source.postMessage({action : "begin", status: "connected", value: true});
                         }
                     };
 
@@ -57,22 +57,20 @@
 
                     // Listen for messages
                     opera.extension.onmessage = function (event) {
-                        var message = event.data,
-                            autorun = widget.preferences.autorun === "true" ? true : false;
+                        if (caapop.isPage(event.origin)) {
+                            var message = event.data,
+                                autorun;
 
-                        caapop.log(event.origin + " sent a message: " + message.action + ' ' + message.id + ' ' + message.value);
-                        if (message && message.action && message.value && message.id) {
-                            if (message.action === "getPage") {
-                                caapop.getPage(event, message);
-                            } else if (autorun && (message.action === "get" || (message.action === "injected" && message.id === false))) {
-                                caapop.getFile(event, caapop.files[message.value], message.id);
-                            } else if (message.action === "autorun") {
-                                caapop.theButton.icon = message.value === "true" ? "icons/icon.png" : "icons/disabled.png";
-                            } else if (message.action === "hello") {
-                                event.source.postMessage({action : "hello", id: 'connected', value: true});
-                            } else if (message.action === "cookie") {
-                                document.cookie = message.value;
-                                caapop.log(document.cookie);
+                            if (message) {
+                                caapop.log(event.origin + " sent a message: " + message.action + ' ' + message.status + ' ' + message.value);
+                                autorun = widget.preferences.autorun === "true" ? true : false;
+                                if (message.action === "getPage") {
+                                    caapop.getPage(event, message);
+                                } else if (autorun && (message.action === "script" || (message.action === "injected" && message.status === false))) {
+                                    caapop.getFile(event, caapop.files[message.value], message.status);
+                                } else if (message.action === "autorun") {
+                                    caapop.theButton.icon = message.value === "true" ? "icons/icon.png" : "icons/disabled.png";
+                                }
                             }
                         }
                     };
@@ -116,19 +114,26 @@
                             throw "Can't read " + path;
                         }
 
-                        event.source.postMessage({action: "script", id: event.data.value, value: req.responseText});
+                        event.source.postMessage({
+                            action: "script",
+                            status: event.data.value,
+                            value : req.responseText
+                        });
                     };
 
                     req.open('GET', path, false);
                     req.send();
                 } catch (err) {
                     caapop.error("getFile: " + err);
-                    event.source.postMessage({action: "script", id: err, value: null});
+                    event.source.postMessage({
+                        action: "script",
+                        status: err,
+                        value : null
+                    });
                 }
             },
 
             getPage: function (event, message) {
-                var respObj = {"status": -1, "statusText": "", "responseText": "", "errorThrown": ""};
                 try {
                     caapop.log("getPage");
                     var req = new XMLHttpRequest();
@@ -137,19 +142,32 @@
                             return;
                         }
 
-                        respObj.status = req.status;
-                        respObj.statusText = req.statusText;
-                        respObj.responseText = req.responseText;
-                        caapop.log(respObj);
-                        event.source.postMessage({action: "data", id: message.id, value: respObj});
-                    };
+                        event.source.postMessage({
+                            action : "data",
+                            status : true,
+                            value  : {
+                                status       : req.status,
+                                statusText   : req.statusText,
+                                responseText : req.responseText,
+                                errorThrown  : ""
+                            }
+                        });
+                    }
 
                     req.open('GET', message.value, false);
                     req.send(null);
                 } catch (err) {
                     caapop.error("getPage: " + err);
-                    respObj.errorThrown = err.toString();
-                    event.source.postMessage({action: "data", id: message.id, value: respObj});
+                    event.source.postMessage({
+                        action : "data",
+                        status : false,
+                        value  : {
+                            status       : -1,
+                            statusText   : "",
+                            responseText : "",
+                            errorThrown  : "getPage: " + err.toString()
+                        }
+                    });
                 }
             },
 
@@ -158,7 +176,7 @@
                     var ToolbarUIItemProperties = {
                             title: "CAAP",
                             icon: widget.preferences.autorun === "true" ? "icons/icon.png" : "icons/disabled.png",
-                            popup: {href: "http://x.facebook.com/#/home.php?v=livefeed", width: 350, height: 500}
+                            popup: {href: "https://touch.facebook.com/", width: 350, height: 500}
                         };
 
                     caapop.theButton = opera.contexts.toolbar.createItem(ToolbarUIItemProperties);

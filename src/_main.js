@@ -86,12 +86,12 @@
     }
 
     function caap_WaitForjQuery() {
-        if (window.jQuery && window.jQuery().jquery === "1.5.2") {
+        if (window.jQuery && window.jQuery().jquery === "!jquery!") {
             caap_log("jQuery ready ...");
             if (!window.$j) {
                 window.$j = window.jQuery.noConflict();
             } else {
-                if (!window.caapop) {
+                if (!window.caap_comms) {
                     throw "$j is already in use!";
                 }
             }
@@ -130,7 +130,7 @@
 
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
-    if (!window.jQuery || window.jQuery().jquery !== "1.5.2") {
+    if (!window.jQuery || window.jQuery().jquery !== "!jquery!") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
     }

@@ -1,0 +1,1458 @@
+{
+    "bootstrap": {
+        "classID": "{08649007-8dc6-43b4-9b25-b57c33cf0143}",
+        "contractID": "@mozilla.org/harness-service;1?id=jid0-GksSWwIBBInT83120TqnPAqcb7s"
+    },
+    "bundleID": "jid0-GksSWwIBBInT83120TqnPAqcb7s@jetpack",
+    "enable_e10s": false,
+    "jetpackID": "jid0-GksSWwIBBInT83120TqnPAqcb7s",
+    "loader": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js",
+    "main": "main",
+    "manifest": {
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/clipboard.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "32e367d215cd8b0f64b40e2ef75c354bff070d210402b76d8bb8fc643cafa602",
+            "name": "clipboard",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/clipboard.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/context-menu.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "d94ba2656230f30a3bbe8e8f98ae1245fa06354b2987be5fd16c7546bbf1178f",
+            "name": "context-menu",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "collection": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/collection.js"
+                },
+                "content": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+                },
+                "match-pattern": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/match-pattern.js"
+                },
+                "preferences-service": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/preferences-service.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                },
+                "window-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/context-menu.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/notifications.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "f2cf98492973a48a690d7f3a2faedf6277b71d0ffe3a822842889890c69f62d0",
+            "name": "notifications",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/notifications.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/page-mod.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "a2b9d05d83fbf97a9faaa3085590057ea59ac232fcde5714cb6ea2c3f167bc44",
+            "name": "page-mod",
+            "packageName": "addon-kit",
+            "requires": {
+                "content": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "list": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/list.js"
+                },
+                "match-pattern": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/match-pattern.js"
+                },
+                "observer-service": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/observer-service.js"
+                },
+                "utils/registry": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/registry.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/page-mod.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/page-worker.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "717f5962e59ca0c4cf4aefd39fa9fc707646362ce396c0cfd879ac2cd751fa1c",
+            "name": "page-worker",
+            "packageName": "addon-kit",
+            "requires": {
+                "content": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/page-worker.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/panel.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "6363508cfd7fbf1603c13e935550f21d352719166c029376e0a0862c1ae3c894",
+            "name": "panel",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "content": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/panel.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/passwords.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "961e296634110085838120a7349d7b5d4bd8c3b20e86c72fa703d7553d4b6fc3",
+            "name": "passwords",
+            "packageName": "addon-kit",
+            "requires": {
+                "light-traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/light-traits.js"
+                },
+                "passwords/utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/passwords/utils.js"
+                },
+                "utils/function": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/function.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/passwords.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/private-browsing.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "917ff8e567f3e8f34babf4749feaa81bbaffa4355251d2659ff38fb21b6c5a32",
+            "name": "private-browsing",
+            "packageName": "addon-kit",
+            "requires": {
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "observer-service": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/observer-service.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/private-browsing.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/request.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "e0b23d6bee5416e9df61b8d1780cdae174a51dc63b3a2831aecc046096f7a135",
+            "name": "request",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "xhr": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xhr.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/request.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/selection.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "c9933aeb3613bff5c04bc1eef0cf059883534a808286536f7a47bfce4600111d",
+            "name": "selection",
+            "packageName": "addon-kit",
+            "requires": {
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "tab-browser": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tab-browser.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/selection.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/simple-storage.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "9df61d6315421b32be95e396879229c8d0b968901c6bebdd79f97f50d7b1da4b",
+            "name": "simple-storage",
+            "packageName": "addon-kit",
+            "requires": {
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "preferences-service": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/preferences-service.js"
+                },
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/simple-storage.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/tabs.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "2bae0d4c19770be1e73d87a2303cb395f6378bb59fa944324c3427599ac01543",
+            "name": "tabs",
+            "packageName": "addon-kit",
+            "requires": {
+                "windows": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/windows.js"
+                },
+                "windows/tabs": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/tabs.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/tabs.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/widget.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "3e31bef66e56ccb0088698bce6cf63ac2c613e3c0e2e1b7413001f7bbff3c007",
+            "name": "widget",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "content": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "panel": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/panel.js"
+                },
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "window-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/widget.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/windows.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "a5864932e0c54695c9df8003a079d19dcee0dcfc1388b1629e67b7b0ff690960",
+            "name": "windows",
+            "packageName": "addon-kit",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "list": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/list.js"
+                },
+                "tabs/tab": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/tab.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "window-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js"
+                },
+                "windows/dom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/dom.js"
+                },
+                "windows/loader": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/loader.js"
+                },
+                "windows/tabs": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/tabs.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/windows.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "a5afc1236d022272bd80a6b4b4dda55f606d4ddbd678cc245a95236642c32c77",
+            "name": "api-utils",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/app-strings.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "af30f57b0b38cc2cb32be69137d0a2d39fba0739222e2af43150fe756fcd537d",
+            "name": "app-strings",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/app-strings.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/byte-streams.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "c84fa1e69d76534a48c01be775821ee4cf646c44c3c70b76774427ae87e1f358",
+            "name": "byte-streams",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/byte-streams.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/collection.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "422060b69ac06c2f17b3b210641f890c7242561e08c5144fb8f6971f4f5f6903",
+            "name": "collection",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/collection.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "9e250d23b61f987920af698c10be725aafefc741caa0120311018223cbd99f95",
+            "name": "content",
+            "packageName": "api-utils",
+            "requires": {
+                "content/loader": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/loader.js"
+                },
+                "content/symbiont": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/symbiont.js"
+                },
+                "content/worker": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/worker.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/loader.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "4587833e017b469ecec61dc339ff14839e739dd509ae4fb7c4a1d5f52d29d66f",
+            "name": "content/loader",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/loader.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/symbiont.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "3e06cb87bf3755e4772b92cd8cb831fd1bfa9551ede57c4d53a207379fe4a2aa",
+            "name": "content/symbiont",
+            "packageName": "api-utils",
+            "requires": {
+                "./loader": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/loader.js"
+                },
+                "./worker": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/worker.js"
+                },
+                "hidden-frame": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/hidden-frame.js"
+                },
+                "observer-service": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/observer-service.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/symbiont.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/worker.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "84381ed00e07b919100778656cba30d180aa742d7aab20b2af5d1b1165d016ef",
+            "name": "content/worker",
+            "packageName": "api-utils",
+            "requires": {
+                "cuddlefish": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "tabs/tab": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/tab.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/worker.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cortex.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "c0f1cd0975149d431c45b674ff88119d8c69d265cf7c9ffe6e8e7076397b27c5",
+            "name": "cortex",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cortex.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "ee62eeb0270f45de89fc7481c7f7374bad28728eebc243a6ad0ca6bab93037fb",
+            "name": "cuddlefish",
+            "packageName": "api-utils",
+            "requires": {
+                "e10s": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/e10s.js"
+                },
+                "memory": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/memory.js"
+                },
+                "plain-text-console": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/plain-text-console.js"
+                },
+                "securable-module": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/securable-module.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/e10s.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "a38f1bb2b20725fce989ee6ff06be0a17243913bc2c0761fc627b2cc9f3fb557",
+            "name": "e10s",
+            "packageName": "api-utils",
+            "requires": {
+                "cuddlefish": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                },
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "parent-loader": {},
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "traceback": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/e10s.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "73e305e41752c451f01a93703c5ce38d6f18efe639d7307148caf99e8decfea0",
+            "name": "errors",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/es5.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "245c7302ea14bf0c2d87c629662701fd3312a3d83c6e396a7cb65f7a3b11bd22",
+            "name": "es5",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/es5.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "761f5ed76ce06ddc4bec267b0a225c32aa2f67ff63ddacd5883ed652f0e646c0",
+            "name": "events",
+            "packageName": "api-utils",
+            "requires": {
+                "light-traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/light-traits.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "843f37d5008cda06764f1ded60ae1bc290fe0684791964ae5c89e7e17edb99a2",
+            "name": "file",
+            "packageName": "api-utils",
+            "requires": {
+                "byte-streams": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/byte-streams.js"
+                },
+                "text-streams": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/text-streams.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/find-tests-e10s-adapter.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "a986a1663580ef3fcd121d87f636d87c69ed37b4345da40d136cc8fb06d31a5f",
+            "name": "find-tests-e10s-adapter",
+            "packageName": "api-utils",
+            "requires": {
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "unit-test": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/find-tests-e10s-adapter.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/find-tests.js": {
+            "chrome": false,
+            "e10s-adapter": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/find-tests-e10s-adapter.js",
+            "hash": "39483cb19b93ce82a99434c94d82ca0d852f994d4a41d5ce6df6b446c0ad8426",
+            "name": "find-tests",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/find-tests.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/hidden-frame.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "84d23d836193f98e5f6e0db78d4fee33d97c04b1a7799b8f3ec48a83f5392cc6",
+            "name": "hidden-frame",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "collection": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/collection.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/hidden-frame.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/light-traits.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "eb07416982e7ccfb3dee68efd256c0dd09a04d65f34cbdab90b88f0874af00c4",
+            "name": "light-traits",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/light-traits.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/list.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "ebbdc29aee0774e96833f548cb587c7a61754ba66c3a27f993933323556ffec4",
+            "name": "list",
+            "packageName": "api-utils",
+            "requires": {
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/list.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/match-pattern.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "987de1cb34bb0409caab66c0c584d1abdf243b1798c56f70a4c1537c7071a4f9",
+            "name": "match-pattern",
+            "packageName": "api-utils",
+            "requires": {
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/match-pattern.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/memory.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "86fa63a9b8597b3d79eee674b1d4c71462a61019a143681bb2b7e00d17462e65",
+            "name": "memory",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/memory.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/observer-service.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "8ba7c79769994139a4d386fa188e596951f9de10bee009fb153d3a035927116d",
+            "name": "observer-service",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/observer-service.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/passwords/utils.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "a16a234992e20c8837c9315ef6d403f4adb4363e12dedcda5bf97ebe1e73fd9c",
+            "name": "passwords/utils",
+            "packageName": "api-utils",
+            "requires": {
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/passwords/utils.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/plain-text-console.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "c962983d9259f0f68ae83d427f47e00c1349a0cc116ac8bf48842176795febe8",
+            "name": "plain-text-console",
+            "packageName": "api-utils",
+            "requires": {
+                "traceback": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/plain-text-console.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/preferences-service.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "17caf4bb572a892e2dbd08ad3ccb90d61a9355e955e709f55bdff3181c90d2e9",
+            "name": "preferences-service",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/preferences-service.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/securable-module.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "cb9d85ebc358dc85751dfba11e6c529cf7adc2162f5b1cb5ff512998ecad96dc",
+            "name": "securable-module",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/securable-module.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self-e10s-adapter.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "bd1e29595c1e7f733e1d33ee6c80fc4476ae50dacd6c2c9e7d10ce529f447fba",
+            "name": "self-e10s-adapter",
+            "packageName": "api-utils",
+            "requires": {
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "traceback": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self-e10s-adapter.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js": {
+            "chrome": false,
+            "e10s-adapter": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self-e10s-adapter.js",
+            "hash": "74b5e2d52427aa129f2ae8c4d6c3a31f773c2441c8c980b32542c2d872b8994f",
+            "name": "self",
+            "packageName": "api-utils",
+            "requires": {
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "traceback": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js"
+                },
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tab-browser.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "a41230a4661d1007c74dc82da3d25a80adcd1976f9232ea1762b4e7e74fed35e",
+            "name": "tab-browser",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "collection": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/collection.js"
+                },
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "window-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js"
+                },
+                "xul-app": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tab-browser.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/events.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "163e7b0758a0d07fa4dd6b26d50d3085e85e88a1babce6d232a33bf9c9ecc551",
+            "name": "tabs/events",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/events.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/tab.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "9008eb1fdc274f73ce81a671434aea12b6bbe3c0ebe912a59c125c151290aef2",
+            "name": "tabs/tab",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                },
+                "content/worker": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/content/worker.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "tabs/events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/events.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "utils/data": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/data.js"
+                },
+                "utils/function": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/function.js"
+                },
+                "utils/thumbnail": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/thumbnail.js"
+                },
+                "windows": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/windows.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/tab.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/test.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "9f22a022313aabcb0a4fcb08e2f8e806212580167130521efcee0b284df3e741",
+            "name": "test",
+            "packageName": "api-utils",
+            "requires": {
+                "./test/assert": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/test/assert.js"
+                },
+                "type": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/type.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/test.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/test/assert.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "35c87dedaad26f419439eef7f41fdc668df977dd2985b189bb04cb70cace4971",
+            "name": "test/assert",
+            "packageName": "api-utils",
+            "requires": {
+                "type": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/type.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/test/assert.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/text-streams.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "aa3ba9bf8fcb0ff1bd6d71d904851c6b658aa0e0b5269fc61e3ed07367699165",
+            "name": "text-streams",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/text-streams.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer-e10s-adapter.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "a08690ac530902d587e202d97690af8f62087e1a9e4a0fc98ab9707b4fb9cb63",
+            "name": "timer-e10s-adapter",
+            "packageName": "api-utils",
+            "requires": {
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer-e10s-adapter.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js": {
+            "chrome": true,
+            "e10s-adapter": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer-e10s-adapter.js",
+            "hash": "c82d4c17b3ebe9753a1f2eecd8f730a7cfa3eebf823e14615bcaff9f7ecfd8da",
+            "name": "timer",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                },
+                "xpcom": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "47857e60c19cefbbec79182a724a0d9ffe51442cc484ff2ebd8e52fb766c4a9f",
+            "name": "traceback",
+            "packageName": "api-utils",
+            "requires": {
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traceback.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "0689e903d8dd172cff8fc88f3444d9082ea0909be8188fcfff69385d0813e170",
+            "name": "traits",
+            "packageName": "api-utils",
+            "requires": {
+                "traits/core": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits/core.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits/core.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "327d31bdb5e20294cd35ffac1ac1a964eb553a89e3d10cdedfb5401d7dac9d98",
+            "name": "traits/core",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits/core.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/type.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "0d8ad1fd731a7e254ea631ea31dc479738d59910a0c217f71863eedac8a182a7",
+            "name": "type",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/type.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test-finder.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "4a1fe3b8bf696bd4a9cd72ceb174b2c77673c15a19773adef516cd5ab65881f2",
+            "name": "unit-test-finder",
+            "packageName": "api-utils",
+            "requires": {
+                "e10s": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/e10s.js"
+                },
+                "file": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/file.js"
+                },
+                "parent-loader": {}
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test-finder.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "d8112a61a7736de269ca5800542c5e27b4e7a4e85b1e59c54ac02eff5b0e9ea1",
+            "name": "unit-test",
+            "packageName": "api-utils",
+            "requires": {
+                "cuddlefish": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/cuddlefish.js"
+                },
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "unit-test-finder": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test-finder.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unit-test.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "604f33e2cdc44bb89c6e344b8536bd1160cce7e8938c8db23775c05d9d88bad6",
+            "name": "unload",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url-e10s-adapter.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "0a5f769b33424ca3c1c306c721ccb490a267d0ac843ae3bb0afc73a9ce62db73",
+            "name": "url-e10s-adapter",
+            "packageName": "api-utils",
+            "requires": {
+                "url": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url-e10s-adapter.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js": {
+            "chrome": true,
+            "e10s-adapter": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url-e10s-adapter.js",
+            "hash": "f4ab8fd0d3f93fc645aea23535e14753a4a4ce0c399ee4c28087b3c888101476",
+            "name": "url",
+            "packageName": "api-utils",
+            "requires": {
+                "api-utils": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/api-utils.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/url.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/data.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "2ac7da43a127ef1e4a5ee1f3c031f3b4e1d6f4d0a36bc31c1d5ae283c80ad95f",
+            "name": "utils/data",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/data.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/function.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "9ef84f8a1231c68f7aa5af2bc902e1bd5ec0c28b97e53310c40974903b0795fd",
+            "name": "utils/function",
+            "packageName": "api-utils",
+            "requires": {
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/function.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/registry.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "0a103b720994006069b814f35cb720703638d965f3cda2633d46dcbd754efa3b",
+            "name": "utils/registry",
+            "packageName": "api-utils",
+            "requires": {
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/registry.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/thumbnail.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "a8cd4d1e6d90fcd992fec3edd092b6a92c4df89693e9a46e11d8b67d4743f961",
+            "name": "utils/thumbnail",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/utils/thumbnail.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "7df67366cca8658f66ea269b927015132ab8e4ebda88df3dd5e65a13a30f17b6",
+            "name": "window-utils",
+            "packageName": "api-utils",
+            "requires": {
+                "errors": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/errors.js"
+                },
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                },
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/window-utils.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/dom.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "481073a676547a612878b43e87c33ce28db03b24e2674484046cd6b626fc69a9",
+            "name": "windows/dom",
+            "packageName": "api-utils",
+            "requires": {
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/dom.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/loader.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "28f7b3e1242cb1569032d1e11b229efd27728ff4098481fb52dae70b43978f23",
+            "name": "windows/loader",
+            "packageName": "api-utils",
+            "requires": {
+                "timer": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/timer.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/loader.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/tabs.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "bd56b2f5355947be343c9ed657f4d623ccfa23b909a336ef9c043c2657f3639f",
+            "name": "windows/tabs",
+            "packageName": "api-utils",
+            "requires": {
+                "events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/events.js"
+                },
+                "list": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/list.js"
+                },
+                "tabs/events": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/events.js"
+                },
+                "tabs/tab": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/tabs/tab.js"
+                },
+                "traits": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/traits.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/windows/tabs.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xhr.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "821dd0b9f22f91cc930c59f06237c0bf9e83b0076bd59f23473f7582fd385c23",
+            "name": "xhr",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xhr.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "464f1b5d1388b98966b67614ffb96a9edb7592a2d3756084623bfc6a56b852b2",
+            "name": "xpcom",
+            "packageName": "api-utils",
+            "requires": {
+                "unload": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/unload.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xpcom.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js": {
+            "chrome": true,
+            "e10s-adapter": null,
+            "hash": "c4929c0d714aac061560c110e6344efcaa9107d77c5929114282ea5914cee010",
+            "name": "xul-app",
+            "packageName": "api-utils",
+            "requires": {},
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xul-app.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/main.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "b35b2e8950e4df7b8637904e5f8d47cacc083ac5f2bfad59610704a6ed80b54b",
+            "name": "main",
+            "packageName": "caap",
+            "requires": {
+                "page-mod": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/page-mod.js"
+                },
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "simple-storage": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/simple-storage.js"
+                },
+                "widget": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/widget.js"
+                },
+                "xhr": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/xhr.js"
+                }
+            },
+            "sectionName": "lib",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/main.js"
+        },
+        "resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-tests/test-main.js": {
+            "chrome": false,
+            "e10s-adapter": null,
+            "hash": "c371026df45ecdb532f65f284ccd73eee9c6c46c6a9d6bb0af9018d355d0742c",
+            "name": "test-main",
+            "packageName": "caap",
+            "requires": {
+                "main": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/main.js"
+                },
+                "request": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/request.js"
+                },
+                "self": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/self.js"
+                },
+                "tabs": {
+                    "url": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/tabs.js"
+                }
+            },
+            "sectionName": "tests",
+            "zipname": "resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-tests/test-main.js"
+        }
+    },
+    "metadata": {
+        "addon-kit": {
+            "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>",
+            "contributors": ["Myk Melez (http://melez.com/) <myk@mozilla.org>", "Daniel Aquino <mr.danielaquino@gmail.com>"],
+            "description": "Add-on development made easy.",
+            "keywords": ["javascript", "engine", "platform", "xulrunner"],
+            "license": "MPL 1.1/GPL 2.0/LGPL 2.1",
+            "name": "addon-kit",
+            "version": "1.0b4"
+        },
+        "api-utils": {
+            "author": "Atul Varma (http://toolness.com/) <atul@mozilla.com>",
+            "contributors": ["Myk Melez (http://melez.com/) <myk@mozilla.org>", "Daniel Aquino <mr.danielaquino@gmail.com>"],
+            "description": "Foundational infrastructure and utilities.",
+            "keywords": ["javascript", "engine", "platform", "xulrunner", "jetpack-low-level"],
+            "license": "MPL 1.1/GPL 2.0/LGPL 2.1",
+            "name": "api-utils",
+            "version": "1.0b4"
+        },
+        "caap": {
+            "author": "Xotic750",
+            "description": "Autoplayer for Castle Age game on Facebook.",
+            "license": "GPL version 3 or any later version (http://www.gnu.org/copyleft/gpl.html)",
+            "name": "caap",
+            "url": "http://code.google.com/p/castle-age-auto-player/",
+            "version": "140.25.0.16"
+        }
+    },
+    "name": "caap",
+    "packageData": {
+        "addon-kit": "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-data/",
+        "api-utils": "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-data/",
+        "caap": "resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-data/"
+    },
+    "resourcePackages": {
+        "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-data": "addon-kit",
+        "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib": "addon-kit",
+        "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-data": "api-utils",
+        "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib": "api-utils",
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-data": "caap",
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-lib": "caap",
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-tests": "caap"
+    },
+    "resources": {
+        "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-data": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-data"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-data": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-data"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-data": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-caap-data"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-lib": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-caap-lib"],
+        "jid0-gksswwibbint83120tqnpaqcb7s-caap-tests": ["resources", "jid0-gksswwibbint83120tqnpaqcb7s-caap-tests"]
+    },
+    "rootPaths": ["resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-lib/", "resource://jid0-gksswwibbint83120tqnpaqcb7s-api-utils-lib/", "resource://jid0-gksswwibbint83120tqnpaqcb7s-addon-kit-lib/", "resource://jid0-gksswwibbint83120tqnpaqcb7s-caap-tests/"],
+    "sdkVersion": "1.0b4",
+    "staticArgs": {},
+    "verbose": false
+}

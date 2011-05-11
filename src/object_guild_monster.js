@@ -57,25 +57,77 @@
                 twt2     : "vincent",
                 special1 : [0],
                 special2 : [1],
-                health   : [100, 200, 400, 800]
+                health   : [100, 200, 400, 800],
+                cta_img  : ['cta_vincent.gif']
             },
             "Alpha Vincent": {
                 twt2     : "alpha_vincent",
                 special1 : [0],
                 special2 : [1],
-                health   : [500, 1000, 2000, 4000]
+                health   : [500, 1000, 2000, 4000],
+                cta_img  : ['cta_alphavincent.gif']
             },
             "Army of the Apocalypse": {
                 twt2     : "ca_girls",
                 special1 : [0, 25, 50, 75],
                 special2 : [1, 2, 3, 4],
-                health   : [500, 1000, 2000, 4000]
+                health   : [500, 1000, 2000, 4000],
+                cta_img  : []
             },
             "Giant Arachnid": {
                 twt2     : "giant_arachnid",
                 special1 : [0],
                 special2 : [1],
-                health   : [100, 200, 400, 800]
+                health   : [100, 200, 400, 800],
+                cta_img  : []
+            }
+        },
+
+        getCtaName: function (img) {
+            return guild_monster.which(img, "cta_img");
+        },
+
+        which: function (img, entity) {
+            try {
+                if (!$u.hasContent(img) || !$u.isString(img)) {
+                    $u.warn("img", img);
+                    throw "Invalid identifying img!";
+                }
+
+                if (!$u.hasContent(entity) || !$u.isString(entity)) {
+                    $u.warn("entity", entity);
+                    throw "Invalid entity name!";
+                }
+
+                var i    = '',
+                    k    = 0,
+                    r    = {},
+                    name = '';
+
+                for (i in guild_monster.info) {
+                    if (guild_monster.info.hasOwnProperty(i)) {
+                        if ($u.hasContent(name)) {
+                            break;
+                        }
+
+                        r = guild_monster.info[i];
+                        if (!$u.hasContent(r) || !$u.hasContent(r[entity]) || !$j.isArray(r[entity])) {
+                            continue;
+                        }
+
+                        for (k = 0; k < r[entity].length; k += 1) {
+                            if (img === r[entity][k]) {
+                                name = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return name;
+            } catch (err) {
+                $u.error("ERROR in guild_monster.which: " + err);
+                return undefined;
             }
         },
 
@@ -372,6 +424,8 @@
                     allowedDiv    = $j(),
                     bannerDiv     = $j(),
                     collectDiv    = $j(),
+                    tempDiv       = $j(),
+                    tempTxt       = '',
                     collect       = false,
                     myStatsTxt    = '',
                     myStatsArr    = [],
@@ -420,18 +474,26 @@
 
                         health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health");
                         if (health && health.length) {
-                            healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
-                            if (healthEnemy && healthEnemy.length) {
+                            healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
+                            if ($u.hasContent(healthEnemy)) {
                                 currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                             } else {
                                 $u.warn("guild_battle_bar_enemy.gif not found");
                             }
 
-                            healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
-                            if (healthGuild && healthGuild.length) {
+                            healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
+                            if ($u.hasContent(healthGuild)) {
                                 currentRecord['guildHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                             } else {
                                 $u.warn("guild_battle_bar_you.gif not found");
+                            }
+
+                            tempDiv = $j("span", health);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
+                                tempTxt = tempDiv.eq(0).text().trim();
+                                tempDiv.eq(0).text(tempTxt + " (" + currentRecord['guildHealth'] + "%)");
+                                tempTxt = tempDiv.eq(1).text().trim();
+                                tempDiv.eq(1).text(tempTxt + " (" + currentRecord['enemyHealth'] + "%)");
                             }
                         } else {
                             $u.warn("guild_battle_health error");

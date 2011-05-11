@@ -60,7 +60,6 @@
         return this.uniConv().unescapeDouble();
     };
 
-
     String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
         return this.replace(/caap_/i, '');
     };

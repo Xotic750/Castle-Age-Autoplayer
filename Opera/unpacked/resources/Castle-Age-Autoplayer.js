@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            15
+// @dev            16
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "15",
+        devVersion    = "16",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -71,7 +71,6 @@
     String.prototype['unescapeCAHTML'] = String.prototype.unescapeCAHTML = function () {
         return this.uniConv().unescapeDouble();
     };
-
 
     String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
         return this.replace(/caap_/i, '');
@@ -19425,7 +19424,7 @@
                     $j("<link>").appendTo("head").attr({
                         rel  : "stylesheet",
                         type : "text/css",
-                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/themes/smoothness/jquery-ui.css"
+                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/themes/smoothness/jquery-ui.css"
                     });
                 }
 
@@ -19821,6 +19820,7 @@
                 'name'       : '',
                 'img'        : '',
                 'lvl'        : 0,
+                'pct'        : 0,
                 'last'       : new Date().getTime() - (24 * 3600000),
                 'special'    : '',
                 'atk'        : 0,
@@ -20058,6 +20058,24 @@
             }
         },
 
+        GetPercent: function (generalName) {
+            try {
+                var genPct = general.getItem(generalName);
+
+                if (genPct === false) {
+                    $u.warn("Unable to find 'General' level percent");
+                    genPct = 0;
+                } else {
+                    genPct = genPct['pct'];
+                }
+
+                return genPct;
+            } catch (err) {
+                $u.error("ERROR in general.GetPercent: " + err);
+                return false;
+            }
+        },
+
         GetLevelUpNames: function () {
             try {
                 var it    = 0,
@@ -20065,7 +20083,7 @@
                     names = [];
 
                 for (it = 0, len = general.records.length; it < len; it += 1) {
-                    if (general.records[it]['lvl'] < 4) {
+                    if (general.records[it]['pct'] < 100) {
                         names.push(general.records[it]['name']);
                     }
                 }
@@ -20137,7 +20155,7 @@
                 $u.log(3, 'Building Generals Lists');
                 general.List = [
                     'Use Current',
-                    'Under Level 4'
+                    'Under Level'
                 ].concat(general.GetNames());
 
                 var crossList = function (checkItem) {
@@ -20173,7 +20191,7 @@
 
                 general.SubQuestList = [
                     'Use Current',
-                    'Under Level 4',
+                    'Under Level',
                     'Sano',
                     'Titania'
                 ].filter(crossList);
@@ -20231,6 +20249,7 @@
                             item       = 0,
                             itype      = 0,
                             level      = 0,
+                            percent    = 0,
                             atk        = 0,
                             def        = 0,
                             special    = '',
@@ -20283,6 +20302,13 @@
                             $u.warn("Unable to find 'level' container", index);
                         }
 
+                        tempObj = $j("div[style*='#3b5561'],div[style*='rgb(59, 85, 97)']", container);
+                        if ($u.hasContent(tempObj)) {
+                            percent = tempObj.getPercent('width');
+                        } else {
+                            $u.warn("Unable to find 'level percent' container", index);
+                        }
+
                         tempObj = container.children().eq(4);
                         if ($u.hasContent(tempObj)) {
                             special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
@@ -20298,7 +20324,7 @@
                             $u.warn("Unable to find 'attack and defence' containers", index);
                         }
 
-                        if (name && img && level && !$u.isNaN(atk) && !$u.isNaN(def) && special) {
+                        if ($u.hasContent(name) && $u.hasContent(img) && $u.hasContent(level) && $u.hasContent(percent) && !$u.isNaN(atk) && !$u.isNaN(def) && $u.hasContent(special)) {
                             for (it = 0, len = general.records.length; it < len; it += 1) {
                                 if (general.records[it]['name'] === name) {
                                     newGeneral.data = general.records[it];
@@ -20313,6 +20339,7 @@
                             newGeneral.data['coolDown'] = coolDown;
                             newGeneral.data['charge'] = charge;
                             newGeneral.data['lvl'] = level;
+                            newGeneral.data['pct'] = percent;
                             newGeneral.data['atk'] = atk;
                             newGeneral.data['def'] = def;
                             newGeneral.data['api'] = (atk + (def * 0.7)).dp(2);
@@ -20485,7 +20512,7 @@
                     return false;
                 }
 
-                if (!levelUp && /under level 4/i.test(generalName)) {
+                if (!levelUp && /under level/i.test(generalName)) {
                     if (!general.GetLevelUpNames().length) {
                         return general.Clear(whichGeneral);
                     }
@@ -20664,7 +20691,7 @@
         menu: function () {
             try {
                 // Add General Comboboxes
-                var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up",
+                var reverseGenInstructions = "This will make the script level Generals under max level from Top-down instead of Bottom-up",
                     ignoreGeneralImage = "This will prevent the script " +
                         "from changing your selected General to 'Use Current' if the script " +
                         "is unable to find the General's image when changing activities. " +
@@ -20728,7 +20755,7 @@
                 htmlCode += caap.makeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
                 htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
                 htmlCode += caap.endDropHide('LevelUpGeneral');
-                htmlCode += caap.makeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.makeCheckTR("Reverse Under Level Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
                 htmlCode += caap.makeCheckTR("Modify Timers", 'generalModifyTimers', false, "Advanced timers for how often General checks are performed.");
                 htmlCode += caap.startCheckHide('generalModifyTimers');
                 htmlCode += caap.makeNumberFormTR("List Hours", 'checkGenerals', "Check the Generals list every X hours. Minimum 24.", 24, '', '', true);
@@ -20978,7 +21005,8 @@
                 festival_dur : 120,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_skaar.jpg'],
-                list_img     : ['death_list.jpg']
+                list_img     : ['death_list.jpg'],
+                cta_img      : ['ntwitter_deathrune1.gif']
             },
             'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
@@ -21009,7 +21037,8 @@
                     'monster_header_ragnorak.jpg',
                     'monster_header_ragnarok.jpg'
                 ],
-                list_img     : ['water_list.jpg']
+                list_img     : ['water_list.jpg'],
+                cta_img      : ['ntwitter_ragnarok1.gif']
             },
             'Genesis, The Earth Elemental' : {
                 duration     : 168,
@@ -21038,7 +21067,8 @@
                 festival_dur : 192,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_genesis.jpg'],
-                list_img     : ['earth_element_list.jpg']
+                list_img     : ['earth_element_list.jpg'],
+                cta_img      : ['ntwitter_genesis1.gif']
             },
             'Cronus, The World Hydra' : {
                 duration     : 168,
@@ -21059,7 +21089,14 @@
                 festival_dur : 192,
                 festival_ach : 500000,
                 newbg_img    : ['monster_header_cronus.jpg'],
-                list_img     : ['hydra_head.jpg']
+                list_img     : ['hydra_head.jpg'],
+                cta_img      : [
+                    'cta_hydra_catapult.gif',
+                    'cta_hydra_arrows.gif',
+                    'cta_hydra_cannons.gif',
+                    'cta_hydra_blizzard.gif',
+                    'cta_hydra_firestorm.gif'
+                ]
             },
             'Battle Of The Dark Legion' : {
                 duration     : 168,
@@ -21081,7 +21118,13 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_defend.jpg'],
-                list_img     : ['castle_siege_list.jpg']
+                list_img     : ['castle_siege_list.jpg'],
+                cta_img      : [
+                    'cta_castle_archers.gif',
+                    'cta_castle_elves.gif',
+                    'cta_castle_dwarves.gif',
+                    'cta_castle_knights.gif'
+                ]
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -21096,7 +21139,8 @@
                 mClass       : 'Epic Team',
                 mpool        : 2,
                 newbg_img    : ['monster_header_emeralddrag.jpg'],
-                list_img     : ['dragon_list_green.jpg']
+                list_img     : ['dragon_list_green.jpg'],
+                cta_img      : ['cta_green_dragon.gif']
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -21114,7 +21158,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_frostdrag.jpg'],
-                list_img     : ['dragon_list_blue.jpg']
+                list_img     : ['dragon_list_blue.jpg'],
+                cta_img      : ['cta_blue_dragon.gif']
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -21132,7 +21177,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_golddrag.jpg'],
-                list_img     : ['dragon_list_yellow.jpg']
+                list_img     : ['dragon_list_yellow.jpg'],
+                cta_img      : ['cta_yellow_dragon.gif']
             },
             'Ancient Red Dragon' : {
                 duration     : 72,
@@ -21151,7 +21197,8 @@
                 festival_dur : 96,
                 festival_ach : 50000,
                 newbg_img    : ['monster_header_ancientreddrag.jpg'],
-                list_img     : ['dragon_list_red.jpg']
+                list_img     : ['dragon_list_red.jpg'],
+                cta_img      : ['cta_red_dragon.gif']
             },
             'Karn'      : {
                 duration     : 120,
@@ -21172,7 +21219,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_gildamesh.jpg'],
-                list_img     : ['orc_boss_list.jpg']
+                list_img     : ['orc_boss_list.jpg'],
+                cta_img      : ['cta_orc_king.gif']
             },
             'Colossus Of Terra'     : {
                 duration     : 72,
@@ -21184,7 +21232,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_colossus.jpg'],
-                list_img     : ['stone_giant_list.jpg']
+                list_img     : ['stone_giant_list.jpg'],
+                cta_img      : ['cta_stone.gif']
             },
             'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
@@ -21202,7 +21251,8 @@
                     'monster_header_sylvanas.jpg',
                     'monster_header_sylvana.jpg'
                 ],
-                list_img     : ['boss_sylvanus_list.jpg']
+                list_img     : ['boss_sylvanus_list.jpg'],
+                cta_img      : ['cta_sylvanas.gif']
             },
             'Lotus Ravenmoore' : {
                 duration     : 48,
@@ -21211,7 +21261,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_lotus.jpg'],
-                list_img     : ['boss_lotus_list.jpg']
+                list_img     : ['boss_lotus_list.jpg'],
+                cta_img      : ['cta_lotus.gif']
             },
             'Keira The Dread Knight'    : {
                 duration     : 48,
@@ -21226,7 +21277,8 @@
                     'monster_header_keira.jpg',
                     'monster_header_keira2.jpg'
                 ],
-                list_img     : ['boss_keira_list.jpg']
+                list_img     : ['boss_keira_list.jpg'],
+                cta_img      : ['cta_keira.gif']
             },
             'Amethyst Sea Serpent'   : {
                 duration     : 72,
@@ -21248,7 +21300,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_amyserpent.jpg'],
-                list_img     : ['seamonster_list_purple.jpg']
+                list_img     : ['seamonster_list_purple.jpg'],
+                cta_img      : ['twitter_seamonster_purple_1.jpg']
             },
             'Ancient Sea Serpent'   : {
                 duration     : 72,
@@ -21270,7 +21323,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_ancientserpent.jpg'],
-                list_img     : ['seamonster_list_red.jpg']
+                list_img     : ['seamonster_list_red.jpg'],
+                cta_img      : ['twitter_seamonster_red_1.jpg']
             },
             'Emerald Sea Serpent'   : {
                 duration     : 72,
@@ -21292,7 +21346,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_emeraldserpent.jpg'],
-                list_img     : ['seamonster_list_green.jpg']
+                list_img     : ['seamonster_list_green.jpg'],
+                cta_img      : ['twitter_seamonster_green_1.jpg']
             },
             'Sapphire Sea Serpent'   : {
                 duration     : 72,
@@ -21314,7 +21369,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_sapphserpent.jpg'],
-                list_img     : ['seamonster_list_blue.jpg']
+                list_img     : ['seamonster_list_blue.jpg'],
+                cta_img      : ['twitter_seamonster_blue_1.jpg']
             },
             'The Deathrune Siege'    : {
                 duration     : 232,
@@ -21341,7 +21397,8 @@
                     siegeDam     : [300, 1500],
                     siege_img    : ['/graphics/monster_siege_'],
                     staUse       : 1
-                }
+                },
+                cta_img      : ['ntwitter_raid1.gif']
             },
             'Mephistopheles' : {
                 duration     : 48,
@@ -21353,7 +21410,8 @@
                 festival_dur : 89,
                 festival_ach : 50000,
                 newbg_img    : ['monster_header_meph.jpg'],
-                list_img     : ['boss_mephistopheles_list.jpg']
+                list_img     : ['boss_mephistopheles_list.jpg'],
+                cta_img      : ['cta_mephi.gif']
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
             'War Of The Red Plains' : {
@@ -21382,7 +21440,8 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_warredplains.jpg'],
-                list_img     : ['nm_war_list.jpg']
+                list_img     : ['nm_war_list.jpg'],
+                cta_img      : ['nm_war_twitter_1.gif']
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
             'Bahamut, The Volcanic Dragon' : {
@@ -21408,7 +21467,8 @@
                 festival_dur : 192,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_bahamut.jpg'],
-                list_img     : ['nm_volcanic_list.jpg']
+                list_img     : ['nm_volcanic_list.jpg'],
+                cta_img      : ['ntwitter_volcanic1.gif']
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -21436,7 +21496,8 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_alphabahamut.jpg'],
-                list_img     : ['nm_volcanic_list_2.jpg']
+                list_img     : ['nm_volcanic_list_2.jpg'],
+                cta_img      : ['ntwitter_volcanic5.gif']
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
             'Azriel, The Angel Of Wrath' : {
@@ -21466,7 +21527,8 @@
                 festival_dur : 192,
                 festival_ach : 4000000,
                 newbg_img    : ['monster_header_azriel.jpg'],
-                list_img     : ['nm_azriel_list.jpg']
+                list_img     : ['nm_azriel_list.jpg'],
+                cta_img      : ['nm_azriel_twitter_1.gif']
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -21497,7 +21559,8 @@
                 festival_ach   : 1000000,
                 festival_mpool : 1,
                 newbg_img      : ['monster_header_alphameph.jpg'],
-                list_img       : ['nm_alpha_mephistopheles_list.jpg']
+                list_img       : ['nm_alpha_mephistopheles_list.jpg'],
+                cta_img        : ['nm_alpha_mephistopheles_twitter_1.gif']
             },
             'Gehenna, The Fire Elemental' : {
                 alpha        : true,
@@ -21527,7 +21590,8 @@
                 festival_dur : 96,
                 festival_ach : 3500000,
                 newbg_img    : ['monster_header_gehenna.jpg'],
-                list_img     : ['nm_gehenna_list.jpg']
+                list_img     : ['nm_gehenna_list.jpg'],
+                cta_img      : ['nm_gehenna_twitter_1.gif']
             },
             "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
@@ -21555,7 +21619,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_lionrebellion.jpg'],
-                list_img     : ['nm_aurelius_list.jpg']
+                list_img     : ['nm_aurelius_list.jpg'],
+                cta_img      : ['twitter_aurelius.gif']
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -21582,7 +21647,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_corvintheus.jpg'],
-                list_img     : ['corv_list.jpg']
+                list_img     : ['corv_list.jpg'],
+                cta_img      : ['cta_corv1.gif']
             },
             'Valhalla, The Air Elemental' : {
                 alpha        : true,
@@ -21613,7 +21679,8 @@
                 festival_dur : 192,
                 festival_ach : 2500000,
                 newbg_img    : ['monster_header_valhalla.jpg'],
-                list_img     : ['monster_valhalla_list.jpg']
+                list_img     : ['monster_valhalla_list.jpg'],
+                cta_img      : ['cta_valhalla.gif']
             },
             'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
@@ -21640,7 +21707,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_jahanna.jpg'],
-                list_img     : ['boss_jahanna_list.jpg']
+                list_img     : ['boss_jahanna_list.jpg'],
+                cta_img      : ['cta_jahanna.gif']
             },
             "Agamemnon The Overseer" : {
                 alpha        : true,
@@ -21657,10 +21725,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50,  100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
@@ -21668,7 +21736,8 @@
                 mpool        : 1,
                 festival_img : ['festival_monsters_top_agamemnon.jpg'],
                 festival_dur : 192,
-                festival_ach : 10000000
+                festival_ach : 10000000,
+                cta_img      : ['cta_agamemnon.gif']
             },
             "Aurora" : {
                 alpha        : true,
@@ -21695,16 +21764,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_aurora.jpg'],
-                list_img     : ['boss_aurora_list.jpg']
+                list_img     : ['boss_aurora_list.jpg'],
+                cta_img      : ['cta_aurora.gif']
             },
             "Kromash, The Storm Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -21722,16 +21792,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_kromash.jpg'],
-                list_img     : ['monster_kromash_list.jpg']
+                list_img     : ['monster_kromash_list.jpg'],
+                cta_img      : ['cta_kromash.gif']
             },
             "Glacius, The Frost Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -21749,16 +21820,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_glacius.jpg'],
-                list_img     : ['monster_glacius_list.jpg']
+                list_img     : ['monster_glacius_list.jpg'],
+                cta_img      : ['cta_glacius.gif']
             },
             "Shardros, The Mountain Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -21776,16 +21848,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_shardros.jpg'],
-                list_img     : ['monster_shardros_list.jpg']
+                list_img     : ['monster_shardros_list.jpg'],
+                cta_img      : ['cta_shardros.gif']
             },
             "Magmos, The Lava Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -21803,7 +21876,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_magmos.jpg'],
-                list_img     : ['monster_magmos_list.jpg']
+                list_img     : ['monster_magmos_list.jpg'],
+                cta_img      : ['cta_magmos.gif']
             }
         },
 
@@ -21835,6 +21909,10 @@
 
         getListName: function (img) {
             return monster.which(img, "list_img");
+        },
+
+        getCtaName: function (img) {
+            return monster.which(img, "cta_img");
         },
 
         which: function (img, entity) {
@@ -22301,7 +22379,7 @@
                     attackOrderList       = [],
                     theGeneral            = config.getItem('MonsterGeneral', 'Use Current');
 
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 // First we forget everything about who we already picked.
                 state.setItem('targetFrombattle_monster', '');
                 state.setItem('targetFromfortify', energyTarget.data);
@@ -23138,25 +23216,77 @@
                 twt2     : "vincent",
                 special1 : [0],
                 special2 : [1],
-                health   : [100, 200, 400, 800]
+                health   : [100, 200, 400, 800],
+                cta_img  : ['cta_vincent.gif']
             },
             "Alpha Vincent": {
                 twt2     : "alpha_vincent",
                 special1 : [0],
                 special2 : [1],
-                health   : [500, 1000, 2000, 4000]
+                health   : [500, 1000, 2000, 4000],
+                cta_img  : ['cta_alphavincent.gif']
             },
             "Army of the Apocalypse": {
                 twt2     : "ca_girls",
                 special1 : [0, 25, 50, 75],
                 special2 : [1, 2, 3, 4],
-                health   : [500, 1000, 2000, 4000]
+                health   : [500, 1000, 2000, 4000],
+                cta_img  : []
             },
             "Giant Arachnid": {
                 twt2     : "giant_arachnid",
                 special1 : [0],
                 special2 : [1],
-                health   : [100, 200, 400, 800]
+                health   : [100, 200, 400, 800],
+                cta_img  : []
+            }
+        },
+
+        getCtaName: function (img) {
+            return guild_monster.which(img, "cta_img");
+        },
+
+        which: function (img, entity) {
+            try {
+                if (!$u.hasContent(img) || !$u.isString(img)) {
+                    $u.warn("img", img);
+                    throw "Invalid identifying img!";
+                }
+
+                if (!$u.hasContent(entity) || !$u.isString(entity)) {
+                    $u.warn("entity", entity);
+                    throw "Invalid entity name!";
+                }
+
+                var i    = '',
+                    k    = 0,
+                    r    = {},
+                    name = '';
+
+                for (i in guild_monster.info) {
+                    if (guild_monster.info.hasOwnProperty(i)) {
+                        if ($u.hasContent(name)) {
+                            break;
+                        }
+
+                        r = guild_monster.info[i];
+                        if (!$u.hasContent(r) || !$u.hasContent(r[entity]) || !$j.isArray(r[entity])) {
+                            continue;
+                        }
+
+                        for (k = 0; k < r[entity].length; k += 1) {
+                            if (img === r[entity][k]) {
+                                name = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return name;
+            } catch (err) {
+                $u.error("ERROR in guild_monster.which: " + err);
+                return undefined;
             }
         },
 
@@ -23453,6 +23583,8 @@
                     allowedDiv    = $j(),
                     bannerDiv     = $j(),
                     collectDiv    = $j(),
+                    tempDiv       = $j(),
+                    tempTxt       = '',
                     collect       = false,
                     myStatsTxt    = '',
                     myStatsArr    = [],
@@ -23501,18 +23633,26 @@
 
                         health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health");
                         if (health && health.length) {
-                            healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
-                            if (healthEnemy && healthEnemy.length) {
+                            healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
+                            if ($u.hasContent(healthEnemy)) {
                                 currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                             } else {
                                 $u.warn("guild_battle_bar_enemy.gif not found");
                             }
 
-                            healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
-                            if (healthGuild && healthGuild.length) {
+                            healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
+                            if ($u.hasContent(healthGuild)) {
                                 currentRecord['guildHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                             } else {
                                 $u.warn("guild_battle_bar_you.gif not found");
+                            }
+
+                            tempDiv = $j("span", health);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
+                                tempTxt = tempDiv.eq(0).text().trim();
+                                tempDiv.eq(0).text(tempTxt + " (" + currentRecord['guildHealth'] + "%)");
+                                tempTxt = tempDiv.eq(1).text().trim();
+                                tempDiv.eq(1).text(tempTxt + " (" + currentRecord['enemyHealth'] + "%)");
                             }
                         } else {
                             $u.warn("guild_battle_health error");
@@ -26071,11 +26211,12 @@
             try {
                 var ft = config.getItem("festivalTower", false);
                 $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
-                    var post = $j(this),
-                        link = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
-                        mon  = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
-                        img  = type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"),
-                        fix  = false;
+                    var post  = $j(this),
+                        link  = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
+                        mon   = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
+                        img   = $u.setContent(type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"), '').basename(),
+                        mname = monster.getCtaName(img),
+                        fix   = false;
 
                     $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
                     if (!$u.hasContent(link)) {
@@ -26089,6 +26230,10 @@
 
                     if (link.hasIndexOf('guild_battle_monster')) {
                         $u.log(2, "Guild Monster, skipping", {'mon': mon, 'link': link, 'img': img});
+                        if (config.getItem("DebugLevel", 1) > 1 && !guild_monster.getCtaName(img)) {
+                            $j().alert("Guild Monster missing image<br />" + mon + '<br />' + link + '<br />' + img);
+                        }
+
                         return true;
                     }
 
@@ -26104,6 +26249,10 @@
                     if (!$u.hasContent(img)) {
                         $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
+                    }
+
+                    if (!mname) {
+                        //alert("Missing mname image\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
                     }
 
                     if (mon.hasIndexOf("Bahamut") && !mon.hasIndexOf("Alpha") && (img.hasIndexOf("volcanic5") || link.hasIndexOf("twt2=alpha"))) {
@@ -26132,6 +26281,10 @@
 
                     if (fix) {
                         $u.log(2, "Fixed CA listing issue", mon);
+                    }
+
+                    if (mname !== mon) {
+                        //alert("mname/mon mismatch\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
                     }
 
                     feed.setItem(link, mon);
@@ -26295,28 +26448,23 @@
                     feed.ajaxPublicWait = false;
                 }
 
+                function onReturn(message) {
+                    $u.log(2, "ajaxPublic onReturn", message);
+                    message.responseText = message.responseText.unescapeCAHTML();
+                    feed.publicItems(message.responseText);
+                    feed.ajaxPublicWait = false;
+                }
+
                 feed.ajaxPublicWait = true;
-                var url = 'public_monster_list.php?monster_tier=' + tier;
+                var url = 'public_monster_list.php?monster_tier=' + tier,
+                    msg;
+
                 if (caap.domain.which === 2) {
                     url = "http://apps.facebook.com/castle_age/" + url;
                     if ($u.hasContent(window.chrome)) {
-                        chrome.extension.sendRequest({'action': 'getPage', 'url': url}, function (data, textStatus, XMLHttpRequest) {
-                            data = data.unescapeCAHTML();
-                            $u.log(3, "ajaxPublic chrome", [data, textStatus, XMLHttpRequest]);
-                            feed.publicItems(data);
-                            feed.ajaxPublicWait = false;
-                        });
+                        chrome.extension.sendRequest({'action': 'getPage', 'value': url}, onReturn);
                     } else if ($u.hasContent(window.caap_comms)) {
-                        window.caap_comms.prepMessage('getPage', url, function (event) {
-                            event.responseText = event.responseText.unescapeCAHTML();
-                            $u.log(3, "ajaxPublic firefox", event);
-                            feed.publicItems(event.responseText);
-                            feed.ajaxPublicWait = false;
-                        });
-
-                        window.caap_comms.sendMessage();
-                    } else if ($u.hasContent(window.caap_op)) {
-                        window.caap_op.source.postMessage({action : "getPage", id: "feed", value: url});
+                        window.caap_comms.sendRequest({'action': 'getPage', 'value': url}, onReturn);
                     }
                 } else {
                     caap.ajax(caap.domain.link + '/' + url, onError, onSuccess);
@@ -26551,7 +26699,7 @@
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
 
-                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms) || $u.hasContent(window.caap_op) && caap.domain.which === 2))) {
+                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms)) && caap.domain.which === 2)) {
                     htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
                     htmlCode += caap.startCheckHide('publicMonsterFinder1');
                     htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
@@ -29497,19 +29645,21 @@
                 htmlCode += caap.startCheckHide('AutoGift');
                 htmlCode += caap.makeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
                 htmlCode += caap.makeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
-                htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions);
+                htmlCode += caap.startCheckHide('CollectOnly');
+                htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions, true);
+                htmlCode += caap.endCheckHide('CollectOnly');
                 htmlCode += caap.makeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
                 htmlCode += caap.makeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
-                htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
+                htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Do not return gifts to a list of UserIDs");
                 htmlCode += caap.startCheckHide('FilterReturnId');
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Do not return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnId');
-                htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
+                htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Do not return gifts for a list of certain gifts recieved");
                 htmlCode += caap.startCheckHide('FilterReturnGift');
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Do not return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
@@ -29907,7 +30057,8 @@
                             gift = gifting.queue.records[it]['gift'];
                             break;
                         case gifting.gifts.options[1]:
-                            gift = $u.setContent(gifting.queue.randomImg, gifting.queue.randomImg = gifting.gifts.random());
+                            gift = $u.setContent(gifting.queue.randomImg, gifting.gifts.random());
+                            gifting.queue.randomImg = gift;
                             break;
                         default:
                             gift = choice;
@@ -31277,11 +31428,11 @@
         resultsWrapperDiv   : {},
         resultsText         : '',
         libs                : {
-            jQuery     : 'http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js',
-            jQueryUI   : 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js',
-            farbtastic : 'http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
-            utility    : 'http://utility-js.googlecode.com/files/utility-0.1.6.min.js',
-            dataTables : 'http://castle-age-auto-player.googlecode.com/files/jquery.dataTables-1.7.6.min.js'
+            jQuery     : 'https://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js',
+            jQueryUI   : 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js',
+            farbtastic : 'https://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
+            utility    : 'https://utility-js.googlecode.com/files/utility-0.1.6.min.js',
+            dataTables : 'https://castle-age-auto-player.googlecode.com/files/jquery.dataTables-1.7.6.min.js'
         },
         removeLibs   : [],
         domain              : {
@@ -31369,14 +31520,6 @@
                     if ($u.isNumber(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
-                    }
-
-                    if (!idOk) {
-                        FBID = $u.setContent(window.presence.user, '0').parseInt();
-                        if ($u.isNumber(FBID) && FBID > 0) {
-                            caap.stats['FBID'] = FBID;
-                            idOk = true;
-                        }
                     }
                 }
             } else {
@@ -31519,21 +31662,24 @@
                         'margin'              : '0px'
                     });
 
-                    $j(".UIStandardFrame_Container").css({
-                        'margin'              : '0px auto 0px'
+                    $j("#contentCol").css({
+                        'background-color'    : 'black'
+                        //'margin'              : '0px auto 0px'
                     });
 
-                    $j(".UIStandardFrame_Content").css({
+                    $j("#contentArea").css({
                         'background-image'    : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                         'padding'             : '0px 10px'
                     });
 
-                    $j("#pagelet_canvas_footer_content").css({
+                    $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                         'display'    : 'none'
                     });
+
+                    $j("#contentCol").removeClass("clearfix");
                 }
 
-                caap.controlXY.selector = caap.domain.which === 0 ? ".UIStandardFrame_Content" : "#globalcss";
+                caap.controlXY.selector = caap.domain.which === 0 ? "#contentArea" : "#globalcss";
                 caap.dashboardXY.selector = "#" + caap.domain.id[caap.domain.which] + "app_body_container";
                 state.setItem(caap.friendListType.gifta.name + 'Requested', false);
                 state.setItem(caap.friendListType.giftc.name + 'Requested', false);
@@ -31541,7 +31687,8 @@
                 if (caap.domain.which === 0) {
                     // Get rid of those ads now! :P
                     if (config.getItem('HideAds', false)) {
-                        $j('.UIStandardFrame_SidebarAds').css('display', 'none');
+                        //$j('.UIStandardFrame_SidebarAds').css('display', 'none');
+                        $j('#rightCol').css('display', 'none');
                     }
 
                     if (config.getItem('HideAdsIframe', false)) {
@@ -31762,18 +31909,6 @@
                 }
 
                 caap.ajax(caap.domain.link + '/' + link, onError, onSuccess);
-
-                /*
-                $j(selector_dom).load(caap.domain.link + '/' + link + ' ' + selector_load,
-                    function (data, textStatus, XMLHttpRequest) {
-                        caap.ajaxLoadIcon.css("display", "none");
-                        caap.reBind();
-                        caap.waitingForDomLoad = false;
-                        caap.checkResults();
-                    }
-                );
-                */
-
                 return true;
             } catch (err) {
                 $u.error("ERROR in caap.ajaxLoad: " + err);
@@ -32197,8 +32332,9 @@
 
         selectDropOption: function (idName, value) {
             try {
-                $j("#caap_" + idName + " option", caap.caapDivObject).removeAttr('selected');
-                $j("#caap_" + idName + " option[value='" + value + "']", caap.caapDivObject).attr('selected', 'selected');
+                var drop = $j("#caap_" + idName, caap.caapDivObject);
+                $j("option", drop).removeAttr('selected');
+                drop.val(value);
                 return true;
             } catch (err) {
                 $u.error("ERROR in selectDropOption: " + err);
@@ -32278,7 +32414,11 @@
             try {
                 $j("#caap_" + idName + " option", caap.caapDivObject).remove();
                 $j("#caap_" + idName, caap.caapDivObject).append("<option disabled='disabled' value='not selected'>Choose one</option>");
-                for (var item = 0, len = dropList.length; item < len; item += 1) {
+                var item = 0,
+                    len  = dropList.length,
+                    drop = $j("#caap_" + idName, caap.caapDivObject);
+
+                for (item = 0; item < len; item += 1) {
                     if (item === 0 && !option) {
                         config.setItem(idName, dropList[item]);
                         $u.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
@@ -32288,9 +32428,9 @@
                 }
 
                 if (option) {
-                    $j("#caap_" + idName + " option[value='" + option.escapeHTML() + "']", caap.caapDivObject).attr('selected', 'selected');
+                    drop.val(option.escapeHTML());
                 } else {
-                    $j("#caap_" + idName + " option:eq(1)", caap.caapDivObject).attr('selected', 'selected');
+                    drop.val($j("option:eq(1)", drop).val());
                 }
 
                 return true;
@@ -32433,7 +32573,7 @@
                 caap.setDivContent('banner', banner);
 
                 donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
-                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&lc=SE&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&currency_code=SEK&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
+                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
                 donate += "<img src='data:image/gif;base64," + image64['donate'] + "' alt='Donate' /></a></div>";
                 caap.setDivContent('donate', donate);
                 /*jslint sub: false */
@@ -33716,59 +33856,22 @@
                     row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     body += caap.makeTr(row);
 
-                    row = caap.makeTd({text: 'Gildamesh, The Orc King Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['gildamesh'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Lotus Ravenmoore Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['lotus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
+                    count = 0;
+                    for (pp in caap.stats['achievements']['monster']) {
+                        if (caap.stats['achievements']['monster'].hasOwnProperty(pp)) {
+                            row = count % 2 === 0 ? '' : row;
+                            row += caap.makeTd({text: pp.escapeHTML(), color: '', id: '', title: ''});
+                            row += caap.makeTd({text: caap.stats['achievements']['monster'][pp], color: valueCol, id: '', title: ''});
+                            body += count % 2 === 1 ? caap.makeTr(row) : '';
+                            count += 1;
+                        }
+                    }
 
-                    row = caap.makeTd({text: 'The Colossus of Terra Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['colossus'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Dragons Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['dragons'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['sylvanas'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Cronus, The World Hydra Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['cronus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Keira the Dread Knight Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['keira'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'The Battle of the Dark Legion Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['legion'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Genesis, The Earth Elemental Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['genesis'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Skaar Deathrune Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['skaar'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['gehenna'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Sieges Assisted With', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['sieges'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: "Aurelius, Lion's Rebellion", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['aurelius'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Corvintheus Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['corvintheus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['valhalla'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: "Jahanna, Priestess of Aurora", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['jahanna'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Aurora', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['aurora'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
+                    if (count % 2 === 1) {
+                        row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                        row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                        body += caap.makeTr(row);
+                    }
 
                     row = caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
@@ -33834,11 +33937,17 @@
                     for (pp in caap.stats['character']) {
                         if (caap.stats['character'].hasOwnProperty(pp)) {
                             row = count % 2 === 0 ? '' : row;
-                            row += caap.makeTd({text: pp.ucFirst(), color: '', id: '', title: ''});
+                            row += caap.makeTd({text: pp, color: '', id: '', title: ''});
                             row += caap.makeTd({text: "Level " + caap.stats['character'][pp]['level'] + " (" + caap.stats['character'][pp]['percent'] + "%)", color: valueCol, id: '', title: ''});
                             body += count % 2 === 1 ? caap.makeTr(row) : '';
                             count += 1;
                         }
+                    }
+
+                    if (count % 2 === 1) {
+                        row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                        row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                        body += caap.makeTr(row);
                     }
 
                     $j("#caap_userStats", caap.caapTopObject).html(caap.makeTable("user", head, body));
@@ -34088,18 +34197,21 @@
                             'margin'              : '0px'
                         });
 
-                        $j(".UIStandardFrame_Container").css({
-                            'margin'              : '0px auto 0px'
+                        $j("#contentCol").css({
+                            'background-color'    : 'black'
+                            //'margin'              : '0px auto 0px'
                         });
 
-                        $j(".UIStandardFrame_Content").css({
+                        $j("#contentArea").css({
                             'background-image'    : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                             'padding'             : '0px 10px'
                         });
 
-                        $j("#pagelet_canvas_footer_content").css({
+                        $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                             'display'    : 'none'
                         });
+
+                        $j("#contentCol").removeClass("clearfix");
                     } else {
                         $j("body").css({
                             'background-image'    : '',
@@ -34109,18 +34221,21 @@
                             'margin'              : ''
                         });
 
-                        $j(".UIStandardFrame_Container").css({
-                            'margin'              : '20px auto 0px'
+                        $j("#contentCol").css({
+                            'background-color'    : 'white'
+                            //'margin'              : '0px auto 0px'
                         });
 
-                        $j(".UIStandardFrame_Content").css({
+                        $j("#contentArea").css({
                             'background-image'    : '',
                             'padding'             : ''
                         });
 
-                        $j("#pagelet_canvas_footer_content").css({
+                        $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                             'display'    : 'block'
                         });
+
+                        $j("#contentCol").addClass("clearfix");
                     }
 
                     styleXY = caap.getControlXY(true);
@@ -34157,7 +34272,8 @@
                 */
                 case "HideAds" :
                     $u.log(9, "HideAds");
-                    $j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');
+                    //$j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');
+                    $j('#rightCol').css('display', e.target.checked ? 'none' : 'block');
                     break;
                 case "HideAdsIframe" :
                     $u.log(9, "HideAdsIframe");
@@ -35623,62 +35739,12 @@
                         'ratio'  : 0
                     }
                 },
-                'monster' : {
-                    'gildamesh'   : 0,
-                    'colossus'    : 0,
-                    'sylvanas'    : 0,
-                    'keira'       : 0,
-                    'legion'      : 0,
-                    'skaar'       : 0,
-                    'lotus'       : 0,
-                    'dragons'     : 0,
-                    'cronus'      : 0,
-                    'sieges'      : 0,
-                    'genesis'     : 0,
-                    'gehenna'     : 0,
-                    'aurelius'    : 0,
-                    'corvintheus' : 0,
-                    'valhalla'    : 0,
-                    'jahanna'     : 0,
-                    'aurora'      : 0
-                },
+                'monster' : {},
                 'other' : {
                     'alchemy' : 0
                 }
             },
-            'character' : {
-                'warrior' : {
-                    'name'    : 'Warrior',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'rogue' : {
-                    'name'    : 'Rogue',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'mage' : {
-                    'name'    : 'Mage',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'cleric' : {
-                    'name'    : 'Cleric',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'warlock' : {
-                    'name'    : 'Warlock',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'ranger' : {
-                    'name'    : 'Ranger',
-                    'level'   : 0,
-                    'percent' : 0
-                }
-
-            },
+            'character' : {},
             'guild' : {
                 'name'    : '',
                 'id'      : '',
@@ -36119,55 +36185,51 @@
                     spreadsheet.doTitles();
                 }
 
-                if (config.getItem("enableRecipeClean", true)) {
-                    var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.appBodyDiv),
-                        titleTxt    = '',
-                        titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
-                        image       = '',
-                        hideCount   = config.getItem("recipeCleanCount", 1),
-                        special     = [
-                            "Volcanic Knight",
-                            "Holy Plate",
-                            "Atlantean Forcefield",
-                            "Spartan Phalanx",
-                            "Cronus, The World Hydra",
-                            "Helm of Dragon Power",
-                            "Avenger",
-                            "Judgement",
-                            "Tempered Steel",
-                            "Bahamut, the Volcanic Dragon",
-                            "Blood Zealot",
-                            "Transcendence",
-                            "Soul Crusher",
-                            "Soulforge",
-                            "Crown of Flames"
-                        ];
+                var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.appBodyDiv),
+                    titleTxt    = '',
+                    titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
+                    image       = '',
+                    hideCount   = config.getItem("recipeCleanCount", 1),
+                    special     = [
+                        "Volcanic Knight",
+                        "Holy Plate",
+                        "Atlantean Forcefield",
+                        "Spartan Phalanx",
+                        "Cronus, The World Hydra",
+                        "Helm of Dragon Power",
+                        "Avenger",
+                        "Judgement",
+                        "Tempered Steel",
+                        "Bahamut, the Volcanic Dragon",
+                        "Blood Zealot",
+                        "Transcendence",
+                        "Soul Crusher",
+                        "Soulforge",
+                        "Crown of Flames"
+                    ];
 
-                    if (hideCount < 1) {
-                        hideCount = 1;
-                    }
+                hideCount = hideCount < 1 ? 1 : hideCount;
+                if ($u.hasContent(recipeDiv)) {
+                    recipeDiv.each(function () {
+                        var row = $j(this);
+                        titleTxt = row.text().trim().innerTrim().regex(titleRegExp);
+                        if ($u.hasContent(titleTxt)) {
+                            if (titleTxt === "Elven Crown") {
+                                image = "gift_aeris_complete.jpg";
+                            }
 
-                    if ($u.hasContent(recipeDiv)) {
-                        recipeDiv.each(function () {
-                            var row = $j(this);
-                            titleTxt = row.text().trim().innerTrim().regex(titleRegExp);
-                            if ($u.hasContent(titleTxt)) {
-                                if (special.hasIndexOf(titleTxt)) {
-                                    return true;
-                                }
-
-                                if (titleTxt === "Elven Crown") {
-                                    image = "gift_aeris_complete.jpg";
-                                }
-
-                                if (town.getCount(titleTxt, image) >= hideCount && !spreadsheet.isSummon(titleTxt, image)) {
+                            if (spreadsheet.isSummon(titleTxt, image)) {
+                                row.text(row.text().trim() + ' : Summon Owned (' + town.getCount(titleTxt, image) + ')') ;
+                            } else {
+                                row.text(row.text().trim() + ' : Owned (' + town.getCount(titleTxt, image) + ')') ;
+                                if (config.getItem("enableRecipeClean", true) && !special.hasIndexOf(titleTxt) && town.getCount(titleTxt, image) >= hideCount) {
                                     row.parent().parent().css("display", "none").next().css("display", "none");
                                 }
                             }
+                        }
 
-                            return true;
-                        });
-                    }
+                        return true;
+                    });
                 }
 
                 if (config.getItem("enableIngredientsHide", false)) {
@@ -36191,7 +36253,7 @@
 
         commonTown: function () {
             try {
-                $j("form[id*='itemBuy'] select[name='amount'] option[value='5']", caap.appBodyDiv).attr('selected', 'selected');
+                $j("form[id*='itemBuy'] select[name='amount']", caap.appBodyDiv).val("5");
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
                 }
@@ -36350,25 +36412,17 @@
 
                 achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.appBodyDiv);
                 if ($u.hasContent(achDiv)) {
-                    tdDiv = $j("td div", achDiv);
-                    if ($u.hasContent(tdDiv) && tdDiv.length === 17) {
-                        caap.stats['achievements']['monster']['gildamesh'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['lotus'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['colossus'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['dragons'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['sylvanas'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['cronus'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['keira'] = $u.setContent(tdDiv.eq(6).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['sieges'] = $u.setContent(tdDiv.eq(7).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['legion'] = $u.setContent(tdDiv.eq(8).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['genesis'] = $u.setContent(tdDiv.eq(9).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['skaar'] = $u.setContent(tdDiv.eq(10).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['gehenna'] = $u.setContent(tdDiv.eq(11).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['aurelius'] = $u.setContent(tdDiv.eq(12).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['corvintheus'] = $u.setContent(tdDiv.eq(13).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['valhalla'] = $u.setContent(tdDiv.eq(14).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['jahanna'] = $u.setContent(tdDiv.eq(15).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['aurora'] = $u.setContent(tdDiv.eq(16).text().numberOnly(), 0);
+                    tdDiv = $j("td", achDiv);
+                    if ($u.hasContent(tdDiv)) {
+                        caap.stats['achievements']['monster'] = {};
+                        tdDiv.each(function () {
+                            var td  = $j(this),
+                                divNum = $j("div", td).text().parseInt(),
+                                tdTxt = td.justtext().trim();
+
+                            caap.stats['achievements']['monster'][tdTxt] = divNum;
+                        });
+
                         caap.saveStats();
                     } else {
                         $u.warn('Monster Achievements problem.');
@@ -36401,13 +36455,14 @@
         checkResults_view_class_progress: function () {
             try {
                 var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.appBodyDiv);
-                if ($u.hasContent(classDiv) && classDiv.length === 6) {
-                    classDiv.each(function (index) {
+                if ($u.hasContent(classDiv)) {
+                    caap.stats['character'] = {};
+                    classDiv.each(function () {
                         var monsterClass = $j(this),
-                            name         = '';
+                            name         = $u.setContent(monsterClass.attr("class"), '').replace("banner_", '').ucFirst();
 
-                        name = $u.setContent(monsterClass.attr("class"), '').replace("banner_", '');
-                        if (name && $j.isPlainObject(caap.stats['character'][name])) {
+                        if (name) {
+                            caap.stats['character'][name] = {};
                             caap.stats['character'][name]['percent'] = $u.setContent($j("img[src*='progress']", monsterClass).eq(0).getPercent('width').dp(2), 0);
                             caap.stats['character'][name]['level'] = $u.setContent(monsterClass.children().eq(2).text().numberOnly(), 0);
                             $u.log(2, "Got character class record", name, caap.stats['character'][name]);
@@ -36568,11 +36623,17 @@
             'Mist III' : {
                 clas : 'quests_stage_13',
                 base : 'tab_mist3',
-                next : 'Ambrosia',
-                area : 'Demi Quests',
-                list : 'demiQuestList',
+                next : 'DemiChange',
+                area : '',
+                list : '',
                 boss : "Aurora",
                 orb  : 'Orb of Aurora'
+            },
+            'DemiChange' : {
+                clas : 'symbolquests_stage_1',
+                next : 'Ambrosia',
+                area : 'Demi Quests',
+                list : 'demiQuestList'
             },
             'Ambrosia' : {
                 clas : 'symbolquests_stage_1',
@@ -36600,6 +36661,12 @@
             },
             'Azeron' : {
                 clas : 'symbolquests_stage_5',
+                next : 'AtlantisChange',
+                area : '',
+                list : ''
+            },
+            'AtlantisChange' : {
+                clas : 'monster_quests_stage_1',
                 next : 'Atlantis',
                 area : 'Atlantis',
                 list : 'atlantisQuestList'
@@ -36714,30 +36781,52 @@
 
                 switch (config.getItem('QuestArea', 'Quest')) {
                 case 'Quest' :
-                    var imgExist = false;
+                    var pathToPage  = 'quests',
+                        imageOnPage = 'quest_back_1.jpg',
+                        subQArea    = 'Land of Fire',
+                        landPic     = '';
+
                     if (caap.stats['level'] > 7) {
-                        var subQArea = config.getItem('QuestSubArea', 'Land of Fire');
-                        var landPic = caap.questAreaInfo[subQArea].base;
+                        subQArea = config.getItem('QuestSubArea', 'Land of Fire');
+                        landPic = caap.questAreaInfo[subQArea].base;
+                        if ($u.hasContent($j("img[src*='" + landPic + "_lock']"))) {
+                            caap.checkResults_quests(true);
+                        }
+
                         if (landPic === 'tab_heaven' || config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
                             if (caap.checkMagic()) {
                                 return true;
                             }
                         }
 
-                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2' || landPic === 'tab_mist2' || landPic === 'tab_mist3') {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
-                        } else if (landPic === 'tab_heaven') {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
-                        } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
-                        } else {
-                            imgExist = caap.navigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                        pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
+                        imageOnPage = landPic;
+                        switch (landPic) {
+                        case 'tab_mist3':
+                        case 'tab_mist2':
+                        case 'tab_water2':
+                        case 'tab_earth2':
+                        case 'tab_ivory':
+                        case 'tab_underworld':
+                            pathToPage += '_small.gif';
+                            imageOnPage += '_big.gif';
+                            break;
+                        case 'tab_heaven':
+                            pathToPage += '_small2.gif';
+                            imageOnPage += '_big2.gif';
+                            break;
+                        case 'land_undead_realm':
+                        case 'land_demon_realm':
+                            pathToPage += '.gif';
+                            imageOnPage += '_sel.gif';
+                            break;
+                        default:
+                            pathToPage = 'quests,jobs_tab_back.gif,' + landPic + '.gif';
+                            imageOnPage += '_sel.gif';
                         }
-                    } else {
-                        imgExist = caap.navigateTo('quests', 'quest_back_1.jpg');
                     }
 
-                    if (imgExist) {
+                    if (caap.navigateTo(pathToPage, imageOnPage)) {
                         return true;
                     }
 
@@ -36747,17 +36836,13 @@
                         return true;
                     }
 
-                    var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
-                    var deityN = caap.deityTable[caap.demiQuestTable[subDQArea]];
-                    var picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.globalContainer);
-                    if (!$u.hasContent(picSlice)) {
-                        $u.warn('No diety image for', subDQArea);
-                        return false;
-                    }
+                    var subDQArea = config.getItem('QuestSubArea', 'Ambrosia'),
+                        deityN    = caap.deityTable[caap.demiQuestTable[subDQArea]],
+                        picSlice  = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.globalContainer),
+                        descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.globalContainer);
 
-                    var descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.globalContainer);
-                    if (!$u.hasContent(descSlice)) {
-                        $u.warn('No diety description for', subDQArea);
+                    if (!$u.hasContent(picSlice) || !$u.hasContent(descSlice)) {
+                        $u.warn('No diety image or description for', subDQArea);
                         return false;
                     }
 
@@ -36775,9 +36860,10 @@
                 default :
                 }
 
-                var bDiv = $j("#" + caap.domain.id[caap.domain.which] + "single_popup", caap.globalContainer);
-                var bDisp = $u.setContent(bDiv.css("display"), 'none');
-                var button = $j();
+                var bDiv   = $j("#" + caap.domain.id[caap.domain.which] + "single_popup", caap.globalContainer),
+                    bDisp  = $u.setContent(bDiv.css("display"), 'none'),
+                    button = $j();
+
                 if (bDisp !== 'none') {
                     button = $j("input[src*='quick_switch_button.gif']", bDiv);
                     if ($u.hasContent(button) && !config.getItem('ForceSubGeneral', false)) {
@@ -36793,9 +36879,10 @@
                     general.GetEquippedStats();
                 }
 
-                var costToBuy = 0;
-                //Buy quest requires popup
-                var itemBuyPopUp = $j("form[id*='itemBuy']", caap.globalContainer);
+                // Buy quest requires popup
+                var itemBuyPopUp = $j("form[id*='itemBuy']", caap.globalContainer),
+                    costToBuy    = 0;
+
                 if (bDisp !== 'none' && $u.hasContent(itemBuyPopUp)) {
                     $u.log(2, 'itemBuy');
                     state.setItem('storeRetrieve', 'general');
@@ -37313,10 +37400,10 @@
                     return true;
                 });
 
-                //$u.log(1, "pickQuestTF", pickQuestTF);
+                $u.log(4, "pickQuestTF", pickQuestTF);
                 if (pickQuestTF) {
                     if (state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
-                        //$u.log(2, "return autoQuestDivs", autoQuestDivs);
+                        $u.log(4, "return autoQuestDivs", autoQuestDivs);
                         caap.showAutoQuest();
                         return autoQuestDivs;
                     }
@@ -39402,7 +39489,7 @@
                             monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
                         }
 
-                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(/.*\/(.*\.jpg)/);
+                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(new RegExp(".*\\/(.*\\.jpg)"));
                         monsterText = $u.setContent(monster.getListName(tempText), monsterText);
                         mName = userName + ' ' + monsterText;
                         $u.log(2, "Monster Name", mName);
@@ -39875,27 +39962,20 @@
 
                         break;
                     case 'nm_green.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
                         if ($u.hasContent(tempDiv)) {
+                            currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             tempDiv = tempDiv.parent();
                             if ($u.hasContent(tempDiv)) {
-                                currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
-                                tempDiv = tempDiv.parent();
-                                if ($u.hasContent(tempDiv)) {
-                                    currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
-                                } else {
-                                    currentMonster['strength'] = 100;
-                                    $u.warn("Unable to find defense bar strength");
-                                }
+                                currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
                             } else {
-                                currentMonster['fortify'] = 100;
                                 currentMonster['strength'] = 100;
-                                $u.warn("Unable to find defense bar fortify");
+                                $u.warn("Unable to find defense bar strength");
                             }
                         } else {
                             currentMonster['fortify'] = 100;
                             currentMonster['strength'] = 100;
-                            $u.warn("Unable to find defense bar", monsterInfo.defense_img);
+                            $u.warn("Unable to find defense bar fortify");
                         }
 
                         break;
@@ -39955,6 +40035,24 @@
                     if ($u.hasContent(monsterDiv)) {
                         $u.log(4, "Found monster health div");
                         currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
+                        if (!ajax) {
+                            tempDiv = monsterDiv.siblings().eq(0).children().eq(0);
+                            $u.log(2, "1st", tempDiv);
+                            if (!$u.hasContent(tempDiv)) {
+                                tempDiv = monsterDiv.parent().parent().siblings().eq(0);
+                                $u.log(2, "2nd", tempDiv);
+
+                                if ($u.hasContent(tempDiv.children())) {
+                                    tempDiv = tempDiv.children().eq(0);
+                                    $u.log(2, "3rd", tempDiv);
+                                }
+                            }
+
+                            tempText = tempDiv.text().trim();
+                            if (!$u.hasContent(tempDiv.children()) && tempText.toLowerCase().hasIndexOf('life')) {
+                                tempDiv.text(tempText + " (" + currentMonster['life'] + "%)");
+                            }
+                        }
                     } else {
                         $u.warn("Could not find monster health div.");
                     }
@@ -40597,7 +40695,7 @@
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 switch (theGeneral) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -41975,7 +42073,6 @@
 
                 giftChoice = gifting.queue.chooseGift();
                 if (gifting.queue.length() && giftChoice) {
-                    //if (caap.navigateTo('army,gift,gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     if (caap.navigateTo('army,gift', 'tab_gifts_on.gif')) {
                         return true;
                     }
@@ -43796,6 +43893,10 @@
                     return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
                 };
 
+                jQuery.fn.justtext = function () {
+                    return $(this).clone().children().remove().end().text();
+                };
+
                 jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (farb_callback, diag_callback) {
                     var t = this,
                         v = jQuery("<div id='" + t.attr("id") + "_diag'></div>").appendTo(document.body),
@@ -44040,12 +44141,12 @@
     }
 
     function caap_WaitForjQuery() {
-        if (window.jQuery && window.jQuery().jquery === "1.5.2") {
+        if (window.jQuery && window.jQuery().jquery === "1.6") {
             caap_log("jQuery ready ...");
             if (!window.$j) {
                 window.$j = window.jQuery.noConflict();
             } else {
-                if (!window.caapop) {
+                if (!window.caap_comms) {
                     throw "$j is already in use!";
                 }
             }
@@ -44084,7 +44185,7 @@
 
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
-    if (!window.jQuery || window.jQuery().jquery !== "1.5.2") {
+    if (!window.jQuery || window.jQuery().jquery !== "1.6") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
     }

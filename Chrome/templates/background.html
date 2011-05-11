@@ -7,23 +7,6 @@
     <body>
         <script>
             $(function () {
-                function getPage(url, callback) {
-                    $u.log(1, "background.getPage", url, callback);
-                    $.ajax({
-                        url: url,
-                        error:
-                            function (XMLHttpRequest, textStatus, errorThrown) {
-                                $u.error("background.getPage", textStatus);
-                                callback(errorThrown, textStatus, XMLHttpRequest);
-                            },
-                        success:
-                            function (data, textStatus, XMLHttpRequest) {
-                                $u.log(1, "background.getPage", textStatus);
-                                callback(data, textStatus, XMLHttpRequest);
-                            }
-                    });
-                };
-
                 /**
                  * Handles data sent via chrome.extension.sendRequest().
                  * @param request Object Data sent in the request.
@@ -33,7 +16,30 @@
                 function onRequest(request, sender, callback) {
                     $u.log(1, "background.onRequest", request, sender, callback);
                     if (request.action === 'getPage') {
-                        getPage(request.url, callback);
+                        $.ajax({
+                            url: request.value,
+                            error:
+                                function (XMLHttpRequest, textStatus, errorThrown) {
+                                    $u.error("background.getPage", textStatus);
+                                    responseText
+                                    callback({
+                                        status       : XMLHttpRequest.status,
+                                        statusText   : textStatus,
+                                        responseText : "",
+                                        errorThrown  : errorThrown
+                                    });
+                                },
+                            success:
+                                function (data, textStatus, XMLHttpRequest) {
+                                    $u.log(1, "background.getPage", textStatus);
+                                    callback({
+                                        status       : XMLHttpRequest.status,
+                                        statusText   : textStatus,
+                                        responseText : data,
+                                        errorThrown  : ""
+                                    });
+                                }
+                        });
                     }
                 };
 

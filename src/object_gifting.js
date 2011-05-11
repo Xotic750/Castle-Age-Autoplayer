@@ -464,19 +464,21 @@
                 htmlCode += caap.startCheckHide('AutoGift');
                 htmlCode += caap.makeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
                 htmlCode += caap.makeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
-                htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions);
+                htmlCode += caap.startCheckHide('CollectOnly');
+                htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions, true);
+                htmlCode += caap.endCheckHide('CollectOnly');
                 htmlCode += caap.makeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
                 htmlCode += caap.makeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
-                htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
+                htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Do not return gifts to a list of UserIDs");
                 htmlCode += caap.startCheckHide('FilterReturnId');
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Do not return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnId');
-                htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
+                htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Do not return gifts for a list of certain gifts recieved");
                 htmlCode += caap.startCheckHide('FilterReturnGift');
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Do not return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
@@ -874,7 +876,8 @@
                             gift = gifting.queue.records[it]['gift'];
                             break;
                         case gifting.gifts.options[1]:
-                            gift = $u.setContent(gifting.queue.randomImg, gifting.queue.randomImg = gifting.gifts.random());
+                            gift = $u.setContent(gifting.queue.randomImg, gifting.gifts.random());
+                            gifting.queue.randomImg = gift;
                             break;
                         default:
                             gift = choice;

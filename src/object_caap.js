@@ -24,11 +24,11 @@
         resultsWrapperDiv   : {},
         resultsText         : '',
         libs                : {
-            jQuery     : 'http://ajax.googleapis.com/ajax/libs/jquery/!jquery!/jquery.min.js',
-            jQueryUI   : 'http://ajax.googleapis.com/ajax/libs/jqueryui/!jqueryui!/jquery-ui.min.js',
-            farbtastic : 'http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
-            utility    : 'http://utility-js.googlecode.com/files/utility-!utility!.min.js',
-            dataTables : 'http://castle-age-auto-player.googlecode.com/files/jquery.dataTables-!datatables!.min.js'
+            jQuery     : 'https://ajax.googleapis.com/ajax/libs/jquery/!jquery!/jquery.min.js',
+            jQueryUI   : 'https://ajax.googleapis.com/ajax/libs/jqueryui/!jqueryui!/jquery-ui.min.js',
+            farbtastic : 'https://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
+            utility    : 'https://utility-js.googlecode.com/files/utility-!utility!.min.js',
+            dataTables : 'https://castle-age-auto-player.googlecode.com/files/jquery.dataTables-!datatables!.min.js'
         },
         removeLibs   : [],
         domain              : {
@@ -116,14 +116,6 @@
                     if ($u.isNumber(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
-                    }
-
-                    if (!idOk) {
-                        FBID = $u.setContent(window.presence.user, '0').parseInt();
-                        if ($u.isNumber(FBID) && FBID > 0) {
-                            caap.stats['FBID'] = FBID;
-                            idOk = true;
-                        }
                     }
                 }
             } else {
@@ -266,21 +258,24 @@
                         'margin'              : '0px'
                     });
 
-                    $j(".UIStandardFrame_Container").css({
-                        'margin'              : '0px auto 0px'
+                    $j("#contentCol").css({
+                        'background-color'    : 'black'
+                        //'margin'              : '0px auto 0px'
                     });
 
-                    $j(".UIStandardFrame_Content").css({
+                    $j("#contentArea").css({
                         'background-image'    : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                         'padding'             : '0px 10px'
                     });
 
-                    $j("#pagelet_canvas_footer_content").css({
+                    $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                         'display'    : 'none'
                     });
+
+                    $j("#contentCol").removeClass("clearfix");
                 }
 
-                caap.controlXY.selector = caap.domain.which === 0 ? ".UIStandardFrame_Content" : "#globalcss";
+                caap.controlXY.selector = caap.domain.which === 0 ? "#contentArea" : "#globalcss";
                 caap.dashboardXY.selector = "#" + caap.domain.id[caap.domain.which] + "app_body_container";
                 state.setItem(caap.friendListType.gifta.name + 'Requested', false);
                 state.setItem(caap.friendListType.giftc.name + 'Requested', false);
@@ -288,7 +283,8 @@
                 if (caap.domain.which === 0) {
                     // Get rid of those ads now! :P
                     if (config.getItem('HideAds', false)) {
-                        $j('.UIStandardFrame_SidebarAds').css('display', 'none');
+                        //$j('.UIStandardFrame_SidebarAds').css('display', 'none');
+                        $j('#rightCol').css('display', 'none');
                     }
 
                     if (config.getItem('HideAdsIframe', false)) {
@@ -509,18 +505,6 @@
                 }
 
                 caap.ajax(caap.domain.link + '/' + link, onError, onSuccess);
-
-                /*
-                $j(selector_dom).load(caap.domain.link + '/' + link + ' ' + selector_load,
-                    function (data, textStatus, XMLHttpRequest) {
-                        caap.ajaxLoadIcon.css("display", "none");
-                        caap.reBind();
-                        caap.waitingForDomLoad = false;
-                        caap.checkResults();
-                    }
-                );
-                */
-
                 return true;
             } catch (err) {
                 $u.error("ERROR in caap.ajaxLoad: " + err);
@@ -944,8 +928,9 @@
 
         selectDropOption: function (idName, value) {
             try {
-                $j("#caap_" + idName + " option", caap.caapDivObject).removeAttr('selected');
-                $j("#caap_" + idName + " option[value='" + value + "']", caap.caapDivObject).attr('selected', 'selected');
+                var drop = $j("#caap_" + idName, caap.caapDivObject);
+                $j("option", drop).removeAttr('selected');
+                drop.val(value);
                 return true;
             } catch (err) {
                 $u.error("ERROR in selectDropOption: " + err);
@@ -1025,7 +1010,11 @@
             try {
                 $j("#caap_" + idName + " option", caap.caapDivObject).remove();
                 $j("#caap_" + idName, caap.caapDivObject).append("<option disabled='disabled' value='not selected'>Choose one</option>");
-                for (var item = 0, len = dropList.length; item < len; item += 1) {
+                var item = 0,
+                    len  = dropList.length,
+                    drop = $j("#caap_" + idName, caap.caapDivObject);
+
+                for (item = 0; item < len; item += 1) {
                     if (item === 0 && !option) {
                         config.setItem(idName, dropList[item]);
                         $u.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
@@ -1035,9 +1024,9 @@
                 }
 
                 if (option) {
-                    $j("#caap_" + idName + " option[value='" + option.escapeHTML() + "']", caap.caapDivObject).attr('selected', 'selected');
+                    drop.val(option.escapeHTML());
                 } else {
-                    $j("#caap_" + idName + " option:eq(1)", caap.caapDivObject).attr('selected', 'selected');
+                    drop.val($j("option:eq(1)", drop).val());
                 }
 
                 return true;
@@ -1180,7 +1169,7 @@
                 caap.setDivContent('banner', banner);
 
                 donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
-                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&lc=SE&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&currency_code=SEK&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
+                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
                 donate += "<img src='data:image/gif;base64," + image64['donate'] + "' alt='Donate' /></a></div>";
                 caap.setDivContent('donate', donate);
                 /*jslint sub: false */
@@ -2463,59 +2452,22 @@
                     row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     body += caap.makeTr(row);
 
-                    row = caap.makeTd({text: 'Gildamesh, The Orc King Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['gildamesh'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Lotus Ravenmoore Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['lotus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
+                    count = 0;
+                    for (pp in caap.stats['achievements']['monster']) {
+                        if (caap.stats['achievements']['monster'].hasOwnProperty(pp)) {
+                            row = count % 2 === 0 ? '' : row;
+                            row += caap.makeTd({text: pp.escapeHTML(), color: '', id: '', title: ''});
+                            row += caap.makeTd({text: caap.stats['achievements']['monster'][pp], color: valueCol, id: '', title: ''});
+                            body += count % 2 === 1 ? caap.makeTr(row) : '';
+                            count += 1;
+                        }
+                    }
 
-                    row = caap.makeTd({text: 'The Colossus of Terra Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['colossus'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Dragons Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['dragons'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['sylvanas'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Cronus, The World Hydra Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['cronus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Keira the Dread Knight Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['keira'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'The Battle of the Dark Legion Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['legion'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Genesis, The Earth Elemental Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['genesis'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Skaar Deathrune Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['skaar'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['gehenna'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Sieges Assisted With', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['sieges'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: "Aurelius, Lion's Rebellion", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['aurelius'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: 'Corvintheus Slain', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['corvintheus'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['valhalla'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: "Jahanna, Priestess of Aurora", color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['jahanna'].addCommas(), color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
-
-                    row = caap.makeTd({text: 'Aurora', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: caap.stats['achievements']['monster']['aurora'].addCommas(), color: valueCol, id: '', title: ''});
-                    row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
-                    row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    body += caap.makeTr(row);
+                    if (count % 2 === 1) {
+                        row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                        row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                        body += caap.makeTr(row);
+                    }
 
                     row = caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
@@ -2581,11 +2533,17 @@
                     for (pp in caap.stats['character']) {
                         if (caap.stats['character'].hasOwnProperty(pp)) {
                             row = count % 2 === 0 ? '' : row;
-                            row += caap.makeTd({text: pp.ucFirst(), color: '', id: '', title: ''});
+                            row += caap.makeTd({text: pp, color: '', id: '', title: ''});
                             row += caap.makeTd({text: "Level " + caap.stats['character'][pp]['level'] + " (" + caap.stats['character'][pp]['percent'] + "%)", color: valueCol, id: '', title: ''});
                             body += count % 2 === 1 ? caap.makeTr(row) : '';
                             count += 1;
                         }
+                    }
+
+                    if (count % 2 === 1) {
+                        row += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                        row += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                        body += caap.makeTr(row);
                     }
 
                     $j("#caap_userStats", caap.caapTopObject).html(caap.makeTable("user", head, body));
@@ -2835,18 +2793,21 @@
                             'margin'              : '0px'
                         });
 
-                        $j(".UIStandardFrame_Container").css({
-                            'margin'              : '0px auto 0px'
+                        $j("#contentCol").css({
+                            'background-color'    : 'black'
+                            //'margin'              : '0px auto 0px'
                         });
 
-                        $j(".UIStandardFrame_Content").css({
+                        $j("#contentArea").css({
                             'background-image'    : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                             'padding'             : '0px 10px'
                         });
 
-                        $j("#pagelet_canvas_footer_content").css({
+                        $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                             'display'    : 'none'
                         });
+
+                        $j("#contentCol").removeClass("clearfix");
                     } else {
                         $j("body").css({
                             'background-image'    : '',
@@ -2856,18 +2817,21 @@
                             'margin'              : ''
                         });
 
-                        $j(".UIStandardFrame_Container").css({
-                            'margin'              : '20px auto 0px'
+                        $j("#contentCol").css({
+                            'background-color'    : 'white'
+                            //'margin'              : '0px auto 0px'
                         });
 
-                        $j(".UIStandardFrame_Content").css({
+                        $j("#contentArea").css({
                             'background-image'    : '',
                             'padding'             : ''
                         });
 
-                        $j("#pagelet_canvas_footer_content").css({
+                        $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                             'display'    : 'block'
                         });
+
+                        $j("#contentCol").addClass("clearfix");
                     }
 
                     styleXY = caap.getControlXY(true);
@@ -2904,7 +2868,8 @@
                 */
                 case "HideAds" :
                     $u.log(9, "HideAds");
-                    $j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');
+                    //$j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');
+                    $j('#rightCol').css('display', e.target.checked ? 'none' : 'block');
                     break;
                 case "HideAdsIframe" :
                     $u.log(9, "HideAdsIframe");
@@ -4370,62 +4335,12 @@
                         'ratio'  : 0
                     }
                 },
-                'monster' : {
-                    'gildamesh'   : 0,
-                    'colossus'    : 0,
-                    'sylvanas'    : 0,
-                    'keira'       : 0,
-                    'legion'      : 0,
-                    'skaar'       : 0,
-                    'lotus'       : 0,
-                    'dragons'     : 0,
-                    'cronus'      : 0,
-                    'sieges'      : 0,
-                    'genesis'     : 0,
-                    'gehenna'     : 0,
-                    'aurelius'    : 0,
-                    'corvintheus' : 0,
-                    'valhalla'    : 0,
-                    'jahanna'     : 0,
-                    'aurora'      : 0
-                },
+                'monster' : {},
                 'other' : {
                     'alchemy' : 0
                 }
             },
-            'character' : {
-                'warrior' : {
-                    'name'    : 'Warrior',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'rogue' : {
-                    'name'    : 'Rogue',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'mage' : {
-                    'name'    : 'Mage',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'cleric' : {
-                    'name'    : 'Cleric',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'warlock' : {
-                    'name'    : 'Warlock',
-                    'level'   : 0,
-                    'percent' : 0
-                },
-                'ranger' : {
-                    'name'    : 'Ranger',
-                    'level'   : 0,
-                    'percent' : 0
-                }
-
-            },
+            'character' : {},
             'guild' : {
                 'name'    : '',
                 'id'      : '',
@@ -4866,55 +4781,51 @@
                     spreadsheet.doTitles();
                 }
 
-                if (config.getItem("enableRecipeClean", true)) {
-                    var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.appBodyDiv),
-                        titleTxt    = '',
-                        titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
-                        image       = '',
-                        hideCount   = config.getItem("recipeCleanCount", 1),
-                        special     = [
-                            "Volcanic Knight",
-                            "Holy Plate",
-                            "Atlantean Forcefield",
-                            "Spartan Phalanx",
-                            "Cronus, The World Hydra",
-                            "Helm of Dragon Power",
-                            "Avenger",
-                            "Judgement",
-                            "Tempered Steel",
-                            "Bahamut, the Volcanic Dragon",
-                            "Blood Zealot",
-                            "Transcendence",
-                            "Soul Crusher",
-                            "Soulforge",
-                            "Crown of Flames"
-                        ];
+                var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.appBodyDiv),
+                    titleTxt    = '',
+                    titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
+                    image       = '',
+                    hideCount   = config.getItem("recipeCleanCount", 1),
+                    special     = [
+                        "Volcanic Knight",
+                        "Holy Plate",
+                        "Atlantean Forcefield",
+                        "Spartan Phalanx",
+                        "Cronus, The World Hydra",
+                        "Helm of Dragon Power",
+                        "Avenger",
+                        "Judgement",
+                        "Tempered Steel",
+                        "Bahamut, the Volcanic Dragon",
+                        "Blood Zealot",
+                        "Transcendence",
+                        "Soul Crusher",
+                        "Soulforge",
+                        "Crown of Flames"
+                    ];
 
-                    if (hideCount < 1) {
-                        hideCount = 1;
-                    }
+                hideCount = hideCount < 1 ? 1 : hideCount;
+                if ($u.hasContent(recipeDiv)) {
+                    recipeDiv.each(function () {
+                        var row = $j(this);
+                        titleTxt = row.text().trim().innerTrim().regex(titleRegExp);
+                        if ($u.hasContent(titleTxt)) {
+                            if (titleTxt === "Elven Crown") {
+                                image = "gift_aeris_complete.jpg";
+                            }
 
-                    if ($u.hasContent(recipeDiv)) {
-                        recipeDiv.each(function () {
-                            var row = $j(this);
-                            titleTxt = row.text().trim().innerTrim().regex(titleRegExp);
-                            if ($u.hasContent(titleTxt)) {
-                                if (special.hasIndexOf(titleTxt)) {
-                                    return true;
-                                }
-
-                                if (titleTxt === "Elven Crown") {
-                                    image = "gift_aeris_complete.jpg";
-                                }
-
-                                if (town.getCount(titleTxt, image) >= hideCount && !spreadsheet.isSummon(titleTxt, image)) {
+                            if (spreadsheet.isSummon(titleTxt, image)) {
+                                row.text(row.text().trim() + ' : Summon Owned (' + town.getCount(titleTxt, image) + ')') ;
+                            } else {
+                                row.text(row.text().trim() + ' : Owned (' + town.getCount(titleTxt, image) + ')') ;
+                                if (config.getItem("enableRecipeClean", true) && !special.hasIndexOf(titleTxt) && town.getCount(titleTxt, image) >= hideCount) {
                                     row.parent().parent().css("display", "none").next().css("display", "none");
                                 }
                             }
+                        }
 
-                            return true;
-                        });
-                    }
+                        return true;
+                    });
                 }
 
                 if (config.getItem("enableIngredientsHide", false)) {
@@ -4938,7 +4849,7 @@
 
         commonTown: function () {
             try {
-                $j("form[id*='itemBuy'] select[name='amount'] option[value='5']", caap.appBodyDiv).attr('selected', 'selected');
+                $j("form[id*='itemBuy'] select[name='amount']", caap.appBodyDiv).val("5");
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
                 }
@@ -5097,25 +5008,17 @@
 
                 achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.appBodyDiv);
                 if ($u.hasContent(achDiv)) {
-                    tdDiv = $j("td div", achDiv);
-                    if ($u.hasContent(tdDiv) && tdDiv.length === 17) {
-                        caap.stats['achievements']['monster']['gildamesh'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['lotus'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['colossus'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['dragons'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['sylvanas'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['cronus'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['keira'] = $u.setContent(tdDiv.eq(6).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['sieges'] = $u.setContent(tdDiv.eq(7).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['legion'] = $u.setContent(tdDiv.eq(8).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['genesis'] = $u.setContent(tdDiv.eq(9).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['skaar'] = $u.setContent(tdDiv.eq(10).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['gehenna'] = $u.setContent(tdDiv.eq(11).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['aurelius'] = $u.setContent(tdDiv.eq(12).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['corvintheus'] = $u.setContent(tdDiv.eq(13).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['valhalla'] = $u.setContent(tdDiv.eq(14).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['jahanna'] = $u.setContent(tdDiv.eq(15).text().numberOnly(), 0);
-                        caap.stats['achievements']['monster']['aurora'] = $u.setContent(tdDiv.eq(16).text().numberOnly(), 0);
+                    tdDiv = $j("td", achDiv);
+                    if ($u.hasContent(tdDiv)) {
+                        caap.stats['achievements']['monster'] = {};
+                        tdDiv.each(function () {
+                            var td  = $j(this),
+                                divNum = $j("div", td).text().parseInt(),
+                                tdTxt = td.justtext().trim();
+
+                            caap.stats['achievements']['monster'][tdTxt] = divNum;
+                        });
+
                         caap.saveStats();
                     } else {
                         $u.warn('Monster Achievements problem.');
@@ -5148,13 +5051,14 @@
         checkResults_view_class_progress: function () {
             try {
                 var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.appBodyDiv);
-                if ($u.hasContent(classDiv) && classDiv.length === 6) {
-                    classDiv.each(function (index) {
+                if ($u.hasContent(classDiv)) {
+                    caap.stats['character'] = {};
+                    classDiv.each(function () {
                         var monsterClass = $j(this),
-                            name         = '';
+                            name         = $u.setContent(monsterClass.attr("class"), '').replace("banner_", '').ucFirst();
 
-                        name = $u.setContent(monsterClass.attr("class"), '').replace("banner_", '');
-                        if (name && $j.isPlainObject(caap.stats['character'][name])) {
+                        if (name) {
+                            caap.stats['character'][name] = {};
                             caap.stats['character'][name]['percent'] = $u.setContent($j("img[src*='progress']", monsterClass).eq(0).getPercent('width').dp(2), 0);
                             caap.stats['character'][name]['level'] = $u.setContent(monsterClass.children().eq(2).text().numberOnly(), 0);
                             $u.log(2, "Got character class record", name, caap.stats['character'][name]);
@@ -5315,11 +5219,17 @@
             'Mist III' : {
                 clas : 'quests_stage_13',
                 base : 'tab_mist3',
-                next : 'Ambrosia',
-                area : 'Demi Quests',
-                list : 'demiQuestList',
+                next : 'DemiChange',
+                area : '',
+                list : '',
                 boss : "Aurora",
                 orb  : 'Orb of Aurora'
+            },
+            'DemiChange' : {
+                clas : 'symbolquests_stage_1',
+                next : 'Ambrosia',
+                area : 'Demi Quests',
+                list : 'demiQuestList'
             },
             'Ambrosia' : {
                 clas : 'symbolquests_stage_1',
@@ -5347,6 +5257,12 @@
             },
             'Azeron' : {
                 clas : 'symbolquests_stage_5',
+                next : 'AtlantisChange',
+                area : '',
+                list : ''
+            },
+            'AtlantisChange' : {
+                clas : 'monster_quests_stage_1',
                 next : 'Atlantis',
                 area : 'Atlantis',
                 list : 'atlantisQuestList'
@@ -5461,30 +5377,52 @@
 
                 switch (config.getItem('QuestArea', 'Quest')) {
                 case 'Quest' :
-                    var imgExist = false;
+                    var pathToPage  = 'quests',
+                        imageOnPage = 'quest_back_1.jpg',
+                        subQArea    = 'Land of Fire',
+                        landPic     = '';
+
                     if (caap.stats['level'] > 7) {
-                        var subQArea = config.getItem('QuestSubArea', 'Land of Fire');
-                        var landPic = caap.questAreaInfo[subQArea].base;
+                        subQArea = config.getItem('QuestSubArea', 'Land of Fire');
+                        landPic = caap.questAreaInfo[subQArea].base;
+                        if ($u.hasContent($j("img[src*='" + landPic + "_lock']"))) {
+                            caap.checkResults_quests(true);
+                        }
+
                         if (landPic === 'tab_heaven' || config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
                             if (caap.checkMagic()) {
                                 return true;
                             }
                         }
 
-                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2' || landPic === 'tab_mist2' || landPic === 'tab_mist3') {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
-                        } else if (landPic === 'tab_heaven') {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
-                        } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
-                            imgExist = caap.navigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
-                        } else {
-                            imgExist = caap.navigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                        pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
+                        imageOnPage = landPic;
+                        switch (landPic) {
+                        case 'tab_mist3':
+                        case 'tab_mist2':
+                        case 'tab_water2':
+                        case 'tab_earth2':
+                        case 'tab_ivory':
+                        case 'tab_underworld':
+                            pathToPage += '_small.gif';
+                            imageOnPage += '_big.gif';
+                            break;
+                        case 'tab_heaven':
+                            pathToPage += '_small2.gif';
+                            imageOnPage += '_big2.gif';
+                            break;
+                        case 'land_undead_realm':
+                        case 'land_demon_realm':
+                            pathToPage += '.gif';
+                            imageOnPage += '_sel.gif';
+                            break;
+                        default:
+                            pathToPage = 'quests,jobs_tab_back.gif,' + landPic + '.gif';
+                            imageOnPage += '_sel.gif';
                         }
-                    } else {
-                        imgExist = caap.navigateTo('quests', 'quest_back_1.jpg');
                     }
 
-                    if (imgExist) {
+                    if (caap.navigateTo(pathToPage, imageOnPage)) {
                         return true;
                     }
 
@@ -5494,17 +5432,13 @@
                         return true;
                     }
 
-                    var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
-                    var deityN = caap.deityTable[caap.demiQuestTable[subDQArea]];
-                    var picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.globalContainer);
-                    if (!$u.hasContent(picSlice)) {
-                        $u.warn('No diety image for', subDQArea);
-                        return false;
-                    }
+                    var subDQArea = config.getItem('QuestSubArea', 'Ambrosia'),
+                        deityN    = caap.deityTable[caap.demiQuestTable[subDQArea]],
+                        picSlice  = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.globalContainer),
+                        descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.globalContainer);
 
-                    var descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.globalContainer);
-                    if (!$u.hasContent(descSlice)) {
-                        $u.warn('No diety description for', subDQArea);
+                    if (!$u.hasContent(picSlice) || !$u.hasContent(descSlice)) {
+                        $u.warn('No diety image or description for', subDQArea);
                         return false;
                     }
 
@@ -5522,9 +5456,10 @@
                 default :
                 }
 
-                var bDiv = $j("#" + caap.domain.id[caap.domain.which] + "single_popup", caap.globalContainer);
-                var bDisp = $u.setContent(bDiv.css("display"), 'none');
-                var button = $j();
+                var bDiv   = $j("#" + caap.domain.id[caap.domain.which] + "single_popup", caap.globalContainer),
+                    bDisp  = $u.setContent(bDiv.css("display"), 'none'),
+                    button = $j();
+
                 if (bDisp !== 'none') {
                     button = $j("input[src*='quick_switch_button.gif']", bDiv);
                     if ($u.hasContent(button) && !config.getItem('ForceSubGeneral', false)) {
@@ -5540,9 +5475,10 @@
                     general.GetEquippedStats();
                 }
 
-                var costToBuy = 0;
-                //Buy quest requires popup
-                var itemBuyPopUp = $j("form[id*='itemBuy']", caap.globalContainer);
+                // Buy quest requires popup
+                var itemBuyPopUp = $j("form[id*='itemBuy']", caap.globalContainer),
+                    costToBuy    = 0;
+
                 if (bDisp !== 'none' && $u.hasContent(itemBuyPopUp)) {
                     $u.log(2, 'itemBuy');
                     state.setItem('storeRetrieve', 'general');
@@ -6060,10 +5996,10 @@
                     return true;
                 });
 
-                //$u.log(1, "pickQuestTF", pickQuestTF);
+                $u.log(4, "pickQuestTF", pickQuestTF);
                 if (pickQuestTF) {
                     if (state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
-                        //$u.log(2, "return autoQuestDivs", autoQuestDivs);
+                        $u.log(4, "return autoQuestDivs", autoQuestDivs);
                         caap.showAutoQuest();
                         return autoQuestDivs;
                     }
@@ -8149,7 +8085,7 @@
                             monsterText = monsterText.trim().innerTrim().toLowerCase().ucWords();
                         }
 
-                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(/.*\/(.*\.jpg)/);
+                        tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(new RegExp(".*\\/(.*\\.jpg)"));
                         monsterText = $u.setContent(monster.getListName(tempText), monsterText);
                         mName = userName + ' ' + monsterText;
                         $u.log(2, "Monster Name", mName);
@@ -8622,27 +8558,20 @@
 
                         break;
                     case 'nm_green.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
                         if ($u.hasContent(tempDiv)) {
+                            currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             tempDiv = tempDiv.parent();
                             if ($u.hasContent(tempDiv)) {
-                                currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
-                                tempDiv = tempDiv.parent();
-                                if ($u.hasContent(tempDiv)) {
-                                    currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
-                                } else {
-                                    currentMonster['strength'] = 100;
-                                    $u.warn("Unable to find defense bar strength");
-                                }
+                                currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
                             } else {
-                                currentMonster['fortify'] = 100;
                                 currentMonster['strength'] = 100;
-                                $u.warn("Unable to find defense bar fortify");
+                                $u.warn("Unable to find defense bar strength");
                             }
                         } else {
                             currentMonster['fortify'] = 100;
                             currentMonster['strength'] = 100;
-                            $u.warn("Unable to find defense bar", monsterInfo.defense_img);
+                            $u.warn("Unable to find defense bar fortify");
                         }
 
                         break;
@@ -8702,6 +8631,24 @@
                     if ($u.hasContent(monsterDiv)) {
                         $u.log(4, "Found monster health div");
                         currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
+                        if (!ajax) {
+                            tempDiv = monsterDiv.siblings().eq(0).children().eq(0);
+                            $u.log(2, "1st", tempDiv);
+                            if (!$u.hasContent(tempDiv)) {
+                                tempDiv = monsterDiv.parent().parent().siblings().eq(0);
+                                $u.log(2, "2nd", tempDiv);
+
+                                if ($u.hasContent(tempDiv.children())) {
+                                    tempDiv = tempDiv.children().eq(0);
+                                    $u.log(2, "3rd", tempDiv);
+                                }
+                            }
+
+                            tempText = tempDiv.text().trim();
+                            if (!$u.hasContent(tempDiv.children()) && tempText.toLowerCase().hasIndexOf('life')) {
+                                tempDiv.text(tempText + " (" + currentMonster['life'] + "%)");
+                            }
+                        }
                     } else {
                         $u.warn("Could not find monster health div.");
                     }
@@ -9344,7 +9291,7 @@
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 switch (theGeneral) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -10722,7 +10669,6 @@
 
                 giftChoice = gifting.queue.chooseGift();
                 if (gifting.queue.length() && giftChoice) {
-                    //if (caap.navigateTo('army,gift,gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     if (caap.navigateTo('army,gift', 'tab_gifts_on.gif')) {
                         return true;
                     }
@@ -12541,6 +12487,10 @@
                     }
 
                     return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+                };
+
+                jQuery.fn.justtext = function () {
+                    return $(this).clone().children().remove().end().text();
                 };
 
                 jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (farb_callback, diag_callback) {

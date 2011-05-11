@@ -25,7 +25,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     if (forced || (parseInt(GM_getValue('SUC_last_update', 0), 10) + 86400000) < new Date().getTime()) {
                         GM_xmlhttpRequest({
                             method: 'GET',
-                            url: devVersion !== '0' ? 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            url: devVersion !== '0' ? 'https://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
                             headers: {'Cache-Control': 'no-cache'},
                             onerror: function (resp) {
                                 GM_log('scriptUpdate:' + resp.status);
@@ -46,7 +46,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                     CAAP_SCOPE_RUN[2] = dev_version;
                                     if (devVersion !== '0' ? (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) : (remote_version > caapVersion)) {
                                         if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            GM_openInTab(devVersion !== '0' ? 'http://code.google.com/p/castle-age-auto-player/updates/list' : 'http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                            GM_openInTab(devVersion !== '0' ? 'https://code.google.com/p/castle-age-auto-player/updates/list' : 'http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
                                         }
                                     } else if (forced) {
                                         alert('No update is available for "' + script_name + '"');

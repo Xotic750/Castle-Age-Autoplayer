@@ -8,11 +8,14 @@
     <icon src="icons/64x64.png" width="18" height="18"/>
     <preference name="autorun" value="true"/>
     <access origin="http://code.google.com" subdomains="true"/>
+    <access origin="https://code.google.com" subdomains="true"/>
     <access origin="http://query.yahooapis.com" subdomains="true"/>
+    <access origin="https://query.yahooapis.com" subdomains="true"/>
     <access origin="http://apps.facebook.com" subdomains="true"/>
     <access origin="https://apps.facebook.com" subdomains="true"/>
     <access origin="http://www.facebook.com" subdomains="true"/>
     <access origin="https://www.facebook.com" subdomains="true"/>
     <access origin="http://web3.castleagegame.com" subdomains="true"/>
-    <update-description href="http://castle-age-auto-player.googlecode.com/svn/trunk/Opera/packed/updates.xml"/>
+    <access origin="https://web3.castleagegame.com" subdomains="true"/>
+    <update-description href="https://castle-age-auto-player.googlecode.com/svn/trunk/Opera/packed/updates.xml"/>
 </widget>

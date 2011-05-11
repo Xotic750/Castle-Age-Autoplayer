@@ -16,6 +16,7 @@
                 'name'       : '',
                 'img'        : '',
                 'lvl'        : 0,
+                'pct'        : 0,
                 'last'       : new Date().getTime() - (24 * 3600000),
                 'special'    : '',
                 'atk'        : 0,
@@ -253,6 +254,24 @@
             }
         },
 
+        GetPercent: function (generalName) {
+            try {
+                var genPct = general.getItem(generalName);
+
+                if (genPct === false) {
+                    $u.warn("Unable to find 'General' level percent");
+                    genPct = 0;
+                } else {
+                    genPct = genPct['pct'];
+                }
+
+                return genPct;
+            } catch (err) {
+                $u.error("ERROR in general.GetPercent: " + err);
+                return false;
+            }
+        },
+
         GetLevelUpNames: function () {
             try {
                 var it    = 0,
@@ -260,7 +279,7 @@
                     names = [];
 
                 for (it = 0, len = general.records.length; it < len; it += 1) {
-                    if (general.records[it]['lvl'] < 4) {
+                    if (general.records[it]['pct'] < 100) {
                         names.push(general.records[it]['name']);
                     }
                 }
@@ -332,7 +351,7 @@
                 $u.log(3, 'Building Generals Lists');
                 general.List = [
                     'Use Current',
-                    'Under Level 4'
+                    'Under Level'
                 ].concat(general.GetNames());
 
                 var crossList = function (checkItem) {
@@ -368,7 +387,7 @@
 
                 general.SubQuestList = [
                     'Use Current',
-                    'Under Level 4',
+                    'Under Level',
                     'Sano',
                     'Titania'
                 ].filter(crossList);
@@ -426,6 +445,7 @@
                             item       = 0,
                             itype      = 0,
                             level      = 0,
+                            percent    = 0,
                             atk        = 0,
                             def        = 0,
                             special    = '',
@@ -478,6 +498,13 @@
                             $u.warn("Unable to find 'level' container", index);
                         }
 
+                        tempObj = $j("div[style*='#3b5561'],div[style*='rgb(59, 85, 97)']", container);
+                        if ($u.hasContent(tempObj)) {
+                            percent = tempObj.getPercent('width');
+                        } else {
+                            $u.warn("Unable to find 'level percent' container", index);
+                        }
+
                         tempObj = container.children().eq(4);
                         if ($u.hasContent(tempObj)) {
                             special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
@@ -493,7 +520,7 @@
                             $u.warn("Unable to find 'attack and defence' containers", index);
                         }
 
-                        if (name && img && level && !$u.isNaN(atk) && !$u.isNaN(def) && special) {
+                        if ($u.hasContent(name) && $u.hasContent(img) && $u.hasContent(level) && $u.hasContent(percent) && !$u.isNaN(atk) && !$u.isNaN(def) && $u.hasContent(special)) {
                             for (it = 0, len = general.records.length; it < len; it += 1) {
                                 if (general.records[it]['name'] === name) {
                                     newGeneral.data = general.records[it];
@@ -508,6 +535,7 @@
                             newGeneral.data['coolDown'] = coolDown;
                             newGeneral.data['charge'] = charge;
                             newGeneral.data['lvl'] = level;
+                            newGeneral.data['pct'] = percent;
                             newGeneral.data['atk'] = atk;
                             newGeneral.data['def'] = def;
                             newGeneral.data['api'] = (atk + (def * 0.7)).dp(2);
@@ -680,7 +708,7 @@
                     return false;
                 }
 
-                if (!levelUp && /under level 4/i.test(generalName)) {
+                if (!levelUp && /under level/i.test(generalName)) {
                     if (!general.GetLevelUpNames().length) {
                         return general.Clear(whichGeneral);
                     }
@@ -859,7 +887,7 @@
         menu: function () {
             try {
                 // Add General Comboboxes
-                var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up",
+                var reverseGenInstructions = "This will make the script level Generals under max level from Top-down instead of Bottom-up",
                     ignoreGeneralImage = "This will prevent the script " +
                         "from changing your selected General to 'Use Current' if the script " +
                         "is unable to find the General's image when changing activities. " +
@@ -923,7 +951,7 @@
                 htmlCode += caap.makeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
                 htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
                 htmlCode += caap.endDropHide('LevelUpGeneral');
-                htmlCode += caap.makeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.makeCheckTR("Reverse Under Level Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
                 htmlCode += caap.makeCheckTR("Modify Timers", 'generalModifyTimers', false, "Advanced timers for how often General checks are performed.");
                 htmlCode += caap.startCheckHide('generalModifyTimers');
                 htmlCode += caap.makeNumberFormTR("List Hours", 'checkGenerals', "Check the Generals list every X hours. Minimum 24.", 24, '', '', true);

@@ -8,7 +8,7 @@
     <body>
         <header>
             <img src="icons/Castle-Age-Autoplayer.png">
-            <h1 id="widget-name">Castle Age Autoplayer v140.25.0.15</h1>
+            <h1 id="widget-name">Castle Age Autoplayer v140.25.0.16</h1>
             <h2>Made by <span id="widget-author">Xotc750</h2>
         </header>
 
@@ -23,7 +23,7 @@
                     </ul>
                 </form>
             </fieldset>
-            <p>Development site <a href="http://code.google.com/p/castle-age-auto-player">link</a>.</p>
+            <p>Development site <a href="https://code.google.com/p/castle-age-auto-player">link</a>.</p>
         </section>
 
         <footer>
@@ -34,7 +34,7 @@
             window.addEventListener('load', function () {
                 opera.extension.onmessage = function (event) {
                     var message = event.data;
-                    opera.postError(event.origin + " sent a message: " + message.action + ' ' + message.id + ' ' + message.value);
+                    opera.postError(event.origin + " sent a message: " + message.action + ' ' + message.status + ' ' + message.value);
                     if (message.action === "begin") {
                         var autorun = document.getElementById('autorun'),
                             value   = widget.preferences.autorun === "true" ? true : false;
@@ -42,13 +42,13 @@
                         autorun.addEventListener('change', function() {
                             widget.preferences.autorun = this.checked;
                             opera.postError("Autorun changed: " + widget.preferences.autorun);
-                            event.source.postMessage({action : "autorun", id: 'changed', value: widget.preferences.autorun});
+                            event.source.postMessage({action: "autorun", status: "changed", value: widget.preferences.autorun});
                         }, false);
 
                         if (widget.preferences.autorun) {
                             opera.postError("Autorun value: " + widget.preferences.autorun);
                             autorun.checked = value;
-                            event.source.postMessage({action : "autorun", id: 'load', value: widget.preferences.autorun});
+                            event.source.postMessage({action: "autorun", status: "load", value: widget.preferences.autorun});
                         }
                     }
                 }

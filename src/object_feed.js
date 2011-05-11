@@ -339,11 +339,12 @@
             try {
                 var ft = config.getItem("festivalTower", false);
                 $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
-                    var post = $j(this),
-                        link = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
-                        mon  = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
-                        img  = type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"),
-                        fix  = false;
+                    var post  = $j(this),
+                        link  = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
+                        mon   = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
+                        img   = $u.setContent(type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"), '').basename(),
+                        mname = monster.getCtaName(img),
+                        fix   = false;
 
                     $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
                     if (!$u.hasContent(link)) {
@@ -357,6 +358,10 @@
 
                     if (link.hasIndexOf('guild_battle_monster')) {
                         $u.log(2, "Guild Monster, skipping", {'mon': mon, 'link': link, 'img': img});
+                        if (config.getItem("DebugLevel", 1) > 1 && !guild_monster.getCtaName(img)) {
+                            $j().alert("Guild Monster missing image<br />" + mon + '<br />' + link + '<br />' + img);
+                        }
+
                         return true;
                     }
 
@@ -372,6 +377,10 @@
                     if (!$u.hasContent(img)) {
                         $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
+                    }
+
+                    if (!mname) {
+                        //alert("Missing mname image\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
                     }
 
                     if (mon.hasIndexOf("Bahamut") && !mon.hasIndexOf("Alpha") && (img.hasIndexOf("volcanic5") || link.hasIndexOf("twt2=alpha"))) {
@@ -400,6 +409,10 @@
 
                     if (fix) {
                         $u.log(2, "Fixed CA listing issue", mon);
+                    }
+
+                    if (mname !== mon) {
+                        //alert("mname/mon mismatch\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
                     }
 
                     feed.setItem(link, mon);
@@ -563,28 +576,23 @@
                     feed.ajaxPublicWait = false;
                 }
 
+                function onReturn(message) {
+                    $u.log(2, "ajaxPublic onReturn", message);
+                    message.responseText = message.responseText.unescapeCAHTML();
+                    feed.publicItems(message.responseText);
+                    feed.ajaxPublicWait = false;
+                }
+
                 feed.ajaxPublicWait = true;
-                var url = 'public_monster_list.php?monster_tier=' + tier;
+                var url = 'public_monster_list.php?monster_tier=' + tier,
+                    msg;
+
                 if (caap.domain.which === 2) {
                     url = "http://apps.facebook.com/castle_age/" + url;
                     if ($u.hasContent(window.chrome)) {
-                        chrome.extension.sendRequest({'action': 'getPage', 'url': url}, function (data, textStatus, XMLHttpRequest) {
-                            data = data.unescapeCAHTML();
-                            $u.log(3, "ajaxPublic chrome", [data, textStatus, XMLHttpRequest]);
-                            feed.publicItems(data);
-                            feed.ajaxPublicWait = false;
-                        });
+                        chrome.extension.sendRequest({'action': 'getPage', 'value': url}, onReturn);
                     } else if ($u.hasContent(window.caap_comms)) {
-                        window.caap_comms.prepMessage('getPage', url, function (event) {
-                            event.responseText = event.responseText.unescapeCAHTML();
-                            $u.log(3, "ajaxPublic firefox", event);
-                            feed.publicItems(event.responseText);
-                            feed.ajaxPublicWait = false;
-                        });
-
-                        window.caap_comms.sendMessage();
-                    } else if ($u.hasContent(window.caap_op)) {
-                        window.caap_op.source.postMessage({action : "getPage", id: "feed", value: url});
+                        window.caap_comms.sendRequest({'action': 'getPage', 'value': url}, onReturn);
                     }
                 } else {
                     caap.ajax(caap.domain.link + '/' + url, onError, onSuccess);
@@ -819,7 +827,7 @@
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
 
-                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms) || $u.hasContent(window.caap_op) && caap.domain.which === 2))) {
+                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms)) && caap.domain.which === 2)) {
                     htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
                     htmlCode += caap.startCheckHide('publicMonsterFinder1');
                     htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);

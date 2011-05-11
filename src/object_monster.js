@@ -98,7 +98,8 @@
                 festival_dur : 120,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_skaar.jpg'],
-                list_img     : ['death_list.jpg']
+                list_img     : ['death_list.jpg'],
+                cta_img      : ['ntwitter_deathrune1.gif']
             },
             'Ragnarok, The Ice Elemental' : {
                 duration     : 168,
@@ -129,7 +130,8 @@
                     'monster_header_ragnorak.jpg',
                     'monster_header_ragnarok.jpg'
                 ],
-                list_img     : ['water_list.jpg']
+                list_img     : ['water_list.jpg'],
+                cta_img      : ['ntwitter_ragnarok1.gif']
             },
             'Genesis, The Earth Elemental' : {
                 duration     : 168,
@@ -158,7 +160,8 @@
                 festival_dur : 192,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_genesis.jpg'],
-                list_img     : ['earth_element_list.jpg']
+                list_img     : ['earth_element_list.jpg'],
+                cta_img      : ['ntwitter_genesis1.gif']
             },
             'Cronus, The World Hydra' : {
                 duration     : 168,
@@ -179,7 +182,14 @@
                 festival_dur : 192,
                 festival_ach : 500000,
                 newbg_img    : ['monster_header_cronus.jpg'],
-                list_img     : ['hydra_head.jpg']
+                list_img     : ['hydra_head.jpg'],
+                cta_img      : [
+                    'cta_hydra_catapult.gif',
+                    'cta_hydra_arrows.gif',
+                    'cta_hydra_cannons.gif',
+                    'cta_hydra_blizzard.gif',
+                    'cta_hydra_firestorm.gif'
+                ]
             },
             'Battle Of The Dark Legion' : {
                 duration     : 168,
@@ -201,7 +211,13 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_defend.jpg'],
-                list_img     : ['castle_siege_list.jpg']
+                list_img     : ['castle_siege_list.jpg'],
+                cta_img      : [
+                    'cta_castle_archers.gif',
+                    'cta_castle_elves.gif',
+                    'cta_castle_dwarves.gif',
+                    'cta_castle_knights.gif'
+                ]
             },
             'Emerald Dragon' : {
                 duration     : 72,
@@ -216,7 +232,8 @@
                 mClass       : 'Epic Team',
                 mpool        : 2,
                 newbg_img    : ['monster_header_emeralddrag.jpg'],
-                list_img     : ['dragon_list_green.jpg']
+                list_img     : ['dragon_list_green.jpg'],
+                cta_img      : ['cta_green_dragon.gif']
             },
             'Frost Dragon' : {
                 duration     : 72,
@@ -234,7 +251,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_frostdrag.jpg'],
-                list_img     : ['dragon_list_blue.jpg']
+                list_img     : ['dragon_list_blue.jpg'],
+                cta_img      : ['cta_blue_dragon.gif']
             },
             'Gold Dragon' : {
                 duration     : 72,
@@ -252,7 +270,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_golddrag.jpg'],
-                list_img     : ['dragon_list_yellow.jpg']
+                list_img     : ['dragon_list_yellow.jpg'],
+                cta_img      : ['cta_yellow_dragon.gif']
             },
             'Ancient Red Dragon' : {
                 duration     : 72,
@@ -271,7 +290,8 @@
                 festival_dur : 96,
                 festival_ach : 50000,
                 newbg_img    : ['monster_header_ancientreddrag.jpg'],
-                list_img     : ['dragon_list_red.jpg']
+                list_img     : ['dragon_list_red.jpg'],
+                cta_img      : ['cta_red_dragon.gif']
             },
             'Karn'      : {
                 duration     : 120,
@@ -292,7 +312,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_gildamesh.jpg'],
-                list_img     : ['orc_boss_list.jpg']
+                list_img     : ['orc_boss_list.jpg'],
+                cta_img      : ['cta_orc_king.gif']
             },
             'Colossus Of Terra'     : {
                 duration     : 72,
@@ -304,7 +325,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_colossus.jpg'],
-                list_img     : ['stone_giant_list.jpg']
+                list_img     : ['stone_giant_list.jpg'],
+                cta_img      : ['cta_stone.gif']
             },
             'Sylvanas The Sorceress Queen'     : {
                 duration     : 48,
@@ -322,7 +344,8 @@
                     'monster_header_sylvanas.jpg',
                     'monster_header_sylvana.jpg'
                 ],
-                list_img     : ['boss_sylvanus_list.jpg']
+                list_img     : ['boss_sylvanus_list.jpg'],
+                cta_img      : ['cta_sylvanas.gif']
             },
             'Lotus Ravenmoore' : {
                 duration     : 48,
@@ -331,7 +354,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_lotus.jpg'],
-                list_img     : ['boss_lotus_list.jpg']
+                list_img     : ['boss_lotus_list.jpg'],
+                cta_img      : ['cta_lotus.gif']
             },
             'Keira The Dread Knight'    : {
                 duration     : 48,
@@ -346,7 +370,8 @@
                     'monster_header_keira.jpg',
                     'monster_header_keira2.jpg'
                 ],
-                list_img     : ['boss_keira_list.jpg']
+                list_img     : ['boss_keira_list.jpg'],
+                cta_img      : ['cta_keira.gif']
             },
             'Amethyst Sea Serpent'   : {
                 duration     : 72,
@@ -368,7 +393,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_amyserpent.jpg'],
-                list_img     : ['seamonster_list_purple.jpg']
+                list_img     : ['seamonster_list_purple.jpg'],
+                cta_img      : ['twitter_seamonster_purple_1.jpg']
             },
             'Ancient Sea Serpent'   : {
                 duration     : 72,
@@ -390,7 +416,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_ancientserpent.jpg'],
-                list_img     : ['seamonster_list_red.jpg']
+                list_img     : ['seamonster_list_red.jpg'],
+                cta_img      : ['twitter_seamonster_red_1.jpg']
             },
             'Emerald Sea Serpent'   : {
                 duration     : 72,
@@ -412,7 +439,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_emeraldserpent.jpg'],
-                list_img     : ['seamonster_list_green.jpg']
+                list_img     : ['seamonster_list_green.jpg'],
+                cta_img      : ['twitter_seamonster_green_1.jpg']
             },
             'Sapphire Sea Serpent'   : {
                 duration     : 72,
@@ -434,7 +462,8 @@
                 festival_dur : 96,
                 festival_ach : 30000,
                 newbg_img    : ['monster_header_sapphserpent.jpg'],
-                list_img     : ['seamonster_list_blue.jpg']
+                list_img     : ['seamonster_list_blue.jpg'],
+                cta_img      : ['twitter_seamonster_blue_1.jpg']
             },
             'The Deathrune Siege'    : {
                 duration     : 232,
@@ -461,7 +490,8 @@
                     siegeDam     : [300, 1500],
                     siege_img    : ['/graphics/monster_siege_'],
                     staUse       : 1
-                }
+                },
+                cta_img      : ['ntwitter_raid1.gif']
             },
             'Mephistopheles' : {
                 duration     : 48,
@@ -473,7 +503,8 @@
                 festival_dur : 89,
                 festival_ach : 50000,
                 newbg_img    : ['monster_header_meph.jpg'],
-                list_img     : ['boss_mephistopheles_list.jpg']
+                list_img     : ['boss_mephistopheles_list.jpg'],
+                cta_img      : ['cta_mephi.gif']
             },
             // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
             'War Of The Red Plains' : {
@@ -502,7 +533,8 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_warredplains.jpg'],
-                list_img     : ['nm_war_list.jpg']
+                list_img     : ['nm_war_list.jpg'],
+                cta_img      : ['nm_war_twitter_1.gif']
             },
             // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
             'Bahamut, The Volcanic Dragon' : {
@@ -528,7 +560,8 @@
                 festival_dur : 192,
                 festival_ach : 1000000,
                 newbg_img    : ['monster_header_bahamut.jpg'],
-                list_img     : ['nm_volcanic_list.jpg']
+                list_img     : ['nm_volcanic_list.jpg'],
+                cta_img      : ['ntwitter_volcanic1.gif']
             },
             // http://castleage.wikidot.com/alpha-bahamut
             // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -556,7 +589,8 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_header_alphabahamut.jpg'],
-                list_img     : ['nm_volcanic_list_2.jpg']
+                list_img     : ['nm_volcanic_list_2.jpg'],
+                cta_img      : ['ntwitter_volcanic5.gif']
             },
             // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
             'Azriel, The Angel Of Wrath' : {
@@ -586,7 +620,8 @@
                 festival_dur : 192,
                 festival_ach : 4000000,
                 newbg_img    : ['monster_header_azriel.jpg'],
-                list_img     : ['nm_azriel_list.jpg']
+                list_img     : ['nm_azriel_list.jpg'],
+                cta_img      : ['nm_azriel_twitter_1.gif']
             },
             'Alpha Mephistopheles' : {
                 alpha        : true,
@@ -617,7 +652,8 @@
                 festival_ach   : 1000000,
                 festival_mpool : 1,
                 newbg_img      : ['monster_header_alphameph.jpg'],
-                list_img       : ['nm_alpha_mephistopheles_list.jpg']
+                list_img       : ['nm_alpha_mephistopheles_list.jpg'],
+                cta_img        : ['nm_alpha_mephistopheles_twitter_1.gif']
             },
             'Gehenna, The Fire Elemental' : {
                 alpha        : true,
@@ -647,7 +683,8 @@
                 festival_dur : 96,
                 festival_ach : 3500000,
                 newbg_img    : ['monster_header_gehenna.jpg'],
-                list_img     : ['nm_gehenna_list.jpg']
+                list_img     : ['nm_gehenna_list.jpg'],
+                cta_img      : ['nm_gehenna_twitter_1.gif']
             },
             "Aurelius, Lion's Rebellion" : {
                 alpha        : true,
@@ -675,7 +712,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_lionrebellion.jpg'],
-                list_img     : ['nm_aurelius_list.jpg']
+                list_img     : ['nm_aurelius_list.jpg'],
+                cta_img      : ['twitter_aurelius.gif']
             },
             "Corvintheus" : {
                 alpha        : true,
@@ -702,7 +740,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_corvintheus.jpg'],
-                list_img     : ['corv_list.jpg']
+                list_img     : ['corv_list.jpg'],
+                cta_img      : ['cta_corv1.gif']
             },
             'Valhalla, The Air Elemental' : {
                 alpha        : true,
@@ -733,7 +772,8 @@
                 festival_dur : 192,
                 festival_ach : 2500000,
                 newbg_img    : ['monster_header_valhalla.jpg'],
-                list_img     : ['monster_valhalla_list.jpg']
+                list_img     : ['monster_valhalla_list.jpg'],
+                cta_img      : ['cta_valhalla.gif']
             },
             'Jahanna, Priestess Of Aurora' : {
                 alpha        : true,
@@ -760,7 +800,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_jahanna.jpg'],
-                list_img     : ['boss_jahanna_list.jpg']
+                list_img     : ['boss_jahanna_list.jpg'],
+                cta_img      : ['cta_jahanna.gif']
             },
             "Agamemnon The Overseer" : {
                 alpha        : true,
@@ -777,10 +818,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50,  100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
@@ -788,7 +829,8 @@
                 mpool        : 1,
                 festival_img : ['festival_monsters_top_agamemnon.jpg'],
                 festival_dur : 192,
-                festival_ach : 10000000
+                festival_ach : 10000000,
+                cta_img      : ['cta_agamemnon.gif']
             },
             "Aurora" : {
                 alpha        : true,
@@ -815,16 +857,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_aurora.jpg'],
-                list_img     : ['boss_aurora_list.jpg']
+                list_img     : ['boss_aurora_list.jpg'],
+                cta_img      : ['cta_aurora.gif']
             },
             "Kromash, The Storm Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -842,16 +885,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_kromash.jpg'],
-                list_img     : ['monster_kromash_list.jpg']
+                list_img     : ['monster_kromash_list.jpg'],
+                cta_img      : ['cta_kromash.gif']
             },
             "Glacius, The Frost Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -869,16 +913,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_glacius.jpg'],
-                list_img     : ['monster_glacius_list.jpg']
+                list_img     : ['monster_glacius_list.jpg'],
+                cta_img      : ['cta_glacius.gif']
             },
             "Shardros, The Mountain Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -896,16 +941,17 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_shardros.jpg'],
-                list_img     : ['monster_shardros_list.jpg']
+                list_img     : ['monster_shardros_list.jpg'],
+                cta_img      : ['cta_shardros.gif']
             },
             "Magmos, The Lava Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 640000000,
+                hp           : 500000000,
                 ach          : 1000000,
-                siege        : 10,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege        : 8,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
+                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -923,7 +969,8 @@
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 newbg_img    : ['monster_header_magmos.jpg'],
-                list_img     : ['monster_magmos_list.jpg']
+                list_img     : ['monster_magmos_list.jpg'],
+                cta_img      : ['cta_magmos.gif']
             }
         },
 
@@ -955,6 +1002,10 @@
 
         getListName: function (img) {
             return monster.which(img, "list_img");
+        },
+
+        getCtaName: function (img) {
+            return monster.which(img, "cta_img");
         },
 
         which: function (img, entity) {
@@ -1421,7 +1472,7 @@
                     attackOrderList       = [],
                     theGeneral            = config.getItem('MonsterGeneral', 'Use Current');
 
-                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+                theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
                 // First we forget everything about who we already picked.
                 state.setItem('targetFrombattle_monster', '');
                 state.setItem('targetFromfortify', energyTarget.data);
