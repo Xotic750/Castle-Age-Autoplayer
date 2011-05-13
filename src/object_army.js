@@ -481,6 +481,10 @@
                 var eliteList = state.getItem('MyEliteTodo', []),
                     user      = 0;
 
+                if (state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                    state.getItem('AutoEliteEnd', '');
+                }
+
                 if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
                     $u.log(1, 'Reset list');
                     eliteList = army.eliteMerge();
@@ -494,7 +498,7 @@
                     return false;
                 }
 
-                if ($j.isArray(eliteList) && $u.hasContent(eliteList) && state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                if ($j.isArray(eliteList) && $u.hasContent(eliteList)) {
                     user = eliteList.shift();
                     $u.log(1, 'Add Elite Guard ID: ', user);
                     state.setItem('MyEliteTodo', eliteList);

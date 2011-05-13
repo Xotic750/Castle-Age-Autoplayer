@@ -5,7 +5,7 @@
 // @author         Xotic750
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            18
+// @dev            19
 // @include        http://apps.facebook.com/castle_age/*
 // @include        https://apps.facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
@@ -31,7 +31,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "18",
+                devVersion = "19",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -119,7 +119,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "18",
+        devVersion    = "19",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -31219,6 +31219,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 var eliteList = state.getItem('MyEliteTodo', []),
                     user      = 0;
 
+                if (state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                    state.getItem('AutoEliteEnd', '');
+                }
+
                 if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
                     $u.log(1, 'Reset list');
                     eliteList = army.eliteMerge();
@@ -31232,7 +31236,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     return false;
                 }
 
-                if ($j.isArray(eliteList) && $u.hasContent(eliteList) && state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                if ($j.isArray(eliteList) && $u.hasContent(eliteList)) {
                     user = eliteList.shift();
                     $u.log(1, 'Add Elite Guard ID: ', user);
                     state.setItem('MyEliteTodo', eliteList);

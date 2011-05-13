@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            18
+// @dev            19
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "18",
+        devVersion    = "19",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -31117,6 +31117,10 @@
                 var eliteList = state.getItem('MyEliteTodo', []),
                     user      = 0;
 
+                if (state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                    state.getItem('AutoEliteEnd', '');
+                }
+
                 if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
                     $u.log(1, 'Reset list');
                     eliteList = army.eliteMerge();
@@ -31130,7 +31134,7 @@
                     return false;
                 }
 
-                if ($j.isArray(eliteList) && $u.hasContent(eliteList) && state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                if ($j.isArray(eliteList) && $u.hasContent(eliteList)) {
                     user = eliteList.shift();
                     $u.log(1, 'Add Elite Guard ID: ', user);
                     state.setItem('MyEliteTodo', eliteList);
