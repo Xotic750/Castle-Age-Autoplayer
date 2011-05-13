@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            17
+// @dev            18
 // @include        http*://apps.facebook.com/castle_age/*
 // @include        http*://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
@@ -31,9 +31,9 @@
 
         function log(msg) {
             if (window.console && typeof console.log === 'function') {
-                console.log("140.25.0" + ("17" !== '0' ? 'd17'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+                console.log("140.25.0" + ("18" !== '0' ? 'd18'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
             } else {
-                opera.postError("140.25.0" + ("17" !== '0' ? 'd17'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+                opera.postError("140.25.0" + ("18" !== '0' ? 'd18'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
             }
         }
 

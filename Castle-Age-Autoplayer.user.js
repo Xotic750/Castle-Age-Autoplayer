@@ -5,7 +5,7 @@
 // @author         Xotic750
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            17
+// @dev            18
 // @include        http://apps.facebook.com/castle_age/*
 // @include        https://apps.facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
@@ -31,7 +31,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
     (function page_scope_runner() {
         try {
             var caapVersion = "140.25.0",
-                devVersion = "17",
+                devVersion = "18",
                 CAAP_SCOPE_RUN = [GM_getValue('SUC_target_script_name', ''), GM_getValue('SUC_remote_version', ''), GM_getValue('DEV_remote_version', '')],
                 // If we're _not_ already running in the page, grab the full source of this script.
                 my_src = "(" + page_scope_runner.caller.toString() + "());",
@@ -119,7 +119,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "17",
+        devVersion    = "18",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -31135,6 +31135,10 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 // Check for Elite Guard Add image
                 if (config.getItem("EnableArmy", true) && config.getItem('AutoElite', true) && !config.getItem('AutoEliteIgnore', false) && caap.hasImage('elite_guard_add')) {
                     schedule.setItem('AutoEliteGetList', 0);
+                    if (!state.getItem('AutoEliteFew', false)) {
+                        state.setItem('AutoEliteEnd', '');
+                    }
+
                     $u.log(1, "Detected spaces in Elite Guard: Scheduling");
                 }
 

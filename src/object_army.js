@@ -397,6 +397,10 @@
                 // Check for Elite Guard Add image
                 if (config.getItem("EnableArmy", true) && config.getItem('AutoElite', true) && !config.getItem('AutoEliteIgnore', false) && caap.hasImage('elite_guard_add')) {
                     schedule.setItem('AutoEliteGetList', 0);
+                    if (!state.getItem('AutoEliteFew', false)) {
+                        state.setItem('AutoEliteEnd', '');
+                    }
+
                     $u.log(1, "Detected spaces in Elite Guard: Scheduling");
                 }
 

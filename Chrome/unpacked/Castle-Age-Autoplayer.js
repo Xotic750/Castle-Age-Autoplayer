@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.25.0
-// @dev            17
+// @dev            18
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "140.25.0",
-        devVersion    = "17",
+        devVersion    = "18",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -31033,6 +31033,10 @@
                 // Check for Elite Guard Add image
                 if (config.getItem("EnableArmy", true) && config.getItem('AutoElite', true) && !config.getItem('AutoEliteIgnore', false) && caap.hasImage('elite_guard_add')) {
                     schedule.setItem('AutoEliteGetList', 0);
+                    if (!state.getItem('AutoEliteFew', false)) {
+                        state.setItem('AutoEliteEnd', '');
+                    }
+
                     $u.log(1, "Detected spaces in Elite Guard: Scheduling");
                 }
 
