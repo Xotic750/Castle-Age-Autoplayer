@@ -103,6 +103,7 @@
         init: function () {
             army.loadTemp();
             army.load();
+            army.eliteFriendCheck();
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -391,16 +392,148 @@
         },
         /*jslint sub: false */
 
+        eliteCheckImg: function () {
+            try {
+                // Check for Elite Guard Add image
+                if (config.getItem("EnableArmy", true) && config.getItem('AutoElite', true) && !config.getItem('AutoEliteIgnore', false) && caap.hasImage('elite_guard_add')) {
+                    schedule.setItem('AutoEliteGetList', 0);
+                    $u.log(1, "Detected spaces in Elite Guard: Scheduling");
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.eliteCheckImg: " + err);
+                return false;
+            }
+        },
+
+        eliteFull: function () {
+            try {
+                var eliteList = state.getItem('MyEliteTodo', []);
+                schedule.setItem('AutoEliteGetList', 21600, 300);
+                state.setItem('AutoEliteEnd', 'Full');
+                state.setItem('AutoEliteListFilled', false);
+                state.setItem('MyEliteTodo', army.eliteMerge(eliteList));
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.eliteFull: " + err);
+                return false;
+            }
+        },
+
+        eliteResult: function () {
+            try {
+                if (/YOUR Elite Guard is FULL/i.test(caap.resultsText)) {
+                    army.eliteFull();
+                    $u.log(1, "Your Elite Guard is full");
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.eliteResult: " + err);
+                return false;
+            }
+        },
+
+        eliteMerge: function () {
+            try {
+                var theList = [];
+                if ($u.hasContent(eliteArmyList)) {
+                    var eliteArmyList = config.getList('EliteArmyList', '').concat(army.getEliteList());
+                    eliteArmyList.concat(army.getIdList().filter(function (x) {
+                        return !eliteArmyList.hasIndexOf(x);
+                    }));
+
+                    theList = state.setItem('MyEliteTodo', eliteArmyList);
+                } else {
+                    theList = state.setItem('MyEliteTodo', army.getIdList());
+                }
+
+                return theList;
+            } catch (err) {
+                $u.error("ERROR in army.eliteMerge: " + err);
+                return undefined;
+            }
+        },
+
+        eliteFriendCheck: function () {
+            try {
+                if (caap.stats['army']['actual'] < 11 || army.getIdList().length < 10) {
+                    $u.log(1, 'Not enough friends to fill Elite Guard');
+                    state.setItem('AutoEliteFew', true);
+                } else {
+                    state.setItem('AutoEliteFew', false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.eliteFriendCheck: " + err);
+                return false;
+            }
+        },
+
+        elite: function () {
+            try {
+                var eliteList = state.getItem('MyEliteTodo', []),
+                    user      = 0;
+
+                if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
+                    $u.log(1, 'Reset list');
+                    eliteList = army.eliteMerge();
+                    state.setItem('AutoEliteEnd', '');
+                    state.setItem('AutoEliteListFilled', true);
+                }
+
+                if (state.getItem('AutoEliteFew', false) && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
+                    $u.log(1, "Elite Full");
+                    army.eliteFull();
+                    return false;
+                }
+
+                if ($j.isArray(eliteList) && $u.hasContent(eliteList) && state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
+                    user = eliteList.shift();
+                    $u.log(1, 'Add Elite Guard ID: ', user);
+                    state.setItem('MyEliteTodo', eliteList);
+                    if (!$u.hasContent(eliteList)) {
+                        $u.log(2, 'Army list exhausted');
+                        state.setItem('AutoEliteEnd', 'NoArmy');
+                    }
+
+                    caap.clickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
+                    $u.log(1, "Return true");
+                    return true;
+                }
+
+                $u.log(1, "Return false");
+                return false;
+            } catch (err) {
+                $u.error("ERROR in army.elite: " + err);
+                return undefined;
+            }
+        },
+
         menu: function () {
             try {
-                // Other controls
-                var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
-                    armyScanInstructions = "Scan the army pages every X days.",
+                var armyInstructions            = "Enable or disable the Army functions. Required when using CA's alternative URL.",
+                    armyScanInstructions        = "Scan the army pages every X days.",
+                    autoEliteInstructions       = "Enable or disable Auto Elite function. If running on web3 url then you must enable Army Functions also.",
+                    autoEliteIgnoreInstructions = "Use this option if you have a small army and are unable to fill all 10 Elite positions. This prevents " +
+                        "the script from checking for any empty places and will cause Auto Elite to run on its timer only.",
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
                 htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
                 htmlCode += caap.startCheckHide('EnableArmy');
+                htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
+                htmlCode += caap.startCheckHide('AutoElite');
+                htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
+                htmlCode += caap.endTR;
+                htmlCode += caap.endCheckHide('AutoElite');
                 htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
                 htmlCode += caap.makeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
                 htmlCode += caap.startCheckHide('ArmyIndicators');

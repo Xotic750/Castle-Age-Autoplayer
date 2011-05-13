@@ -1192,7 +1192,6 @@
                 htmlCode += caap.addReconMenu();
                 htmlCode += general.menu();
                 htmlCode += caap.addSkillPointsMenu();
-                htmlCode += caap.addEliteGuardOptionsMenu();
                 htmlCode += army.menu();
                 if (caap.domain.which === 0) {
                     htmlCode += gifting.menu();
@@ -1479,35 +1478,6 @@
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in addSkillPointsMenu: " + err);
-                return '';
-            }
-        },
-
-        addEliteGuardOptionsMenu: function () {
-            try {
-                // Other controls
-                var autoEliteInstructions = "Enable or disable Auto Elite function. If running on web3 url then you must enable Army Functions also.",
-                    autoEliteIgnoreInstructions = "Use this option if you have a small " +
-                        "army and are unable to fill all 10 Elite positions. This prevents " +
-                        "the script from checking for any empty places and will cause " +
-                        "Auto Elite to run on its timer only.",
-                    htmlCode = '';
-
-                htmlCode += caap.startToggle('Elite', 'ELITE GUARD OPTIONS');
-                htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
-                htmlCode += caap.startCheckHide('AutoElite');
-                htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
-                htmlCode += caap.endTR;
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
-                htmlCode += caap.endTR;
-                htmlCode += caap.endCheckHide('AutoElite');
-                htmlCode += caap.endToggle;
-                return htmlCode;
-            } catch (err) {
-                $u.error("ERROR in addEliteGuardOptionsMenu: " + err);
                 return '';
             }
         },
@@ -4074,6 +4044,10 @@
             'army_news_feed': {
                 signatureId: 'army_feed_body',
                 CheckResultsFunction: 'checkResults_army_news_feed'
+            },
+            'party': {
+                signaturePic: 'tab_elite_guard_on.gif',
+                CheckResultsFunction: 'checkResults_party'
             }
         },
 
@@ -4147,11 +4121,6 @@
                     }
                 } else {
                     $u.log(2, 'No results check defined for', page);
-                }
-
-                // Check for Elite Guard Add image
-                if (!config.getItem('AutoEliteIgnore', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy' && caap.hasImage('elite_guard_add')) {
-                    schedule.setItem('AutoEliteGetList', 0);
                 }
 
                 // Information updates
@@ -7498,7 +7467,7 @@
                     save       = false;
 
                 if (config.getItem('enableMonsterFinder', false)) {
-                    feed.items("guild", caap.appBodyDiv);
+                    feed.items("guild");
                 }
 
                 schedule.setItem("guildMonsterFinder", config.getItem('CheckGuildMonsterFinderMins', 60) * 60, 300);
@@ -7922,7 +7891,7 @@
                     return true;
                 }
 
-                feed.items("feed", caap.appBodyDiv);
+                feed.items("feed");
                 schedule.setItem("feedMonsterFinder", config.getItem('CheckFeedMonsterFinderMins', 15) * 60, 300);
                 return true;
             } catch (err) {
@@ -7933,6 +7902,10 @@
 
         checkResults_public_monster_list: function () {
             try {
+                if (config.getItem('enableMonsterFinder', false)) {
+                    feed.publicItems();
+                }
+
                 $j("input[name='Attack Dragon']").click(function () {
                     var form   = $j(this).parents("form").eq(0),
                         userId = $j("input[name='casuser']", form).val().parseInt(),
@@ -7954,6 +7927,12 @@
         /*jslint sub: true */
         checkResults_fightList: function () {
             try {
+                if (feed.isScan && $u.hasContent($j("div[style*='no_monster_back.jpg']", caap.appBodyDiv))) {
+                    $u.log(2, "No monster");
+                    feed.checked(monster.getItem(''));
+                    return false;
+                }
+
                 var buttonsDiv            = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_']" : ""), caap.appBodyDiv),
                     page                  = '',
                     monsterReviewed       = {},
@@ -8152,11 +8131,9 @@
             }
         },
 
-        checkResults_viewFight: function (feedRecord) {
+        checkResults_viewFight: function () {
             try {
-                var ajax              = feedRecord ? true : false,
-                    slice             = ajax ? caap.tempAjax : caap.appBodyDiv,
-                    currentMonster    = {},
+                var currentMonster    = {},
                     time              = [],
                     tempDiv           = $j(),
                     tempText          = '',
@@ -8182,7 +8159,7 @@
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
@@ -8198,10 +8175,10 @@
                     feedMonster       = '',
                     md5               = '',
                     //page              = state.getItem('page', 'battle_monster'),
-                    page              = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''),
+                    page              = $j(".game", caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''),
                     matches           = true,
                     ctaDiv            = $j(),
-                    dragonDiv         = $j(".dragonContainer", slice),
+                    dragonDiv         = $j(".dragonContainer", caap.appBodyDiv),
                     dleadersDiv       = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv),
                     maxJoin           = dleadersDiv.text().regex(/(\d+)/),
                     countJoin         = 0,
@@ -8229,7 +8206,7 @@
                         $u.log(3, "groups", index, levels, start, maxNum, count);
                         groups[levels] = {'level': start, 'max': maxNum, 'count': count};
                         countJoin += count;
-                        if (!ajax) {
+                        if (!feed.isScan) {
                             group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
                         }
                     });
@@ -8240,26 +8217,26 @@
 
                 groups['total'] = {'max': maxJoin, 'count': countJoin};
                 $u.log(3, "groups", groups);
-                if (!ajax) {
+                if (!feed.isScan) {
                     dleadersDiv.html("[" + countJoin + "/" + maxJoin + "max]");
                 }
 
-                if (ajax && $u.hasContent(feedRecord['page']) && feedRecord['page'] !== page) {
-                    page = feedRecord['page'];
-                    $u.log(2, "Page mismatch so using feedRecord page", page, feedRecord['page']);
+                if (feed.isScan && $u.hasContent(feed.scanRecord['page']) && feed.scanRecord['page'] !== page) {
+                    page = feed.scanRecord['page'];
+                    $u.log(2, "Page mismatch so using feed.scanRecord page", page, feed.scanRecord['page']);
                     if (config.getItem("DebugLevel", 1) > 1) {
-                        $j().alert("Page mismatch so using feedRecord page<br />" + page + '<br />' + feedRecord['page']);
+                        $j().alert("Page mismatch so using feed.scanRecord page<br />" + page + '<br />' + feed.scanRecord['page']);
                     }
                 }
 
                 $u.log(3, "GAME PAGE", page);
-                if (!ajax) {
+                if (!feed.isScan) {
                     battle.checkResults();
                     if (config.getItem("enableTitles", true)) {
                         spreadsheet.doTitles();
                     }
 
-                    caap.chatLink(slice, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
+                    caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
                 }
 
                 $u.log(4, "monsterDiv", monsterDiv);
@@ -8280,10 +8257,10 @@
 
                     $u.log(3, "tempText", tempText);
                 } else {
-                    monsterDiv = $j("div[style*='nm_top']", slice);
+                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
-                        tempDiv = $j("div[style*='nm_bars']", slice);
+                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
                             tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
@@ -8295,7 +8272,7 @@
                             $j().alert(fMonstStyle + "<br />I don't know this monster!<br />Please inform me.");
                         }
 
-                        if ($u.hasContent($j("div[style*='no_monster_back.jpg']", slice))) {
+                        if ($u.hasContent($j("div[style*='no_monster_back.jpg']", caap.appBodyDiv))) {
                             $u.log(2, "No monster");
                         }  else {
                             $u.warn("Problem finding dragon_title_owner and nm_top");
@@ -8310,8 +8287,8 @@
                     id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
                     id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                     id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
-                    id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", slice).attr("onclick") + "", '').regex(/user=(\d+)/));
-                    id = $u.setContent(id, ajax ? feedRecord['id'] : 0);
+                    id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", caap.appBodyDiv).attr("onclick") + "", '').regex(/user=(\d+)/));
+                    id = $u.setContent(id, feed.isScan ? feed.scanRecord['id'] : 0);
                     $u.log(3, "USER ID", id);
                     if (id === 0 || !$u.hasContent(id)) {
                         $u.warn("Unable to get id!");
@@ -8319,7 +8296,7 @@
                             $j().alert("Unable to get id!");
                         }
 
-                        if (ajax) {
+                        if (feed.isScan) {
                             feed.checked(monster.getItem(''));
                         }
 
@@ -8349,29 +8326,29 @@
 
                 mName = userName + ' ' + feedMonster;
                 $u.log(2, "Monster name", mName);
-                if (ajax) {
-                    if (feedRecord['id'] !== id) {
+                if (feed.isScan) {
+                    if (feed.scanRecord['id'] !== id) {
                         $u.warn("User ID doesn't match!");
                         if (config.getItem("DebugLevel", 1) > 1) {
-                            $j().alert("User ID doesn't match!<br />" + id + '<br />' + feedRecord['id']);
+                            $j().alert("User ID doesn't match!<br />" + id + '<br />' + feed.scanRecord['id']);
                         }
 
                         matches = false;
                     }
 
-                    if (feedRecord['monster'] !== feedMonster) {
+                    if (feed.scanRecord['monster'] !== feedMonster) {
                         $u.warn("Monster doesn't match!");
                         if (config.getItem("DebugLevel", 1) > 1) {
-                            $j().alert("Monster doesn't match!<br />" + feedRecord['monster'] + '<br />' + feedMonster);
+                            $j().alert("Monster doesn't match!<br />" + feed.scanRecord['monster'] + '<br />' + feedMonster);
                         }
 
                         matches = false;
                     }
 
-                    if (!feedRecord['url'].hasIndexOf(page)) {
+                    if (!feed.scanRecord['url'].hasIndexOf(page)) {
                         $u.warn("Page doesn't match!");
                         if (config.getItem("DebugLevel", 1) > 1) {
-                            $j().alert("Page doesn't match!<br />" + page + '<br />' + feedRecord['url']);
+                            $j().alert("Page doesn't match!<br />" + page + '<br />' + feed.scanRecord['url']);
                         }
 
                         matches = false;
@@ -8383,10 +8360,10 @@
                 }
 
                 md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5();
-                if (ajax && matches && feedRecord['md5'] !== md5) {
-                    $u.warn("MD5 mismatch!", md5, feedRecord['md5']);
+                if (feed.isScan && matches && feed.scanRecord['md5'] !== md5) {
+                    $u.warn("MD5 mismatch!", md5, feed.scanRecord['md5']);
                     if (config.getItem("DebugLevel", 1) > 1) {
-                        $j().alert("md5 mismatch!<br />" + md5 + '<br />' + feedRecord['md5']);
+                        $j().alert("md5 mismatch!<br />" + md5 + '<br />' + feed.scanRecord['md5']);
                     }
 
                     throw "MD5 mismatch!";
@@ -8425,20 +8402,20 @@
                 }
 
                 if (!$u.hasContent(currentMonster['feedLink'])) {
-                    if (ajax) {
+                    if (feed.isScan) {
                         currentMonster['save'] = false;
-                        currentMonster['feedLink'] = feedRecord['url'];
+                        currentMonster['feedLink'] = feed.scanRecord['url'];
                         $u.log(3, "Set monster feedLink ajax", currentMonster['feedLink']);
                     } else {
-                        feedRecord = feed.getItem(md5);
-                        if (feedRecord) {
-                            currentMonster['feedLink'] = feedRecord['url'];
-                            $u.log(3, "Set monster feedLink from feedRecord", currentMonster['feedLink']);
+                        feed.scanRecord = feed.getItem(md5);
+                        if (feed.scanRecord) {
+                            currentMonster['feedLink'] = feed.scanRecord['url'];
+                            $u.log(3, "Set monster feedLink from feed.scanRecord", currentMonster['feedLink']);
                         } else {
                             currentMonster['feedLink'] = page + '.php?';
                             currentMonster['feedLink'] += page !== 'festival_battle_monster' ? 'twt2&' : '';
                             currentMonster['feedLink'] += 'causer=' + id;
-                            ctaDiv = $j("input[name*='help with']", slice).parents("form").eq(0);
+                            ctaDiv = $j("input[name*='help with']", caap.appBodyDiv).parents("form").eq(0);
                             tStr = $j("input[name='mpool']", ctaDiv).attr("value");
                             currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mpool=' + tStr.parseInt() : '';
                             tStr = $j("input[name='mid']", ctaDiv).attr("value");
@@ -8486,7 +8463,7 @@
                 currentMonster['joinable']['total'] = groups['total'];
                 $u.log(3, "Joinable", currentMonster['joinable']);
                 if (currentMonster['monster'] === 'The Deathrune Siege') {
-                    tempDiv = $j("div[style*='raid_back']", slice);
+                    tempDiv = $j("div[style*='raid_back']", caap.appBodyDiv);
                     if ($u.hasContent(tempDiv)) {
                         if ($u.hasContent($j("img[src*='raid_1_large.jpg']", tempDiv))) {
                             currentMonster['type'] = 'Raid I';
@@ -8512,7 +8489,7 @@
                 currentMonster['review'] = new Date().getTime();
                 state.setItem('monsterRepeatCount', 0);
                 // Extract info
-                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", slice);
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", caap.appBodyDiv);
                 if ($u.hasContent(tempDiv)) {
                     $u.log(4, "Monster ticker found");
                     time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
@@ -8529,7 +8506,7 @@
                     currentMonster['fortify'] = currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental' ? 100 : 0;
                     switch (monsterInfo.defense_img) {
                     case 'bar_dispel.gif' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
                         if ($u.hasContent(tempDiv)) {
                             currentMonster['fortify'] = (100 - tempDiv.getPercent('width')).dp(2);
                         } else {
@@ -8539,11 +8516,11 @@
 
                         break;
                     case 'seamonster_ship_health.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
                         if ($u.hasContent(tempDiv)) {
                             currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             if (monsterInfo.repair_img) {
-                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", slice).parent();
+                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", caap.appBodyDiv).parent();
                                 if ($u.hasContent(tempDiv)) {
                                     currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.getPercent('width')))).dp(2);
                                 } else {
@@ -8558,7 +8535,7 @@
 
                         break;
                     case 'nm_green.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", slice).parent();
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
                         if ($u.hasContent(tempDiv)) {
                             currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             tempDiv = tempDiv.parent();
@@ -8581,7 +8558,7 @@
                 }
 
                 // Get damage done to monster
-                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", slice);
+                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", caap.appBodyDiv);
                 damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
                 if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
@@ -8601,13 +8578,13 @@
                         currentMonster['damage'] = currentMonster['attacked'];
                     }
 
-                    if (!ajax) {
+                    if (!feed.isScan) {
                         damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
                     }
 
                     currentMonster['hide'] = true;
                 } else {
-                    currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
+                    currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", caap.appBodyDiv));
                     $u.log(2, "Player hasn't done damage yet");
                 }
 
@@ -8615,23 +8592,23 @@
                 if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
                     counter = state.getItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
                     // Change from using monster name to monster MD5 - need to keep an eye open for any more
-                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['md5'] === currentMonster['md5'] && ($u.hasContent($j("a[href*='&action=collectReward']", slice)) || $u.hasContent($j("input[alt*='Collect Reward']", slice)))) {
+                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['md5'] === currentMonster['md5'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.appBodyDiv)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.appBodyDiv)))) {
                         $u.log(2, 'Collecting Reward');
                         currentMonster['review'] = -1;
                         state.setItem('monsterReviewCounter', counter -= 1);
                         currentMonster['status'] = 'Collect Reward';
-                        currentMonster['rix'] = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent($u.setContent($j("a[href*='&rix=']", slice).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
+                        currentMonster['rix'] = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent($u.setContent($j("a[href*='&rix=']", caap.appBodyDiv).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
                     }
                 }
 
                 monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' :  'monster_health_background.jpg';
-                monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
+                monsterDiv = $j("img[src*='" + monstHealthImg + "']", caap.appBodyDiv).parent();
                 if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                     currentMonster['time'] = time;
                     if ($u.hasContent(monsterDiv)) {
                         $u.log(4, "Found monster health div");
                         currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
-                        if (!ajax) {
+                        if (!feed.isScan) {
                             tempDiv = monsterDiv.siblings().eq(0).children().eq(0);
                             $u.log(2, "1st", tempDiv);
                             if (!$u.hasContent(tempDiv)) {
@@ -8661,7 +8638,7 @@
 
                     if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
                         // Character type stuff
-                        monsterDiv = $j("div[style*='nm_bottom']", slice);
+                        monsterDiv = $j("div[style*='nm_bottom']", caap.appBodyDiv);
                         if ($u.hasContent(monsterDiv)) {
                             tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                             if (tempText) {
@@ -8755,7 +8732,7 @@
 
                     if (monsterInfo) {
                         if (monsterInfo.siege) {
-                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", slice).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
+                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", caap.appBodyDiv).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
                             for (ind = 0, len = monsterInfo.siege_img.length; ind < len; ind += 1) {
                                 searchStr += "img[src*='" + monsterInfo.siege_img[ind] + "']";
                                 if (ind < len - 1) {
@@ -8763,7 +8740,7 @@
                                 }
                             }
 
-                            searchRes = $j(searchStr, slice);
+                            searchRes = $j(searchStr, caap.appBodyDiv);
                             if ($u.hasContent(searchRes)) {
                                 totalCount = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
                             }
@@ -10204,6 +10181,35 @@
         //                          ELITE GUARD
         /////////////////////////////////////////////////////////////////////
 
+        checkResults_party: function () {
+            try {
+                if ($u.hasContent($j("input[src*='elite_guard_request.gif']", caap.appBodyDiv))) {
+                    army.eliteCheckImg();
+                } else {
+                    army.eliteResult();
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in checkResults_army_member: " + err);
+                return false;
+            }
+        },
+
+        autoElite: function () {
+            try {
+                if (!config.getItem("EnableArmy", true) || !config.getItem('AutoElite', true) || !schedule.check('AutoEliteGetList')) {
+                    return false;
+                }
+
+                return army.elite();
+            } catch (err) {
+                $u.error("ERROR in autoElite: " + err);
+                return false;
+            }
+        },
+
+        /*
         autoElite: function () {
             try {
                 if (!config.getItem('AutoElite', false)) {
@@ -10326,6 +10332,7 @@
                 return false;
             }
         },
+        */
         /*jslint sub: false */
 
         /////////////////////////////////////////////////////////////////////
@@ -11118,6 +11125,52 @@
                 url: '/gift.php?app_friends=c&giftSelection=1'
             }
         },
+
+        /*
+        getFriendList: function (listType, force) {
+            try {
+                $u.log(4, "Entered getFriendList and request is for: ", listType.name);
+                if (force === true) {
+                    state.setItem(listType.name + 'Requested', false);
+                    state.setItem(listType.name + 'Responded', []);
+                }
+
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    state.setItem(listType.name + 'Requested', false);
+                    $u.error("getFriendList(" + listType.name + "): ", textStatus);
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    var friendList = [];
+                    $j("div[class='unselected_list'] input", caap.tempAjax).each(function () {
+                        friendList.push($j(this).val().parseInt());
+                    });
+
+                    $u.log(2, "getFriendList.ajax saving friend list of: ", friendList.length);
+                    state.setItem(listType.name + 'Responded', $u.setContent(friendList, true));
+                }
+
+                if (!state.getItem(listType.name + 'Requested', false)) {
+                    $u.log(3, "Getting Friend List: ", listType.name);
+                    state.setItem(listType.name + 'Requested', true);
+                    if (caap.domain.which > 1) {
+                        var armyList = army.getIdList();
+                        $u.log(3, "armyList", armyList);
+                        state.setItem(listType.name + 'Responded', listType.name === "giftc" && $u.hasContent(armyList) ? armyList : true);
+                    } else {
+                        caap.ajax(caap.domain.link + listType.url, onError, onSuccess);
+                    }
+                } else {
+                    $u.log(4, "Already requested getFriendList for: ", listType.name);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in getFriendList(" + listType.name + "): " + err);
+                return false;
+            }
+        },
+        */
 
         getFriendList: function (listType, force) {
             try {

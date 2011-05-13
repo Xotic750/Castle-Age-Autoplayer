@@ -335,10 +335,10 @@
         },
         /*jslint sub: false */
 
-        items: function (type, slice) {
+        items: function (type) {
             try {
                 var ft = config.getItem("festivalTower", false);
-                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
+                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), caap.appBodyDiv).each(function () {
                     var post  = $j(this),
                         link  = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
                         mon   = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
@@ -426,9 +426,9 @@
             }
         },
 
-        publicItems: function (slice) {
+        publicItems: function () {
             try {
-                $j("div[style*='pubmonster_middlef.gif']", slice).each(function () {
+                $j("div[style*='pubmonster_middlef.gif']", caap.appBodyDiv).each(function () {
                     var post = $j(this),
                         userId = 0,
                         mpool = '',
@@ -487,8 +487,6 @@
             }
         },
 
-        ajaxFeedWait: false,
-
         ajaxFeed: function () {
             try {
                 if (feed.ajaxFeedWait) {
@@ -496,18 +494,7 @@
                     return true;
                 }
 
-                feed.ajaxFeedWait = true;
-                function onError(XMLHttpRequest, textStatus, errorThrown) {
-                    $u.error("feed.ajaxFeed", textStatus);
-                    feed.ajaxFeedWait = false;
-                }
-
-                function onSuccess(data, textStatus, XMLHttpRequest) {
-                    feed.items("feed", data);
-                    feed.ajaxFeedWait = false;
-                }
-
-                caap.ajax(caap.domain.link + '/army_news_feed.php', onError, onSuccess);
+                caap.clickAjaxLinkSend("army_news_feed.php");
                 var minutes = config.getItem('CheckFeedMonsterFinderMins', 15);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("feedMonsterFinder", minutes * 60, 300);
@@ -518,8 +505,6 @@
             }
         },
 
-        ajaxGuildWait: false,
-
         ajaxGuild: function () {
             try {
                 if (feed.ajaxGuildWait) {
@@ -527,18 +512,7 @@
                     return true;
                 }
 
-                feed.ajaxGuildWait = true;
-                function onError(XMLHttpRequest, textStatus, errorThrown) {
-                    $u.error("feed.ajaxGuild", textStatus);
-                    feed.ajaxGuildWait = false;
-                }
-
-                function onSuccess(data, textStatus, XMLHttpRequest) {
-                    feed.items("guild", data);
-                    feed.ajaxGuildWait = false;
-                }
-
-                caap.ajax(caap.domain.link + '/guild.php', onError, onSuccess);
+                caap.clickAjaxLinkSend("guild.php");
                 var minutes = config.getItem('CheckGuildMonsterFinderMins', 60);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("guildMonsterFinder", minutes * 60, 300);
@@ -549,16 +523,6 @@
             }
         },
 
-        opMessage: function (event) {
-            event.responseText = event.responseText.unescapeCAHTML();
-            $u.log(2, "ajaxPublic opera", event);
-            console.log(event.responseText);
-            feed.publicItems(event.responseText);
-            feed.ajaxPublicWait = false;
-        },
-
-        ajaxPublicWait: false,
-
         ajaxPublic: function (tier) {
             try {
                 if (feed.ajaxPublicWait) {
@@ -566,38 +530,10 @@
                     return true;
                 }
 
-                function onError(XMLHttpRequest, textStatus, errorThrown) {
-                    $u.error("feed.ajaxPublic", textStatus);
-                    feed.ajaxPublicWait = false;
-                }
+                var url     = 'public_monster_list.php?monster_tier=' + tier,
+                    minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
 
-                function onSuccess(data, textStatus, XMLHttpRequest) {
-                    feed.publicItems(data);
-                    feed.ajaxPublicWait = false;
-                }
-
-                function onReturn(message) {
-                    $u.log(2, "ajaxPublic onReturn", message);
-                    message.responseText = message.responseText.unescapeCAHTML();
-                    feed.publicItems(message.responseText);
-                    feed.ajaxPublicWait = false;
-                }
-
-                feed.ajaxPublicWait = true;
-                var url = 'public_monster_list.php?monster_tier=' + tier,
-                    msg;
-
-                if (caap.domain.which === 2) {
-                    url = "http://apps.facebook.com/castle_age/" + url;
-                    if ($u.hasContent(window.chrome)) {
-                        chrome.extension.sendRequest({'action': 'getPage', 'value': url}, onReturn);
-                    } else if ($u.hasContent(window.caap_comms)) {
-                        window.caap_comms.sendRequest({'action': 'getPage', 'value': url}, onReturn);
-                    }
-                } else {
-                    caap.ajax(caap.domain.link + '/' + url, onError, onSuccess);
-                }
-
+                caap.clickAjaxLinkSend(url);
                 var minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("publicMonsterFinder" + tier, minutes * 60, 300);
@@ -607,36 +543,6 @@
                 return false;
             }
         },
-
-        ajaxScanWait: false,
-
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
-        ajaxScan: function (record) {
-            try {
-                if (feed.ajaxScanWait) {
-                    return true;
-                }
-
-                feed.ajaxScanWait = true;
-                function onError(XMLHttpRequest, textStatus, errorThrown) {
-                    $u.error("feed.ajaxScan", textStatus);
-                    feed.ajaxScanWait = false;
-                }
-
-                function onSuccess(data, textStatus, XMLHttpRequest) {
-                    caap.checkResults_viewFight(record);
-                    feed.ajaxScanWait = false;
-                }
-
-                caap.ajax(caap.domain.link + '/' + record['url'], onError, onSuccess);
-                return true;
-            } catch (err) {
-                $u.error("ERROR in feed.ajaxScan: " + err);
-                return false;
-            }
-        },
-        /*jslint sub: false */
 
         scanRecord: {},
 
@@ -662,6 +568,8 @@
             }
         },
 
+        isScan: false,
+
         scan: function () {
             try {
                 var it      = 0,
@@ -682,12 +590,10 @@
                 if (!state.setItem("feedScanDone", done)) {
                     $u.log(2, "Scanning", feed.recordsSortable[it]);
                     feed.scanRecord = feed.recordsSortable[it];
-                    if (config.getItem("feedCompatabilityScan", false)) {
-                        caap.clickAjaxLinkSend(feed.recordsSortable[it]['url']);
-                    } else {
-                        feed.ajaxScan(feed.recordsSortable[it]);
-                    }
+                    feed.isScan = true;
+                    caap.clickAjaxLinkSend(feed.recordsSortable[it]['url']);
                 } else {
+                    feed.isScan = false;
                     feed.scanRecord = {};
                 }
 
@@ -827,7 +733,7 @@
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
 
-                if (caap.domain.which === 0 || ((window.chrome || $u.hasContent(window.caap_comms)) && caap.domain.which === 2)) {
+                if (caap.domain.which === 0) {
                     htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
                     htmlCode += caap.startCheckHide('publicMonsterFinder1');
                     htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);

@@ -10,7 +10,7 @@
 
     function log(msg) {
         if (window.console && typeof console.log === 'function') {
-            console.log("140.25.0" + ("16" !== '0' ? 'd16'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+            console.log("140.25.0" + ("17" !== '0' ? 'd17'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
 

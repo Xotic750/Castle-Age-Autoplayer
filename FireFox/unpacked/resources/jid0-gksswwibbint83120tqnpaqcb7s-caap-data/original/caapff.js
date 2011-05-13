@@ -9,7 +9,7 @@
 
     var globalDocument = globalWindow.document,
         version        = "140.25.0",
-        dev            = "16",
+        dev            = "17",
         files          = [
             "chrome://caap/content/original/caap_comms.js",
             "chrome://caap/content/jquery-1.6.min.js",
