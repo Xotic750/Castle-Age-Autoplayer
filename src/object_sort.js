@@ -73,7 +73,7 @@
                 sort.updateForm(id);
                 return true;
             } catch (err) {
-                $u.error("ERROR in sort.form: " + err);
+                con.error("ERROR in sort.form: " + err);
                 return false;
             }
         },
@@ -92,15 +92,15 @@
                     order.data['value']['c'] = $j("#select2 option:selected", sort.dialog[id]).val();
                     records.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
                     state.setItem(id + "Sort", order);
-                    state.setItem(id + "DashUpdate", true);
+                    session.setItem(id + "DashUpdate", true);
                     caap.updateDashboard(true);
                 } else {
-                    $u.log(3, "Dialog for getForm not found", id);
+                    con.log(3, "Dialog for getForm not found", id);
                 }
 
                 return order.data;
             } catch (err) {
-                $u.error("ERROR in sort.getForm: " + err);
+                con.error("ERROR in sort.getForm: " + err);
                 return undefined;
             }
         },
@@ -117,12 +117,12 @@
                     $j("#select1", sort.dialog[id]).val(order.data['value']['b']);
                     $j("#select2", sort.dialog[id]).val(order.data['value']['c']);
                 } else {
-                    $u.log(3, "Dialog for updateForm not found", id);
+                    con.log(3, "Dialog for updateForm not found", id);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in sort.updateForm: " + err);
+                con.error("ERROR in sort.updateForm: " + err);
                 return false;
             }
         }

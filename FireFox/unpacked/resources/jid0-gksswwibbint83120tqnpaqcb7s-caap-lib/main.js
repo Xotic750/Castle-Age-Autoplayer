@@ -13,11 +13,11 @@ if (Components.classes["@mozilla.org/xpcom/version-comparator;1"].getService(Com
     var workers = [],
         files = {
             'caap'       : "Castle-Age-Autoplayer.js",
-            'utility'    : "utility-0.1.6.min.js",
-            'jquery'     : "jquery-1.6.min.js",
-            'jqueryui'   : "jquery-ui-1.8.12.min.js",
+            'utility'    : "utility-0.2.3.min.js",
+            'jquery'     : "jquery-1.6.2.min.js",
+            'jqueryui'   : "jquery-ui-1.8.14.min.js",
             'farbtastic' : "farbtastic.min.js",
-            'datatables' : "jquery.dataTables-1.7.6.min.js"
+            'datatables' : "jquery.dataTables-1.8.1.min.js"
         };
 
     if (typeof simpleStorage.caapAutorun !== 'boolean') {
@@ -121,7 +121,11 @@ if (Components.classes["@mozilla.org/xpcom/version-comparator;1"].getService(Com
                 'http://apps.facebook.com/sorry.php*',
                 'https://apps.facebook.com/sorry.php*',
                 'http://apps.facebook.com/reqs.php#confirm_46755028429_0*',
-                'https://apps.facebook.com/reqs.php#confirm_46755028429_0*'
+                'https://apps.facebook.com/reqs.php#confirm_46755028429_0*',
+                'http://web.castleagegame.com/castle/*',
+                'https://web.castleagegame.com/castle/*',
+                'http://www.facebook.com/dialog/apprequests?access_token=46755028429*',
+                'https://www.facebook.com/dialog/apprequests?access_token=46755028429*'
             ],
             contentScriptWhen: 'ready',
             contentScriptFile: [data.url('caap_comms.js')],

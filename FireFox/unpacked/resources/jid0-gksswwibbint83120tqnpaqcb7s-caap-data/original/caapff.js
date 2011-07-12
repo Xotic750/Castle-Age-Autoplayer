@@ -8,15 +8,15 @@
           consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
 
     var globalDocument = globalWindow.document,
-        version        = "140.25.0",
-        dev            = "19",
+        version        = "141.0.0",
+        dev            = "7",
         files          = [
             "chrome://caap/content/original/caap_comms.js",
-            "chrome://caap/content/jquery-1.6.min.js",
-            "chrome://caap/content/jquery-ui-1.8.12.min.js",
+            "chrome://caap/content/jquery-1.6.2.min.js",
+            "chrome://caap/content/jquery-ui-1.8.14.min.js",
             "chrome://caap/content/farbtastic.min.js",
-            "chrome://caap/content/jquery.dataTables-1.7.6.min.js",
-            "chrome://caap/content/utility-0.1.6.min.js",
+            "chrome://caap/content/jquery.dataTables-1.8.1.min.js",
+            "chrome://caap/content/utility-0.2.3.min.js",
             'chrome://caap/content/Castle-Age-Autoplayer.js'
         ],
         filesLen       = files.length,

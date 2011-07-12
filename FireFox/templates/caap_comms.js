@@ -148,7 +148,7 @@
         log("Starting ... waiting for scripts to load");
         timeout = window.setTimeout(timeOut, 180000);
         if (!window.jQuery || window.jQuery().jquery !== "!jquery!") {
-            log("Inject jQuery");
+            log("Inject jQuery.");
             postMessageMain({action : 'script', status: 'get', value: 'jquery'});
         }
 

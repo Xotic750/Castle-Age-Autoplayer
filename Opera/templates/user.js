@@ -9,6 +9,10 @@
 // @include        http*://*.facebook.com/common/error.html*
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php*
+// @include        *http://web.castleagegame.com/castle/*
+// @include        *https://web.castleagegame.com/castle/*
+// @include        http://www.facebook.com/dialog/apprequests?access_token=46755028429*
+// @include        https://www.facebook.com/dialog/apprequests?access_token=46755028429*
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @compatability  Opera 11+
 // ==/UserScript==

@@ -27,7 +27,9 @@
                 'apps.facebook.com/reqs.php#confirm_46755028429_0',
                 'web3.castleagegame.com/castle_ws/',
                 '.facebook.com/common/error.html',
-                'apps.facebook.com/sorry.php'
+                'apps.facebook.com/sorry.php',
+                'web.castleagegame.com',
+                'www.facebook.com/dialog/apprequests?access_token=46755028429'
             ],
 
             init: function (event) {
@@ -85,6 +87,7 @@
                         len    = caapop.pages.length,
                         onPage = false;
 
+                    caapop.log(href);
                     for (it = 0; it < len; it += 1) {
                         if (href.search(caapop.pages[it]) > -1) {
                             onPage = true;

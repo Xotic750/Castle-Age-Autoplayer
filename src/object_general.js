@@ -7,8 +7,6 @@
     general = {
         records: [],
 
-        recordsSortable: [],
-
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         record: function () {
@@ -17,7 +15,7 @@
                 'img'        : '',
                 'lvl'        : 0,
                 'pct'        : 0,
-                'last'       : new Date().getTime() - (24 * 3600000),
+                'last'       : Date.now() - (24 * 3600000),
                 'special'    : '',
                 'atk'        : 0,
                 'def'        : 0,
@@ -51,25 +49,37 @@
 
                 general.BuildlLists();
                 general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
-                $u.log(3, "general.load Hbest", general.hbest);
-                state.setItem("GeneralsDashUpdate", true);
-                $u.log(3, "general.load", general.records);
+                con.log(3, "general.load Hbest", general.hbest);
+                session.setItem("GeneralsDashUpdate", true);
+                con.log(3, "general.load", general.records);
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.load: " + err);
+                con.error("ERROR in general.load: " + err);
                 return false;
             }
         },
 
-        save: function () {
+        save: function (src) {
             try {
                 var compress = false;
-                gm.setItem('general.records', general.records, general.hbest, compress);
-                state.setItem("GeneralsDashUpdate", true);
-                $u.log(3, "general.save", general.records);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('general.records', general.records);
+                } else {
+                    gm.setItem('general.records', general.records, general.hbest, compress);
+                    con.log(3, "general.save", general.records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "general.save send");
+                        caap.messaging.setItem('general.records', general.records);
+                    }
+                }
+
+                if (caap.domain.which !== 0) {
+                    session.setItem("GeneralsDashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.save: " + err);
+                con.error("ERROR in general.save: " + err);
                 return false;
             }
         },
@@ -79,7 +89,7 @@
         getItem: function (generalName, quiet) {
             try {
                 if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
-                    $u.warn("generalName", generalName);
+                    con.warn("generalName", generalName);
                     throw "Invalid identifying generalName!";
                 }
 
@@ -96,7 +106,7 @@
 
                 if (!found) {
                     if (!quiet) {
-                        $u.warn("Unable to find 'General' record", generalName);
+                        con.warn("Unable to find 'General' record", generalName);
                     }
 
                     return false;
@@ -104,7 +114,7 @@
 
                 return general.records[it];
             } catch (err) {
-                $u.error("ERROR in general.getItem: " + err);
+                con.error("ERROR in general.getItem: " + err);
                 return false;
             }
         },
@@ -116,7 +126,7 @@
                 }
 
                 if (!$u.hasContent(record['name']) || !$u.isString(record['name'])) {
-                    $u.warn("name", record['name']);
+                    con.warn("name", record['name']);
                     throw "Invalid identifying name!";
                 }
 
@@ -133,16 +143,16 @@
 
                 if (success) {
                     general.records[it] = record;
-                    $u.log(3, "Updated general record", record, general.records);
+                    con.log(3, "Updated general record", record, general.records);
                 } else {
                     general.records.push(record);
-                    $u.log(3, "Added general record", record, general.records);
+                    con.log(3, "Added general record", record, general.records);
                 }
 
                 general.save();
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.setItem: " + err);
+                con.error("ERROR in general.setItem: " + err);
                 return false;
             }
         },
@@ -159,7 +169,7 @@
 
                 return names.sort();
             } catch (err) {
-                $u.error("ERROR in general.GetNames: " + err);
+                con.error("ERROR in general.GetNames: " + err);
                 return false;
             }
         },
@@ -169,7 +179,7 @@
                 var genImg = general.getItem(generalName);
 
                 if (genImg === false) {
-                    $u.warn("Unable to find 'General' image");
+                    con.warn("Unable to find 'General' image");
                     genImg = '';
                 } else {
                     genImg = genImg['img'];
@@ -177,7 +187,7 @@
 
                 return genImg;
             } catch (err) {
-                $u.error("ERROR in general.GetImage: " + err);
+                con.error("ERROR in general.GetImage: " + err);
                 return false;
             }
         },
@@ -187,7 +197,7 @@
                 var genStamina = general.getItem(generalName);
 
                 if (genStamina === false) {
-                    $u.warn("Unable to find 'General' stamina");
+                    con.warn("Unable to find 'General' stamina");
                     genStamina = 0;
                 } else {
                     genStamina = genStamina['staminaMax'];
@@ -195,7 +205,7 @@
 
                 return genStamina;
             } catch (err) {
-                $u.error("ERROR in general.GetStaminaMax: " + err);
+                con.error("ERROR in general.GetStaminaMax: " + err);
                 return false;
             }
         },
@@ -205,7 +215,7 @@
                 var genEnergy = general.getItem(generalName);
 
                 if (genEnergy === false) {
-                    $u.warn("Unable to find 'General' energy");
+                    con.warn("Unable to find 'General' energy");
                     genEnergy = 0;
                 } else {
                     genEnergy = genEnergy['energyMax'];
@@ -213,7 +223,7 @@
 
                 return genEnergy;
             } catch (err) {
-                $u.error("ERROR in general.GetEnergyMax: " + err);
+                con.error("ERROR in general.GetEnergyMax: " + err);
                 return false;
             }
         },
@@ -223,7 +233,7 @@
                 var genHealth = general.getItem(generalName);
 
                 if (genHealth === false) {
-                    $u.warn("Unable to find 'General' health");
+                    con.warn("Unable to find 'General' health");
                     genHealth = 0;
                 } else {
                     genHealth = genHealth['healthMax'];
@@ -231,7 +241,7 @@
 
                 return genHealth;
             } catch (err) {
-                $u.error("ERROR in general.GetHealthMax: " + err);
+                con.error("ERROR in general.GetHealthMax: " + err);
                 return false;
             }
         },
@@ -241,7 +251,7 @@
                 var genLevel = general.getItem(generalName);
 
                 if (genLevel === false) {
-                    $u.warn("Unable to find 'General' level");
+                    con.warn("Unable to find 'General' level");
                     genLevel = 1;
                 } else {
                     genLevel = genLevel['lvl'];
@@ -249,7 +259,7 @@
 
                 return genLevel;
             } catch (err) {
-                $u.error("ERROR in general.GetLevel: " + err);
+                con.error("ERROR in general.GetLevel: " + err);
                 return false;
             }
         },
@@ -259,7 +269,7 @@
                 var genPct = general.getItem(generalName);
 
                 if (genPct === false) {
-                    $u.warn("Unable to find 'General' level percent");
+                    con.warn("Unable to find 'General' level percent");
                     genPct = 0;
                 } else {
                     genPct = genPct['pct'];
@@ -267,7 +277,7 @@
 
                 return genPct;
             } catch (err) {
-                $u.error("ERROR in general.GetPercent: " + err);
+                con.error("ERROR in general.GetPercent: " + err);
                 return false;
             }
         },
@@ -286,7 +296,7 @@
 
                 return names;
             } catch (err) {
-                $u.error("ERROR in general.GetLevelUpNames: " + err);
+                con.error("ERROR in general.GetLevelUpNames: " + err);
                 return false;
             }
         },
@@ -305,13 +315,15 @@
 
                 return names.sort();
             } catch (err) {
-                $u.error("ERROR in general.getCoolDownNames: " + err);
+                con.error("ERROR in general.getCoolDownNames: " + err);
                 return false;
             }
         },
         /*jslint sub: false */
 
         List: [],
+
+        AltList: [],
 
         BuyList: [],
 
@@ -348,49 +360,54 @@
 
         BuildlLists: function () {
             try {
-                $u.log(3, 'Building Generals Lists');
+                con.log(3, 'Building Generals Lists');
                 general.List = [
                     'Use Current',
                     'Under Level'
                 ].concat(general.GetNames());
 
-                var crossList = function (checkItem) {
-                    return general.List.hasIndexOf(checkItem);
-                };
+                general.AltList = [
+                    'Use Current'
+                ].concat(general.GetNames());
 
-                general.BuyList = [
+                var filterList = config.getItem("filterGeneral", true),
+                    crossList = function (checkItem) {
+                        return general.List.hasIndexOf(checkItem);
+                    };
+
+                general.BuyList = filterList ? [
                     'Use Current',
                     'Darius',
                     'Lucius',
                     'Garlan',
                     'Penelope'
-                ].filter(crossList);
+                ].filter(crossList) : general.AltList;
 
-                general.IncomeList = [
+                general.IncomeList = filterList ? [
                     'Use Current',
                     'Scarlett',
                     'Mercedes',
                     'Cid'
-                ].filter(crossList);
+                ].filter(crossList) : general.AltList;
 
-                general.BankingList = [
+                general.BankingList = filterList ? [
                     'Use Current',
                     'Aeris'
-                ].filter(crossList);
+                ].filter(crossList) : general.AltList;
 
-                general.CollectList = [
+                general.CollectList = filterList ? [
                     'Use Current',
                     'Angelica',
                     'Morrigan',
                     'Valiant'
-                ].filter(crossList);
+                ].filter(crossList) : general.AltList;
 
-                general.SubQuestList = [
+                general.SubQuestList = filterList ? [
                     'Use Current',
                     'Under Level',
                     'Sano',
                     'Titania'
-                ].filter(crossList);
+                ].filter(crossList) : general.List;
 
                 general.coolDownList = [
                     ''
@@ -398,7 +415,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.BuildlLists: " + err);
+                con.error("ERROR in general.BuildlLists: " + err);
                 return false;
             }
         },
@@ -413,7 +430,7 @@
                     record      = {};
 
                 if (!generalName) {
-                    $u.warn("Couldn't get current 'General'. Using 'Use Current'");
+                    con.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
                 }
 
@@ -423,10 +440,10 @@
                     general.setItem(record);
                 }
 
-                $u.log(4, "Current General", generalName);
+                con.log(4, "Current General", generalName);
                 return generalName;
             } catch (err) {
-                $u.error("ERROR in general.GetCurrent: " + err);
+                con.error("ERROR in general.GetCurrent: " + err);
                 return 'Use Current';
             }
         },
@@ -459,28 +476,28 @@
                         if ($u.hasContent(tempObj)) {
                             name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
                         } else {
-                            $u.warn("Unable to find 'name' container", index);
+                            con.warn("Unable to find 'name' container", index);
                         }
 
                         tempObj = $j(".imgButton", container);
                         if ($u.hasContent(tempObj)) {
                             img = $u.setContent(tempObj.attr("src"), '').basename();
                         } else {
-                            $u.warn("Unable to find 'image' container", index);
+                            con.warn("Unable to find 'image' container", index);
                         }
 
                         tempObj = $j("input[name='item']", container);
                         if ($u.hasContent(tempObj)) {
                             item = $u.setContent(tempObj.attr("value"), '').parseInt();
                         } else {
-                            $u.warn("Unable to find 'item' container", index);
+                            con.warn("Unable to find 'item' container", index);
                         }
 
                         tempObj = $j("input[name='itype']", container);
                         if ($u.hasContent(tempObj)) {
                             itype = $u.setContent(tempObj.attr("value"), '').parseInt();
                         } else {
-                            $u.warn("Unable to find 'itype' container", index);
+                            con.warn("Unable to find 'itype' container", index);
                         }
 
                         tempObj = $j("div[style*='train_progress.jpg']", container);
@@ -488,28 +505,28 @@
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
                         } else {
-                            $u.log(4, "Not a cool down general", index);
+                            con.log(4, "Not a cool down general", index);
                         }
 
                         tempObj = container.children().eq(3);
                         if ($u.hasContent(tempObj)) {
                             level = $u.setContent(tempObj.text(), '0').replace(/Level /gi, '').stripTRN().parseInt();
                         } else {
-                            $u.warn("Unable to find 'level' container", index);
+                            con.warn("Unable to find 'level' container", index);
                         }
 
                         tempObj = $j("div[style*='#3b5561'],div[style*='rgb(59, 85, 97)']", container);
                         if ($u.hasContent(tempObj)) {
                             percent = tempObj.getPercent('width');
                         } else {
-                            $u.warn("Unable to find 'level percent' container", index);
+                            con.warn("Unable to find 'level percent' container", index);
                         }
 
                         tempObj = container.children().eq(4);
                         if ($u.hasContent(tempObj)) {
                             special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
                         } else {
-                            $u.warn("Unable to find 'special' container", index);
+                            con.warn("Unable to find 'special' container", index);
                         }
 
                         tempObj = $j(".generals_indv_stats_padding div", container);
@@ -517,7 +534,7 @@
                             atk = $u.setContent(tempObj.eq(0).text(), '0').parseInt();
                             def = $u.setContent(tempObj.eq(1).text(), '0').parseInt();
                         } else {
-                            $u.warn("Unable to find 'attack and defence' containers", index);
+                            con.warn("Unable to find 'attack and defence' containers", index);
                         }
 
                         if ($u.hasContent(name) && $u.hasContent(img) && $u.hasContent(level) && $u.hasContent(percent) && !$u.isNaN(atk) && !$u.isNaN(def) && $u.hasContent(special)) {
@@ -545,14 +562,14 @@
                             if (it < len) {
                                 general.records[it] = newGeneral.data;
                             } else {
-                                $u.log(1, "Adding new 'General'", newGeneral.data['name']);
+                                con.log(1, "Adding new 'General'", newGeneral.data['name']);
                                 general.records.push(newGeneral.data);
                                 update = true;
                             }
 
                             save = true;
                         } else {
-                            $u.warn("Missing required 'General' attribute", index);
+                            con.warn("Missing required 'General' attribute", index);
                         }
                     });
 
@@ -566,12 +583,12 @@
                         }
                     }
 
-                    $u.log(3, "general.GetGenerals", general.records);
+                    con.log(3, "general.GetGenerals", general.records);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.GetGenerals: " + err);
+                con.error("ERROR in general.GetGenerals: " + err);
                 return false;
             }
         },
@@ -584,7 +601,7 @@
                     coolDown = '';
 
                 general.BuildlLists();
-                $u.log(3, "Updating 'General' Drop Down Lists");
+                con.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                     caap.changeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
                     coolDown = general.getCoolDownType(general.StandardList[it]);
@@ -608,19 +625,19 @@
                 caap.changeDropDownList('LevelUpGeneral', general.List, config.getItem('LevelUpGeneral', 'Use Current'));
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.UpdateDropDowns: " + err);
+                con.error("ERROR in general.UpdateDropDowns: " + err);
                 return false;
             }
         },
 
         Clear: function (whichGeneral) {
             try {
-                $u.log(1, 'Setting ' + whichGeneral + ' to "Use Current"');
+                con.log(1, 'Setting ' + whichGeneral + ' to "Use Current"');
                 config.setItem(whichGeneral, 'Use Current');
                 general.UpdateDropDowns();
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.Clear: " + err);
+                con.error("ERROR in general.Clear: " + err);
                 return false;
             }
         },
@@ -636,13 +653,13 @@
                 generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
                 if ((caap.stats['staminaT']['num'] > caap.stats['stamina']['max'] || caap.stats['energyT']['num'] > caap.stats['energy']['max']) && state.getItem('KeepLevelUpGeneral', false)) {
                     if (config.getItem(generalType + 'LevelUpGeneral', false)) {
-                        $u.log(2, "Keep Level Up General");
+                        con.log(2, "Keep Level Up General");
                         keepGeneral = true;
                     } else {
-                        $u.warn("User opted out of keep level up general for", generalType);
+                        con.warn("User opted out of keep level up general for", generalType);
                     }
                 } else if (state.getItem('KeepLevelUpGeneral', false)) {
-                    $u.log(1, "Clearing Keep Level Up General flag");
+                    con.log(1, "Clearing Keep Level Up General flag");
                     state.setItem('KeepLevelUpGeneral', false);
                 }
 
@@ -654,7 +671,7 @@
 
                 return use;
             } catch (err) {
-                $u.error("ERROR in general.LevelUpCheck: " + err);
+                con.error("ERROR in general.LevelUpCheck: " + err);
                 return undefined;
             }
         },
@@ -675,7 +692,7 @@
                 generalType = ok ? (generalType ? generalType + "CoolGeneral" : '') : '';
                 return generalType;
             } catch (err) {
-                $u.error("ERROR in general.getCoolDownType: " + err);
+                con.error("ERROR in general.getCoolDownType: " + err);
                 return undefined;
             }
         },
@@ -696,14 +713,14 @@
                     useCool           = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord['charge'] === 100,
                     zinFirst          = config.getItem("useZinFirst", true);
 
-                $u.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
-                $u.log(3, 'Zin', zinReady, zinFirst, zinRecord);
+                con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
+                con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
                 if (levelUp) {
                     whichGeneral = 'LevelUpGeneral';
-                    $u.log(2, 'Using level up general');
+                    con.log(2, 'Using level up general');
                 }
 
-                generalName = zinReady && zinFirst && coolType ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+                generalName = zinReady && zinFirst && coolType && whichGeneral !== "GuildMonster" ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
                 if (!generalName || /use current/i.test(generalName)) {
                     return false;
                 }
@@ -726,7 +743,7 @@
                     return false;
                 }
 
-                $u.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
+                con.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
                 if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                     return true;
                 }
@@ -737,14 +754,14 @@
                 }
 
                 caap.setDivContent('Could not find ' + generalName);
-                $u.warn('Could not find', generalName, generalImage);
+                con.warn('Could not find', generalName, generalImage);
                 if (config.getItem('ignoreGeneralImage', true)) {
                     return false;
                 } else {
                     return general.Clear(whichGeneral);
                 }
             } catch (err) {
-                $u.error("ERROR in general.Select: " + err);
+                con.error("ERROR in general.Select: " + err);
                 return false;
             }
         },
@@ -765,7 +782,7 @@
                     return false;
                 }
 
-                $u.log(2, "Equipped 'General'", generalName);
+                con.log(2, "Equipped 'General'", generalName);
                 for (it = 0, len = general.records.length; it < len; it += 1) {
                     if (general.records[it]['name'] === generalName) {
                         break;
@@ -773,7 +790,7 @@
                 }
 
                 if (it >= len) {
-                    $u.warn("Unable to find 'General' record");
+                    con.warn("Unable to find 'General' record");
                     return false;
                 }
 
@@ -786,10 +803,10 @@
                             general.records[it]['edef'] = $u.setContent(tempObj.text(), '0').parseInt();
                             success = true;
                         } else {
-                            $u.warn("Unable to get 'General' defense object");
+                            con.warn("Unable to get 'General' defense object");
                         }
                     } else {
-                        $u.warn("Unable to get 'General' attack object");
+                        con.warn("Unable to get 'General' attack object");
                     }
 
                     if (success) {
@@ -799,19 +816,19 @@
                         general.records[it]['energyMax'] = caap.stats['energyT']['max'];
                         general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
                         general.records[it]['healthMax'] = caap.stats['healthT']['max'];
-                        general.records[it]['last'] = new Date().getTime();
+                        general.records[it]['last'] = Date.now();
                         general.save();
-                        $u.log(3, "Got 'General' stats", general.records[it]);
+                        con.log(3, "Got 'General' stats", general.records[it]);
                     } else {
-                        $u.warn("Unable to get 'General' stats");
+                        con.warn("Unable to get 'General' stats");
                     }
                 } else {
-                    $u.warn("Unable to get equipped 'General' divs");
+                    con.warn("Unable to get equipped 'General' divs");
                 }
 
                 return general.records[it];
             } catch (err) {
-                $u.error("ERROR in general.GetEquippedStats: " + err);
+                con.error("ERROR in general.GetEquippedStats: " + err);
                 return false;
             }
         },
@@ -835,10 +852,10 @@
                     time = config.getItem("GetAllGenerals", 7);
                     time = (time < 7 ? 7 : time) * 86400;
                     schedule.setItem("allGenerals", time, 300);
-                    $u.log(2, "Finished visiting all Generals for their stats");
+                    con.log(2, "Finished visiting all Generals for their stats");
                     theGeneral = config.getItem('IdleGeneral', 'Use Current');
                     if (theGeneral !== 'Use Current') {
-                        $u.log(2, "Changing to idle general");
+                        con.log(2, "Changing to idle general");
                         return general.Select('IdleGeneral');
                     }
 
@@ -846,21 +863,21 @@
                 }
 
                 if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-                    $u.log(2, "Visiting generals to get 'General' stats");
+                    con.log(2, "Visiting generals to get 'General' stats");
                     return true;
                 }
 
                 generalImage = general.GetImage(general.records[it]['name']);
                 if (caap.hasImage(generalImage)) {
                     if (general.GetCurrent() !== general.records[it]['name']) {
-                        $u.log(2, "Visiting 'General'", general.records[it]['name']);
+                        con.log(2, "Visiting 'General'", general.records[it]['name']);
                         return caap.navigateTo(generalImage);
                     }
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.GetAllStats: " + err);
+                con.error("ERROR in general.GetAllStats: " + err);
                 return false;
             }
         },
@@ -879,7 +896,7 @@
 
                 return owned;
             } catch (err) {
-                $u.error("ERROR in general.owned: " + err);
+                con.error("ERROR in general.owned: " + err);
                 return undefined;
             }
         },
@@ -920,6 +937,7 @@
                 htmlCode += caap.startToggle('Generals', 'GENERALS');
                 htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
                 htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
+                htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
                 for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
                     htmlCode += caap.makeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
                     coolDown = general.getCoolDownType(general.StandardList[dropDownItem]);
@@ -947,8 +965,8 @@
                 htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
                 htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
                 htmlCode += caap.makeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
-                htmlCode += caap.makeCheckTR("Don't Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
-                htmlCode += caap.makeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
+                htmlCode += caap.makeCheckTR("Do not Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
+                htmlCode += caap.makeCheckTR("Do not Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
                 htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
                 htmlCode += caap.endDropHide('LevelUpGeneral');
                 htmlCode += caap.makeCheckTR("Reverse Under Level Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
@@ -961,7 +979,7 @@
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in general.menu: " + err);
+                con.error("ERROR in general.menu: " + err);
                 return '';
             }
         },
@@ -972,7 +990,7 @@
                 Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Generals Stats' && session.getItem("GeneralsDashUpdate", true)) {
                     var headers       = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
                         values        = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
                         pp            = 0,
@@ -1023,10 +1041,11 @@
                         row = "";
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === 'name') {
-                                link = "generals.php?itype=" + general.records[it]['itype'] + "&item=" + general.records[it]['item'];
+                                //link = "generals.php?itype=" + general.records[it]['itype'] + "&item=" + general.records[it]['item'];
+                                link = "generals.php";
                                 instructions = "Clicking this link will change General to " + general.records[it]['name'];
                                 data = {
-                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link +
+                                    text  : '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link + '" itype="' + general.records[it]['itype'] + '" item="' + general.records[it]['item'] +
                                             '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it]['name'] + '</span>',
                                     color : 'blue',
                                     id    : '',
@@ -1063,39 +1082,46 @@
                     handler = function (e) {
                         var changeLink = {
                                 mname     : '',
-                                rlink     : ''
+                                rlink     : '',
+                                itype     : '',
+                                item      : ''
                             },
-                            container  = '',
                             i          = 0,
                             len        = 0,
-                            clickUrl   = state.getItem('clickUrl', '');
+                            gen        = {},
+                            page       = session.getItem("page", "");
 
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'mname') {
                                 changeLink.mname = e.target.attributes[i].nodeValue;
                             } else if (e.target.attributes[i].nodeName === 'rlink') {
                                 changeLink.rlink = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'itype') {
+                                gen.itype = changeLink.itype = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'item') {
+                                gen.item = changeLink.item = e.target.attributes[i].nodeValue.parseInt();
                             }
                         }
 
-                        if (clickUrl.hasIndexOf("generals.php")) {
-                            container = "#" + caap.domain.id[caap.domain.which] + "globalContainer";
-                            caap.ajaxLoad(changeLink.rlink, container, "", clickUrl);
-                        } else {
-                            general.quickSwitch = true;
-                            container = "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer";
-                            caap.ajaxLoad(changeLink.rlink, container, container, clickUrl);
+                        if ($u.hasContent(changeLink.rlink)) {
+                            caap.ajaxLoadIcon.css("display", "block");
+                            if (page === "generals") {
+                                caap.clickAjaxLinkSend(changeLink.rlink + "?itype=" + gen.itype + "&item=" + gen.item);
+                            } else {
+                                general.quickSwitch = true;
+                                caap.ajaxLoad(changeLink.rlink, gen, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", page);
+                            }
                         }
                     };
 
                     $j("span[id*='caap_general_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    state.setItem("GeneralsDashUpdate", false);
+                    session.setItem("GeneralsDashUpdate", false);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in general.dashboard: " + err);
+                con.error("ERROR in general.dashboard: " + err);
                 return false;
             }
         }

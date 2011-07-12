@@ -78,23 +78,35 @@
                 }
 
                 festival.cleanWins();
-                state.setItem("FestivalDashUpdate", true);
-                $u.log(3, "festival.load", festival.records);
+                session.setItem("FestivalDashUpdate", true);
+                con.log(3, "festival.load", festival.records);
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.load: " + err);
+                con.error("ERROR in festival.load: " + err);
                 return false;
             }
         },
 
-        save: function () {
+        save: function (src) {
             try {
-                gm.setItem('festival.records', festival.records);
-                state.setItem("FestivalDashUpdate", true);
-                $u.log(3, "festival.save", festival.records);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('festival.records', festival.records);
+                } else {
+                    gm.setItem('festival.records', festival.records);
+                    con.log(3, "festival.save", festival.records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "festival.save send");
+                        caap.messaging.setItem('festival.records', festival.records);
+                    }
+                }
+
+                if (caap.domain.which !== 0) {
+                    session.setItem("FestivalDashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.save: " + err);
+                con.error("ERROR in festival.save: " + err);
                 return false;
             }
         },
@@ -105,7 +117,7 @@
             try {
                 return (festival.records.length ? festival.records[0] : new festival.record().data);
             } catch (err) {
-                $u.error("ERROR in festival.getItem: " + err);
+                con.error("ERROR in festival.getItem: " + err);
                 return false;
             }
         },
@@ -117,12 +129,12 @@
                 }
 
                 festival.records[0] = record;
-                $u.log(2, "Updated festival record", record, festival.records);
+                con.log(2, "Updated festival record", record, festival.records);
                 festival.save();
-                return true;
+                return record;
             } catch (err) {
-                $u.error("ERROR in festival.setItem: " + err);
-                return false;
+                con.error("ERROR in festival.setItem: " + err);
+                return undefined;
             }
         },
 
@@ -133,7 +145,7 @@
                     success   = false;
 
                 if (!$u.isNumber(slot) || slot <= 0) {
-                    $u.warn("slot", slot);
+                    con.warn("slot", slot);
                     throw "Invalid identifying slot!";
                 }
 
@@ -147,14 +159,14 @@
                 if (success) {
                     festival.records.splice(it, 1);
                     festival.save();
-                    $u.log(3, "Deleted festival record", slot, festival.records);
+                    con.log(3, "Deleted festival record", slot, festival.records);
                     return true;
                 } else {
-                    $u.warn("Unable to delete festival record", slot, festival.records);
+                    con.warn("Unable to delete festival record", slot, festival.records);
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in festival.deleteItem: " + err);
+                con.error("ERROR in festival.deleteItem: " + err);
                 return false;
             }
         },
@@ -162,14 +174,15 @@
 
         clear: function () {
             try {
-                $u.log(1, "festival.clear");
-                festival.records = gm.setItem("festival.records", []);
+                con.log(1, "festival.clear");
+                festival.records = [];
+                festival.save();
                 state.setItem('staminaFestival', 0);
                 state.setItem('targetFestival', {});
-                state.setItem("FestivalDashUpdate", true);
+                session.setItem("FestivalDashUpdate", true);
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.clear: " + err);
+                con.error("ERROR in festival.clear: " + err);
                 return false;
             }
         },
@@ -187,7 +200,7 @@
                 }
 
                 if (won['userId'] === '' || $u.isNaN(won['userId']) || won['userId'] < 1) {
-                    $u.warn("userId", won['userId']);
+                    con.warn("userId", won['userId']);
                     throw "Invalid identifying userId!";
                 }
 
@@ -204,15 +217,15 @@
 
                 if (success) {
                     records[it] = won;
-                    $u.log(3, "Updated records", won, records);
+                    con.log(3, "Updated records", won, records);
                 } else {
                     records.push(won);
-                    $u.log(3, "Added records", won, records);
+                    con.log(3, "Added records", won, records);
                 }
 
                 return records;
             } catch (err) {
-                $u.error("ERROR in festival.setWin: " + err, won, records);
+                con.error("ERROR in festival.setWin: " + err, won, records);
                 return false;
             }
         },
@@ -224,7 +237,7 @@
                 }
 
                 if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                    $u.warn("userId", userId);
+                    con.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
@@ -240,14 +253,14 @@
                 }
 
                 if (success) {
-                    $u.log(3, "Got win record", userId, records[it]);
+                    con.log(3, "Got win record", userId, records[it]);
                     return records[it];
                 } else {
-                    $u.log(3, "No win record", userId);
+                    con.log(3, "No win record", userId);
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in festival.getWin: " + err, userId, records);
+                con.error("ERROR in festival.getWin: " + err, userId, records);
                 return false;
             }
         },
@@ -259,7 +272,7 @@
                 }
 
                 if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                    $u.warn("userId", userId);
+                    con.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
@@ -276,14 +289,14 @@
 
                 if (success) {
                     records.splice(it, 1);
-                    $u.log(2, "Deleted win record", userId, records);
+                    con.log(2, "Deleted win record", userId, records);
                     return records;
                 } else {
-                    $u.log(3, "Unable to delete win record", userId, records);
+                    con.log(3, "Unable to delete win record", userId, records);
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in festival.delWin: " + err, userId, records);
+                con.error("ERROR in festival.delWin: " + err, userId, records);
                 return false;
             }
         },
@@ -295,20 +308,20 @@
                 }
 
                 if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                    $u.warn("userId", userId);
+                    con.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
                 if (records.hasIndexOf(userId)) {
-                    $u.log(3, "userId exists", userId, records);
+                    con.log(3, "userId exists", userId, records);
                 } else {
                     records.push(userId);
-                    $u.log(3, "Added userId", userId, records);
+                    con.log(3, "Added userId", userId, records);
                 }
 
                 return records;
             } catch (err) {
-                $u.error("ERROR in festival.setLoss: " + err, userId, records);
+                con.error("ERROR in festival.setLoss: " + err, userId, records);
                 return false;
             }
         },
@@ -320,19 +333,19 @@
                 }
 
                 if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                    $u.warn("userId", userId);
+                    con.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
                 if (records.hasIndexOf(userId)) {
-                    $u.log(3, "userId exists", userId, records);
+                    con.log(3, "userId exists", userId, records);
                     return true;
                 } else {
-                    $u.log(3, "userId not exists", userId, records);
+                    con.log(3, "userId not exists", userId, records);
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in festival.checkLoss: " + err, userId, records);
+                con.error("ERROR in festival.checkLoss: " + err, userId, records);
                 return undefined;
             }
         },
@@ -344,7 +357,7 @@
                 }
 
                 if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                    $u.warn("userId", userId);
+                    con.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
@@ -352,36 +365,35 @@
                 it = records.indexOf(userId);
                 if (it >= 0) {
                     records.splice(it, 1);
-                    $u.log(2, "Deleted loss", userId, records);
+                    con.log(2, "Deleted loss", userId, records);
                     return records;
                 } else {
-                    $u.log(3, "Unable to delete loss", userId, records);
+                    con.log(3, "Unable to delete loss", userId, records);
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in festival.delLoss: " + err, userId, records);
+                con.error("ERROR in festival.delLoss: " + err, userId, records);
                 return false;
             }
         },
 
         cleanWins: function () {
             try {
-                var festivalInfo = {},
-                    it        = 0,
-                    len       = 0,
-                    found     = false;
+                var festivalInfo = festival.getItem(),
+                    it           = 0,
+                    len          = 0,
+                    found        = false;
 
-                festivalInfo = festival.getItem();
                 if (!$j.isEmptyObject(festivalInfo)) {
                     for (it = 0, len = festivalInfo['wins'].length; it < len; it += 1) {
                         if (festivalInfo['losses'].hasIndexOf(festivalInfo['wins'][it]['userId'])) {
-                            $u.log(1, "Found win in losses: delete", festivalInfo['wins'][it]);
+                            con.log(1, "Found win in losses: delete", festivalInfo['wins'][it]);
                             festivalInfo['wins'].splice(it, 1);
                             found = true;
                         }
                     }
                 } else {
-                    $u.log(1, "No loss records available", festivalInfo);
+                    con.log(1, "No loss records available", festivalInfo);
                 }
 
                 if (found) {
@@ -390,7 +402,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.cleanWins: " + err);
+                con.error("ERROR in festival.cleanWins: " + err);
                 return false;
             }
         },
@@ -427,14 +439,14 @@
                 tDate.setUTCHours(hour, 0, 0, 0);
                 tDate.setUTCDate(tDate.getDate() + (tDate < now ? 1 : 0));
                 festivalInfo['reviewed'] = now.getTime();
-                $u.log(2, "festival.checkInfo", next, timer, hour, tz);
-                $u.log(2, "When", tDate.toUTCString());
+                con.log(2, "festival.checkInfo", next, timer, hour, tz);
+                con.log(2, "When", tDate.toUTCString());
 
                 if (festivalInfo['endTime'] < festivalInfo['reviewed']) {
                     festivalInfo['startTime'] = tDate.getTime();
                     festivalInfo['endTime'] = festivalInfo['startTime'] + 3600000;
                     schedule.setItem('festivalStartTime', festivalInfo['startTime'], 20);
-                    $u.log(2, "New start time");
+                    con.log(2, "New start time");
                 }
 
                 festivalInfo['collect'] = next.regex(/(COLLECT NOW!)/) ? true : false;
@@ -454,17 +466,17 @@
                 start = start > 0 ? start : 0;
                 if (start && festivalInfo['state'] === 'Ready') {
                     festivalInfo['minions'] = [];
-                    $u.log(2, "Festival starting in", start);
+                    con.log(2, "Festival starting in", start);
                     schedule.setItem("FestivalReview", start, 20);
                 } else {
-                    $u.log(2, "Festival review in", 300);
+                    con.log(2, "Festival review in", 300);
                     schedule.setItem("FestivalReview", 300, 20);
                 }
 
-                $u.log(3, "festival.checkInfo", festivalInfo);
+                con.log(3, "festival.checkInfo", festivalInfo);
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.checkInfo: " + err);
+                con.error("ERROR in festival.checkInfo: " + err);
                 return false;
             }
         },
@@ -502,7 +514,7 @@
 
                 currentRecord = festival.getItem();
                 if (currentRecord['state'] !== 'Alive') {
-                    $u.log(2, "Test targeting");
+                    con.log(2, "Test targeting");
                     festival.getTargetMinion(currentRecord);
                 }
 
@@ -530,7 +542,7 @@
                     imgDiv = $j("img[src*='battle_defeat.gif']", caap.globalContainer);
                     if ($u.hasContent(imgDiv)) {
                         if (lastAttacked['poly']) {
-                            $u.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                            con.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         } else {
                             if (tNum > 50) {
                                 currentRecord['minions'][lastAttacked['index']]['lost'] = true;
@@ -542,16 +554,16 @@
                                 currentRecord['losses'] = losses ? losses : currentRecord['losses'];
                                 festival.setItem(currentRecord);
                             } else {
-                                $u.log(1, "You were polymorphed");
+                                con.log(1, "You were polymorphed");
                             }
 
-                            $u.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                            con.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         }
                     } else {
                         imgDiv = $j("img[src*='battle_victory.gif']", caap.globalContainer);
                         if ($u.hasContent(imgDiv)) {
                             if (lastAttacked['poly']) {
-                                $u.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                                con.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                             } else {
                                 currentRecord['minions'][lastAttacked['index']]['lost'] = false;
                                 currentRecord['minions'][lastAttacked['index']]['won'] = true;
@@ -564,25 +576,25 @@
                                 losses = festival.delLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
                                 currentRecord['losses'] = losses ? losses : currentRecord['losses'];
                                 festival.setItem(currentRecord);
-                                $u.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                                con.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                             }
                         } else {
                             resultsTxt = $j("div[class='results']", caap.globalContainer).text();
                             if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/i)) {
-                                $u.log(1, "You didn't have enough battle tokens");
+                                con.log(1, "You didn't have enough battle tokens");
                             } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
-                                $u.log(1, "Minion had no health left");
+                                con.log(1, "Minion had no health left");
                             } else if (resultsTxt.regex(/(You tried to attack but tripped while running)/i)) {
-                                $u.log(1, "Oops, you tripped");
+                                con.log(1, "Oops, you tripped");
                             } else {
-                                $u.log(1, "Unknown win or loss or result");
+                                con.log(1, "Unknown win or loss or result");
                             }
                         }
                     }
                 }
 
                 bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer);
-                $u.log(2, "arena_battle_banner_section");
+                con.log(2, "arena_battle_banner_section");
                 myStatsTxt = bannerDiv.text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
                 notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
@@ -592,7 +604,7 @@
                     return true;
                 }
 
-                $u.log(3, "myStatsTxt", myStatsTxt);
+                con.log(3, "myStatsTxt", myStatsTxt);
                 if ($u.hasContent(bannerDiv)) {
                     currentRecord['teamHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
@@ -601,18 +613,18 @@
                         if (!$u.hasContent(gates)) {
                             tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']", caap.globalContainer);
                             if (!$u.hasContent(tabs)) {
-                                $u.warn("No gates found");
+                                con.warn("No gates found");
                             }
                         } else if (!$u.hasContent(gates) || gates.length !== 4) {
-                            $u.warn("Not enough gates found");
+                            con.warn("Not enough gates found");
                         } else {
                             gates.each(function (gIndex) {
                                 var memberDivs = $j(this).children();
                                 if (!$u.hasContent(memberDivs)) {
-                                    $u.warn("No members found");
+                                    con.warn("No members found");
                                 } else {
                                     if (memberDivs.length === 1 && /No Soldiers Posted In This Position!/i.test(memberDivs.text().trim().innerTrim())) {
-                                        $u.log(2, "No Soldiers Posted In This Position");
+                                        con.log(2, "No Soldiers Posted In This Position");
                                         return true;
                                     }
 
@@ -643,13 +655,13 @@
                                                 memberRecord['lost'] = loss;
                                             }
                                         } else {
-                                            $u.warn("Unable to find target_id for minion!", targetIdDiv.length);
+                                            con.warn("Unable to find target_id for minion!", targetIdDiv.length);
                                         }
 
                                         memberRecord['attacking_position'] = (gIndex + 1);
                                         memberText = member.children().eq(1).text();
                                         memberText = memberText ? memberText.trim().innerTrim() : '';
-                                        $u.log(2, "memberText", memberText);
+                                        con.log(2, "memberText", memberText);
                                         memberArr = memberText.match(minionRegEx);
                                         if ($u.hasContent(memberArr) && memberArr.length === 8) {
                                             memberRecord['name'] = memberArr[1] ? memberArr[1] : '';
@@ -661,7 +673,7 @@
                                             memberRecord['points'] = memberArr[7] ? memberArr[7].parseInt() : 0;
                                             memberRecord['percent'] = ((memberRecord['healthNum'] / (memberRecord['healthMax'] ? memberRecord['healthMax'] : 1)) * 100).dp(2);
                                         } else {
-                                            $u.warn("Minion match issue!", memberArr);
+                                            con.warn("Minion match issue!", memberArr);
                                         }
 
                                         if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
@@ -669,7 +681,7 @@
                                                 memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : false;
                                                 memberRecord['last_ap'] = currentRecord['minions'][index]['last_ap'] ? currentRecord['minions'][index]['last_ap'] : 0;
                                             } else {
-                                                $u.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
+                                                con.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
                                             }
                                         }
 
@@ -690,19 +702,19 @@
                                         polyImg = $j("img[src*='polymorph_effect']", member);
                                         memberRecord['poly'] = $u.hasContent(polyImg) ? true : false;
                                         if (memberRecord['poly']) {
-                                            $u.log(3, "poly", memberRecord);
+                                            con.log(3, "poly", memberRecord);
                                         }
 
                                         shoutImg = $j("img[src*='warrior_effect_shout']", member);
                                         memberRecord['shout'] = $u.hasContent(shoutImg) ? true : false;
                                         if (memberRecord['shout']) {
-                                            $u.log(2, "shout", memberRecord);
+                                            con.log(2, "shout", memberRecord);
                                         }
 
                                         shieldImg = $j("img[src*='mage_effect_shield']", member);
                                         memberRecord['shield'] = $u.hasContent(shieldImg) ? true : false;
                                         if (memberRecord['shield']) {
-                                            $u.log(2, "shield", memberRecord);
+                                            con.log(2, "shield", memberRecord);
                                         }
 
                                         index = minions.push(memberRecord);
@@ -722,15 +734,15 @@
                         currentRecord['ticker'] = tStr ? tStr.trim() : '';
                         schedule.setItem("festivalTokenTicker", currentRecord['ticker'].parseTimer(), 5);
                         if (myStatsTxt) {
-                            $u.log(3, "myStatsTxt", myStatsTxt);
+                            con.log(3, "myStatsTxt", myStatsTxt);
                             myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Festival Activity Points: (\\d+)"));
                             if ($u.hasContent(myStatsArr) && myStatsArr.length === 8) {
-                                $u.log(3, "myStatsArr", myStatsArr);
+                                con.log(3, "myStatsArr", myStatsArr);
                                 currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
                                 currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
                                 currentRecord['myClass'] = myStatsArr[3] ? myStatsArr[3].trim() : '';
                             } else {
-                                $u.warn("myStatsArr error", myStatsArr, myStatsTxt);
+                                con.warn("myStatsArr error", myStatsArr, myStatsTxt);
                             }
                         }
 
@@ -748,27 +760,27 @@
                             if ($u.hasContent(healthEnemy)) {
                                 currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                             } else {
-                                $u.warn("guild_battle_bar_enemy.gif not found");
+                                con.warn("guild_battle_bar_enemy.gif not found");
                             }
 
                             healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
                             if ($u.hasContent(healthGuild)) {
                                 currentRecord['teamHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                             } else {
-                                $u.warn("guild_battle_bar_you.gif not found");
+                                con.warn("guild_battle_bar_you.gif not found");
                             }
                         } else {
-                            $u.warn("guild_battle_health error");
+                            con.warn("guild_battle_health error");
                         }
                     } else {
                         if ($u.hasContent(collectDiv)) {
-                            $u.log(1, "Battle ready to collect");
+                            con.log(1, "Battle ready to collect");
                             currentRecord['state'] = 'Collect';
                         } else if (!$u.hasContent(enterDiv) && currentRecord['state'] !== 'Ready') {
-                            $u.log(1, "Battle is completed");
+                            con.log(1, "Battle is completed");
                             currentRecord['state'] = 'Completed';
                         } else {
-                            $u.log(1, "Battle is ready to join");
+                            con.log(1, "Battle is ready to join");
                             currentRecord['state'] = 'Ready';
                         }
 
@@ -782,19 +794,19 @@
                         currentRecord['minions'] = minions.slice();
                     }
 
-                    currentRecord['reviewed'] = new Date().getTime();
-                    $u.log(3, "currentRecord", currentRecord);
+                    currentRecord['reviewed'] = Date.now();
+                    con.log(3, "currentRecord", currentRecord);
                     festival.setItem(currentRecord);
                     if (currentRecord['state'] === 'Collect' && $u.hasContent(collectDiv)) {
                         caap.click(collectDiv);
                     }
                 } else {
-                    $u.warn("Not on festival battle page");
+                    con.warn("Not on festival battle page");
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.onBattle: " + err);
+                con.error("ERROR in festival.onBattle: " + err);
                 return false;
             }
         },
@@ -807,7 +819,7 @@
                 festival.setItem(currentRecord);
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.clearMinions: " + err);
+                con.error("ERROR in festival.clearMinions: " + err);
                 return false;
             }
         },
@@ -818,7 +830,7 @@
                     minion    = {};
 
                 if (index === '' || $u.isNaN(index) || index < 0 || index > 40) {
-                    $u.warn("index", index);
+                    con.warn("index", index);
                     throw "Invalid identifying index!";
                 }
 
@@ -826,12 +838,12 @@
                 if (!$j.isEmptyObject(festivalInfo) && festivalInfo['minions'] && festivalInfo['minions'].length === 40) {
                     minion = festivalInfo['minions'][index];
                 } else {
-                    $u.log(1, "No minion records available", festivalInfo);
+                    con.log(1, "No minion records available", festivalInfo);
                 }
 
                 return minion;
             } catch (err) {
-                $u.error("ERROR in festival.getTarget: " + err);
+                con.error("ERROR in festival.getTarget: " + err);
                 return false;
             }
         },
@@ -951,7 +963,7 @@
                         switch (type) {
                         case "health":
                             if (ignorePoly) {
-                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                con.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
                                 return false;
                             }
 
@@ -962,7 +974,7 @@
                             break;
                         case "active":
                             if (ignorePoly) {
-                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                con.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
                                 return false;
                             }
 
@@ -1007,7 +1019,7 @@
                             break;
                         case "poly":
                             if (ignorePoly) {
-                                $u.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                                con.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
                                 return false;
                             }
 
@@ -1041,19 +1053,19 @@
                         if (cDiff !== 0) {
                             if (cDiff > 0) {
                                 if (nDiff >= 0 && nDiff <= maxFestivalLevel && nDiff > cDiff) {
-                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    con.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
                                     target[mclass][type] = next;
                                     return true;
                                 }
 
                                 if (nDiff > maxFestivalLevel && nDiff < cDiff) {
-                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    con.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
                                     target[mclass][type] = next;
                                     return true;
                                 }
                             } else {
                                 if (nDiff <= maxFestivalLevel && nDiff > cDiff) {
-                                    $u.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                    con.log(3, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
                                     target[mclass][type] = next;
                                     return true;
                                 }
@@ -1062,7 +1074,7 @@
 
                         return false;
                     } catch (e) {
-                        $u.warn("targetThis", next);
+                        con.warn("targetThis", next);
                         return false;
                     }
                 }
@@ -1072,14 +1084,14 @@
 
                     cm = record['minions'][it];
                     if (cm['status'] === 'Stunned' && cm['healthNum'] <= 0) {
-                        $u.log(2, "Stunned minion", cm['index'], cm);
+                        con.log(2, "Stunned minion", cm['index'], cm);
                         continue;
                     }
 
                     targetThis(cm, 'last');
                     targetThis(cm, 'poly');
                     if (cm['lost']) {
-                        $u.log(2, "Lost minion", cm['index'], cm);
+                        con.log(2, "Lost minion", cm['index'], cm);
                         targetThis(cm, 'suicide');
                         continue;
                     }
@@ -1096,7 +1108,7 @@
                     attackOrderList = defaultOrderList.slice();
                 }
 
-                $u.log(3, "attackOrderList", attackOrderList);
+                con.log(3, "attackOrderList", attackOrderList);
                 typeOrderList = ['chain', 'active', 'health', 'alive', 'last'];
                 if (attackSuicide) {
                     typeOrderList.splice(3, 0, 'suicide');
@@ -1108,24 +1120,24 @@
                     typeOrderList.splice(1, 0, 'poly');
                 }
 
-                $u.log(3, "typeOrderList", typeOrderList);
+                con.log(3, "typeOrderList", typeOrderList);
                 for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
                     if (done) {
                         break;
                     }
 
                     oType = typeOrderList[it];
-                    $u.log(3, "oType", oType);
+                    con.log(3, "oType", oType);
                     for (ot = 0, lenOt = attackOrderList.length; ot < lenOt; ot += 1) {
                         uOrder = attackOrderList[ot].toString().toLowerCase().ucFirst();
-                        $u.log(3, "uOrder", uOrder);
+                        con.log(3, "uOrder", uOrder);
                         if (!defaultOrderList.hasIndexOf(uOrder)) {
                             continue;
                         }
 
                         if (!$j.isEmptyObject(target[uOrder][oType])) {
                             minion = target[uOrder][oType];
-                            $u.log(3, "done", uOrder, oType);
+                            con.log(3, "done", uOrder, oType);
                             done = true;
                             break;
                         }
@@ -1133,14 +1145,14 @@
                 }
 
                 if ($j.isEmptyObject(minion)) {
-                    $u.warn("No target found!");
+                    con.warn("No target found!");
                 } else {
-                    $u.log(1, "Target " + minion['mclass'] + " " + oType, minion['index'], minion, target);
+                    con.log(1, "Target " + minion['mclass'] + " " + oType, minion['index'], minion, target);
                 }
 
                 return minion;
             } catch (err) {
-                $u.error("ERROR in festival.getTargetMinion: " + err);
+                con.error("ERROR in festival.getTargetMinion: " + err);
                 return undefined;
             }
         },
@@ -1181,7 +1193,7 @@
                 htmlCode += caap.startCheckHide('doPoly');
                 htmlCode += caap.makeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
                 htmlCode += caap.makeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
-                htmlCode += caap.makeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
+                htmlCode += caap.makeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then do not attack polymorphed minions, leave them for someone who can do more damage.", true);
                 htmlCode += caap.endCheckHide('doPoly');
                 htmlCode += caap.makeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
                 htmlCode += caap.makeDropDownTR("Chain", 'chainFestival', chainList, chainListInst, '', '160', false, false, 35);
@@ -1192,14 +1204,14 @@
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in festival.menu: " + err);
+                con.error("ERROR in festival.menu: " + err);
                 return '';
             }
         },
 
         dashboard: function () {
             try {
-                if (config.getItem('DBDisplay', '') === 'Festival' && state.getItem("FestivalDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("FestivalDashUpdate", true)) {
                     var headers = ['Festival', 'Damage',     'Team%',       'Enemy%',   'My Status', 'TimeLeft', 'Status'],
                         values  = ['damage',   'teamHealth', 'enemyHealth', 'myStatus', 'ticker',    'state'],
                         pp      = 0,
@@ -1269,21 +1281,19 @@
 
                     $j("span[id='caap_festival_1']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    state.setItem("FestivalDashUpdate", false);
+                    session.setItem("FestivalDashUpdate", false);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.dashboard: " + err);
+                con.error("ERROR in festival.dashboard: " + err);
                 return false;
             }
         },
 
         engageListener: function (event) {
-            $u.log(4, "engage festival_battle_home.php");
-            state.setItem('clickUrl', caap.domain.link + '/festival_battle_home.php');
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
+            con.log(4, "engage festival_battle_home.php");
+            caap.setDomWaiting("festival_battle_home.php");
         },
 
 
@@ -1291,14 +1301,12 @@
             var index  = -1,
                 minion = {};
 
-            $u.log(4, "engage festival_guild_battle.php", event.target.id);
+            con.log(4, "engage festival_guild_battle.php", event.target.id);
             index = event.target.id ? event.target.id.parseInt() : -1;
             minion = festival.getMinion(index);
             minion = !$j.isEmptyObject(minion) ? minion : {};
             state.setItem('FestivalMinionAttacked', minion);
-            state.setItem('clickUrl', caap.domain.link + '/festival_guild_battle.php');
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
+            caap.setDomWaiting("festival_guild_battle.php");
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -1309,7 +1317,7 @@
                 festival.checkInfo();
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.checkResults_festival_battle_home: " + err);
+                con.error("ERROR in festival.checkResults_festival_battle_home: " + err);
                 return false;
             }
         },
@@ -1323,7 +1331,7 @@
                 festival.onBattle();
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
+                con.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
                 return false;
             }
         },
@@ -1354,10 +1362,10 @@
 
                 state.setItem('FestivalRefresh', true);
                 state.setItem('FestivalReview', false);
-                $u.log(1, 'Done with Festival review.');
+                con.log(1, 'Done with Festival review.');
                 return false;
             } catch (err) {
-                $u.error("ERROR in festival.Review: " + err);
+                con.error("ERROR in festival.Review: " + err);
                 return false;
             }
         },
@@ -1377,19 +1385,19 @@
                     return false;
                 }
 
-                nextTime = record['startTime'] ? "Next Festival: " + $u.makeTime(record['startTime'], schedule.timeStr(true)) : '';
-                tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
+                nextTime = record['startTime'] ? "Next Festival: " + $u.makeTime(record['startTime'], caap.timeStr(true)) : '';
+                tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - Date.now()) / 1000 : -1;
                 tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
                 nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
                 caap.setDivContent('festival_mess', nextTime);
                 if (!schedule.check('festivalStartTime')) {
-                    $u.log(1, "festivalStartTime", new Date().getTime(), schedule.getItem('festivalStartTime'));
+                    con.log(1, "festivalStartTime", Date.now(), schedule.getItem('festivalStartTime'));
                     return false;
                 }
 
                 /*
                 if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('FestivalJoined', false)) {
-                    $u.log(1, "FestivalRefresh1");
+                    con.log(1, "FestivalRefresh1");
                     if (state.getItem('FestivalRefresh', true)) {
                         if (festival.navigate_to_main_refresh()) {
                             return true;
@@ -1417,7 +1425,7 @@
                 }
                 */
                 if (!schedule.check("festivalTokenTicker")) {
-                    $u.log(1, "festivalTokenTicker");
+                    con.log(1, "festivalTokenTicker");
                     return false;
                 }
 
@@ -1427,7 +1435,7 @@
                 }
 
                 if (!$u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer))) {
-                    $u.log(1, "FestivalRefresh2");
+                    con.log(1, "FestivalRefresh2");
                     /*
                     if (state.getItem('FestivalRefresh', true)) {
                         if (festival.navigate_to_main_refresh()) {
@@ -1447,7 +1455,7 @@
                     state.setItem('FestivalRefresh', true);
                     state.setItem('FestivalReview', false);
                     enterButton = $j("img[src*='festival_arena_enter.jpg']");
-                    $u.log(1, "Enter battle", record, enterButton);
+                    con.log(1, "Enter battle", record, enterButton);
                     if (record['tokens'] > 0 && $u.hasContent(enterButton)) {
                         festival.clearMinions();
                         caap.click(enterButton);
@@ -1457,7 +1465,7 @@
 
                 enterButton = $j("input[src*='guild_enter_battle_button.gif']");
                 if ($u.hasContent(enterButton)) {
-                    $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
+                    con.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                     if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
                         state.setItem('FestivalJoined', true);
                         caap.click(enterButton);
@@ -1468,13 +1476,13 @@
                 }
 
                 if (record['state'] !== "Alive") {
-                    $u.log(1, "Not Alive");
+                    con.log(1, "Not Alive");
                     return false;
                 }
 
                 minion = festival.getTargetMinion(record);
                 if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
-                    $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
+                    con.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                     caap.setDivContent('festival_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                     key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
                     if (key && key.length) {
@@ -1489,7 +1497,7 @@
 
                 return false;
             } catch (err) {
-                $u.error("ERROR in festival.festival: " + err);
+                con.error("ERROR in festival.festival: " + err);
                 return false;
             }
         },
@@ -1511,11 +1519,11 @@
                     }
 
                     festival.setItem(festivalInfo);
-                    $u.log(4, 'festivalInfo', festivalInfo);
+                    con.log(4, 'festivalInfo', festivalInfo);
                 }
                 return false;
             } catch (err) {
-                $u.error("ERROR in festival.index: " + err);
+                con.error("ERROR in festival.index: " + err);
                 return false;
             }
         },
@@ -1531,7 +1539,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in festival.addListeners: " + err);
+                con.error("ERROR in festival.addListeners: " + err);
                 return false;
             }
         }

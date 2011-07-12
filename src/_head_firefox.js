@@ -16,6 +16,10 @@
 // @include        https://apps.facebook.com/sorry.php*
 // @include        http://apps.facebook.com/reqs.php#confirm_46755028429_0*
 // @include        https://apps.facebook.com/reqs.php#confirm_46755028429_0*
+// @include        *http://web.castleagegame.com/castle/*
+// @include        *https://web.castleagegame.com/castle/*
+// @include        http://www.facebook.com/dialog/apprequests?access_token=46755028429*
+// @include        https://www.facebook.com/dialog/apprequests?access_token=46755028429*
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @compatability  Firefox 3.0+
 // ==/UserScript==

@@ -16,15 +16,16 @@
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         record: function () {
-            this.data = {
-                'user'   : '',
-                'name'   : '',
-                'userId' : '',
-                'lvl'    : 0,
-                'last'   : 0,
-                'change' : 0,
-                'elite'  : false
-            };
+            return JSON.copy({
+                    'user'   : '',
+                    'name'   : '',
+                    'userId' : '',
+                    'lvl'    : 0,
+                    'last'   : 0,
+                    'change' : 0,
+                    'elite'  : false,
+                    'appUser': true
+                });
         },
         /*jslint sub: false */
 
@@ -38,25 +39,37 @@
                 }
 
                 army.hbest = army.hbest === false ? JSON.hbest(army.records) : army.hbest;
-                $u.log(3, "army.load Hbest", army.hbest);
-                state.setItem("ArmyDashUpdate", true);
-                $u.log(3, "army.load", army.records);
+                con.log(3, "army.load Hbest", army.hbest);
+                session.setItem("ArmyDashUpdate", true);
+                con.log(3, "army.load", army.records);
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.load: " + err);
+                con.error("ERROR in army.load: " + err);
                 return false;
             }
         },
 
-        save: function () {
+        save: function (src) {
             try {
                 var compress = false;
-                gm.setItem('army.records', army.records, army.hbest, compress);
-                state.setItem("ArmyDashUpdate", true);
-                $u.log(3, "army.save", army.records);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('army.records', army.records);
+                } else {
+                    gm.setItem('army.records', army.records, army.hbest, compress);
+                    con.log(3, "army.save", army.records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "army.save send");
+                        caap.messaging.setItem('army.records', army.records);
+                    }
+                }
+
+                if (caap.domain.which !== 0) {
+                    session.setItem("ArmyDashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.save: " + err);
+                con.error("ERROR in army.save: " + err);
                 return false;
             }
         },
@@ -68,10 +81,10 @@
                     army.recordsTemp = ss.setItem('army.recordsTemp', []);
                 }
 
-                $u.log(3, "army.loadTemp", army.recordsTemp);
+                con.log(3, "army.loadTemp", army.recordsTemp);
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.loadTemp: " + err);
+                con.error("ERROR in army.loadTemp: " + err);
                 return false;
             }
         },
@@ -79,10 +92,10 @@
         saveTemp: function () {
             try {
                 ss.setItem('army.recordsTemp', army.recordsTemp);
-                $u.log(3, "army.saveTemp", army.recordsTemp);
+                con.log(3, "army.saveTemp", army.recordsTemp);
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.saveTemp: " + err);
+                con.error("ERROR in army.saveTemp: " + err);
                 return false;
             }
         },
@@ -92,10 +105,10 @@
                 ss.deleteItem('army.recordsTemp');
                 ss.deleteItem('army.currentPage');
                 army.recordsTemp = [];
-                $u.log(3, "army.deleteTemp deleted");
+                con.log(3, "army.deleteTemp deleted");
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.saveTemp: " + err);
+                con.error("ERROR in army.saveTemp: " + err);
                 return false;
             }
         },
@@ -112,7 +125,8 @@
             try {
                 var it    = 0,
                     len   = 0,
-                    found = false;
+                    found = false,
+                    save  = true;
 
                 for (it = 0, len = army.records.length; it < len; it += 1) {
                     if (army.records[it]['userId'] === record['userId']) {
@@ -122,17 +136,24 @@
                 }
 
                 if (found) {
-                    army.records[it] = record;
-                    $u.log(3, "Updated record");
+                    if (!$u.compare(army.records[it], record)) {
+                        army.records[it] = record;
+                        con.log(3, "Updated record");
+                    } else {
+                        save = false;
+                    }
                 } else {
                     army.records.push(record);
-                    $u.log(3, "Added record");
+                    con.log(3, "Added record");
                 }
 
-                army.save();
+                if (save) {
+                    army.save();
+                }
+
                 return record;
             } catch (err) {
-                $u.error("ERROR in army.setItem: " + err);
+                con.error("ERROR in army.setItem: " + err);
                 return undefined;
             }
         },
@@ -151,12 +172,12 @@
                 }
 
                 if (!found) {
-                    $u.log(3, "Unable to find 'userId'", userId);
+                    con.log(3, "Unable to find 'userId'", userId);
                 }
 
                 return found ? army.records[it] : {};
             } catch (err) {
-                $u.error("ERROR in army.getItem: " + err);
+                con.error("ERROR in army.getItem: " + err);
                 return undefined;
             }
         },
@@ -176,21 +197,22 @@
                 }
 
                 if (!found) {
-                    $u.log(3, "Unable to find 'userId'", userId);
+                    con.log(3, "Unable to find 'userId'", userId);
                 } else {
                     army.save();
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.setItem: " + err);
+                con.error("ERROR in army.setItem: " + err);
                 return false;
             }
         },
 
-        page: function () {
+        page: function (slice) {
             try {
                 if (!army.pageDone) {
+                    slice = $u.setContent(slice, caap.globalContainer);
                     var pages  = $j(),
                         search = $j(),
                         record = {},
@@ -199,10 +221,11 @@
                         pCount = 0,
                         it     = 0,
                         len    = 0,
-                        number = ss.getItem("army.currentPage", 1, true);
+                        number = ss.getItem("army.currentPage", 1, true),
+                        useAjaxArmy = config.getItem("useAjaxArmy", true);
 
                     if (number === 1) {
-                        pages = $j("a[href*='army_member.php?page=']", caap.globalContainer).last();
+                        pages = $j("a[href*='army_member.php?page=']", slice).last();
                         tStr = $u.hasContent(pages) ? pages.attr("href") : '';
                         tNum = $u.hasContent(tStr) ? tStr.regex(/page=(\d+)/) : null;
                         pCount = $u.setContent(tNum, 1);
@@ -211,48 +234,51 @@
                         pCount = state.getItem("ArmyPageCount", 1);
                     }
 
-                    search = $j("a[href*='comments.php?casuser=']", caap.globalContainer);
+                    search = $j("a[href*='comments.php?casuser=']", slice);
                     search.each(function () {
                         var el = $j(this);
-                        record = new army.record();
-                        record.data['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
+                        record = army.record();
+                        record['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
                         tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
-                        record.data['user'] = $u.setContent(tStr.regex(new RegExp('(.+)\\s+"')), '').toString();
-                        record.data['name'] = $u.setContent(tStr.regex(new RegExp('"(.+)"')), '').toString();
-                        record.data['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
-                        record.data['last'] = new Date().getTime();
-                        if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
-                            army.recordsTemp.push(record.data);
+                        if (!useAjaxArmy) {
+                            record['user'] = $u.setContent(tStr.regex(new RegExp('(.*?)\\s*"')), '').toString();
+                        }
+
+                        record['name'] = $u.setContent(tStr.regex(new RegExp('"(.*)"')), '').toString();
+                        record['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
+                        record['last'] = Date.now();
+                        if ($u.hasContent(record['userId']) && record['userId'] > 0) {
+                            army.recordsTemp.push(record);
                         } else {
-                            $u.warn("army.page skipping record", record.data);
+                            con.warn("army.page skipping record", record);
                         }
                     });
 
                     if (number === pCount) {
-                        search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", caap.appBodyDiv).parent().parent());
+                        search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", slice).parent().parent());
                         if ($u.hasContent(search)) {
-                            len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members x(\d+)/), 0);
+                            len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members? x(\d+)/), 0);
                             for (it = 1; it <= len; it += 1) {
-                                record = new army.record();
-                                record.data['userId'] = 0 - it;
-                                record.data['name'] = "Extra member " + it;
-                                record.data['lvl'] = 0;
-                                record.data['last'] = new Date().getTime();
-                                army.recordsTemp.push(record.data);
+                                record = army.record();
+                                record['userId'] = 0 - it;
+                                record['name'] = "Extra member " + it;
+                                record['lvl'] = 0;
+                                record['last'] = Date.now();
+                                army.recordsTemp.push(record);
                             }
                         }
                     }
 
                     ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
-                    $u.log(2, "army.page", number, pCount, army.recordsTemp.length);
+                    con.log(2, "army.page", number, pCount, army.recordsTemp.length);
                     army.pageDone = true;
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.page: " + err);
+                con.error("ERROR in army.page: " + err);
                 army.pageDone = true;
-                caap.waitingForDomLoad = false;
+                caap.clearDomWaiting();
                 return false;
             }
         },
@@ -263,6 +289,14 @@
                     currentPage       = 0,
                     scanDays          = $u.setContent(config.getItem("ArmyScanDays", 7), 7);
 
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.error("army.run", textStatus);
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    army.page(data);
+                }
+
                 currentPage = ss.getItem("army.currentPage", 1, true);
                 expectedPageCount = state.getItem("ArmyPageCount", 0);
                 if (!expectedPageCount) {
@@ -272,26 +306,30 @@
 
                 if (currentPage > expectedPageCount) {
                     army.pageDone = false;
-                    $u.log(3, "army.run", expectedPageCount);
+                    con.log(3, "army.run", expectedPageCount);
                     if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
-                        $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
                         schedule.setItem("army_member", 1800, 300);
+                        con.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
                     } else {
-                        army.merge();
                         schedule.setItem("army_member", scanDays * 86400, 300);
-                        $u.log(2, "Army merge complete. Next schedule set " + scanDays + " days.", army.records);
+                        army.merge();
+                        con.log(2, "Army merge complete. Next schedule set " + scanDays + " days.", army.records);
                     }
 
                     army.deleteTemp();
                     return false;
                 } else if (army.pageDone) {
                     army.pageDone = false;
-                    caap.clickAjaxLinkSend("army_member.php?page=" + currentPage);
+                    if (config.getItem("useAjaxArmy", true)) {
+                        caap.ajax("army_member.php?page=" + currentPage, null, onError, onSuccess);
+                    } else {
+                        caap.clickAjaxLinkSend("army_member.php?page=" + currentPage);
+                    }
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.run: " + err);
+                con.error("ERROR in army.run: " + err);
                 return false;
             }
         },
@@ -300,7 +338,14 @@
             try {
                 var it     = 0,
                     len    = 0,
-                    record = {};
+                    record = {},
+                    fbf    = {},
+                    useAjaxArmy = config.getItem("useAjaxArmy", true),
+                    tempVar;
+
+                for (it = 0, len = caap.fbFriends.length; it < len; it += 1) {
+                    fbf[caap.fbFriends[it].uid] = caap.fbFriends[it].name;
+                }
 
                 for (it = 0, len = army.recordsTemp.length; it < len; it += 1) {
                     record = army.getItem(army.recordsTemp[it]['userId']);
@@ -308,19 +353,17 @@
                         army.recordsTemp[it]['elite'] = $u.setContent(record['elite'], false);
                         if (army.recordsTemp[it]['lvl'] > record['lvl']) {
                             army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
+                        } else if ($u.hasContent(record['change']) && record['change'] > 0) {
+                            army.recordsTemp[it]['change'] = record['change'];
                         } else {
-                            if ($u.hasContent(record['change']) && record['change'] > 0) {
-                                army.recordsTemp[it]['change'] = record['change'];
-                            } else {
-                                army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                            }
+                            army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
                         }
 
                         if (!$u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name'])) {
                             army.recordsTemp[it]['name'] = record['name'];
                         }
 
-                        if ($u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name']) && army.recordsTemp[it]['user'] !== record['user']) {
+                        if ($u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name']) && army.recordsTemp[it]['name'] !== record['name']) {
                             army.recordsTemp[it]['name'] = record['name'];
                         }
 
@@ -342,13 +385,22 @@
                     } else {
                         army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
                     }
+
+                    if ($u.hasContent(caap.fbFriends) && $u.hasContent(fbf)) {
+                        if ($u.hasContent(fbf[army.recordsTemp[it]['userId']]) && army.recordsTemp[it]['user'] !== fbf[army.recordsTemp[it]['userId']]) {
+                            army.recordsTemp[it]['user'] = fbf[army.recordsTemp[it]['userId']];
+                        }
+
+                        army.recordsTemp[it]['appUser'] = $u.hasContent(fbf[army.recordsTemp[it]['userId']]);
+                    }
                 }
 
-                army.records = army.recordsTemp.slice();
+                army.records = JSON.copy(army.recordsTemp);
                 army.save();
+                army.deleteTemp();
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.merge: " + err);
+                con.error("ERROR in army.merge: " + err);
                 return false;
             }
         },
@@ -360,14 +412,55 @@
                     list = [];
 
                 for (it = 0, len = army.records.length; it < len; it += 1) {
-                    if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0) {
+                    if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0 && army.records[it]['appUser']) {
                         list.push(army.records[it]['userId']);
                     }
                 }
 
                 return list;
             } catch (err) {
-                $u.error("ERROR in army.getIdList: " + err);
+                con.error("ERROR in army.getIdList: " + err);
+                return undefined;
+            }
+        },
+
+        getDiffList: function () {
+            try {
+                var it   = 0,
+                    len  = 0,
+                    a    = [],
+                    f    = [],
+                    list = [],
+                    crossList = function (uid) {
+                        return !a.hasIndexOf(uid);
+                    };
+
+                a = army.getIdList();
+                f = army.getFBList();
+                list = f.filter(crossList);
+                con.log(3, "getDiffList", a, f, list);
+                return list;
+            } catch (err) {
+                con.error("ERROR in army.getDiffList: " + err);
+                return undefined;
+            }
+        },
+
+        getFBList: function () {
+            try {
+                var it   = 0,
+                    len  = 0,
+                    f    = [];
+
+                if ($u.hasContent(caap.fbFriends)) {
+                    for (it = 0, len = caap.fbFriends.length; it < len; it += 1) {
+                        f.push(caap.fbFriends[it].uid.parseInt());
+                    }
+                }
+
+                return f;
+            } catch (err) {
+                con.error("ERROR in army.getFBList: " + err);
                 return undefined;
             }
         },
@@ -379,14 +472,14 @@
                     list = [];
 
                 for (it = 0, len = army.records.length; it < len; it += 1) {
-                    if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0 && army.records[it]['elite']) {
+                    if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0 && army.records[it]['elite'] && army.records[it]['appUser']) {
                         list.push(army.records[it]['userId']);
                     }
                 }
 
                 return list;
             } catch (err) {
-                $u.error("ERROR in army.getEliteList: " + err);
+                con.error("ERROR in army.getEliteList: " + err);
                 return [];
             }
         },
@@ -401,12 +494,12 @@
                         state.setItem('AutoEliteEnd', '');
                     }
 
-                    $u.log(1, "Detected spaces in Elite Guard: Scheduling");
+                    con.log(1, "Detected spaces in Elite Guard: Scheduling");
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.eliteCheckImg: " + err);
+                con.error("ERROR in army.eliteCheckImg: " + err);
                 return false;
             }
         },
@@ -420,7 +513,7 @@
                 state.setItem('MyEliteTodo', army.eliteMerge(eliteList));
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.eliteFull: " + err);
+                con.error("ERROR in army.eliteFull: " + err);
                 return false;
             }
         },
@@ -429,41 +522,44 @@
             try {
                 if (/YOUR Elite Guard is FULL/i.test(caap.resultsText)) {
                     army.eliteFull();
-                    $u.log(1, "Your Elite Guard is full");
+                    con.log(1, "Your Elite Guard is full");
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.eliteResult: " + err);
+                con.error("ERROR in army.eliteResult: " + err);
                 return false;
             }
         },
 
         eliteMerge: function () {
             try {
-                var theList = [];
-                if ($u.hasContent(eliteArmyList)) {
-                    var eliteArmyList = config.getList('EliteArmyList', '').concat(army.getEliteList());
-                    eliteArmyList.concat(army.getIdList().filter(function (x) {
-                        return !eliteArmyList.hasIndexOf(x);
-                    }));
+                var eliteArmyList = config.getList('EliteArmyList', '').concat(army.getEliteList()),
+                    getIdList     = army.getIdList(),
+                    myEliteTodo   = $u.setContent(state.getItem('MyEliteTodo', []), getIdList);
 
-                    theList = state.setItem('MyEliteTodo', eliteArmyList);
-                } else {
-                    theList = state.setItem('MyEliteTodo', army.getIdList());
+                if (eliteArmyList && myEliteTodo && getIdList && eliteArmyList.length >= myEliteTodo.length) {
+                    myEliteTodo = getIdList;
                 }
 
-                return theList;
+                eliteArmyList = eliteArmyList.concat(myEliteTodo.filter(function (x) {
+                    return !eliteArmyList.hasIndexOf(x);
+                }));
+
+                state.setItem('MyEliteTodo', eliteArmyList);
+                con.log(2, "eliteArmyList", eliteArmyList);
+                return eliteArmyList;
             } catch (err) {
-                $u.error("ERROR in army.eliteMerge: " + err);
+                con.error("ERROR in army.eliteMerge: " + err);
                 return undefined;
             }
         },
 
+        /*jslint sub: true */
         eliteFriendCheck: function () {
             try {
                 if (caap.stats['army']['actual'] < 11 || army.getIdList().length < 10) {
-                    $u.log(1, 'Not enough friends to fill Elite Guard');
+                    con.log(1, 'Not enough friends to fill Elite Guard');
                     state.setItem('AutoEliteFew', true);
                 } else {
                     state.setItem('AutoEliteFew', false);
@@ -471,10 +567,11 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.eliteFriendCheck: " + err);
+                con.error("ERROR in army.eliteFriendCheck: " + err);
                 return false;
             }
         },
+        /*jslint sub: false */
 
         elite: function () {
             try {
@@ -486,36 +583,36 @@
                 }
 
                 if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
-                    $u.log(1, 'Reset list');
+                    con.log(1, 'Reset list');
                     eliteList = army.eliteMerge();
                     state.setItem('AutoEliteEnd', '');
                     state.setItem('AutoEliteListFilled', true);
                 }
 
                 if (state.getItem('AutoEliteFew', false) && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
-                    $u.log(1, "Elite Full");
+                    con.log(1, "Elite Full");
                     army.eliteFull();
                     return false;
                 }
 
                 if ($j.isArray(eliteList) && $u.hasContent(eliteList)) {
                     user = eliteList.shift();
-                    $u.log(1, 'Add Elite Guard ID: ', user);
+                    con.log(1, 'Add Elite Guard ID: ', user);
                     state.setItem('MyEliteTodo', eliteList);
                     if (!$u.hasContent(eliteList)) {
-                        $u.log(2, 'Army list exhausted');
+                        con.log(2, 'Army list exhausted');
                         state.setItem('AutoEliteEnd', 'NoArmy');
                     }
 
                     caap.clickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
-                    $u.log(1, "Return true");
+                    con.log(1, "Return true");
                     return true;
                 }
 
-                $u.log(1, "Return false");
+                con.log(1, "Return false");
                 return false;
             } catch (err) {
-                $u.error("ERROR in army.elite: " + err);
+                con.error("ERROR in army.elite: " + err);
                 return undefined;
             }
         },
@@ -532,16 +629,7 @@
                 htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
                 htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
                 htmlCode += caap.startCheckHide('EnableArmy');
-                htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
-                htmlCode += caap.startCheckHide('AutoElite');
-                htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
-                htmlCode += caap.endTR;
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
-                htmlCode += caap.endTR;
-                htmlCode += caap.endCheckHide('AutoElite');
+                htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxArmy', true, "Check Army using AJAX rather than page navigation.");
                 htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
                 htmlCode += caap.makeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
                 htmlCode += caap.startCheckHide('ArmyIndicators');
@@ -555,11 +643,24 @@
                 htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
                 htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
                 htmlCode += caap.endCheckHide('ArmyIndicators');
+                htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
+                htmlCode += caap.startCheckHide('AutoElite');
+                htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
+                htmlCode += caap.endTR;
+                htmlCode += caap.endCheckHide('AutoElite');
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('EnableArmy');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in army.menu: " + err);
+                con.error("ERROR in army.menu: " + err);
                 return '';
             }
         },
@@ -572,7 +673,7 @@
                 Next we build the HTML to be included into the 'caap_army' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Army' && session.getItem("ArmyDashUpdate", true)) {
                     var headers                  = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', '&nbsp;'],
                         values                   = ['userId', 'user', 'name', 'lvl',   'change'],
                         color                    = '',
@@ -589,7 +690,8 @@
                         handler                  = null,
                         head                     = '',
                         body                     = '',
-                        row                      = '';
+                        row                      = '',
+                        tempVar;
 
                     for (pp = 0; pp < headers.length; pp += 1) {
                         header = {
@@ -660,7 +762,8 @@
                             } else if (values[pp] === "userId") {
                                 str = $u.setContent(army.records[i][values[pp]], '');
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                //userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                userIdLink = "keep.php?casuser=" + str;
                                 data = {
                                     text  : '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                             '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
@@ -670,6 +773,16 @@
                                 };
 
                                 row += caap.makeTd(data);
+                            } else if (values[pp] === "user") {
+                                tempVar = army.records[i]['appUser'] ? '' : config.getItem("ArmyAgeDaysColor4", 'red');
+                                userIdLinkInstructions = "Clicking this link will take you to the Facebook page of " + army.records[i][values[pp]];
+                                row += caap.makeTd({
+                                    text    : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? "<a href='http://www.facebook.com/profile.php?id=" + army.records[i]['userId'] + "'>" + army.records[i][values[pp]] + "</a>" : '',
+                                    bgcolor : tempVar,
+                                    color   : $u.hasContent(tempVar) ? $u.bestTextColor(tempVar) : '',
+                                    id      : '',
+                                    title   : $u.hasContent(tempVar) ? 'User has either blocked Castle Age or is no longer a friend.' : userIdLinkInstructions
+                                });
                             } else {
                                 row += caap.makeTd({
                                     text  : $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? army.records[i][values[pp]] : '',
@@ -689,9 +802,10 @@
 
                         row += caap.makeTd(data);
 
-                        removeLinkInstructions = "Clicking this link will remove " + army.records[i]['user'].escapeHTML() + " from your army!";
+                        tempVar = $u.setContent(army.records[i]['user'], '').escapeHTML();
+                        removeLinkInstructions = "Clicking this link will remove " + tempVar + " from your army!";
                         data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + army.records[i]['user'].escapeHTML() +
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + tempVar +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -741,7 +855,8 @@
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                //visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                visitUserIdLink.arlink = visitUserIdLink.rlink;
                             }
                         }
 
@@ -769,7 +884,7 @@
                             record = army.getItem(userid);
                             record['elite'] = !cstate;
                             army.setItem(record);
-                            state.setItem("ArmyDashUpdate", true);
+                            session.setItem("ArmyDashUpdate", true);
                             caap.updateDashboard(true);
                         }
                     };
@@ -795,19 +910,19 @@
                         if (resp === true) {
                             caap.clickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
                             army.deleteItem(userid);
-                            state.setItem("ArmyDashUpdate", true);
+                            session.setItem("ArmyDashUpdate", true);
                             caap.updateDashboard(true);
                         }
                     };
 
                     $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    state.setItem("ArmyDashUpdate", false);
+                    session.setItem("ArmyDashUpdate", false);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in army.dashboard: " + err);
+                con.error("ERROR in army.dashboard: " + err);
                 return false;
             }
         }

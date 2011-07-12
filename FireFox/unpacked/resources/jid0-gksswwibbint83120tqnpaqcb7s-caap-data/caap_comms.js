@@ -10,7 +10,7 @@
 
     function log(msg) {
         if (window.console && typeof console.log === 'function') {
-            console.log("140.25.0" + ("19" !== '0' ? 'd19'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+            console.log("141.0.0" + ("7" !== '0' ? 'd7'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
 
@@ -123,7 +123,7 @@
     }
 
     function waitForjQuery() {
-        if (window.jQuery && window.jQuery().jquery === "1.6") {
+        if (window.jQuery && window.jQuery().jquery === "1.6.2") {
             log("jQuery ready ...");
             if (!window.$j) {
                 window.$j = window.jQuery.noConflict();
@@ -147,8 +147,8 @@
         log(window.navigator.userAgent);
         log("Starting ... waiting for scripts to load");
         timeout = window.setTimeout(timeOut, 180000);
-        if (!window.jQuery || window.jQuery().jquery !== "1.6") {
-            log("Inject jQuery");
+        if (!window.jQuery || window.jQuery().jquery !== "1.6.2") {
+            log("Inject jQuery.");
             postMessageMain({action : 'script', status: 'get', value: 'jquery'});
         }
 

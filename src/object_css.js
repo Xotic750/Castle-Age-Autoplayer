@@ -19,7 +19,7 @@
                 $j("<style type='text/css'>" + css.caap + "</style>").appendTo("head");
                 return true;
             } catch (err) {
-                $u.error("ERROR in addCSS: " + err);
+                con.error("ERROR in addCSS: " + err);
                 return false;
             }
         },
@@ -33,10 +33,14 @@
               "#caap_div, #caap_top, .caap_fn, .ui-dialog-title, .ui-button-text, .ui-state-highlight {font-size: 11px;}" +
               ".ui-state-highlight {line-height: 10px;}" +
               ".caap_ww {width: 100%;}" +
+              ".caap_w90 {width: 90%}" +
               ".caap_in {padding-left: 5%;}" +
               ".caap_ul {list-style-type: none; padding: 0px; margin: 0px; height: 11px; line-height: 10px;}" +
+              ".caap_tl {text-align: left;}" +
               ".caap_tr {text-align: right;}" +
+              ".caap_tc {text-align: center;}" +
               ".caap_table {width: 100%; border-collapse: collapse; border-spacing: 0px; font-size: 10px; text-align: left;}" +
+              ".caap_caption {width: 100%; border-collapse: collapse; border-spacing: 0px; font-weight: bold;text-align: center;}" +
               ".sorting_asc {background: url(data:image/gif;base64," + image64['asc'] + ") no-repeat center right;}" +
               ".sorting_desc {background: url(data:image/gif;base64," + image64['desc'] + ") no-repeat center right;}" +
               ".sorting {background: url(data:image/gif;base64," + image64['bg'] + ") no-repeat center right;}" +

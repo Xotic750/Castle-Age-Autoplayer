@@ -9,6 +9,7 @@ del /F /Q _normal.user.js _min.user.js 2>nul
 echo Joining files into _normal.user.js
 bin\sed -f build\version.sed _head.js > _normal.user.js 2>nul
 bin\sed -f build\version.sed _lead.js >> _normal.user.js 2>nul
+type object_idb.js >>_normal.user.js 2>nul
 type object_image64.js >>_normal.user.js 2>nul
 type object_config.js >>_normal.user.js 2>nul
 type object_state.js >>_normal.user.js 2>nul

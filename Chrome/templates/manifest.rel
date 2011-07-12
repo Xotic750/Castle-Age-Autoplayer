@@ -1,5 +1,11 @@
 {
     "content_scripts": [{
+        "exclude_globs": [
+            "http://apps.facebook.com/castle_age/festival_hod.php",
+            "https://apps.facebook.com/castle_age/festival_hod.php",
+            "http://web3.castleagegame.com/castle_ws/festival_hod.php",
+            "https://web3.castleagegame.com/castle_ws/festival_hod.php"
+        ],
         "include_globs": [
             "http://apps.facebook.com/castle_age/*",
             "https://apps.facebook.com/castle_age/*",
@@ -39,6 +45,7 @@
     "name": "Castle Age Autoplayer - Alpha Patched",
     "permissions": [
         "tabs",
+        "unlimited_storage",
         "http://apps.facebook.com/castle_age/*",
         "https://apps.facebook.com/castle_age/*",
         "http://web3.castleagegame.com/castle_ws/*",

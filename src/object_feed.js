@@ -21,28 +21,33 @@
 
                 if (feed.monsterList.length !== list.length) {
                     if (feed.monsterList.length < list.length) {
-                        $u.warn("monsterList mismatch, fewer monsters than master!", feed.monsterList, list);
+                        con.warn("monsterList mismatch, fewer monsters than master!", feed.monsterList, list);
                         feed.monsterList = gm.setItem('feed.monsterList', list);
                     } else if (feed.monsterList.length > list.length) {
-                        $u.log(2, "monsterList mismatch, more monsters than master.", feed.monsterList, list);
+                        con.log(2, "monsterList mismatch, more monsters than master.", feed.monsterList, list);
                     }
                 }
 
-                $u.log(3, "feed.monsterList", feed.monsterList);
+                con.log(3, "feed.monsterList", feed.monsterList);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.loadList: " + err);
+                con.error("ERROR in feed.loadList: " + err);
                 return false;
             }
         },
 
         saveList: function () {
             try {
-                gm.setItem('feed.monsterList', feed.monsterList);
-                $u.log(3, "feed.monsterList", feed.monsterList);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('feed.monsterList', feed.monsterList);
+                } else {
+                    gm.setItem('feed.monsterList', feed.monsterList);
+                }
+
+                con.log(3, "feed.monsterList", feed.monsterList);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.saveList: " + err);
+                con.error("ERROR in feed.saveList: " + err);
                 return false;
             }
         },
@@ -57,25 +62,37 @@
                 feed.loadList();
                 feed.deleteExpired();
                 feed.copy2sortable();
-                state.setItem("FeedDashUpdate", true);
-                $u.log(3, "feed.load", feed.records);
+                session.setItem("FeedDashUpdate", true);
+                con.log(3, "feed.load", feed.records);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.load: " + err);
+                con.error("ERROR in feed.load: " + err);
                 return false;
             }
         },
 
-        save: function (force) {
+        save: function (src) {
             try {
-                gm.setItem('feed.records', feed.records);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('feed.records', feed.records);
+                } else {
+                    gm.setItem('feed.records', feed.records);
+                    con.log(3, "feed.save", feed.records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "feed.save send");
+                        caap.messaging.setItem('feed.records', feed.records);
+                    }
+                }
+
                 feed.deleteExpired();
                 feed.copy2sortable();
-                state.setItem("FeedDashUpdate", true);
-                $u.log(3, "feed.save", feed.records);
+                if (caap.domain.which !== 0) {
+                    session.setItem("FeedDashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.save: " + err);
+                con.error("ERROR in feed.save: " + err);
                 return false;
             }
         },
@@ -92,7 +109,7 @@
                 for (i in feed.records) {
                     if (feed.records.hasOwnProperty(i)) {
                         if (!feed.records[i]['checked']) {
-                            $u.log(3, "feed.deleteExpired skipping unchecked record", feed.records[i]);
+                            con.log(3, "feed.deleteExpired skipping unchecked record", feed.records[i]);
                             continue;
                         }
 
@@ -100,7 +117,7 @@
                         seconds = seconds > 0 ? seconds : 86400;
                         mRecord = monster.getItem(feed.records[i]['md5']);
                         if (schedule.since(feed.records[i]['review'], seconds) && !$u.hasContent(mRecord['monster'])) {
-                            $u.log(2, "Feed Entry Expired", feed.records[i]);
+                            con.log(2, "Feed Entry Expired", feed.records[i]);
                             feed.deleteItem(feed.records[i]['md5']);
                             save = true;
                         }
@@ -113,7 +130,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.deleteExpired: " + err);
+                con.error("ERROR in feed.deleteExpired: " + err);
                 return false;
             }
         },
@@ -128,14 +145,14 @@
                     if (feed.records.hasOwnProperty(i)) {
                         feed.recordsSortable.push(feed.records[i]);
                         if (!feed.monsterList.hasIndexOf(feed.records[i]['monster'].toLowerCase().ucWords())) {
-                            $u.log(1, "New monster name found", feed.records[i]['monster']);
+                            con.log(1, "New monster name found", feed.records[i]['monster']);
                             feed.monsterList.push(feed.records[i]['monster'].ucWords());
                             update = true;
                         }
                     }
                 }
 
-                $u.log(3, "feed.recordsSortable", feed.recordsSortable);
+                con.log(3, "feed.recordsSortable", feed.recordsSortable);
                 feed.recordsSortable.sort($u.sortBy(true, 'review'));
                 if (update) {
                     feed.monsterList.sort();
@@ -145,7 +162,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.copy2sortable: " + err);
+                con.error("ERROR in feed.copy2sortable: " + err);
                 return false;
             }
         },
@@ -166,16 +183,16 @@
                     mine  = caap.stats['FBID'] === id ? true : false;
 
                 if (id === 0 || !$u.hasContent(id) || !$u.isNumber(id)) {
-                    $u.warn("feed.setItem id", id);
+                    con.warn("feed.setItem id", id);
                     throw "ID is not valid!";
                 }
 
                 if (!$u.hasContent(page) || !$u.isString(page)) {
-                    $u.warn("feed.setItem page", page);
+                    con.warn("feed.setItem page", page);
                     throw "Page is not valid!";
                 }
 
-                $u.log(4, "page", page);
+                con.log(4, "page", page);
                 if (!$u.hasContent(feed.records[index])) {
                     feed.records[index] = {
                         'md5'      : index,
@@ -187,7 +204,7 @@
                         'time'     : [0, 0, 0],
                         'life'     : 0,
                         't2k'      : 0,
-                        'seen'     : new Date().getTime(),
+                        'seen'     : Date.now(),
                         'review'   : 0,
                         'checked'  : false,
                         'hide'     : mine,
@@ -200,7 +217,7 @@
 
                 return feed.records[index];
             } catch (err) {
-                $u.error("ERROR in feed.setItem: " + err);
+                con.error("ERROR in feed.setItem: " + err);
                 return undefined;
             }
         },
@@ -214,13 +231,13 @@
 
                 var record = feed.records[index];
                 if (!$u.isDefined(record)) {
-                    $u.warn("feed.getItem returned 'undefined' or 'null' for", index);
+                    con.warn("feed.getItem returned 'undefined' or 'null' for", index);
                     record = null;
                 }
 
                 return record;
             } catch (err) {
-                $u.error("ERROR in feed.getItem: " + err);
+                con.error("ERROR in feed.getItem: " + err);
                 return undefined;
             }
         },
@@ -232,7 +249,7 @@
                 }
 
                 if (!$u.isDefined(feed.records[index])) {
-                    $u.warn("feed.deleteItem - Invalid or non-existant index:", index);
+                    con.warn("feed.deleteItem - Invalid or non-existant index:", index);
                 } else {
                     delete feed.records[index];
                     feed.save();
@@ -240,7 +257,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.deleteItem: " + err);
+                con.error("ERROR in feed.deleteItem: " + err);
                 return false;
             }
         },
@@ -250,7 +267,7 @@
         checked: function (currentMonster) {
             try {
                 if (currentMonster['md5'] === '') {
-                    $u.log(2, "feed.checked no md5 supplied");
+                    con.log(2, "feed.checked no md5 supplied");
                     if ($u.hasContent(feed.scanRecord)) {
                         if ($u.hasContent(feed.scanRecord['id']) && $u.hasContent(feed.scanRecord['monster'] && $u.hasContent(feed.scanRecord['page']))) {
                             currentMonster['md5'] = feed.scanRecord['md5'];
@@ -265,18 +282,18 @@
                             currentMonster['time'] = feed.scanRecord['time'];
                             currentMonster['life'] = feed.scanRecord['life'];
                             currentMonster['t2k'] = feed.scanRecord['t2k'];
-                            currentMonster['review'] = feed.scanRecord['review'] > 0 ? feed.scanRecord['review'] : new Date().getTime();
-                            $u.log(2, "feed.checked monster set from scanRecord", currentMonster);
+                            currentMonster['review'] = feed.scanRecord['review'] > 0 ? feed.scanRecord['review'] : Date.now();
+                            con.log(2, "feed.checked monster set from scanRecord", currentMonster);
                         } else if ($u.hasContent(feed.scanRecord['md5'])) {
                             currentMonster = monster.getItem(feed.scanRecord['md5']);
-                            $u.log(2, "feed.checked monster set from monster record", currentMonster);
+                            con.log(2, "feed.checked monster set from monster record", currentMonster);
                         } else {
-                            $u.log(2, "feed.checked scanRecord doesn't have info required", feed.scanRecord);
+                            con.log(2, "feed.checked scanRecord doesn't have info required", feed.scanRecord);
                         }
 
                         feed.scanRecord = {};
                     } else {
-                        $u.log(2, "feed.checked scanRecord empty");
+                        con.log(2, "feed.checked scanRecord empty");
                     }
                 }
 
@@ -285,7 +302,7 @@
                 }
 
                 if (!$u.isString(currentMonster['md5']) || !$u.hasContent(currentMonster['md5'])) {
-                    $u.warn("md5", currentMonster);
+                    con.warn("md5", currentMonster);
                     throw "Invalid identifying md5!";
                 }
 
@@ -295,7 +312,7 @@
                     md5  = (id + ' ' + mon  + ' ' + page).toLowerCase().MD5();
 
                 if (currentMonster['md5'] !== md5) {
-                    $u.warn("md5 mismatch!", md5, currentMonster);
+                    con.warn("md5 mismatch!", md5, currentMonster);
                     if (config.getItem("DebugLevel", 1) > 1) {
                         $j().alert("md5 mismatch!<br />" + md5 + '<br />' + currentMonster['md5']);
                     }
@@ -304,7 +321,7 @@
                 }
 
                 if (!$u.hasContent(feed.records[currentMonster['md5']])) {
-                    $u.log(3, "feed link", currentMonster['feedLink']);
+                    con.log(3, "feed link", currentMonster['feedLink']);
                     feed.records[currentMonster['md5']] = {};
                     feed.records[currentMonster['md5']]['md5'] = currentMonster['md5'];
                     feed.records[currentMonster['md5']]['id'] = id;
@@ -312,9 +329,9 @@
                     feed.records[currentMonster['md5']]['page'] = page;
                     feed.records[currentMonster['md5']]['monster'] = currentMonster['monster'];
                     feed.records[currentMonster['md5']]['type'] = currentMonster['type'];
-                    feed.records[currentMonster['md5']]['seen'] = new Date().getTime();
+                    feed.records[currentMonster['md5']]['seen'] = Date.now();
                     feed.records[currentMonster['md5']]['checked'] = false;
-                    $u.log(2, "Added monster details to feed", feed.records[currentMonster['md5']]);
+                    con.log(2, "Added monster details to feed", feed.records[currentMonster['md5']]);
                 } else {
                     feed.records[currentMonster['md5']]['checked'] = true;
                 }
@@ -325,20 +342,21 @@
                 feed.records[currentMonster['md5']]['life'] = currentMonster['life'];
                 feed.records[currentMonster['md5']]['t2k'] = currentMonster['t2k'];
                 feed.records[currentMonster['md5']]['review'] = currentMonster['review'];
-                $u.log(3, "feed.checked", feed.records[currentMonster['md5']], currentMonster);
+                con.log(3, "feed.checked", feed.records[currentMonster['md5']], currentMonster);
                 feed.save();
                 return feed.records[currentMonster['md5']];
             } catch (err) {
-                $u.error("ERROR in feed.checked: " + err);
+                con.error("ERROR in feed.checked: " + err);
                 return undefined;
             }
         },
         /*jslint sub: false */
 
-        items: function (type) {
+        items: function (type, slice) {
             try {
+                slice = $u.setContent(slice, caap.appBodyDiv);
                 var ft = config.getItem("festivalTower", false);
-                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), caap.appBodyDiv).each(function () {
+                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
                     var post  = $j(this),
                         link  = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
                         mon   = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
@@ -346,9 +364,9 @@
                         mname = monster.getCtaName(img),
                         fix   = false;
 
-                    $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
+                    con.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
                     if (!$u.hasContent(link)) {
-                        $u.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
                     }
 
@@ -357,7 +375,7 @@
                     }
 
                     if (link.hasIndexOf('guild_battle_monster')) {
-                        $u.log(2, "Guild Monster, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "Guild Monster, skipping", {'mon': mon, 'link': link, 'img': img});
                         if (config.getItem("DebugLevel", 1) > 1 && !guild_monster.getCtaName(img)) {
                             $j().alert("Guild Monster missing image<br />" + mon + '<br />' + link + '<br />' + img);
                         }
@@ -366,7 +384,7 @@
                     }
 
                     if (!$u.hasContent(mon)) {
-                        $u.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
                         if (config.getItem("DebugLevel", 1) > 1) {
                             $j().alert("No item monster text, skipping<br />" + mon + '<br />' + link + '<br />' + img);
                         }
@@ -375,12 +393,12 @@
                     }
 
                     if (!$u.hasContent(img)) {
-                        $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
                     }
 
                     if (!mname) {
-                        //alert("Missing mname image\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
+                        $j().alert("Missing mname image<br />" + mname + "<br />" + mon + "<br />" + link + "<br />" + img);
                     }
 
                     if (mon.hasIndexOf("Bahamut") && !mon.hasIndexOf("Alpha") && (img.hasIndexOf("volcanic5") || link.hasIndexOf("twt2=alpha"))) {
@@ -408,27 +426,34 @@
                     }
 
                     if (fix) {
-                        $u.log(2, "Fixed CA listing issue", mon);
+                        con.log(2, "Fixed CA listing issue", mon);
                     }
 
                     if (mname !== mon) {
-                        //alert("mname/mon mismatch\n" + mname + "\n" + mon + "\n" + link + "\n" + img);
+                        $j().alert("mname/mon mismatch<br />" + mname + "<br />" + mon + "<br />" + link + "<br />" + img);
                     }
 
                     feed.setItem(link, mon);
                     return true;
                 });
 
+                if (type === "feed") {
+                    schedule.setItem("feedMonsterFinder", config.getItem('CheckFeedMonsterFinderMins', 15) * 60, 300);
+                } else if (type === "guild") {
+                    schedule.setItem("guildMonsterFinder", config.getItem('CheckGuildMonsterFinderMins', 60) * 60, 300);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.items: " + err);
+                con.error("ERROR in feed.items: " + err);
                 return false;
             }
         },
 
-        publicItems: function () {
+        publicItems: function (slice) {
             try {
-                $j("div[style*='pubmonster_middlef.gif']", caap.appBodyDiv).each(function () {
+                slice = $u.setContent(slice, caap.appBodyDiv);
+                $j("div[style*='pubmonster_middlef.gif']", slice).each(function () {
                     var post = $j(this),
                         userId = 0,
                         mpool = '',
@@ -437,25 +462,25 @@
                         img  = '';
 
                     if (!$u.hasContent(post)) {
-                        $u.log(2, "No pubmonster_middlef content");
+                        con.log(2, "No pubmonster_middlef content");
                         return true;
                     }
 
                     userId = $u.setContent($j("input[name='casuser']", post).val(), "0").parseInt();
                     if (!$u.hasContent(userId) || userId === 0) {
-                        $u.log(2, "No userId found");
+                        con.log(2, "No userId found");
                         return true;
                     }
 
                     img = $j("img", post).eq(0).attr("src").basename();
                     if (!$u.hasContent(img)) {
-                        $u.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item image, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
                     }
 
                     mon = monster.getListName(img);
                     if (!$u.hasContent(mon)) {
-                        $u.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item monster text, skipping", {'mon': mon, 'link': link, 'img': img});
                         if (config.getItem("DebugLevel", 1) > 1) {
                             $j().alert("No item monster text, skipping<br />" + mon + '<br />' + link + '<br />' + img);
                         }
@@ -465,14 +490,14 @@
 
                     mpool = $j("input[name='mpool']", post).val();
                     if (!$u.hasContent(mpool)) {
-                        $u.log(2, "No mpool, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No mpool, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
                     }
 
                     link = "battle_monster.php?casuser=" + userId + "&mpool=" + mpool;
-                    $u.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
+                    con.log(3, "Item", {'mon': mon, 'link': link, 'img': img});
                     if (!$u.hasContent(link)) {
-                        $u.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
+                        con.log(2, "No item link, skipping", {'mon': mon, 'link': link, 'img': img});
                         return true;
                     }
 
@@ -482,10 +507,12 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.publicItems: " + err);
+                con.error("ERROR in feed.publicItems: " + err);
                 return false;
             }
         },
+
+        ajaxFeedWait: false,
 
         ajaxFeed: function () {
             try {
@@ -494,16 +521,35 @@
                     return true;
                 }
 
-                caap.clickAjaxLinkSend("army_news_feed.php");
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.error("feed.ajaxFeed", textStatus);
+                    feed.ajaxFeedWait = false;
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.items("feed", data);
+                    feed.ajaxFeedWait = false;
+                }
+
+                if (config.getItem("useAjaxMonsterFinder", true)) {
+                    feed.ajaxFeedWait = true;
+                    caap.ajax("army_news_feed.php", null, onError, onSuccess);
+                } else {
+                    feed.ajaxFeedWait = false;
+                    caap.clickAjaxLinkSend("army_news_feed.php");
+                }
+
                 var minutes = config.getItem('CheckFeedMonsterFinderMins', 15);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("feedMonsterFinder", minutes * 60, 300);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.ajaxFeed: " + err);
+                con.error("ERROR in feed.ajaxFeed: " + err);
                 return false;
             }
         },
+
+        ajaxGuildWait: false,
 
         ajaxGuild: function () {
             try {
@@ -512,16 +558,35 @@
                     return true;
                 }
 
-                caap.clickAjaxLinkSend("guild.php");
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.error("feed.ajaxGuild", textStatus);
+                    feed.ajaxGuildWait = false;
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.items("guild", data);
+                    feed.ajaxGuildWait = false;
+                }
+
+                if (config.getItem("useAjaxMonsterFinder", true)) {
+                    feed.ajaxGuildWait = true;
+                    caap.ajax("guild.php", null, onError, onSuccess);
+                } else {
+                    feed.ajaxGuildWait = true;
+                    caap.clickAjaxLinkSend("guild.php");
+                }
+
                 var minutes = config.getItem('CheckGuildMonsterFinderMins', 60);
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("guildMonsterFinder", minutes * 60, 300);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.ajaxGuild: " + err);
+                con.error("ERROR in feed.ajaxGuild: " + err);
                 return false;
             }
         },
+
+        ajaxPublicWait: false,
 
         ajaxPublic: function (tier) {
             try {
@@ -530,19 +595,72 @@
                     return true;
                 }
 
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.error("feed.ajaxPublic", textStatus);
+                    feed.ajaxPublicWait = false;
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    feed.publicItems(data);
+                    feed.ajaxPublicWait = false;
+                }
+
+                function onReturn(message) {
+                    con.log(2, "ajaxPublic onReturn", message);
+                    message.responseText = message.responseText.unescapeCAHTML();
+                    feed.publicItems(message.responseText);
+                    feed.ajaxPublicWait = false;
+                }
+
                 var url     = 'public_monster_list.php?monster_tier=' + tier,
                     minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
 
-                caap.clickAjaxLinkSend(url);
-                var minutes = config.getItem('CheckPublicMonsterFinderMins' + tier, 15);
+                if (config.getItem("useAjaxMonsterFinder", true)) {
+                    feed.ajaxPublicWait = true;
+                    caap.ajax(url, null, onError, onSuccess);
+                } else {
+                    feed.ajaxPublicWait = false;
+                    caap.clickAjaxLinkSend(url);
+                }
+
                 minutes = minutes >= 15 ? minutes : 15;
                 schedule.setItem("publicMonsterFinder" + tier, minutes * 60, 300);
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.ajaxPublic: " + err);
+                con.error("ERROR in feed.ajaxPublic: " + err);
                 return false;
             }
         },
+
+        ajaxScanWait: false,
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        ajaxScan: function (record) {
+            try {
+                if (feed.ajaxScanWait) {
+                    return true;
+                }
+
+                feed.ajaxScanWait = true;
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.error("feed.ajaxScan", textStatus);
+                    feed.ajaxScanWait = false;
+                }
+
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    caap.checkResults_viewFight(true);
+                    feed.ajaxScanWait = false;
+                }
+
+                caap.ajax(record['url'], null, onError, onSuccess);
+                return true;
+            } catch (err) {
+                con.error("ERROR in feed.ajaxScan: " + err);
+                return false;
+            }
+        },
+        /*jslint sub: false */
 
         scanRecord: {},
 
@@ -551,7 +669,7 @@
         setScanRecord: function (md5) {
             try {
                 if (!$u.isString(md5) || !$u.hasContent(md5)) {
-                    $u.warn("md5", md5);
+                    con.warn("md5", md5);
                     throw "Invalid identifying md5!";
                 }
 
@@ -563,7 +681,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.setScanRecord: " + err);
+                con.error("ERROR in feed.setScanRecord: " + err);
                 return false;
             }
         },
@@ -588,10 +706,14 @@
                 }
 
                 if (!state.setItem("feedScanDone", done)) {
-                    $u.log(2, "Scanning", feed.recordsSortable[it]);
+                    con.log(2, "Scanning", feed.recordsSortable[it]);
                     feed.scanRecord = feed.recordsSortable[it];
-                    feed.isScan = true;
-                    caap.clickAjaxLinkSend(feed.recordsSortable[it]['url']);
+                    if (config.getItem("useAjaxMonsterFinder", true)) {
+                        feed.ajaxScan(feed.recordsSortable[it]);
+                    } else {
+                        feed.isScan = true;
+                        caap.clickAjaxLinkSend(feed.recordsSortable[it]['url']);
+                    }
                 } else {
                     feed.isScan = false;
                     feed.scanRecord = {};
@@ -599,14 +721,14 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.scan: " + err);
+                con.error("ERROR in feed.scan: " + err);
                 return false;
             }
         },
 
         dashboard: function () {
             try {
-                if (config.getItem('DBDisplay', '') === 'Feed' && state.getItem("FeeedDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Feed' && session.getItem("FeeedDashUpdate", true)) {
                     var headers = ['Monster', 'Type', 'Damage%', 'TimeLeft', 'T2K', 'Reviewed'],
                         values  = ['monster', 'page', 'life',    'time',     't2k', 'review'],
                         pp      = 0,
@@ -657,7 +779,7 @@
                                 row += caap.makeTd({text: $u.minutes2hours(value), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['t2k'] < (feed.recordsSortable[i]['time'][0] + feed.recordsSortable[i]['time'][1] / 60) ? 'purple' : 'green') : color, id: '', title: ''});
                                 break;
                             case 'time':
-                                row += caap.makeTd({text: value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['time'][0] < 2 ? 'red' : 'green') : color, id: '', title: ''});
+                                row += caap.makeTd({text: value = value[0] + ":" + value[1].lpad("0", 2), color: feed.recordsSortable[i]['checked'] ? (feed.recordsSortable[i]['time'][0] < 2 ? 'red' : 'green') : color, id: '', title: ''});
                                 break;
                             default:
                             }
@@ -706,12 +828,12 @@
 
                     $j("span[id*='caap_feed_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
-                    state.setItem("FeedlDashUpdate", false);
+                    session.setItem("FeedlDashUpdate", false);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.dashboard: " + err);
+                con.error("ERROR in feed.dashboard: " + err);
                 return false;
             }
         },
@@ -724,6 +846,7 @@
                 htmlCode += caap.startToggle('Monster Finder', 'MONSTER FINDER');
                 htmlCode += caap.makeCheckTR("Enable Monster Finder", 'enableMonsterFinder', false, "Find joinable monsters.");
                 htmlCode += caap.startCheckHide('enableMonsterFinder');
+                htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxMonsterFinder', true, "Check Monsters using AJAX rather than page navigation.");
                 htmlCode += caap.makeCheckTR("Enable Live Feed", 'feedMonsterFinder', false, "Find monsters in the Live Feed.");
                 htmlCode += caap.startCheckHide('feedMonsterFinder');
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckFeedMonsterFinderMins', "Check the Live Feed every X minutes. Minimum 15.", 15, '', '', true);
@@ -732,37 +855,23 @@
                 htmlCode += caap.startCheckHide('guildMonsterFinder');
                 htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckGuildMonsterFinderMins', "Check the Guild Feed every X minutes. Minimum 15.", 60, '', '', true);
                 htmlCode += caap.endCheckHide('guildMonsterFinder');
+                htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
+                htmlCode += caap.startCheckHide('publicMonsterFinder1');
+                htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                htmlCode += caap.endCheckHide('publicMonsterFinder1');
 
-                if (caap.domain.which === 0) {
-                    htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
-                    htmlCode += caap.startCheckHide('publicMonsterFinder1');
-                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
-                    htmlCode += caap.endCheckHide('publicMonsterFinder1');
+                htmlCode += caap.makeCheckTR("Enable Tier 2", 'publicMonsterFinder2', false, "Find monsters in the Public Tier 2 Feed.");
+                htmlCode += caap.startCheckHide('publicMonsterFinder2');
+                htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins2', "Check the Public Tier 2 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                htmlCode += caap.endCheckHide('publicMonsterFinder2');
 
-                    htmlCode += caap.makeCheckTR("Enable Tier 2", 'publicMonsterFinder2', false, "Find monsters in the Public Tier 2 Feed.");
-                    htmlCode += caap.startCheckHide('publicMonsterFinder2');
-                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins2', "Check the Public Tier 2 Feed every X minutes. Minimum 15.", 60, '', '', true);
-                    htmlCode += caap.endCheckHide('publicMonsterFinder2');
-
-                    htmlCode += caap.makeCheckTR("Enable Tier 3", 'publicMonsterFinder3', false, "Find monsters in the Public Tier 3 Feed.");
-                    htmlCode += caap.startCheckHide('publicMonsterFinder3');
-                    htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes. Minimum 15.", 60, '', '', true);
-                    htmlCode += caap.endCheckHide('publicMonsterFinder3');
-                } else {
-                    config.setItem("publicMonsterFinder1", false);
-                    config.setItem("publicMonsterFinder2", false);
-                    config.setItem("publicMonsterFinder3", false);
-                }
-
+                htmlCode += caap.makeCheckTR("Enable Tier 3", 'publicMonsterFinder3', false, "Find monsters in the Public Tier 3 Feed.");
+                htmlCode += caap.startCheckHide('publicMonsterFinder3');
+                htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes. Minimum 15.", 60, '', '', true);
+                htmlCode += caap.endCheckHide('publicMonsterFinder3');
                 htmlCode += caap.makeCheckTR("Status Scan", 'feedScan', false, "Scan the feed monsters to check their status.");
                 htmlCode += caap.startCheckHide('feedScan');
                 htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status. Minimum 1.", 6, '', '', true);
-                if (false) {
-                    htmlCode += caap.makeCheckTR("Compatability Scan", 'feedCompatabilityScan', false, "Scan the feed monsters in the foreground to check their status", true);
-                } else {
-                    config.setItem("feedCompatabilityScan", false);
-                }
-
                 htmlCode += caap.endCheckHide('feedScan');
                 if (false) {
                     htmlCode += caap.makeDropDownTR("Join", 'JoinMonster1', [''].concat(feed.monsterList), '', '', '', false, false, 80);
@@ -775,7 +884,7 @@
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in feed.menu: " + err);
+                con.error("ERROR in feed.menu: " + err);
                 return '';
             }
         },
@@ -788,7 +897,7 @@
                 caap.changeDropDownList('JoinMonster4', [''].concat(feed.monsterList), config.getItem('JoinMonster4', ''));
                 return true;
             } catch (err) {
-                $u.error("ERROR in feed.updateDropDowns: " + err);
+                con.error("ERROR in feed.updateDropDowns: " + err);
                 return false;
             }
         }

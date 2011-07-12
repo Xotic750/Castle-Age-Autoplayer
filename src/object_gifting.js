@@ -5,7 +5,7 @@
     /////////////////////////////////////////////////////////////////////
 
     gifting = {
-        extraList: ['Recruiting', 'Sephora', 'Valiant'],
+        extraList: ['Recruiting', 'Sephora', 'Valiant', "Festivus Sword", "Valhalla", "Monster", "Elite", "Guild"],
 
         cachedGiftEntry: {},
 
@@ -14,7 +14,7 @@
         load: function (type) {
             try {
                 if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to load: ", type);
+                    con.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
 
@@ -24,30 +24,48 @@
                 }
 
                 gifting[type].hbest = gifting[type].hbest === false ? JSON.hbest(gifting[type].records) : gifting[type].hbest;
-                $u.log(3, "gifting." + type + " Hbest", gifting[type].hbest);
-                $u.log(3, "gifting.load", type, gifting[type].records);
-                state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
+                con.log(3, "gifting." + type + " Hbest", gifting[type].hbest);
+                con.log(3, "gifting.load", type, gifting[type].records);
+                session.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.load: " + err);
+                con.error("ERROR in gifting.load: " + err);
                 return false;
             }
         },
 
-        save: function (type) {
+        save: function (type, src) {
             try {
                 if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to load: ", type);
+                    con.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
 
                 var compress = false;
-                gm.setItem("gifting." + type, gifting[type].records, gifting[type].hbest, compress);
-                $u.log(3, "gifting.save", type, gifting[type].records);
-                state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
+                if (caap.domain.which === 3) {
+                    if (type === "queue") {
+                        caap.setGiftQueue();
+                    } else if (type === "queue") {
+                        caap.setGiftHistory();
+                    }
+
+                    caap.messaging.setItem('gifting.' + type + '.records', gifting[type].records);
+                } else {
+                    gm.setItem("gifting." + type, gifting[type].records, gifting[type].hbest, compress);
+                    con.log(3, "gifting.save", type, gifting[type].records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "gifting.save send");
+                        caap.messaging.setItem('gifting.' + type + '.records', gifting[type].records);
+                    }
+                }
+
+                if (caap.domain.which !== 0) {
+                    session.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.save: " + err);
+                con.error("ERROR in gifting.save: " + err);
                 return false;
             }
         },
@@ -55,16 +73,17 @@
         clear: function (type) {
             try {
                 if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to clear: ", type);
+                    con.warn("Type passed to clear: ", type);
                     throw "Invalid type value!";
                 }
 
-                gifting[type].records = gm.setItem("gifting." + type, []);
-                gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
-                state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
+                gifting[type].records = [];
+                gifting.save(type);
+                gifting.clearCurrent();
+                session.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.clear: " + err);
+                con.error("ERROR in gifting.clear: " + err);
                 return false;
             }
         },
@@ -85,12 +104,226 @@
                     result = false;
                 }
 
+                if (!gifting.loadCurrent()) {
+                    result = false;
+                }
+
                 gifting.queue.fix();
                 gifting.history.fix();
                 return result;
             } catch (err) {
-                $u.error("ERROR in gifting.init: " + err);
+                con.error("ERROR in gifting.init: " + err);
                 return undefined;
+            }
+        },
+
+        ajaxGiftCheck: function () {
+            try {
+                con.log(2, 'gifting.ajaxGiftCheck');
+                function onSuccess(data, textStatus, XMLHttpRequest) {
+                    if ($u.hasContent($j("div[class='messages'] a[href*='army.php?act=ignore']", data))) {
+                        con.log(1, 'We have a gift waiting!');
+                        state.setItem('HaveGift', true);
+                    } else {
+                        con.log(2, 'No gifts waiting.');
+                        state.setItem('HaveGift', false);
+                    }
+                }
+
+                function onError(XMLHttpRequest, textStatus, errorThrown) {
+                    con.warn('ajaxGiftCheck failed!');
+                }
+
+                if (config.getItem('useAjaxGiftCheck', true) && $u.hasContent(session.getItem("signedRequest"))) {
+                    caap.ajax('army.php', null, onError, onSuccess);
+                } else {
+                    caap.clickAjaxLinkSend('army.php');
+                }
+
+                var time = config.getItem('CheckGiftMins', 15);
+                time = time < 15 ? 15 : time;
+                schedule.setItem("ajaxGiftCheck", time * 60, 300);
+                return true;
+            } catch (err) {
+                con.error("ERROR in gifting.ajaxGiftCheck: " + err);
+                return false;
+            }
+        },
+
+        selectedGift: false,
+
+        selectGift: function (giftChoice) {
+            try {
+                if (caap.navigateTo('army,gift', 'tab_gifts_on.gif')) {
+                    return true;
+                }
+
+                var giftImg = gifting.gifts.getImg(giftChoice),
+                    giftContainer,
+                    tempDiv;
+
+                if ($u.hasContent(giftImg)) {
+                    giftContainer = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer", caap.appBodyDiv);
+                    if (!$u.hasContent(giftContainer)) {
+                        con.warn("Could not find giftContainer");
+                        return false;
+                    }
+
+                    tempDiv = $j("img[src*='gift_more_gifts.gif']", giftContainer);
+                    if ($u.hasContent(tempDiv)) {
+                        caap.click(tempDiv);
+                        caap.clearDomWaiting();
+                    }
+
+                    tempDiv = $j("img[class^='imgButton']", giftContainer);
+                    if (!$u.hasContent(giftContainer)) {
+                        con.warn("Could not find imgButton");
+                        return false;
+                    }
+
+                    tempDiv.each(function () {
+                        var button = $j(this),
+                            imgSrc = $u.setContent(button.attr("src"), '').basename();
+
+                        if (imgSrc !== giftImg) {
+                            return true;
+                        }
+
+                        caap.click(button);
+                        gifting.selectedGift = true;
+                        con.log(1, "Gift selected", giftChoice);
+                        return true;
+                    });
+                } else {
+                    con.log(1, "Unknown gift, using first", giftChoice);
+                    gifting.selectedGift = true;
+                }
+
+                return true;
+            } catch (err) {
+                con.error("ERROR in gifting.selectGift: " + err);
+                return false;
+            }
+        },
+
+        exceedLog: true,
+
+        run: function () {
+            try {
+                var tempDiv    = $j(),
+                    tempText   = '',
+                    giftImg    = '',
+                    giftChoice = '',
+                    popCheck,
+                    collecting,
+                    button,
+                    giftingList;
+
+                if (gifting.messageSent) {
+                    return true;
+                }
+
+                popCheck = gifting.popCheck();
+                if ($u.isBoolean(popCheck)) {
+                    return popCheck;
+                }
+
+                // Go to gifts page if gift list is empty
+                if (gifting.gifts.length() <= 2) {
+                    if (caap.navigateTo('army,gift', 'tab_gifts_on.gif')) {
+                        return true;
+                    }
+                }
+
+                collecting = gifting.collecting();
+                if ($u.isBoolean(collecting)) {
+                    return collecting;
+                }
+
+                if (config.getItem("CollectOnly", false)) {
+                    return false;
+                }
+
+                if (!schedule.check("NoGiftDelay")) {
+                    return false;
+                }
+
+                if (!schedule.check("MaxGiftsExceeded")) {
+                    if (gifting.exceedLog) {
+                        con.log(1, 'Gifting limit exceeded, will try later');
+                        gifting.exceedLog = false;
+                        caap.setDivContent('gifting_mess', "Max gift limit");
+                    }
+
+                    return false;
+                }
+
+                giftChoice = gifting.queue.chooseGift();
+                if (gifting.queue.length() && giftChoice) {
+                    giftingList = gifting.queue.chooseFriend(gm ? gm.getItem("NumberOfGifts", 5, hiddenVar) : 5);
+                    if ($u.hasContent(giftingList)) {
+                        sessionStorage.setItem("caap_giftSend", JSON.stringify(giftingList));
+                        if (!gifting.selectedGift) {
+                            return gifting.selectGift(giftChoice);
+                        }
+
+                        if (!$u.hasContent(gifting.queue.clickFriend(giftingList))) {
+                            con.log(1, "No friends chosen");
+                            return false;
+                        }
+
+                        button = $j("img[src*='invite_sendgift.gif']", caap.appBodyDiv);
+                        if ($u.hasContent(button)) {
+                            if (!gifting.clickedButton) {
+                                caap.click(button);
+                                caap.clearDomWaiting();
+                                gifting.clickedButton = true;
+                                return true;
+                            }
+                        } else {
+                            con.warn("Friend button not found!");
+                            return false;
+                        }
+
+                        if (!caap.messaging.connected.hasIndexOf("caapifp")) {
+                            con.warn("caapifp not ready");
+                            return true;
+                        }
+
+                        if (gifting.clickedButton && !gifting.messageSent && !gifting.frameResult) {
+                            gifting.queue.setCheckedIds(giftingList);
+                            return true;
+                        }
+
+                        if (gifting.clickedButton && !gifting.messageSent && gifting.frameResult) {
+                            gifting.clickedButton = false;
+                        }
+
+                        if (caap.domain.which === 2) {
+                            tempDiv = $j("form[id*='req_form_'] input[name='send']", caap.globalContainer);
+                            if ($u.hasContent(tempDiv)) {
+                                caap.click(tempDiv);
+                                return true;
+                            } else {
+                                con.warn("Send button not found!");
+                                return false;
+                            }
+                        }
+
+                    } else {
+                        con.log(1, "No friends chosen");
+                        return false;
+                    }
+                }
+
+                if ($j.isEmptyObject(gifting.getCurrent())) {
+                    return false;
+                }
+
+                return true;
+            } catch (err) {
+                con.error("ERROR in gifting.run: " + err);
+                return false;
             }
         },
 
@@ -98,37 +331,34 @@
         /*jslint sub: true */
         accept: function () {
             try {
-                // Some users reported an issue with the following jQuery search using jQuery 1.4.3
-                //giftDiv = $j("div[class='messages']:first img:first");
-                // So I have changed the query to try and resolve the issue
-                var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id='] img", caap.globalContainer).eq(0),
+                var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id=']", caap.globalContainer).eq(0),
                     tempText  = '',
                     tempNum   = 0,
                     current   = {};
 
                 if ($u.hasContent(giftDiv)) {
-                    tempNum = $u.setContent(giftDiv.attr("uid"), '0').parseInt();
+                    tempNum = $u.setContent(giftDiv.parent().attr("uid"), '0').parseInt();
                     if ($u.hasContent(tempNum) && tempNum > 0) {
                         current = new gifting.queue.record();
                         current.data['userId'] = tempNum;
-                        tempText = $u.setContent(giftDiv.attr("title"), '').trim();
+                        tempText = $u.setContent(giftDiv.children().eq(0).attr("title"), '').trim();
                         if ($u.hasContent(tempText)) {
                             current.data['name'] = tempText;
                         } else {
-                            $u.warn("No name found!");
+                            con.warn("No name found!");
                             current.data['name'] = "Unknown";
                         }
                     } else {
-                        $u.warn("No uid found!");
+                        con.warn("No uid found!");
                     }
                 } else {
-                    $u.warn("No gift messages found!");
+                    con.warn("No gift messages found!");
                 }
 
-                gifting.setCurrent(gm.setItem("GiftEntry", current.data));
+                gifting.setCurrent(current.data);
                 return !$j.isEmptyObject(gifting.getCurrent());
             } catch (err) {
-                $u.error("ERROR in gifting.accept: " + err);
+                con.error("ERROR in gifting.accept: " + err);
                 return undefined;
             }
         },
@@ -143,7 +373,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.loadCurrent: " + err);
+                con.error("ERROR in gifting.loadCurrent: " + err);
                 return false;
             }
         },
@@ -152,43 +382,71 @@
             try {
                 return gifting.cachedGiftEntry;
             } catch (err) {
-                $u.error("ERROR in gifting.getCurrent: " + err);
+                con.error("ERROR in gifting.getCurrent: " + err);
                 return undefined;
             }
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        setCurrent: function (record) {
+        setCurrent: function (record, clear, src) {
             try {
-                if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
-                    throw "Not passed a record";
+                if (clear) {
+                    gifting.cachedGiftEntry = {};
+                } else if (src === "caapif") {
+                    gifting.cachedGiftEntry = record;
+                } else {
+                    if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
+                        throw "Not passed a record";
+                    }
+
+                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
+                        con.warn("userId", record, record['userId']);
+                        throw "Invalid identifying userId!";
+                    }
+
+                    gifting.cachedGiftEntry = record;
                 }
 
-                if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                    $u.warn("userId", record, record['userId']);
-                    throw "Invalid identifying userId!";
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('gifting.cachedGiftEntry', gifting.cachedGiftEntry);
+                } else {
+                    gm.setItem("GiftEntry", gifting.cachedGiftEntry);
+                    con.log(3, "gifting.setCurrent", gifting.cachedGiftEntry);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "gifting.setCurrent send");
+                        caap.messaging.setItem('gifting.cachedGiftEntry', gifting.cachedGiftEntry);
+                    }
                 }
 
-                gifting.cachedGiftEntry = gm.setItem("GiftEntry", record);
                 return gifting.cachedGiftEntry;
             } catch (err) {
-                $u.error("ERROR in gifting.setCurrent: " + err);
+                con.error("ERROR in gifting.setCurrent: " + err);
                 return undefined;
             }
         },
         /*jslint sub: false */
 
-        clearCurrent: function () {
+        clearCurrent: function (clearState) {
             try {
-                gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
-                state.setItem("GiftingRefresh", 0);
-                return gifting.cachedGiftEntry;
+                if (clearState) {
+                    state.setItem("GiftingRefresh", 0);
+                }
+
+                return gifting.setCurrent(null, true);
             } catch (err) {
-                $u.error("ERROR in gifting.clearCurrent: " + err);
+                con.error("ERROR in gifting.clearCurrent: " + err);
                 return undefined;
             }
         },
+
+        clickedButton: false,
+
+        messageSent: false,
+
+        frameResult: null,
+
+        checkResults: false,
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
@@ -210,18 +468,26 @@
                     }
 
                     schedule.setItem('ClickedFacebookURL', 30);
-                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/reqs.php#confirm_46755028429_0");
+                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[1]);
+                    /*
+                    if (caap.domain.which === 3) {
+                        caap.messaging.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[1]);
+                    } else {
+                        caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[1]);
+                    }
+                    */
+
                     return true;
                 }
 
                 if (!$j.isEmptyObject(giftEntry) && !giftEntry['checked']) {
-                    $u.log(1, "Clearing incomplete pending gift", giftEntry);
-                    gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
+                    con.log(1, "Clearing incomplete pending gift", giftEntry);
+                    gifting.clearCurrent();
                 }
 
                 return null;
             } catch (err) {
-                $u.error("ERROR in gifting.collecting: " + err);
+                con.error("ERROR in gifting.collecting: " + err);
                 return undefined;
             }
         },
@@ -240,14 +506,14 @@
 
                 giftEntry = gifting.getCurrent();
                 if ($j.isEmptyObject(giftEntry)) {
-                    $u.log(1, 'On FB page with but no gift');
+                    con.log(1, 'On FB page with but no gift');
                     caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php?bm=1&ref=bookmarks&count=0");
                     return false;
                 }
 
                 if (!giftEntry['checked'] || rfCount > 0) {
-                    $u.log(1, 'On FB page with gift ready to go');
-                    appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
+                    con.log(1, 'On FB page with gift ready to go');
+                    appDiv = $j("#confirm_46755028429 .requests").children("li");
                     if ($u.hasContent(appDiv)) {
                         giftsList = gifting.gifts.list().concat(gifting.extraList);
                         appDiv.each(function (index) {
@@ -257,11 +523,11 @@
                                     giftType    = '',
                                     userId      = 0,
                                     name        = '',
-                                    giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
-                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php'],input[name*='quests.php']", giftRequest);
+                                    giftDiv     = $j(".appRequestBodyNewA", giftRequest),
+                                    inputDiv    = $j("input[name='actions[accept]']", giftRequest);
 
                                 if ($u.hasContent(inputDiv)) {
-                                    userId = $u.setContent(inputDiv.attr("name"), 'uid=0').regex(/uid=(\d+)/i);
+                                    userId = $j("input[name='params[from_id]']", giftRequest).val().parseInt();
                                     if (giftEntry['userId'] !== userId) {
                                         return true;
                                     }
@@ -271,22 +537,40 @@
                                         giftType = giftText.regex(new RegExp("has sent you a (.*) in Castle Age!", "i"));
                                         giftType = $u.setContent(giftType, $u.setContent(giftText.regex(new RegExp(".* army is (recruiting) .* in Castle Age!", "i")), '').ucFirst());
                                         giftType = $u.setContent(giftType, giftText.regex(new RegExp(".* needs your help to persuade the great general (.*) to their side in Castle Age", "i")));
+                                        giftType = $u.setContent(giftType, giftText.regex(new RegExp(".* needs your help to unlock the item (.*) in Castle Age", "i")));
+                                        giftType = $u.setContent(giftType, giftText.regex(new RegExp(".* is rallying you to aid them in their quest to become the Festival (Duel) Champion! Help each other rise to new heights in Castle Age", "i")));
+                                        giftType = $u.setContent(giftType, $u.hasContent(giftText.regex(new RegExp(".* is requesting your help to battle (.*) in Castle Age", "i"))) ? "Monster" : "");
+                                        giftType = $u.setContent(giftType, $u.setContent(giftText.regex(new RegExp(".* is recruiting you to his (guild), .*, in Castle Age", "i")), '').ucFirst());
                                         name = giftText.regex(new RegExp("(.*) has sent you a .* in Castle Age!", "i"));
                                         name = $u.setContent(name, giftText.regex(new RegExp("(.*) army is recruiting .* in Castle Age!", "i")));
                                         name = $u.setContent(name, giftText.regex(new RegExp("(.*) needs your help to persuade the great general .* to their side in Castle Age", "i")));
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) needs your help to unlock the item .* in Castle Age", "i")));
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) is rallying you to aid them in their quest to become the Festival Duel Champion! Help each other rise to new heights in Castle Age", "i")));
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) is requesting your help to battle .* in Castle Age", "i")));
+                                        name = $u.setContent(name, giftText.regex(new RegExp("(.*) is recruiting you to his guild, .*, in Castle Age", "i")));
+                                        if (giftType === "Guild") {
+                                            con.log(1, "Skipping Guild request from:", name);
+                                            return true;
+                                        }
+
+                                        if (giftType === "Monster") {
+                                            con.log(1, "Skipping Monster request from:", name);
+                                            return true;
+                                        }
+
                                         giftEntry['name'] = $u.setContent(giftEntry['name'], $u.setContent(name, 'Unknown'));
                                         if (!$u.hasContent(giftType)) {
-                                            $u.warn("No gift type found in ", giftText);
+                                            con.warn("No gift type found in ", giftText);
                                         }
                                     } else {
-                                        $u.warn("No fb_protected_wrapper in giftRequest", index);
+                                        con.warn("No appRequestBodyNewA in giftRequest", index);
                                     }
 
                                     if (giftType === '' || !giftsList.hasIndexOf(giftType)) {
-                                        $u.log(1, 'Unknown gift type', giftType, giftsList);
+                                        con.log(1, 'Unknown gift type', giftType, giftsList);
                                         giftType = 'Unknown Gift';
                                     } else {
-                                        $u.log(1, 'gift type', giftType, giftsList);
+                                        con.log(1, 'gift type', giftType, giftsList);
                                     }
 
                                     giftEntry['gift'] = giftType;
@@ -307,12 +591,12 @@
                                     }
 
                                     reload = true;
-                                    $u.warn("No input found in giftRequest", index);
+                                    con.warn("No input found in giftRequest", index);
                                 }
 
                                 return true;
                             } catch (e) {
-                                $u.warn("ERROR in gifting.collect: skipping" + e);
+                                con.warn("ERROR in gifting.collect: skipping" + e);
                                 return true;
                             }
                         });
@@ -322,7 +606,7 @@
                         }
 
                         reload = true;
-                        $u.warn("No gifts found for CA");
+                        con.warn("No gifts found for CA");
                     }
 
                     giftEntry['checked'] = true;
@@ -334,11 +618,11 @@
                 }
 
                 if (giftEntry['found']) {
-                    $u.log(1, 'Gift click timed out');
+                    con.log(1, 'Gift click timed out');
                 } else {
                     giftEntry['gift'] = 'Unknown Gift';
                     gifting.setCurrent(giftEntry);
-                    $u.log(1, 'Unable to find gift', giftEntry);
+                    con.log(1, 'Unable to find gift', giftEntry);
                 }
 
                 if (reload && rfCount === 1) {
@@ -349,7 +633,7 @@
                 caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.collect: " + err);
+                con.error("ERROR in gifting.collect: " + err);
                 return false;
             }
         },
@@ -358,25 +642,43 @@
         collected: function (force) {
             try {
                 var giftEntry   = gifting.getCurrent(),
-                    collectOnly = false;
+                    collectOnly = false,
+                    filterIdList = config.getList("FilterReturnIdList", ''),
+                    filterGiftList = config.getList("FilterReturnGiftList", ''),
+                    noQID = config.getItem("noQueueFilterReturnIdList", false),
+                    noQGift = config.getItem("noQueueFilterReturnGift", false),
+                    award;
 
                 if (!$j.isEmptyObject(giftEntry)) {
-                    if (force || caap.hasImage("gift_yes.gif")) {
+                    award = /You have been awarded the gift/.test(caap.resultsText) || /You have accepted the gift/.test(caap.resultsText) || /You spoke to/.test(caap.resultsText) || /You have helped/.test(caap.resultsText);
+                    if (!award) {
+                        con.log(1, "gifting.collected", giftEntry, caap.resultsText);
+                    }
+
+                    if (force || award || caap.hasImage("gift_yes.gif")) {
                         collectOnly = config.getItem("CollectOnly", false);
                         if (!collectOnly || (collectOnly && config.getItem("CollectAndQueue", false))) {
-                            gifting.queue.setItem(giftEntry);
+                            if (!noQID || (noQID && !filterIdList.hasIndexOf(giftEntry['userId']))) {
+                                if (!noQGift || (noQGift && !filterGiftList.hasIndexOf(giftEntry['gift']))) {
+                                    gifting.queue.setItem(giftEntry);
+                                } else {
+                                    con.log(1, "Filter Gift, queue skipped", giftEntry, filterGiftList);
+                                }
+                            } else {
+                                con.log(1, "Filter ID, queue skipped", giftEntry, filterIdList);
+                            }
                         }
 
                         gifting.history.received(giftEntry);
                     }
 
-                    gifting.clearCurrent();
+                    gifting.clearCurrent(true);
                 }
 
                 schedule.setItem("NoGiftDelay", 0);
                 return true;
             } catch (err) {
-                $u.error("ERROR in gifting.collected: " + err);
+                con.error("ERROR in gifting.collected: " + err);
                 return false;
             }
         },
@@ -391,15 +693,17 @@
                 if ($u.hasContent(popDiv)) {
                     tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(2, 'Sending gifts to Facebook');
+                        con.log(2, 'Sending gifts to Facebook');
                         caap.click(tempDiv);
+                        caap.clearDomWaiting();
                         return true;
                     }
 
                     tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(2, 'Denying Email Nag For Gift Send');
+                        con.log(2, 'Denying Email Nag For Gift Send');
                         caap.click(tempDiv);
+                        caap.clearDomWaiting();
                         return true;
                     }
 
@@ -408,43 +712,46 @@
                         tempText = $u.setContent(tempDiv.parent().parent().prev().text(), '').trim().innerTrim();
                         if (tempText) {
                             if (/you have run out of requests/.test(tempText)) {
-                                $u.log(2, 'Out of gift requests: ', tempText);
+                                con.log(2, 'Out of gift requests: ', tempText);
                                 schedule.setItem("MaxGiftsExceeded", 10800, 300);
                                 caap.setDivContent('gifting_mess', "Max gift limit");
                                 tryAgain = false;
                             } else {
-                                $u.warn('Unknown popup message: ', tempText);
+                                con.warn('Unknown popup message: ', tempText);
                             }
                         } else {
-                            $u.warn('Popup message but no text found');
+                            con.warn('Popup message but no text found');
                         }
 
                         caap.click(tempDiv);
+                        caap.clearDomWaiting();
                         return tryAgain;
                     }
 
                     tempText = $u.setContent(popDiv.text(), '').trim().innerTrim();
                     if (tempText) {
                         if (/Loading/.test(tempText)) {
-                            $u.log(2, "Popup is loading ...");
+                            con.log(2, "Popup is loading ...");
                             return true;
                         } else {
-                            $u.warn('Unknown popup!', tempText);
+                            con.warn('Unknown popup!', tempText);
                             return false;
                         }
                     } else {
-                        $u.warn('Popup message but no text found');
+                        con.warn('Popup message but no text found');
                         return false;
                     }
                 }
 
-                if (gifting.waitingForDomLoad) {
+                /*
+                if (caap.getDomWaiting()) {
                     return true;
                 }
+                */
 
                 return null;
             } catch (err) {
-                $u.error("ERROR in gifting.popCheck: " + err);
+                con.error("ERROR in gifting.popCheck: " + err);
                 return undefined;
             }
         },
@@ -462,6 +769,8 @@
                 htmlCode += caap.startToggle('Gifting', 'GIFTING OPTIONS');
                 htmlCode += caap.makeCheckTR('Auto Gifting', 'AutoGift', false, giftInstructions);
                 htmlCode += caap.startCheckHide('AutoGift');
+                htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxGiftCheck', true, "Check for gifts using AJAX rather than page navigation.");
+                htmlCode += caap.makeCheckTR('Watch FB Beeper', 'watchBeeper', true, "Watch the FB Beeper for new gifts.");
                 htmlCode += caap.makeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
                 htmlCode += caap.makeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
                 htmlCode += caap.startCheckHide('CollectOnly');
@@ -474,15 +783,16 @@
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Do not return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
+                htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnIdList', false, "Do not queue gifts for a list of certain UserIDs recieved", true);
                 htmlCode += caap.endCheckHide('FilterReturnId');
                 htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Do not return gifts for a list of certain gifts recieved");
                 htmlCode += caap.startCheckHide('FilterReturnGift');
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Do not return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
+                htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnGift', false, "Do not queue gifts for a list of certain gifts recieved", true);
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
-
                 htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
                 htmlCode += caap.startCheckHide('giftModifyTimers');
                 htmlCode += caap.makeNumberFormTR("Max Gift Hours", 'MaxGiftsExceededDelaySecs', "When Max Gifts is exceeded wait X hours before attempting to send gifts. Minimum 1.", 3, '', '', true);
@@ -496,7 +806,7 @@
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in gifting.menu: " + err);
+                con.error("ERROR in gifting.menu: " + err);
                 return '';
             }
         },
@@ -524,7 +834,7 @@
                         gift  = false;
 
                     if (!$u.isString(name) || name === '') {
-                        $u.warn("name", name);
+                        con.warn("name", name);
                         throw "Invalid identifying name!";
                     }
 
@@ -537,7 +847,7 @@
 
                     return gift;
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.getItem: " + err);
+                    con.error("ERROR in gifting.gifts.getItem: " + err);
                     return undefined;
                 }
             },
@@ -549,10 +859,9 @@
                         image = '';
 
                     if (!$u.isString(name) || name === '') {
-                        $u.warn("name", name);
+                        con.warn("name", name);
                         throw "Invalid identifying name!";
                     }
-
 
                     if (name !== 'Unknown Gift') {
                         for (it = 0, len = gifting.gifts.records.length; it < len; it += 1) {
@@ -563,13 +872,13 @@
                         }
 
                         if (it >= len) {
-                            $u.warn("Gift not in list! ", name);
+                            con.warn("Gift not in list! ", name);
                         }
                     }
 
                     return image;
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.getImg: " + err);
+                    con.error("ERROR in gifting.gifts.getImg: " + err);
                     return undefined;
                 }
             },
@@ -594,11 +903,11 @@
                                 if ($u.hasContent(tempText)) {
                                     newGift.data['name'] = tempText;
                                 } else {
-                                    $u.warn("Unable to get gift name! No text in ", tempDiv);
+                                    con.warn("Unable to get gift name! No text in ", tempDiv);
                                     return true;
                                 }
                             } else {
-                                $u.warn("Unable to get gift name! No child!");
+                                con.warn("Unable to get gift name! No child!");
                                 return true;
                             }
 
@@ -608,11 +917,11 @@
                                 if (tempText) {
                                     newGift.data['image'] = tempText;
                                 } else {
-                                    $u.warn("Unable to get gift image! No src in ", tempDiv);
+                                    con.warn("Unable to get gift image! No src in ", tempDiv);
                                     return true;
                                 }
                             } else {
-                                $u.warn("Unable to get gift image! No img!");
+                                con.warn("Unable to get gift image! No img!");
                                 return true;
                             }
 
@@ -623,7 +932,7 @@
                                 }
 
                                 newGift.data['name'] += " #" + it;
-                                $u.log(2, "Gift exists, no auto return for ", newGift.data['name']);
+                                con.log(2, "Gift exists, no auto return for ", newGift.data['name']);
                             }
 
                             gifting.gifts.records.push(newGift.data);
@@ -636,7 +945,7 @@
                         tempArr = gifting.gifts.list();
                         tempText = config.getItem("GiftChoice", gifting.gifts.options[0]);
                         if (!tempArr.hasIndexOf(tempText))  {
-                            $u.log(1, "Gift choice invalid, changing from/to ", tempText, gifting.gifts.options[0]);
+                            con.log(1, "Gift choice invalid, changing from/to ", tempText, gifting.gifts.options[0]);
                             tempText = config.setItem("GiftChoice", gifting.gifts.options[0]);
                         }
 
@@ -646,7 +955,7 @@
 
                     return update;
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.populate: " + err);
+                    con.error("ERROR in gifting.gifts.populate: " + err);
                     return undefined;
                 }
             },
@@ -664,7 +973,7 @@
 
                     return $j.merge(giftOpts, giftList);
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.list: " + err);
+                    con.error("ERROR in gifting.gifts.list: " + err);
                     return undefined;
                 }
             },
@@ -673,7 +982,7 @@
                 try {
                     return gifting.gifts.records[Math.floor(Math.random() * (gifting.gifts.records.length))]['name'];
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.random: " + err);
+                    con.error("ERROR in gifting.gifts.random: " + err);
                     return undefined;
                 }
             },
@@ -683,7 +992,7 @@
                 try {
                     return gifting.gifts.records.length;
                 } catch (err) {
-                    $u.error("ERROR in gifting.gifts.length: " + err);
+                    con.error("ERROR in gifting.gifts.length: " + err);
                     return undefined;
                 }
             }
@@ -714,7 +1023,7 @@
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
                         if ($u.isNaN(gifting.queue.records[it]['userId']) || gifting.queue.records[it]['userId'] < 1 || gifting.queue.records[it]['sent'] === true) {
-                            $u.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
+                            con.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
                             gifting.queue.records.splice(it, 1);
                             save = true;
                         }
@@ -726,7 +1035,7 @@
 
                     return save;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.fix: " + err);
+                    con.error("ERROR in gifting.queue.fix: " + err);
                     return undefined;
                 }
             },
@@ -740,7 +1049,7 @@
                     }
 
                     if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        $u.warn("userId", record['userId']);
+                        con.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
 
@@ -755,11 +1064,11 @@
                                 if (gifting.queue.records[it]['name'] !== record['name']) {
                                     gifting.queue.records[it]['name'] = record['name'];
                                     updated = true;
-                                    $u.log(2, "Updated users name", record, gifting.queue.records);
+                                    con.log(2, "Updated users name", record, gifting.queue.records);
                                 }
 
                                 found = true;
-                                $u.log(2, "found in queue", gifting.queue.records[it]);
+                                con.log(2, "found in queue", gifting.queue.records[it]);
                                 break;
                             }
                         }
@@ -768,7 +1077,7 @@
                     if (!found) {
                         gifting.queue.records.push(record);
                         updated = true;
-                        $u.log(2, "Added gift to queue", record, gifting.queue.records);
+                        con.log(2, "Added gift to queue", record, gifting.queue.records);
                     }
 
                     if (updated) {
@@ -777,7 +1086,7 @@
 
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.setItem: " + err, record);
+                    con.error("ERROR in gifting.queue.setItem: " + err, record);
                     return false;
                 }
             },
@@ -793,7 +1102,7 @@
                     gifting.save("queue");
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.deleteIndex: " + err, index);
+                    con.error("ERROR in gifting.queue.deleteIndex: " + err, index);
                     return false;
                 }
             },
@@ -802,7 +1111,25 @@
                 try {
                     return gifting.queue.records.length;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.length: " + err);
+                    con.error("ERROR in gifting.queue.length: " + err);
+                    return undefined;
+                }
+            },
+
+            getIds: function () {
+                try {
+                    var it = 0,
+                        ids = [];
+
+                    for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
+                        if (!$u.isNaN(gifting.queue.records[it]['userId']) && gifting.queue.records[it]['userId'] > 1) {
+                            ids.push(gifting.queue.records[it]['userId']);
+                        }
+                    }
+
+                    return ids;
+                } catch (err) {
+                    con.error("ERROR in gifting.queue.getIds: " + err);
                     return undefined;
                 }
             },
@@ -852,7 +1179,7 @@
                         }
 
                         if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                            $u.log(2, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
+                            con.log(3, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
                             continue;
                         }
 
@@ -860,7 +1187,7 @@
                             filterGiftCont = false;
                             for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                                 if (gifting.queue.records[it]['gift'].hasIndexOf(filterGiftList[it1])) {
-                                    $u.log(2, "chooseGift Filter Gift", gifting.queue.records[it]['gift']);
+                                    con.log(3, "chooseGift Filter Gift", gifting.queue.records[it]['gift']);
                                     filterGiftCont = true;
                                     break;
                                 }
@@ -894,7 +1221,117 @@
 
                     return gift;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.chooseGift: " + err);
+                    con.error("ERROR in gifting.queue.chooseGift: " + err);
+                    return undefined;
+                }
+            },
+
+            clickFriend: function (giftingList) {
+                try {
+                    var it             = 0,
+                        it1            = 0,
+                        len            = 0,
+                        tempGift       = '',
+                        unselListDiv   = $j("div[class='unselected_list']", caap.appBodyDiv),
+                        selListDiv     = $j("div[class='selected_list']", caap.appBodyDiv),
+                        unselDiv       = $j(),
+                        selDiv         = $j(),
+                        first          = true,
+                        same           = true,
+                        returnOnlyOne  = false,
+                        filterId       = false,
+                        filterIdList   = [],
+                        filterIdLen    = 0,
+                        filterGift     = false,
+                        filterGiftList = [],
+                        filterGiftLen  = 0,
+                        filterGiftCont = false,
+                        searchStr      = '',
+                        clickedList    = [],
+                        pendingList    = [],
+                        chosenList     = [],
+                        time           = 0;
+
+                    if ($u.hasContent(giftingList)) {
+                        if (caap.domain.which === 3) {
+                            chosenList = giftingList;
+                        } else if (caap.domain.which === 2) {
+                            for (it = 0, len = giftingList.length; it < len; it += 1) {
+                                searchStr += "input[value='" + giftingList[it] + "']";
+                                if (it >= 0 && it < len - 1) {
+                                    searchStr += ",";
+                                }
+                            }
+
+                            unselDiv = $j(searchStr, unselListDiv);
+                            if ($u.hasContent(unselDiv)) {
+                                unselDiv.each(function () {
+                                    var unsel = $j(this),
+                                        id    = $u.setContent(unsel.attr("value"), '0').parseInt();
+
+                                    if (!/none/.test($u.setContent(unsel.parent().attr("style"), ''))) {
+                                        caap.click(unsel);
+                                        caap.clearDomWaiting();
+                                        con.log(2, "Id clicked:", id);
+                                        clickedList.push(id);
+                                    } else {
+                                        con.log(2, "Id not found, perhaps gift pending:", id);
+                                        pendingList.push(id);
+                                    }
+                                });
+                            } else {
+                                con.log(2, "Ids not found:", giftingList, searchStr);
+                                $j.merge(pendingList, giftingList);
+                            }
+
+                            if ($u.hasContent(clickedList)) {
+                                for (it = 0, len = clickedList.length; it < len; it += 1) {
+                                    searchStr += "input[value='" + clickedList[it] + "']";
+                                    if (it >= 0 && it < len - 1) {
+                                        searchStr += ",";
+                                    }
+                                }
+
+                                selDiv = $j(searchStr, selListDiv);
+                                if ($u.hasContent(selDiv)) {
+                                    selDiv.each(function () {
+                                        var sel = $j(this),
+                                            id  = $u.setContent(sel.attr("value"), '0').parseInt();
+
+                                        if (!/none/.test($u.setContent(sel.parent().attr("style"), ''))) {
+                                            con.log(2, "User Chosen:", id);
+                                            chosenList.push(id);
+                                        } else {
+                                            con.log(2, "Selected id is none:", id);
+                                            pendingList.push(id);
+                                        }
+                                    });
+                                } else {
+                                    con.log(2, "Selected ids not found:", searchStr);
+                                    $j.merge(pendingList, clickedList);
+                                }
+                            }
+
+                            con.log(2, "chosenList/pendingList", chosenList, pendingList);
+                            for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
+                                if (chosenList.hasIndexOf(gifting.queue.records[it]['userId'])) {
+                                    con.log(2, "Chosen", gifting.queue.records[it]['userId']);
+                                    gifting.queue.records[it]['chosen'] = true;
+                                    gifting.queue.records[it]['last'] = Date.now();
+                                } else if (pendingList.hasIndexOf(gifting.queue.records[it]['userId'])) {
+                                    con.log(2, "Pending", gifting.queue.records[it]['userId']);
+                                    gifting.queue.records[it]['last'] = Date.now();
+                                }
+                            }
+
+                            caap.clearDomWaiting();
+                            gifting.save("queue");
+                        }
+                    }
+
+                    return chosenList;
+                } catch (err) {
+                    con.error("ERROR in gifting.queue.clickFriend: " + err);
                     return undefined;
                 }
             },
@@ -925,7 +1362,7 @@
                         pendingList    = [],
                         chosenList     = [],
                         time           = 0;
-
+con.log(1, 'chooseFriend');
                     if ($u.isNaN(howmany) || howmany < 1) {
                         throw "Invalid howmany! (" + howmany + ")";
                     }
@@ -965,7 +1402,7 @@
                         }
 
                         if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                            $u.log(2, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
+                            con.log(3, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
                             continue;
                         }
 
@@ -973,7 +1410,7 @@
                             filterGiftCont = false;
                             for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                                 if (gifting.queue.records[it]['gift'].hasIndexOf(filterGiftList[it1])) {
-                                    $u.log(2, "chooseFriend Filter Gift", gifting.queue.records[it]['gift']);
+                                    con.log(3, "chooseFriend Filter Gift", gifting.queue.records[it]['gift']);
                                     filterGiftCont = true;
                                     break;
                                 }
@@ -986,8 +1423,8 @@
 
                         if (returnOnlyOne) {
                             if (gifting.history.checkSentOnce(gifting.queue.records[it]['userId'])) {
-                                $u.log(2, "Sent Today: ", gifting.queue.records[it]['userId']);
-                                gifting.queue.records[it]['last'] = new Date().getTime();
+                                con.log(2, "Sent Today: ", gifting.queue.records[it]['userId']);
+                                gifting.queue.records[it]['last'] = Date.now();
                                 continue;
                             }
                         }
@@ -1002,129 +1439,155 @@
                         }
                     }
 
-                    if ($u.hasContent(giftingList)) {
-                        for (it = 0, len = giftingList.length; it < len; it += 1) {
-                            searchStr += "input[value='" + giftingList[it] + "']";
-                            if (it >= 0 && it < len - 1) {
-                                searchStr += ",";
-                            }
+                    return giftingList;
+                } catch (err) {
+                    con.error("ERROR in gifting.queue.chooseFriend: " + err);
+                    return undefined;
+                }
+            },
+
+            sentGifts: function (msg) {
+                try {
+                    con.log(2, "sentGifts", msg);
+                    gifting.messageSent = false;
+                    gifting.frameResult = msg.data;
+
+                    var chosenList  = gifting.frameResult['areChecked'],
+                        pendingList = [].concat(gifting.frameResult['notFound']).concat(gifting.frameResult['notChecked']),
+                        getTime     = Date.now(),
+                        userId      = 0,
+                        it          = 0,
+                        len         = gifting.queue.records.length;
+
+                    for (it = 0; it < len; it += 1) {
+                        userId = gifting.queue.records[it]['userId'];
+                        if (chosenList.hasIndexOf(userId)) {
+                            con.log(2, "Chosen", userId);
+                            gifting.queue.records[it]['chosen'] = true;
+                            gifting.queue.records[it]['last'] = getTime;
+                        } else if (pendingList.hasIndexOf(userId)) {
+                            con.log(2, "Pending", userId);
+                            gifting.queue.records[it]['last'] = getTime;
                         }
-
-                        unselDiv = $j(searchStr, unselListDiv);
-                        if ($u.hasContent(unselDiv)) {
-                            unselDiv.each(function () {
-                                var unsel = $j(this),
-                                    id    = $u.setContent(unsel.attr("value"), '0').parseInt();
-
-                                if (!/none/.test($u.setContent(unsel.parent().attr("style"), ''))) {
-                                    caap.waitingForDomLoad = false;
-                                    caap.click(unsel);
-                                    $u.log(2, "Id clicked:", id);
-                                    clickedList.push(id);
-                                } else {
-                                    $u.log(2, "Id not found, perhaps gift pending:", id);
-                                    pendingList.push(id);
-                                }
-                            });
-                        } else {
-                            $u.log(2, "Ids not found:", giftingList, searchStr);
-                            $j.merge(pendingList, giftingList);
-                        }
-
-                        if ($u.hasContent(clickedList)) {
-                            for (it = 0, len = clickedList.length; it < len; it += 1) {
-                                searchStr += "input[value='" + clickedList[it] + "']";
-                                if (it >= 0 && it < len - 1) {
-                                    searchStr += ",";
-                                }
-                            }
-
-                            selDiv = $j(searchStr, selListDiv);
-                            if ($u.hasContent(selDiv)) {
-                                selDiv.each(function () {
-                                    var sel = $j(this),
-                                        id  = $u.setContent(sel.attr("value"), '0').parseInt();
-
-                                    if (!/none/.test($u.setContent(sel.parent().attr("style"), ''))) {
-                                        $u.log(2, "User Chosen:", id);
-                                        chosenList.push(id);
-                                    } else {
-                                        $u.log(2, "Selected id is none:", id);
-                                        pendingList.push(id);
-                                    }
-                                });
-                            } else {
-                                $u.log(2, "Selected ids not found:", searchStr);
-                                $j.merge(pendingList, clickedList);
-                            }
-                        }
-
-                        $u.log(2, "chosenList/pendingList", chosenList, pendingList);
-                        for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                            if (chosenList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                                $u.log(2, "Chosen", gifting.queue.records[it]['userId']);
-                                gifting.queue.records[it]['chosen'] = true;
-                                gifting.queue.records[it]['last'] = new Date().getTime();
-                            } else if (pendingList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                                $u.log(2, "Pending", gifting.queue.records[it]['userId']);
-                                gifting.queue.records[it]['last'] = new Date().getTime();
-                            }
-                        }
-
-                        caap.waitingForDomLoad = false;
-                        gifting.save("queue");
                     }
 
-                    return chosenList.length;
+                    gifting.save("queue");
+                    return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.chooseFriend: " + err);
-                    return undefined;
+                    con.error("ERROR in gifting.queue.sentGifts: " + err);
+                    gifting.messageSent = false;
+                    return false;
+                }
+            },
+
+            resultsContainer: null,
+
+            checkSentTo: null,
+
+            sentHtml: '',
+
+            checkSent: function (event) {
+                try {
+                    var howMany,
+                        button = $j("img[src*='tab_gifts_on.gif']", caap.appBodyDiv);
+
+                    con.log(1, "gifting.queue.checkSent begin");
+                    if ($u.mutationTypes['DOMSubtreeModified']) {
+                        gifting.queue.resultsContainer.unbind("DOMSubtreeModified", gifting.queue.checkSent);
+                    } else if ($u.mutationTypes['DOMAttrModified']) {
+                        gifting.queue.resultsContainer.unbind("DOMAttrModified", gifting.queue.checkSent);
+                    } else {
+                        window.clearTimeout(gifting.queue.checkSentTo);
+                    }
+
+                    gifting.checkResults = true;
+                    howMany = gifting.queue.sent();
+                    gifting.checkResults = false;
+                    gifting.queue.sentHtml = "<div id='caap_results_container_" + (Math.random() * 100).dp(0) + "' class='results_container'>CAAP sent " + howMany + " gift" + $u.plural(howMany) + "!</div>";
+                    gifting.queue.resultsContainer.before(gifting.queue.sentHtml);
+                    gifting.queue.resultsContainer = null;
+                    gifting.frameResult = null;
+                    gifting.clickedButton = false;
+                    session.setItem("delayMain", false);
+                    if ($u.hasContent(button)) {
+                        caap.click(button);
+                    } else {
+                        con.warn("Unable to find gifting tab");
+                    }
+
+                    con.log(1, "gifting.queue.checkSent done");
+                } catch (err) {
+                    con.error("ERROR in gifting.queue.checkSent: " + err);
+                }
+            },
+
+            setCheckedIds: function (idArray) {
+                try {
+                    con.log(1, "gifting.queue.setCheckedIds");
+                    gifting.queue.resultsContainer = $j("#results_container", caap.appBodyDiv);
+                    if ($u.mutationTypes['DOMSubtreeModified']) {
+                        gifting.queue.resultsContainer.bind("DOMSubtreeModified", gifting.queue.checkSent);
+                    } else if ($u.mutationTypes['DOMAttrModified']) {
+                        gifting.queue.resultsContainer.bind("DOMAttrModified", gifting.queue.checkSent);
+                    } else {
+                        gifting.queue.checkSentTo = window.setTimeout(function () {
+                            gifting.queue.checkSent();
+                        }, 60000);
+                    }
+
+                    caap.messaging.setCheckedIds(idArray);
+                    gifting.messageSent = true;
+                    return true;
+                } catch (err) {
+                    con.error("ERROR in gifting.queue.setCheckedIds: " + err);
+                    gifting.messageSent = false;
+                    return false;
                 }
             },
 
             sent: function () {
                 try {
-                    var it         = 0,
-                        resultText = '',
-                        sentok     = false,
-                        time       = 0;
+                    var it          = 0,
+                        sentok      = false,
+                        time        = 0,
+                        resultsText = null,
+                        howMany     = 0;
 
-                    if (window.location.href.hasIndexOf('act=create')) {
-                        if ($u.hasContent(caap.resultsWrapperDiv)) {
-                            resultText = $u.setContent(caap.resultsWrapperDiv.text(), '').trim().innerTrim();
-                            if ($u.hasContent(resultText)) {
-                                if (/You have sent \d+ gift/.test(resultText)) {
-                                    for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
-                                        if (gifting.queue.records[it]['chosen']) {
-                                            gifting.queue.records[it]['sent'] = true;
-                                            gifting.history.sent(gifting.queue.records[it]);
-                                            gifting.queue.records.splice(it, 1);
-                                        }
+                    if (gifting.checkResults) {
+                        resultsText = $u.setContent(gifting.queue.resultsContainer.text(), '').trim().innerTrim();
+                        con.log(1, 'gifting.queue.sent resultsText', resultsText);
+                        if (gifting.checkResults) {
+                            howMany = $u.setContent(resultsText.regex(new RegExp("(\\d+) requests? sent!")), resultsText.regex(/You have sent (\d+) gift/));
+                            con.log(1, 'gifting.queue.sent', howMany);
+                            if (howMany > 0) {
+                                for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
+                                    if (gifting.queue.records[it]['chosen']) {
+                                        gifting.queue.records[it]['sent'] = true;
+                                        gifting.history.sent(gifting.queue.records[it]);
+                                        gifting.queue.records.splice(it, 1);
                                     }
-
-                                    $u.log(1, 'Confirmed gifts sent out.');
-                                    sentok = true;
-                                    gifting.save("queue");
-                                } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
-                                    $u.log(1, 'Exceeded daily gift limit.');
-                                    time = config.getItem("MaxGiftsExceededDelaySecs", 3);
-                                    time = time < 1 ? 1 : time;
-                                    schedule.setItem("MaxGiftsExceeded", time * 3600, 300);
-                                    caap.setDivContent('gifting_mess', "Max gift limit");
-                                } else {
-                                    $u.log(2, 'Result message', resultText);
                                 }
+
+                                con.log(1, 'Confirmed gifts sent out.');
+                                sentok = true;
+                                gifting.save("queue");
+                            } else if (/You have exceed the max gift limit for the day/.test(resultsText)) {
+                                con.log(1, 'Exceeded daily gift limit.');
+                                time = config.getItem("MaxGiftsExceededDelaySecs", 3);
+                                time = time < 1 ? 1 : time;
+                                schedule.setItem("MaxGiftsExceeded", time * 3600, 300);
+                                caap.setDivContent('gifting_mess', "Max gift limit");
                             } else {
-                                $u.log(2, 'No result message');
+                                con.log(2, 'Result message', resultsText);
                             }
+                        } else {
+                            con.log(2, 'No result message');
                         }
-                    } else {
-                        $u.log(2, 'Not a gift create request');
                     }
 
-                    return sentok;
+                    return howMany;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.sent: " + err);
+                    con.error("ERROR in gifting.queue.sent: " + err);
                     return undefined;
                 }
             },
@@ -1135,7 +1598,7 @@
                     Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
                     table and then build the header row.
                     \-------------------------------------------------------------------------------------*/
-                    if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
+                    if (config.getItem('DBDisplay', '') === 'Gift Queue' && session.getItem("GiftQueueDashUpdate", true)) {
                         var headers                = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'],
                             values                 = ['userId', 'name', 'gift', 'found'],
                             pp                     = 0,
@@ -1163,7 +1626,8 @@
                                 str = $u.setContent(gifting.queue.records[i][values[pp]], '');
                                 if (/userId/.test(values[pp])) {
                                     userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    //userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    userIdLink = "keep.php?casuser=" + str;
 
                                     data = {
                                         text  : '<span id="caap_targetgiftq_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
@@ -1221,7 +1685,8 @@
                             for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                                 if (e.target.attributes[i].nodeName === 'rlink') {
                                     visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                    //visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink;
                                 }
                             }
 
@@ -1250,12 +1715,12 @@
                         };
 
                         $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                        state.setItem("GiftQueueDashUpdate", false);
+                        session.setItem("GiftQueueDashUpdate", false);
                     }
 
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.queue.dashboard: " + err);
+                    con.error("ERROR in gifting.queue.dashboard: " + err);
                     return false;
                 }
             }
@@ -1285,7 +1750,7 @@
 
                     for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
                         if ($u.isNaN(gifting.history.records[it]['userId']) || gifting.history.records[it]['userId'] < 1) {
-                            $u.warn("gifting.history.fix - delete", gifting.history.records[it]);
+                            con.warn("gifting.history.fix - delete", gifting.history.records[it]);
                             gifting.history.records.splice(it, 1);
                             save = true;
                         }
@@ -1297,7 +1762,25 @@
 
                     return save;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.fix: " + err);
+                    con.error("ERROR in gifting.history.fix: " + err);
+                    return undefined;
+                }
+            },
+
+            getIds: function () {
+                try {
+                    var it = 0,
+                        ids = [];
+
+                    for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
+                        if (!$u.isNaN(gifting.history.records[it]['userId']) && gifting.history.records[it]['userId'] > 1) {
+                            ids.push(gifting.history.records[it]['userId']);
+                        }
+                    }
+
+                    return ids;
+                } catch (err) {
+                    con.error("ERROR in gifting.history.getIds: " + err);
                     return undefined;
                 }
             },
@@ -1311,7 +1794,7 @@
                     }
 
                     if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        $u.warn("userId", record['userId']);
+                        con.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1327,28 +1810,28 @@
                             }
 
                             gifting.history.records[it]['received'] += 1;
-                            gifting.history.records[it]['lastReceived'] = new Date().getTime();
+                            gifting.history.records[it]['lastReceived'] = Date.now();
                             success = true;
                             break;
                         }
                     }
 
                     if (success) {
-                        $u.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
+                        con.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                     } else {
                         newRecord = new gifting.history.record();
                         newRecord.data['userId'] = record['userId'];
                         newRecord.data['name'] = record['name'];
                         newRecord.data['received'] = 1;
-                        newRecord.data['lastReceived'] = new Date().getTime();
+                        newRecord.data['lastReceived'] = Date.now();
                         gifting.history.records.push(newRecord.data);
-                        $u.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
+                        con.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
                     }
 
                     gifting.save("history");
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.received: " + err, record);
+                    con.error("ERROR in gifting.history.received: " + err, record);
                     return false;
                 }
             },
@@ -1360,7 +1843,7 @@
                     }
 
                     if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        $u.warn("userId", record['userId']);
+                        con.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1376,28 +1859,28 @@
                             }
 
                             gifting.history.records[it]['sent'] += 1;
-                            gifting.history.records[it]['lastSent'] = new Date().getTime();
+                            gifting.history.records[it]['lastSent'] = Date.now();
                             success = true;
                             break;
                         }
                     }
 
                     if (success) {
-                        $u.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
+                        con.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                     } else {
                         newRecord = new gifting.history.record();
                         newRecord.data['userId'] = record['userId'];
                         newRecord.data['name'] = record['name'];
                         newRecord.data['sent'] = 1;
-                        newRecord.data['lastSent'] = new Date().getTime();
+                        newRecord.data['lastSent'] = Date.now();
                         gifting.history.records.push(newRecord.data);
-                        $u.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
+                        con.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
                     }
 
                     gifting.save("history");
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.sent: " + err, record);
+                    con.error("ERROR in gifting.history.sent: " + err, record);
                     return false;
                 }
             },
@@ -1405,7 +1888,7 @@
             checkSentOnce: function (userId) {
                 try {
                     if ($u.isNaN(userId) || userId < 1) {
-                        $u.warn("userId", userId);
+                        con.warn("userId", userId);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1426,7 +1909,7 @@
 
                     return sentOnce;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.checkSentOnce: " + err, userId);
+                    con.error("ERROR in gifting.history.checkSentOnce: " + err, userId);
                     return undefined;
                 }
             },
@@ -1436,7 +1919,7 @@
                 try {
                     return gifting.history.records.length;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.length: " + err);
+                    con.error("ERROR in gifting.history.length: " + err);
                     return undefined;
                 }
             },
@@ -1449,7 +1932,7 @@
                     Next we build the HTML to be included into the 'caap_giftStats' div. We set our
                     table and then build the header row.
                     \-------------------------------------------------------------------------------------*/
-                    if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
+                    if (config.getItem('DBDisplay', '') === 'Gifting Stats' && session.getItem("GiftHistoryDashUpdate", true)) {
                         var headers                  = ['UserId', 'Name', 'Received', 'Sent'],
                             values                   = ['userId', 'name', 'received', 'sent'],
                             pp                       = 0,
@@ -1476,7 +1959,8 @@
                                 str = $u.setContent(gifting.history.records[i][values[pp]], '');
                                 if (/userId/.test(values[pp])) {
                                     userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                    userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    //userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                    userIdLink = "keep.php?casuser=" + str;
                                     data = {
                                         text  : '<span id="caap_targetgift_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                                 '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
@@ -1519,7 +2003,8 @@
                             for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                                 if (e.target.attributes[i].nodeName === 'rlink') {
                                     visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                    visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                    //visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                                    visitUserIdLink.arlink = visitUserIdLink.rlink;
                                 }
                             }
 
@@ -1527,12 +2012,12 @@
                         };
 
                         $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
-                        state.setItem("GiftHistoryDashUpdate", false);
+                        session.setItem("GiftHistoryDashUpdate", false);
                     }
 
                     return true;
                 } catch (err) {
-                    $u.error("ERROR in gifting.history.dashboard: " + err);
+                    con.error("ERROR in gifting.history.dashboard: " + err);
                     return false;
                 }
             }

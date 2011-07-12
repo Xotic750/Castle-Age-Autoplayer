@@ -42,7 +42,7 @@
         load: function (type) {
             try {
                 if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to load: ", type);
+                    con.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
 
@@ -52,30 +52,42 @@
                 }
 
                 town[type + "hbest"] = town[type + "hbest"] === false ? JSON.hbest(town[type]) : town[type + "hbest"];
-                $u.log(3, "town.load " + type + " Hbest", town[type + "hbest"]);
-                state.setItem(type.ucFirst() + "DashUpdate", true);
-                $u.log(3, "town.load", type, town[type]);
+                con.log(3, "town.load " + type + " Hbest", town[type + "hbest"]);
+                session.setItem(type.ucFirst() + "DashUpdate", true);
+                con.log(3, "town.load", type, town[type]);
                 return true;
             } catch (err) {
-                $u.error("ERROR in town.load: " + err);
+                con.error("ERROR in town.load: " + err);
                 return false;
             }
         },
 
-        save: function (type) {
+        save: function (type, src) {
             try {
                 if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to save: ", type);
+                    con.warn("Type passed to save: ", type);
                     throw "Invalid type value!";
                 }
 
                 var compress = false;
-                gm.setItem(type + '.records', town[type], town[type + "hbest"], compress);
-                state.setItem(type.ucFirst() + "DashUpdate", true);
-                $u.log(3, "town.save", type, town[type]);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem("town." + type, town[type]);
+                } else {
+                    gm.setItem(type + '.records', town[type], town[type + "hbest"], compress);
+                    con.log(3, "town.save", type, town[type]);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "town.save send");
+                        caap.messaging.setItem("town." + type, town[type]);
+                    }
+                }
+
+                if (caap.domain.which !== 0) {
+                    session.setItem(type.ucFirst() + "DashUpdate", true);
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in town.save: " + err);
+                con.error("ERROR in town.save: " + err);
                 return false;
             }
         },
@@ -89,7 +101,7 @@
                     save   = false;
 
                 if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
-                    $u.warn("Type passed to load: ", type);
+                    con.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
 
@@ -107,7 +119,7 @@
                             record = spreadsheet.getItem(current.data['name']);
                             current.data['type'] = $u.setContent(record['type'], 'Unknown');
                         } else {
-                            $u.warn("Unable to get item name in", type);
+                            con.warn("Unable to get item name in", type);
                             passed = false;
                         }
 
@@ -116,14 +128,14 @@
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
                             } else {
-                                $u.log(3, "No image found for", type, current.data['name']);
+                                con.log(3, "No image found for", type, current.data['name']);
                             }
 
                             tempDiv = $j("span[class='negative']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(3, "No upkeep found for", type, current.data.name);
+                                con.log(4, "No upkeep found for", type, current.data.name);
                             }
 
                             tStr = row.children().eq(2).text().trim().innerTrim();
@@ -134,14 +146,14 @@
                                 current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                                 current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
                             } else {
-                                $u.warn("No atk/def found for", type, current.data['name']);
+                                con.warn("No atk/def found for", type, current.data['name']);
                             }
 
                             tempDiv = $j("strong[class='gold']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(3, "No cost found for", type, current.data['name']);
+                                con.log(4, "No cost found for", type, current.data['name']);
                             }
 
                             tStr = row.children().eq(3).text().trim().innerTrim();
@@ -149,7 +161,7 @@
                                 current.data['owned'] = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
                                 current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                             } else {
-                                $u.warn("No number owned found for", type, current.data['name']);
+                                con.warn("No number owned found for", type, current.data['name']);
                             }
 
                             town[type].push(current.data);
@@ -160,14 +172,14 @@
 
                 if (save) {
                     town.save(type);
-                    $u.log(2, "Got town details for", type);
+                    con.log(2, "Got town details for", type);
                 } else {
-                    $u.log(1, "Nothing to save for", type);
+                    con.log(1, "Nothing to save for", type);
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in town.GetItems: " + err);
+                con.error("ERROR in town.GetItems: " + err);
                 return false;
             }
         },
@@ -184,7 +196,7 @@
 
                 for (it = 0, len = town['magic'].length; it < len; it += 1) {
                     if (town['magic'][it]['name'] === name) {
-                        $u.log(3, "town.haveOrb", town['magic'][it]);
+                        con.log(3, "town.haveOrb", town['magic'][it]);
                         if (town['magic'][it]['owned']) {
                             haveIt = true;
                         }
@@ -195,7 +207,7 @@
 
                 return haveIt;
             } catch (err) {
-                $u.error("ERROR in town.haveOrb: " + err);
+                con.error("ERROR in town.haveOrb: " + err);
                 return undefined;
             }
         },
@@ -232,7 +244,7 @@
 
                 return owned;
             } catch (err) {
-                $u.error("ERROR in town.getCount: " + err);
+                con.error("ERROR in town.getCount: " + err);
                 return undefined;
             }
         },
@@ -329,7 +341,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in town.report: " + err);
+                con.error("ERROR in town.report: " + err);
                 return false;
             }
         },
@@ -343,7 +355,7 @@
 
                 return town.bestStuff(reportType, stance, sizeStr, displayRef);
             } catch (err) {
-                $u.error("ERROR in town.runReport: " + err);
+                con.error("ERROR in town.runReport: " + err);
                 return undefined;
             }
         },
@@ -368,7 +380,7 @@
 
                 return list;
             } catch (err) {
-                $u.error("ERROR in town.menu: " + err);
+                con.error("ERROR in town.menu: " + err);
                 return undefined;
             }
         },
@@ -381,9 +393,9 @@
                 stance = stance !== "Attack" && stance !== "Defense" ? "Attack" : stance;
                 size = $u.isNaN(size) ? caap.stats['army']['capped'] : ($u.isNumber(size) ? size : size.parseInt());
                 displayRef = $u.setContent(displayRef, false);
-                $u.log(2, "reportType/stance/size/displayRef", reportType, stance, size, displayRef);
+                con.log(2, "reportType/stance/size/displayRef", reportType, stance, size, displayRef);
                 var h    = "<table>\n<tr><th style='white-space: nowrap;'>Name</th><th>Used</th><th>Attack</th><th>Defense</th><th>" + (stance === "attack" ? "API" : "DPI") + "</th></tr>\n",
-                    list = $u.owl.deepCopy(town[$u.setContent(town.reportType[reportType], "soldiers")]).sort($u.sortBy(true, stance === "Attack" ? "api" : "dpi", $u.sortBy(false, "cost", $u.sortBy(false, "name", $u.sortBy(true, "owned"))))),
+                    list = JSON.copy(town[$u.setContent(town.reportType[reportType], "soldiers")]).sort($u.sortBy(true, stance === "Attack" ? "api" : "dpi", $u.sortBy(false, "cost", $u.sortBy(false, "name", $u.sortBy(true, "owned"))))),
                     best = [],
                     it   = 0,
                     len  = list.length,
@@ -446,10 +458,10 @@
                     });
                 }
 
-                $u.log(2, "town.bestStuff", best);
+                con.log(2, "town.bestStuff", best);
                 return best;
             } catch (err) {
-                $u.error("ERROR in town.bestStuff: " + err);
+                con.error("ERROR in town.bestStuff: " + err);
                 return undefined;
             }
         },
@@ -474,7 +486,7 @@
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in town.menu: " + err);
+                con.error("ERROR in town.menu: " + err);
                 return '';
             }
         },
@@ -485,7 +497,7 @@
                 Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
                 We set our table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
+                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && session.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && session.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && session.getItem("MagicDashUpdate", true))) {
                     var headers     = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
                         values      = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
                         pp          = 0,
@@ -594,13 +606,13 @@
                             })
                         );
 
-                        state.setItem(town.types[i] + "DashUpdate", false);
+                        session.setItem(town.types[i] + "DashUpdate", false);
                     }
                 }
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in town.dashboard: " + err);
+                con.error("ERROR in town.dashboard: " + err);
                 return false;
             }
         }

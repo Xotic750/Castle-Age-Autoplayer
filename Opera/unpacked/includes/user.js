@@ -2,13 +2,17 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.25.0
-// @dev            19
+// @version        141.0.0
+// @dev            7
 // @include        http*://apps.facebook.com/castle_age/*
 // @include        http*://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php*
+// @include        *http://web.castleagegame.com/castle/*
+// @include        *https://web.castleagegame.com/castle/*
+// @include        http://www.facebook.com/dialog/apprequests?access_token=46755028429*
+// @include        https://www.facebook.com/dialog/apprequests?access_token=46755028429*
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @compatability  Opera 11+
 // ==/UserScript==
@@ -31,9 +35,9 @@
 
         function log(msg) {
             if (window.console && typeof console.log === 'function') {
-                console.log("140.25.0" + ("19" !== '0' ? 'd19'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+                console.log("141.0.0" + ("7" !== '0' ? 'd7'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
             } else {
-                opera.postError("140.25.0" + ("19" !== '0' ? 'd19'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+                opera.postError("141.0.0" + ("7" !== '0' ? 'd7'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
             }
         }
 
@@ -133,7 +137,7 @@
         }
 
         function waitForjQuery() {
-            if (window.jQuery && window.jQuery().jquery === "1.6") {
+            if (window.jQuery && window.jQuery().jquery === "1.6.2") {
                 log("jQuery ready ...");
                 if (!window.$j) {
                     window.$j = window.jQuery.noConflict();
@@ -157,7 +161,7 @@
             log(window.navigator.userAgent);
             log("Starting ... waiting for scripts to load");
             timeout = window.setTimeout(timeOut, 180000);
-            if (!window.jQuery || window.jQuery().jquery !== "1.6") {
+            if (!window.jQuery || window.jQuery().jquery !== "1.6.2") {
                 log("Inject jQuery");
                 initEvent.source.postMessage({action : 'script', status: 'get', value: 'jquery'});
             }

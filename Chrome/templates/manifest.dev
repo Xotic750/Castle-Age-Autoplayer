@@ -1,5 +1,11 @@
 {
     "content_scripts": [{
+        "exclude_globs": [
+            "http://apps.facebook.com/castle_age/festival_hod.php",
+            "https://apps.facebook.com/castle_age/festival_hod.php",
+            "http://web3.castleagegame.com/castle_ws/festival_hod.php",
+            "https://web3.castleagegame.com/castle_ws/festival_hod.php"
+        ],
         "include_globs": [
             "http://apps.facebook.com/castle_age/*",
             "https://apps.facebook.com/castle_age/*",
@@ -10,7 +16,11 @@
             "http://*.facebook.com/common/error.html*",
             "https://*.facebook.com/common/error.html*",
             "http://apps.facebook.com/sorry.php*",
-            "https://apps.facebook.com/sorry.php*"
+            "https://apps.facebook.com/sorry.php*",
+            "*http://web.castleagegame.com/castle/*",
+            "*https://web.castleagegame.com/castle/*",
+            "http://www.facebook.com/dialog/apprequests?access_token=46755028429*",
+            "https://www.facebook.com/dialog/apprequests?access_token=46755028429*"
         ],
         "js": [
             "jquery-!jquery!.min.js",
@@ -23,7 +33,8 @@
         "matches": [
             "http://*/*",
             "https://*/*"
-        ]
+        ],
+        "all_frames": true
     }],
     "background_page": "background.html",
     "converted_from_user_script": true,
@@ -40,6 +51,7 @@
     "update_url": "https://castle-age-auto-player.googlecode.com/svn/trunk/Chrome/packed/updates.xml",
     "permissions": [
         "tabs",
+        "unlimited_storage",
         "http://apps.facebook.com/castle_age/*",
         "https://apps.facebook.com/castle_age/*",
         "http://web3.castleagegame.com/castle_ws/*",
@@ -49,7 +61,11 @@
         "http://*.facebook.com/common/error.html*",
         "https://*.facebook.com/common/error.html*",
         "http://apps.facebook.com/sorry.php*",
-        "https://apps.facebook.com/sorry.php*"
+        "https://apps.facebook.com/sorry.php*",
+        "http://web.castleagegame.com/castle/*",
+        "https://web.castleagegame.com/castle/*",
+        "http://www.facebook.com/dialog/apprequests?access_token=46755028429*",
+        "https://www.facebook.com/dialog/apprequests?access_token=46755028429*"
     ],
     "version": "!version!.!dev!"
 }

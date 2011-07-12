@@ -1,6 +1,6 @@
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
-/*global window,escape,jQuery,$j,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,chrome,CAAP_SCOPE_RUN */
+/*global window,escape,jQuery,$j,GM_log,GM_setValue,GM_getValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,GM_getResourceText,unsafeWindow,rison,utility,$u,chrome,CAAP_SCOPE_RUN,self */
 /*jslint maxlen: 512 */
 
 // If we are running Greasemonkey (FireFox) then we inject CAAP directly into the page and check for updates.
@@ -22,7 +22,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
             function scriptUpdate(forced) {
                 try {
                     // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
-                    if (forced || (parseInt(GM_getValue('SUC_last_update', 0), 10) + 86400000) < new Date().getTime()) {
+                    if (forced || (parseInt(GM_getValue('SUC_last_update', 0), 10) + 86400000) < Date.now()) {
                         GM_xmlhttpRequest({
                             method: 'GET',
                             url: devVersion !== '0' ? 'https://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js' : 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
@@ -37,7 +37,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                         script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
 
                                     GM_log('Remote: ' + script_name + ' ' + remote_version + ' d' + dev_version);
-                                    GM_setValue('SUC_last_update', '' + new Date().getTime());
+                                    GM_setValue('SUC_last_update', '' + Date.now());
                                     GM_setValue('SUC_target_script_name', script_name);
                                     GM_setValue('SUC_remote_version', remote_version);
                                     GM_setValue('DEV_remote_version', dev_version);
@@ -46,7 +46,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                                     CAAP_SCOPE_RUN[2] = dev_version;
                                     if (devVersion !== '0' ? (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) : (remote_version > caapVersion)) {
                                         if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            GM_openInTab(devVersion !== '0' ? 'https://code.google.com/p/castle-age-auto-player/updates/list' : 'http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                            GM_openInTab('http://caaplayer.freeforums.org/releases-f3.html');
                                         }
                                     } else if (forced) {
                                         alert('No update is available for "' + script_name + '"');

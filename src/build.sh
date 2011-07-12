@@ -28,11 +28,9 @@ echo -n "Joining common files : "
 sed -f version.sed _lead.js > ../common/_buildcommon.tmp
 cat object_image64.js >> ../common/_buildcommon.tmp
 cat object_offline.js >> ../common/_buildcommon.tmp
-cat object_config.js >> ../common/_buildcommon.tmp
-cat object_state.js >> ../common/_buildcommon.tmp
+cat object_profiles.js >> ../common/_buildcommon.tmp
 sed -f version.sed object_css.js >> ../common/_buildcommon.tmp
 cat object_sort.js >> ../common/_buildcommon.tmp
-cat object_schedule.js >> ../common/_buildcommon.tmp
 cat object_general.js >> ../common/_buildcommon.tmp
 cat object_monster.js >> ../common/_buildcommon.tmp
 cat object_guild_monster.js >> ../common/_buildcommon.tmp

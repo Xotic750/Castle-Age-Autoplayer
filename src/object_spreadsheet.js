@@ -25,14 +25,14 @@
                         dataType: ($u.is_opera ? "jsonp" : "json"),
                         error:
                             function (XMLHttpRequest, textStatus, errorThrown) {
-                                $u.log(1, "Using offline items");
+                                con.log(1, "Using offline items");
                                 spreadsheet.records = offline.items;
                                 spreadsheet.save();
-                                $u.error("spreadsheet.load", textStatus);
+                                con.error("spreadsheet.load", textStatus);
                             },
                         success: function (msg) {
                             try {
-                                $u.log(3, "msg", msg);
+                                con.log(3, "msg", msg);
                                 var rows       = [],
                                     row        = 0,
                                     rowsLen    = 0,
@@ -59,7 +59,7 @@
                                     newRecord = {};
                                     for (column = 0; column < headersLen; column += 1) {
                                         if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
-                                            $u.warn("Spreadsheet column is empty", column);
+                                            con.warn("Spreadsheet column is empty", column);
                                             continue;
                                         }
 
@@ -68,7 +68,7 @@
                                             cell = null;
                                         } else if ($u.isNaN(cell)) {
                                             if (headersArr[column] === "attack" || headersArr[column] === "defense") {
-                                                $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                                con.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
                                             }
 
                                             cell = cell.replace(/"/g, "");
@@ -83,42 +83,51 @@
                                 }
 
                                 if (!$u.hasContent(spreadsheet.records)) {
-                                    $u.log(1, "Using offline items");
+                                    con.log(1, "Using offline items");
                                     spreadsheet.records = offline.items;
                                 }
 
                                 spreadsheet.save();
                             } catch (err) {
-                                $u.log(1, "Using offline items");
+                                con.log(1, "Using offline items");
                                 spreadsheet.records = offline.items;
                                 spreadsheet.save();
-                                $u.error("ERROR in spreadsheet.load: " + err);
+                                con.error("ERROR in spreadsheet.load: " + err);
                             }
                         }
                     });
                 } else {
-                    $u.log(3, "spreadsheet.records", spreadsheet.records);
+                    con.log(3, "spreadsheet.records", spreadsheet.records);
                 }
 
                 return true;
             } catch (err) {
-                $u.log(1, "Using offline items");
+                con.log(1, "Using offline items");
                 spreadsheet.records = offline.items;
                 spreadsheet.save();
-                $u.error("ERROR in spreadsheet.load: " + err);
+                con.error("ERROR in spreadsheet.load: " + err);
                 return false;
             }
         },
 
-        save: function () {
+        save: function (src) {
             try {
                 spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
-                $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
-                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, $u.is_firefox ? false : spreadsheet.compress);
-                $u.log(3, "spreadsheet.save", spreadsheet.records);
+                con.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
+                if (caap.domain.which === 3) {
+                    caap.messaging.setItem('spreadsheet.records', spreadsheet.records);
+                } else {
+                    ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
+                    con.log(3, "spreadsheet.save", spreadsheet.records);
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+                        con.log(2, "spreadsheet.save send");
+                        caap.messaging.setItem('spreadsheet.records', spreadsheet.records);
+                    }
+                }
+
                 return true;
             } catch (err) {
-                $u.error("ERROR in spreadsheet.save: " + err);
+                con.error("ERROR in spreadsheet.save: " + err);
                 return false;
             }
         },
@@ -127,10 +136,10 @@
             try {
                 ss.deleteItem('spreadsheet.records');
                 spreadsheet.records = [];
-                $u.log(3, "spreadsheet.clear", spreadsheet.records);
+                con.log(3, "spreadsheet.clear", spreadsheet.records);
                 return true;
             } catch (err) {
-                $u.error("ERROR in spreadsheet.clear: " + err);
+                con.error("ERROR in spreadsheet.clear: " + err);
                 return false;
             }
         },
@@ -140,7 +149,7 @@
         getItem: function (name, image) {
             try {
                 if (!$u.hasContent(name) || !$u.isString(name)) {
-                    $u.warn("name", name);
+                    con.warn("name", name);
                     throw "Invalid identifying name!";
                 }
 
@@ -166,12 +175,12 @@
                 }
 
                 if (!found) {
-                    $u.warn("Unable to find spreadsheet record for", name);
+                    con.warn("Unable to find spreadsheet record for", name);
                 }
 
                 return record;
             } catch (err) {
-                $u.error("ERROR in spreadsheet.getItem: " + err);
+                con.error("ERROR in spreadsheet.getItem: " + err);
                 return undefined;
             }
         },
@@ -260,7 +269,7 @@
 
                 return {title: titleStr, opacity: opacity, hide: hide};
             } catch (err) {
-                $u.error("ERROR in spreadsheet.getTitle: " + err);
+                con.error("ERROR in spreadsheet.getTitle: " + err);
                 return undefined;
             }
         },
@@ -298,7 +307,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in spreadsheet.doTitles: " + err);
+                con.error("ERROR in spreadsheet.doTitles: " + err);
                 return false;
             }
         },
@@ -321,7 +330,7 @@
 
                 return tempIt > -1 && $u.isDefined(spreadsheet.records[tempIt]['summon']) ? true : false;
             } catch (err) {
-                $u.error("ERROR in spreadsheet.isSummon: " + err);
+                con.error("ERROR in spreadsheet.isSummon: " + err);
                 return undefined;
             }
         }
