@@ -17,8 +17,8 @@
             "https://*.facebook.com/common/error.html*",
             "http://apps.facebook.com/sorry.php*",
             "https://apps.facebook.com/sorry.php*",
-            "*http://web.castleagegame.com/castle/*",
-            "*https://web.castleagegame.com/castle/*",
+            "http://web.castleagegame.com/castle/*",
+            "https://web.castleagegame.com/castle/*",
             "http://www.facebook.com/dialog/apprequests?access_token=46755028429*",
             "https://www.facebook.com/dialog/apprequests?access_token=46755028429*"
         ],
@@ -47,6 +47,7 @@
         "128": "128x128.png",
         "48": "48x48.png"
     },
+    "homepage_url": "http://caaplayer.freeforums.org",
     "name": "Castle Age Autoplayer - Alpha Patched",
     "update_url": "https://castle-age-auto-player.googlecode.com/svn/trunk/Chrome/packed/updates.xml",
     "permissions": [

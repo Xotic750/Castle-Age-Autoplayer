@@ -121,8 +121,8 @@ else
     sed -f version.sed ../Chrome/templates/background.html > ../Chrome/unpacked/background.html
     cp ../Chrome/packed/updates.xml ../
     if [ -f ../Chrome/Chrome.pem ]; then
-        chromium-browser --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
-        #google-chrome --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
+        #chromium-browser --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
+        google-chrome --no-message-box --pack-extension="../Chrome/unpacked" --pack-extension-key="../Chrome/Chrome.pem"
         mv ../Chrome/unpacked.crx ../Chrome/packed/Chrome.crx
     else
         echo "Would create packed Chrome extension, but you are missing Chrome.pem file"

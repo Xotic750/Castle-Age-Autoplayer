@@ -17,6 +17,7 @@
         globalContainer     : {},
         caToolsDiv          : {},
         appBodyDiv          : {},
+        pageletPresenceDiv  : {},
         tempAjax            : {},
         resultsWrapperDiv   : {},
         resultsText         : '',
@@ -1672,6 +1673,8 @@
 
         init: function () {
             try {
+                var tDiv;
+
                 if (caap.domain.which === 2 || caap.domain.which === 3) {
                     caap.ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
                 }
@@ -1720,21 +1723,35 @@
                     caap.dashboardXY.selector = "#" + caap.domain.id[caap.domain.which] + "app_body_container";
                 }
 
+                function chatListener(event) {
+                    if (event.target.className === "fbDockWrapper fbDockWrapperRight bb") {
+                        event.target.style.display = "none";
+                        caap.pageletPresenceDiv.unbind("DOMNodeInserted", chatListener);
+                    }
+                }
+
                 if (caap.domain.which === 0) {
+                    caap.pageletPresenceDiv = $j("#pagelet_presence");
                     // Get rid of those ads now! :P
                     if (config.getItem('HideAds', false)) {
                         $j('#rightCol').css('display', 'none');
                     }
 
+                    if (config.getItem('HideFBChat', false)) {
+                        tDiv = $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv);
+                        if ($u.hasContent(tDiv)) {
+                            tDiv.css('display', 'none');
+                        } else {
+                            caap.pageletPresenceDiv.bind("DOMNodeInserted", chatListener);
+                        }
+                    }
+                }
+
+                if (caap.domain.which === 3) {
                     if (config.getItem('HideAdsIframe', false)) {
                         $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                         $j("div[style*='tool_top.jpg']").css('display', 'none');
-                    }
-
-                    if (config.getItem('HideFBChat', false)) {
-                        window.setTimeout(function () {
-                            $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'none');
-                        }, 3000);
+                        $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
                     }
                 }
 
@@ -1788,6 +1805,7 @@
                     caap.autoStatCheck();
                     caap.bestLand = new caap.landRecord().data;
                     caap.sellLand = {};
+                    offline.bga.sort($u.sortBy(false, 'n'));
                 }
 
                 if (caap.domain.which === 0 && config.getItem('injectCATools', false)) {
@@ -3080,6 +3098,7 @@
                 }
 
                 htmlCode += caap.makeCheckTR('Display Keep Stats', 'displayKStats', true, "Display user statistics on your keep.");
+                htmlCode += caap.makeCheckTR('Enable Oracle Mod', 'enableOracleMod', true, "Allows you to change the monthly general and the equipment that you wish to purchase.");
                 htmlCode += caap.makeCheckTR('Display ETNL', 'displayETNL', true, "Display Experience To Next Level.");
                 htmlCode += caap.makeCheckTR('Display Item Titles', 'enableTitles', true, itemTitlesInstructions);
                 htmlCode += caap.makeCheckTR('Do Goblin Hinting', 'goblinHinting', true, goblinHintingInstructions);
@@ -3105,6 +3124,7 @@
                     htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                    //htmlCode += caap.makeCheckTR('Hide Cross Adverts', 'HideCrossAds', false, "Hide CA cross advertising.");
                 }
 
                 htmlCode += caap.makeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
@@ -4391,9 +4411,11 @@
 
                     break;
                 case "HideAdsIframe" :
-                    if (caap.domain.which === 0) {
+                    if (caap.domain.which === 3) {
                         con.log(9, "HideAdsIframe");
                         $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
+                        $j("div[style*='tool_top.jpg']").css('display', e.target.checked ? 'none' : 'block');
+                        $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
                         caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
                         caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
                         styleXY = caap.getDashboardXY();
@@ -4401,9 +4423,7 @@
                             top  : styleXY.y + 'px',
                             left : styleXY.x + 'px'
                         });
-                    }
 
-                    if (caap.domain.which === 2) {
                         caap.caapTopMinObject.css({
                             top  : styleXY.y + 'px',
                             left : styleXY.x + 'px'
@@ -4414,7 +4434,7 @@
                 case "HideFBChat" :
                     if (caap.domain.which === 0) {
                         con.log(9, "HideFBChat");
-                        $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', e.target.checked ? 'none' : 'block');
+                        $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv).css('display', e.target.checked ? 'none' : 'block');
                     }
 
                     break;
@@ -5334,7 +5354,7 @@
                 }
 
                 if (caap.domain.which === 0) {
-                    $j("#pagelet_presence").live('DOMNodeInserted', function (event) {
+                    caap.pageletPresenceDiv.live('DOMNodeInserted', function (event) {
                         if (config.getItem('AutoGift', false) && config.getItem('watchBeeper', true) && $u.setContent($j(event.target).text(), '').hasIndexOf("sent you a request in Castle Age")) {
                             con.log(1, "Beeper saw a gift!");
                             schedule.setItem("ajaxGiftCheck", 0);
@@ -5431,6 +5451,7 @@
 
                     caap.globalContainer.bind('DOMNodeInserted', function (event) {
                         var tId        = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
+                            /*
                             targetList = [
                                 "app_body",
                                 "index",
@@ -5439,6 +5460,7 @@
                                 "battle_monster",
                                 "player_monster_list",
                                 "public_monster_list",
+                                "monster_summon_list",
                                 "battle",
                                 "battlerank",
                                 "battle_train",
@@ -5502,6 +5524,8 @@
                                 "festival_duel_home",
                                 "festival_duel_battle"
                             ],
+                            */
+                            page = $j(".game", caap.globalContainer).eq(0).attr("id"),
                             caap_topXY;
 
                         // Uncomment this to see the id of domNodes that are inserted
@@ -5512,13 +5536,19 @@
                         }
                         */
 
-                        if (targetList.hasIndexOf(tId)) {
+                        //if (targetList.hasIndexOf(tId)) {
+                        if (tId === page) {
+                            session.setItem('page', page);
                             con.log(4, "DOM load target matched", tId);
                             caap.clearDomWaiting();
                             caap.incrementPageLoadCounter();
                             caap.reBind();
-                            if (caap.domain.which === 0 && config.getItem('HideAdsIframe', false)) {
-                                $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                            if (caap.domain.which === 3) {
+                                if (config.getItem('HideAdsIframe', false)) {
+                                    $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                                    $j("div[style*='tool_top.jpg']").css('display', 'none');
+                                    $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                                }
                             }
 
                             session.setItem("delayMain", true);
@@ -5743,6 +5773,22 @@
             'festival_duel_home': {
                 signaturePic: 'festival_duelchamp_enter.gif',
                 CheckResultsFunction: 'checkResults_festival_duel_home'
+            },
+            'guild_panel': {
+                signaturePic: 'tab_guild_management_on.gif',
+                CheckResultsFunction: 'checkResults_guild_panel'
+            },
+            'guild_shop': {
+                signaturePic: 'generic_hero_deianira.gif',
+                CheckResultsFunction: 'checkResults_guild_shop'
+            },
+            'guild_class': {
+                signatureId: 'class_help',
+                CheckResultsFunction: 'checkResults_guild_class'
+            },
+            'guild_formation': {
+                signatureId: 'gout_2_',
+                CheckResultsFunction: 'checkResults_guild_formation'
             }
         },
 
@@ -5791,12 +5837,18 @@
                 }
 
                 var pageUrl         = session.getItem('clickUrl', ''),
-                    page            = $u.setContent(pageUrl, 'none').basename(".php"),
+                    page2           = $u.setContent(pageUrl, 'none').basename(".php"),
+                    page            = session.getItem('page', page2),
                     demiPointsFirst = config.getItem('DemiPointsFirst', false),
                     whenMonster     = config.getItem('WhenMonster', 'Never'),
                     whenBattle      = config.getItem('whenBattle', 'Never'),
                     it              = 0,
                     len             = 0;
+
+                if (page !== page2) {
+                    //alert("page and page2 differ\n" + page + "\n" + page2 + "\n" + pageUrl);
+                    con.warn("page and page2 differ", page, page2, pageUrl);
+                }
 
                 session.setItem('pageUserCheck', page === 'keep' ? $u.setContent(pageUrl.regex(/user=(\d+)/), 0) : 0);
                 if ($u.hasContent(page) && $u.hasContent(caap.pageList[page]) && $u.hasContent(caap.pageList[page].subpages)) {
@@ -6496,9 +6548,11 @@
                 var favorDiv = $j(".title_action", caap.appBodyDiv),
                     text     = '',
                     tNum     = 0,
-                    save     = false;
+                    save     = false,
+                    tDiv,
+                    lDiv;
 
-                if ($u.setContent(favorDiv)) {
+                if ($u.hasContent(favorDiv)) {
                     text = favorDiv.text();
                     if (/You have zero favor points!/.test(text)) {
                         caap.stats['points']['favor'] = 0;
@@ -6522,6 +6576,53 @@
                     caap.saveStats();
                 } else {
                     con.warn('Favor Points not matched.');
+                }
+
+                if (config.getItem("enableOracleMod", true)) {
+                    tDiv = $j("#results_container", caap.appBodyDiv).parent().children().eq(6);
+                    if ($u.hasContent(tDiv)) {
+                        lDiv = $j(".limitedDiv_int", caap.appBodyDiv);
+                        if ($u.hasContent(lDiv) && lDiv.length === 4) {
+                            text = '<form><select><option value="#">Change General</option>';
+                            for (tNum = 0; tNum < offline.bga.length; tNum += 1) {
+                                text += '<option value="' + tNum + '">' + offline.bga[tNum].n + '</option>';
+                            }
+
+                            text += '</select></form>';
+                            tDiv.html(text);
+                            tDiv.children("form").bind('change', function (event) {
+                                var v = event.target.value,
+                                    it = 0;
+
+                                function change(t, i, n, a, d, b, o, p) {
+                                    o = lDiv.eq(o).children();
+                                    o.eq(1).children().eq(0).html('Summon<br>' + ["General", "Magic", "Amulet", "Weapon", "Shield", "Helmet", "Armor", "Glove", "Off-hand", "Spell"][t] + '<br>');
+                                    o.eq(2).children().eq(0).attr({
+                                        'src'   : o.eq(2).children().eq(0).attr('src').dirname() + p + '.jpg',
+                                        'alt'   : n,
+                                        'title' : i
+                                    });
+
+                                    o.eq(3).children().eq(0).html(n + '!');
+                                    o.eq(4).children().eq(0).children(0).text(a + ' Attack');
+                                    o.eq(4).children().eq(1).children(0).text(d + ' Defense');
+                                    o.eq(5).children().eq(0).attr('id', 'favorBuy_' + b);
+                                    $j("input[name='buychoice']", o).val(b);
+                                }
+
+                                if (v !== "#") {
+                                    change(0, offline.bga[v].i, offline.bga[v].n, offline.bga[v].a, offline.bga[v].d, offline.bga[v].b, 0, offline.bga[v].p);
+                                    for (it = 0; it < 3; it += 1) {
+                                        change(offline.bga[v].e[it].t, offline.bga[v].e[it].i, offline.bga[v].e[it].n, offline.bga[v].e[it].a, offline.bga[v].e[it].d, offline.bga[v].e[it].b, 1 + it, offline.bga[v].e[it].p)
+                                    }
+                                }
+                            });
+                        } else {
+                            con.warn('limitedDiv_int not found.');
+                        }
+                    } else {
+                        con.warn('results_container not found.');
+                    }
                 }
 
                 schedule.setItem("oracle", (gm ? gm.getItem("checkOracle", 24, hiddenVar) : 24) * 3600, 300);
@@ -9381,6 +9482,12 @@
         /*jslint sub: true */
         checkResults_guild: function () {
             try {
+                if (session.getItem("clickUrl").hasIndexOf("guild_battle=true")) {
+                    caap.guildTabAddListener();
+                    con.log(2, "Battle List");
+                    return true;
+                }
+
                 // Guild
                 var guildTxt   = '',
                     guildDiv   = $j(),
@@ -9453,6 +9560,30 @@
             }
         },
         /*jslint sub: false */
+
+        guildTabListener: function (event) {
+            session.setItem("clickUrl", $u.setContent($j(event.target).parent().attr("onclick"), '').regex(new RegExp(",'(.+\\.php.*?)'")));
+        },
+
+        guildTabAddListener: function () {
+            $j("div[style*='guild_tab_off_tile.jpg'],div[style*='guild_tab_on_tile.jpg']").unbind('click', caap.guildTabListener).bind('click', caap.guildTabListener);
+        },
+
+        checkResults_guild_panel: function () {
+            caap.guildTabAddListener();
+        },
+
+        checkResults_guild_shop: function () {
+            caap.guildTabAddListener();
+        },
+
+        checkResults_guild_class: function () {
+            caap.guildTabAddListener();
+        },
+
+        checkResults_guild_formation: function () {
+            caap.guildTabAddListener();
+        },
 
         /////////////////////////////////////////////////////////////////////
         //                          GUILD BATTLES
