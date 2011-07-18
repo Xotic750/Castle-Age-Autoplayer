@@ -34152,7 +34152,7 @@ con.log(1, 'chooseFriend');
         },
 
         scrollToTop: function () {
-            window.scrollTo(0, 0);
+            window.scrollTo(0, config.getItem("scrollToPosition", 0));
         },
 
         showRequestForm: (function (tit, msg, track, request_params) {
@@ -34882,7 +34882,7 @@ con.log(1, 'chooseFriend');
                 case "scrollToTop":
                     caap.messaging.ok(msg);
                     con.log(4, "scrollToTop", msg);
-                    caap.scrollToTop();
+                    caap.scrollToTop(msg.data);
                     break;
                 default:
                 }
@@ -36188,6 +36188,7 @@ con.log(1, 'chooseFriend');
                 $j("input[type='button']", caapDiv).button();
                 caap.makeSliderListener("CustStyleOpacityLight", 0.5, 1, 0.01, 1, true, caapDiv);
                 caap.makeSliderListener("CustStyleOpacityDark", 0.5, 1, 0.01, 1, true, caapDiv);
+                caap.makeSliderListener("scrollToPosition", 0, 1000, 10, 0, false, caapDiv);
                 if (reload === true) {
                     caap.caapDivObject.replaceWith(caapDiv);
                     caap.caapDivObject = caapDiv;
@@ -36598,6 +36599,9 @@ con.log(1, 'chooseFriend');
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 if (caap.domain.which === 0) {
                     htmlCode += caap.makeCheckTR('Auto Scroll To Top', 'scrollToTop', false, "Automatically scrolls the window to the very top of the view.");
+                    htmlCode += caap.startCheckHide('scrollToTop');
+                    htmlCode += caap.makeSlider('Offset', "scrollToPosition", '', 0, true);
+                    htmlCode += caap.endCheckHide('scrollToTop');
                 }
 
                 htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
