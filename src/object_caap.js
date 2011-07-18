@@ -670,7 +670,25 @@
                     con.error("ERROR in messaging.disconnect: " + err);
                     return false;
                 }
+            },
+            scrollToTop: function () {
+                try {
+                    if (caap.domain.which === 3 && caap.messaging.connected.hasIndexOf("caapfb")) {
+                        caap.postMessage({source: "caapif", dest: "caapfb", message: "scrollToTop", data: ""});
+                    } else {
+                        throw "Wrong domain or destination not connected";
+                    }
+
+                    return true;
+                } catch (err) {
+                    con.error("ERROR in messaging.scrollToTop: " + err);
+                    return false;
+                }
             }
+        },
+
+        scrollToTop: function () {
+            window.scrollTo(0, 0);
         },
 
         showRequestForm: (function (tit, msg, track, request_params) {
@@ -1397,6 +1415,11 @@
                     con.log(4, "selectDropOption", msg);
                     caap.selectDropOption(msg.data.idName, msg.data.value);
                     break;
+                case "scrollToTop":
+                    caap.messaging.ok(msg);
+                    con.log(4, "scrollToTop", msg);
+                    caap.scrollToTop();
+                    break;
                 default:
                 }
 
@@ -1749,8 +1772,8 @@
 
                 if (caap.domain.which === 3) {
                     if (config.getItem('HideAdsIframe', false)) {
-                        $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                        $j("div[style*='tool_top.jpg']").css('display', 'none');
+                        //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                        //$j("div[style*='tool_top.jpg']").css('display', 'none');
                         $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
                     }
                 }
@@ -3109,6 +3132,10 @@
                 htmlCode += caap.startCheckHide('enableRecipeClean');
                 htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.makeCheckTR('Auto Scroll To Top', 'scrollToTop', false, "Automatically scrolls the window to the very top of the view.");
+                }
+
                 htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
                 htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
                 htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
@@ -4413,8 +4440,8 @@
                 case "HideAdsIframe" :
                     if (caap.domain.which === 3) {
                         con.log(9, "HideAdsIframe");
-                        $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
-                        $j("div[style*='tool_top.jpg']").css('display', e.target.checked ? 'none' : 'block');
+                        //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
+                        //$j("div[style*='tool_top.jpg']").css('display', e.target.checked ? 'none' : 'block');
                         $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
                         caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
                         caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
@@ -5545,9 +5572,13 @@
                             caap.reBind();
                             if (caap.domain.which === 3) {
                                 if (config.getItem('HideAdsIframe', false)) {
-                                    $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                                    $j("div[style*='tool_top.jpg']").css('display', 'none');
+                                    //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                                    //$j("div[style*='tool_top.jpg']").css('display', 'none');
                                     $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                                }
+
+                                if (config.getItem('scrollToTop', false)) {
+                                    caap.messaging.scrollToTop();
                                 }
                             }
 
