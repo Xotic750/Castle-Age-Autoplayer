@@ -684,6 +684,20 @@
                     con.error("ERROR in messaging.scrollToTop: " + err);
                     return false;
                 }
+            },
+            styleChange: function () {
+                try {
+                    if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
+                        caap.postMessage({source: "caapfb", dest: "caapif", message: "styleChange", data: ""});
+                    } else {
+                        throw "Wrong domain or destination not connected";
+                    }
+
+                    return true;
+                } catch (err) {
+                    con.error("ERROR in messaging.styleChange: " + err);
+                    return false;
+                }
             }
         },
 
@@ -1285,6 +1299,11 @@
                     caap.messaging.ok(msg);
                     sessionStorage.removeItem("caap_giftSend");
                     gifting.queue.sentGifts(msg);
+                    break;
+                case "styleChange":
+                    caap.messaging.ok(msg);
+                    con.log(4, "iframe got styleChange", msg);
+                    caap.colorUpdate();
                     break;
                 default:
                 }
@@ -4599,8 +4618,11 @@
                     chk2;
 
                 if (caap.domain.which === 0 || caap.domain.which === 2) {
-                    chk1  = caap.caapDivObject.css('background-color'),
-                    chk2  = caap.caapDivObject.css('color');
+                    chk1 = caap.caapDivObject.css('background-color'),
+                    chk2 = caap.caapDivObject.css('color');
+                } else if (caap.domain.which === 3) {
+                    chk1 = caap.caapTopObject.css('background-color'),
+                    chk2 = caap.caapTopObject.css('color');
                 }
 
                 if ($u.hex2rgb(color).color !== chk1) {
@@ -4639,6 +4661,10 @@
                             $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
                         }
                     }
+                }
+
+                if (caap.domain.which === 0) {
+                    caap.messaging.styleChange();
                 }
 
                 return true;
