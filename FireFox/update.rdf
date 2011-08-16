@@ -15,7 +15,7 @@
     <RDF:li RDF:resource="rdf:#$7praC"/>
   </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$7praC"
-                   em:version="141.0.0.7">
+                   em:version="141.0.0.8">
     <em:targetApplication RDF:resource="rdf:#$apraC"/>
   </RDF:Description>
 </RDF:RDF>
