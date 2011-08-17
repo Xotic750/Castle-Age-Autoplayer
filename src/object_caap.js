@@ -2437,7 +2437,8 @@
             'Water II',
             'Mist II',
             'Mist III',
-            'Fire II'
+            'Fire II',
+            'Pangaea'
         ],
 
         demiQuestList: [
