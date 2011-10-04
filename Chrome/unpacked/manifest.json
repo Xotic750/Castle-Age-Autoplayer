@@ -1,72 +1,51 @@
 {
-    "content_scripts": [{
-        "exclude_globs": [
-            "http://apps.facebook.com/castle_age/festival_hod.php",
-            "https://apps.facebook.com/castle_age/festival_hod.php",
-            "http://web3.castleagegame.com/castle_ws/festival_hod.php",
-            "https://web3.castleagegame.com/castle_ws/festival_hod.php"
-        ],
-        "include_globs": [
-            "http://apps.facebook.com/castle_age/*",
-            "https://apps.facebook.com/castle_age/*",
-            "http://web3.castleagegame.com/castle_ws/*",
-            "https://web3.castleagegame.com/castle_ws/*",
-            "http://apps.facebook.com/reqs.php#confirm_46755028429_0*",
-            "https://apps.facebook.com/reqs.php#confirm_46755028429_0*",
-            "http://*.facebook.com/common/error.html*",
-            "https://*.facebook.com/common/error.html*",
-            "http://apps.facebook.com/sorry.php*",
-            "https://apps.facebook.com/sorry.php*",
-            "http://web.castleagegame.com/castle/*",
-            "https://web.castleagegame.com/castle/*",
-            "http://www.facebook.com/dialog/apprequests?access_token=46755028429*",
-            "https://www.facebook.com/dialog/apprequests?access_token=46755028429*"
-        ],
-        "js": [
-            "jquery-1.6.2.min.js",
-            "jquery-ui-1.8.14.min.js",
-            "farbtastic.min.js",
-            "jquery.dataTables-1.8.1.min.js",
-            "utility-0.2.3.min.js",
-            "Castle-Age-Autoplayer.js"
-        ],
-        "matches": [
-            "http://*/*",
-            "https://*/*"
-        ],
-        "all_frames": true
-    }],
-    "background_page": "background.html",
-    "converted_from_user_script": true,
-    "description": "Autoplayer for Castle Age game on Facebook.",
-    "browser_action": {
-        "default_icon": "icon.png",
-        "default_title": "Castle Age Autoplayer"
-    },
-    "icons": {
-        "128": "128x128.png",
-        "48": "48x48.png"
-    },
-    "homepage_url": "http://caaplayer.freeforums.org",
-    "name": "Castle Age Autoplayer - Alpha Patched",
-    "update_url": "https://castle-age-auto-player.googlecode.com/svn/trunk/Chrome/packed/updates.xml",
-    "permissions": [
-        "tabs",
-        "unlimited_storage",
-        "http://apps.facebook.com/castle_age/*",
-        "https://apps.facebook.com/castle_age/*",
-        "http://web3.castleagegame.com/castle_ws/*",
-        "https://web3.castleagegame.com/castle_ws/*",
-        "http://apps.facebook.com/reqs.php#confirm_46755028429_0*",
-        "https://apps.facebook.com/reqs.php#confirm_46755028429_0*",
-        "http://*.facebook.com/common/error.html*",
-        "https://*.facebook.com/common/error.html*",
-        "http://apps.facebook.com/sorry.php*",
-        "https://apps.facebook.com/sorry.php*",
-        "http://web.castleagegame.com/castle/*",
-        "https://web.castleagegame.com/castle/*",
-        "http://www.facebook.com/dialog/apprequests?access_token=46755028429*",
-        "https://www.facebook.com/dialog/apprequests?access_token=46755028429*"
-    ],
-    "version": "141.0.0.8"
+   "background_page": "background.html",
+   "browser_action": {
+      "default_icon": "icon.png",
+      "default_title": "Castle Age Autoplayer"
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "exclude_globs": [ "http://apps.facebook.com/castle_age/festival_hod.php", "https://apps.facebook.com/castle_age/festival_hod.php", "http://web3.castleagegame.com/castle_ws/festival_hod.php", "https://web3.castleagegame.com/castle_ws/festival_hod.php" ],
+      "include_globs": [ "http://apps.facebook.com/castle_age/*", "https://apps.facebook.com/castle_age/*", "http://web3.castleagegame.com/castle_ws/*", "https://web3.castleagegame.com/castle_ws/*", "http://apps.facebook.com/reqs.php#confirm_46755028429_0*", "https://apps.facebook.com/reqs.php#confirm_46755028429_0*", "http://*.facebook.com/common/error.html*", "https://*.facebook.com/common/error.html*", "http://apps.facebook.com/sorry.php*", "https://apps.facebook.com/sorry.php*", "http://web.castleagegame.com/castle/*", "https://web.castleagegame.com/castle/*", "http://www.facebook.com/dialog/apprequests?access_token=46755028429*", "https://www.facebook.com/dialog/apprequests?access_token=46755028429*" ],
+      "js": [
+			"extern/jquery.js",
+			"extern/jqueryui.js",
+			"extern/farbtastic.min.js",
+			"extern/jquery.dataTables.js",
+			"extern/utility.js",
+			"js/head.js",
+			"js/image64.js",
+			"js/offline.js",
+			"js/profiles.js",
+			"js/css.js",
+			"js/sort.js",
+			"js/general.js",
+			"js/monster.js",
+			"js/guild_monster.js",
+			"js/festival.js",
+			"js/feed.js",
+			"js/battle.js",
+			"js/spreadsheet.js",
+			"js/gifting.js",
+			"js/town.js",
+			"js/army.js",
+			"js/caap.js",
+			"js/functions.js",
+			"js/begin.js"
+		],
+      "matches": [ "http://*/*", "https://*/*" ]
+   } ],
+   "converted_from_user_script": false,
+   "description": "Autoplayer for Castle Age game on Facebook.",
+   "homepage_url": "http://caaplayer.freeforums.org",
+   "icons": {
+      "128": "icon/128x128.png",
+      "48": "icon/48x48.png"
+   },
+   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDT97dq3+xxs6EXTtVVFRaPjce6IjV+WUjo03C10AVebHbG3uZY+Yrh8weQVa0KFfHoiRHowuc3pWWDOpLU8XKXLGpOWLiaAHgaPhahp8sGZUsgBZ55ZJeAYgtAM3XeTpBrfVwgY0/kLCVuF/qblP+7u+Oh/O45V48D3G3CziVGUwIDAQAB",
+   "name": "Castle Age Autoplayer - Alpha Patched",
+   "permissions": [ "tabs", "unlimited_storage", "http://apps.facebook.com/castle_age/*", "https://apps.facebook.com/castle_age/*", "http://web3.castleagegame.com/castle_ws/*", "https://web3.castleagegame.com/castle_ws/*", "http://apps.facebook.com/reqs.php#confirm_46755028429_0*", "https://apps.facebook.com/reqs.php#confirm_46755028429_0*", "http://*.facebook.com/common/error.html*", "https://*.facebook.com/common/error.html*", "http://apps.facebook.com/sorry.php*", "https://apps.facebook.com/sorry.php*", "http://web.castleagegame.com/castle/*", "https://web.castleagegame.com/castle/*", "http://www.facebook.com/dialog/apprequests?access_token=46755028429*", "https://www.facebook.com/dialog/apprequests?access_token=46755028429*" ],
+   "update_url": "https://castle-age-auto-player.googlecode.com/svn/trunk/Chrome/packed/updates.xml",
+   "version": "141.0.0.11"
 }
