@@ -6,7 +6,7 @@
 // @description    Auto player for Castle Age
 // @homepageURL    http://caaplayer.freeforums.org
 // @version        141.0.0
-// @dev            8
+// @dev            11
 // @include        http://apps.facebook.com/castle_age/*
 // @include        https://apps.facebook.com/castle_age/*
 // @include        http://web3.castleagegame.com/castle_ws/*
@@ -113,8 +113,6 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         }
     }());
 
-    // Stop running, because we know Greasemonkey actually runs us in an anonymous wrapper.
-    return;
 }
 /*jslint newcap: true */
 
@@ -124,7 +122,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "8",
+        devVersion    = "11",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -21315,16 +21313,17 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
         /*jslint sub: true */
         GetCurrent: function () {
             try {
-                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", caap.globalContainer),
-                    nameObj     = $j(".general_name_div3", equipDiv),
-                    generalName = $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, ''),
+                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
+                    //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
+                    //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
+										generalName = $j('div[style*="general_plate.gif"] > div:first').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
                     con.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
                 }
-
+//  this will always fail because the charged bar doesn't display anymore, need to find a better way
                 record = general.getItem(generalName);
                 if (record['coolDown'] && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
                     record['charge'] = 0;
@@ -21365,7 +21364,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                             tempObj    = $j(".general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
+                            name = tempObj.text().trim();  // Should fix the Generals problem
                         } else {
                             con.warn("Unable to find 'name' container", index);
                         }
@@ -21665,7 +21664,8 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 var generalName  = general.GetCurrent(),
                     it           = 0,
                     len          = 0,
-                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
+//                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
+                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     tempObj      = $j(),
                     success      = false;
 
@@ -21685,6 +21685,17 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                     return false;
                 }
 
+// just dummying this for now so there are no errors
+general.records[it]['eapi'] = 10;
+general.records[it]['edpi'] = 10;
+general.records[it]['empi'] = 10;
+general.records[it]['energyMax'] = caap.stats['energyT']['max'];
+general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
+general.records[it]['healthMax'] = caap.stats['healthT']['max'];
+general.records[it]['last'] = Date.now();
+general.save();
+
+/*
                 if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                     tempObj = generalDiv.eq(0);
                     if ($u.hasContent(tempObj)) {
@@ -21716,7 +21727,7 @@ if (typeof GM_getResourceText === 'function' && typeof CAAP_SCOPE_RUN === 'undef
                 } else {
                     con.warn("Unable to get equipped 'General' divs");
                 }
-
+*/
                 return general.records[it];
             } catch (err) {
                 con.error("ERROR in general.GetEquippedStats: " + err);
@@ -48342,7 +48353,7 @@ con.log(1, 'chooseFriend');
                 caap_log("Inject jQueryUI.");
                 injectScript(caap.libs.jQueryUI);
             }
-
+			$j('div.fixedAux').remove(); // removes sidebar stuff from fb as it could overlap with CAAP sidebar // 2011-09-27 CAGE
             caap_WaitForjQueryUI();
         } else {
             caap_log("Waiting for jQuery ...");
