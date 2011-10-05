@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            10
+// @dev            11
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "10",
+        devVersion    = "11",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -21211,7 +21211,7 @@
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-					generalName = $j('div[style*="general_plate.gif"] > div:first').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
+										generalName = $j('div[style*="general_plate.gif"] > div:first').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
@@ -21259,7 +21259,7 @@
                             tempObj    = $j(".general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
+                            name = tempObj.text().trim();  // Should fix the Generals problem
                         } else {
                             con.warn("Unable to find 'name' container", index);
                         }
