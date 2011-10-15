@@ -1582,7 +1582,7 @@
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
                 if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                    FBID = $u.setContent(caap.fbEnv.user, 0);
+                    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
                     aName = $j('#navAccountName').text();
                 } else {
                     FBID = $u.setContent(caap.fbData.me.uid, '0').parseInt();
@@ -1594,7 +1594,6 @@
                     idOk = true;
                 }
                 /*jslint sub: false */
-
                 if (!idOk && caap.domain.which >= 0 && caap.domain.which < 2) {
                     // Force reload without retrying
                     con.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);

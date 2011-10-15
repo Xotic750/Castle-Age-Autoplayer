@@ -17,7 +17,7 @@
                 'last'       : Date.now() - (24 * 3600000),
                 'special'    : '',
                 'atk'        : 0,
-                'def'        : 0,
+                'def'        : 0, 
                 'api'        : 0,
                 'dpi'        : 0,
                 'mpi'        : 0,
@@ -426,7 +426,7 @@
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-										generalName = $j('div[style*="general_plate.gif"] > div:first').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
+										generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
@@ -451,7 +451,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -472,10 +472,9 @@
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
-                            tempObj    = $j(".general_name_div3", container);
+                            tempObj    = $j("div.general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-                            //name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
 														name = tempObj.text().trim(); // save all gernerals with complete name (eg Corvintheus**) // 2011-09-27 d11
                         } else {
                             con.warn("Unable to find 'name' container", index);
@@ -503,7 +502,7 @@
                         }
 
                         tempObj = $j("div[style*='train_progress.jpg']", container);
-                        if ($u.hasContent(tempObj)) {
+                        if ($u.hasContent(tempObj) || container.text().indexOf('Charged!') !== -1) {
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
                         } else {

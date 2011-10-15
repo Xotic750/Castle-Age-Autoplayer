@@ -1583,7 +1583,7 @@
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
                 if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                    FBID = $u.setContent(caap.fbEnv.user, 0);
+                    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
                     aName = $j('#navAccountName').text();
                 } else {
                     FBID = $u.setContent(caap.fbData.me.uid, '0').parseInt();
