@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "11",
+        devVersion    = "12",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -21211,7 +21211,7 @@
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-										generalName = $j('div[style*="general_plate.gif"] > div:first').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
+										generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
@@ -21235,7 +21235,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -21256,7 +21256,7 @@
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
-                            tempObj    = $j(".general_name_div3", container);
+                            tempObj    = $j("div.general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
                             name = tempObj.text().trim();  // Should fix the Generals problem
@@ -21286,7 +21286,7 @@
                         }
 
                         tempObj = $j("div[style*='train_progress.jpg']", container);
-                        if ($u.hasContent(tempObj)) {
+                        if ($u.hasContent(tempObj)) || container.text().indexOf('Charged!') !== -1){
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
                         } else {
@@ -35088,7 +35088,7 @@ con.log(1, 'chooseFriend');
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
                 if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                    FBID = $u.setContent(caap.fbEnv.user, 0);
+                    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
                     aName = $j('#navAccountName').text();
                 } else {
                     FBID = $u.setContent(caap.fbData.me.uid, '0').parseInt();
