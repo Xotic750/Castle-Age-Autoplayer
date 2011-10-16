@@ -21286,7 +21286,7 @@
                         }
 
                         tempObj = $j("div[style*='train_progress.jpg']", container);
-                        if ($u.hasContent(tempObj)) || container.text().indexOf('Charged!') !== -1){
+                        if (($u.hasContent(tempObj)) || container.text().indexOf('Charged!') !== -1){
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
                         } else {
