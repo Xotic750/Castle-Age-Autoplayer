@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            11
+// @dev            13
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "12",
+        devVersion    = "13",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -34399,8 +34399,11 @@ con.log(1, 'chooseFriend');
                     params = $u.isArray(params) ? params[0] : params;
                     session.setItem("signedRequest", params);
                     con.log(2, "Ajax signed request available");
-                    caap.showRequestForm = "showRequestForm = " + caap.showRequestForm.replace(/SIGNED_REQUEST/gm, params);
-                    $u.injectScript(caap.showRequestForm, true);
+                    // disabled this because it causes gifts to be already collected.
+
+//                    caap.showRequestForm = "showRequestForm = " + caap.showRequestForm.replace(/SIGNED_REQUEST/gm, params);
+
+//                    $u.injectScript(caap.showRequestForm, true);
                 } else {
                     con.warn("caap.signedRequest is empty");
                 }
@@ -35942,7 +35945,9 @@ con.log(1, 'chooseFriend');
             'Water II',
             'Mist II',
             'Mist III',
-            'Fire II'
+	    'Fire II',
+            'Pangaea',
+            'Perdition'
         ],
 
         demiQuestList: [
@@ -40658,12 +40663,32 @@ con.log(1, 'chooseFriend');
             'Fire II' : {
                 clas : 'quests_stage_14',
                 base : 'tab_fire2',
-                next : 'DemiChange',
+                next : 'Pangaea',
                 area : '',
                 list : '',
                 boss : "Ambrosia",
                 orb  : 'Orb of Ambrosia'
             },
+ 	   'Pangaea' : {
+                clas : 'quests_stage_15',
+                base : 'tab_pangaea',
+                next : 'Perdition',
+                area : '',
+                list : '',
+                boss : "Malekus",
+                orb  : 'Orb of Malekus'
+            },
+
+           'Perdition' : {
+                clas : 'quests_stage_16',
+                base : 'tab_perdition',
+                next : 'DemiChange',
+                area : '',
+                list : '',
+                boss : "Azeron",
+                orb  : 'Orb of Azeron'
+            },
+
             'DemiChange' : {
                 clas : 'symbolquests_stage_1',
                 next : 'Ambrosia',
