@@ -58,4 +58,6 @@
         injectScript(caap.libs.jQuery);
     }
 
-    caap_WaitForjQuery();
+	$('body').removeClass('center_fixed_width_app');	    
+	caap_WaitForjQuery();
+    

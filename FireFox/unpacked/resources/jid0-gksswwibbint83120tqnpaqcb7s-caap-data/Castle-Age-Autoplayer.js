@@ -48339,8 +48339,8 @@ con.log(1, 'chooseFriend');
     if (!window.jQuery || window.jQuery().jquery !== "1.6.2") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
-    }
-
+    }	
+$('body').removeClass('center_fixed_width_app');
     caap_WaitForjQuery();
 }());
 
