@@ -48340,8 +48340,9 @@ con.log(1, 'chooseFriend');
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
     }	
-$('body').removeClass('center_fixed_width_app');
+    
     caap_WaitForjQuery();
+
 }());
 
 // ENDOFSCRIPT
