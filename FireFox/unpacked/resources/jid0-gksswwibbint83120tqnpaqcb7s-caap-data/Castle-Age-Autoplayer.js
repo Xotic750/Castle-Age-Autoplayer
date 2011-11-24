@@ -20366,7 +20366,7 @@
             n: "Caine",
             a: 19,
             d: 19,
-            i: "+1% Damage for 1M gold per stamina",
+            i: "+1% Damage for 400k gold per stamina",
             p: "hero_caine",
             e: [{
                 b: 168,
@@ -20393,7 +20393,185 @@
                 p: "eq_caine_shield",
                 t: 4
             }]
-        }]
+        }
+
+, 
+
+
+
+
+{
+            b: 171,
+            n: "Ephraline",
+            a: 20,
+            d: 18,
+            i: "+1% Confuse effect +2% chance",
+            p: "hero_ephraline",
+            e: [{
+                b: 172,
+                n: "Phantasmal Brooch",
+                a: 16,
+                d: 13,
+                i: "+2 Defense to Ephraline",
+                p: "eq_ephraline_amulet",
+                t: 2
+            }, {
+                b: 173,
+                n: "Mystical Illusion",
+                a: 15,
+                d: 18,
+                i: "+1 Attack to Ephraline",
+                p: "eq_ephraline_spell",
+                t: 9
+            }, {
+                b: 174,
+                n: "Conjurers Wand",
+                a: 19,
+                d: 22,
+                i: "+1 Attack to Ephraline",
+                p: "eq_ephraline_weapon",
+                t: 3
+            }]
+        },
+
+
+{
+            b: 177,
+            n: "Rafaria",
+            a: 21,
+            d: 17,
+            i: "Wound/Lacerate takes off 10 more health",
+            p: "hero_rafaria",
+            e: [{
+                b: 178,
+                n: "Terror Pendant",
+                a: 17,
+                d: 13,
+                i: "+1 Defense to Rafaria",
+                p: "eq_rafaria_amulet",
+                t: 2
+            }, {
+                b: 179,
+                n: "Shadowclasp Cloak",
+                a: 19,
+                d: 22,
+                i: "+1 Defense to Rafaria",
+                p: "eq_rafaria_armor",
+                t: 6
+            }, {
+                b: 180,
+                n: "Shadow Slicer",
+                a: 23,
+                d: 18,
+                i: "+1 Attack to Rafaria",
+                p: "eq_rafaria_weapon",
+                t: 3
+            }]
+        },
+
+{
+            b: 181,
+            n: "Joan",
+            a: 17,
+            d: 22,
+            i: "Sentinel/Guardian Protects 12 more health & Resists 2 more damage",
+            p: "hero_joan",
+            e: [{
+                b: 182,
+                n: "Breaker Lance",
+                a: 18,
+                d: 24,
+                i: "+2 Attack to Joan",
+                p: "eq_joan_weapon",
+                t: 3
+            }, {
+                b: 183,
+                n: "Commander Helm",
+                a: 14,
+                d: 21,
+                i: "+1 Defense to Joan",
+                p: "eq_joan_helm",
+                t: 5
+            }, {
+                b: 184,
+                n: "Crusader's Regalia",
+                a: 19,
+                d: 25,
+                i: "+1 Defense to Joan",
+                p: "eq_joan_armor",
+                t: 6
+            }]
+        },
+
+{
+            b: 185,
+            n: "Tefaera",
+            a: 18,
+            d: 23,
+            i: "Revive/Resurrect restores 10 more health",
+            p: "hero_tefaera",
+            e: [{
+                b: 186,
+                n: "Staff of Prayers",
+                a: 19,
+                d: 23,
+                i: "+2 Attack to Tefaera",
+                p: "eq_tefaera_weapon",
+                t: 3
+            }, {
+                b: 187,
+                n: "Circlet of Light",
+                a: 16,
+                d: 19,
+                i: "+1 Defense to Tefaera",
+                p: "eq_tefaera_helm",
+                t: 5
+            }, {
+                b: 188,
+                n: "Praetor's Seal",
+                a: 14,
+                d: 15,
+                i: "+1 Defense to Tefaera",
+                p: "eq_tefaera_amulet",
+                t: 2
+            }]
+        },
+{
+            b: 189,
+            n: "Xelia",
+            a: 22,
+            d: 18,
+            i: "Illusion/Mirror Image 2.5% less likely to be dispelled when defeated",
+            p: "hero_xelia",
+            e: [{
+                b: 190,
+                n: "Deceiver's Wand",
+                a: 23,
+                d: 19,
+                i: "+1 Defense to Xelia",
+                p: "eq_xelia_weapon",
+                t: 3
+            }, {
+                b: 191,
+                n: "Phanstasmal Armguards",
+                a: 12,
+                d: 12,
+                i: "+1 Defense to Xelia",
+                p: "eq_xelia_gauntlet",
+                t: 7
+            }, {
+                b: 192,
+                n: "Signet from Beyond",
+                a: 15,
+                d: 14,
+                i: "+2 Attack to Xelia",
+                p: "eq_xelia_ring",
+                t: 2
+            }]
+        }
+
+
+]
     };
 
     ////////////////////////////////////////////////////////////////////
