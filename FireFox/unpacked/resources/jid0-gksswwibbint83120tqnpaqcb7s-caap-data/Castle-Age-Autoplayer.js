@@ -48314,10 +48314,10 @@ con.log(1, 'chooseFriend');
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
     }
 
-    function getFBData() {
+   function getFBData() {
         var inject = document.createElement('script');
         inject.setAttribute('type', 'text/javascript');
-        inject.textContent = "(function () {FB.api('/me', function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getSession()}));});})();";
+        inject.textContent = "(function () {FB.api('/me', function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getAuthResponse()}));});})();";
         (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
     }
