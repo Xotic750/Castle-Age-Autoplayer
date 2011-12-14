@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            13
+// @dev            14
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "13",
+        devVersion    = "14",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -23159,6 +23159,35 @@ general.save();
                 newbg_img    : ['boss_header_malekus.jpg'],
                 list_img     : ['boss_malekus_list.jpg'],
                 cta_img      : ['cta_malekus.gif']
+		},
+
+            "Vermilion" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 350000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                newbg_img    : ['monster_vermilion_header.jpg'],
+                list_img     : ['monster_vermilion_list.jpg'],
+                cta_img      : ['cta_vermilion.gif'] 
             }
         },
 
@@ -23977,11 +24006,12 @@ general.save();
         confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
+                    var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     tempDiv     = $j(),
                     tempText    = '',
                     fMonstStyle = '',
                     nMonstStyle = '',
+		    nMonstStyle2 = '',	
                     feedMonster = '',
                     userName    = '',
                     mName       = '',
@@ -23997,8 +24027,9 @@ general.save();
                         tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
                         nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
-                        con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
-                        if ($u.hasContent(nMonstStyle)) {
+			nMonstStyle2 = monsterDiv.attr("style").regex(/(monster_\S+\_header.jpg)/);                        
+			con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
+                        if ($u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
                             tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
                             tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
@@ -44015,7 +44046,8 @@ con.log(1, 'chooseFriend');
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+                    //                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+		    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),	
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
@@ -44025,6 +44057,7 @@ con.log(1, 'chooseFriend');
                     tBool             = false,
                     fMonstStyle       = '',
                     nMonstStyle       = '',
+		    nMonstStyle2      = '',	
                     id                = 0,
                     userName          = '',
                     mName             = '',
@@ -44101,15 +44134,22 @@ con.log(1, 'chooseFriend');
                     con.log(2, "fMonstStyle", fMonstStyle);
                     if (!$u.hasContent(fMonstStyle)) {
                         nMonstStyle = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header_\\S+\\.jpg)"));
+			nMonstStyle2 = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header.jpg)"));
                         con.log(2, "nMonstStyle", nMonstStyle);
                     }
 
-                    if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle)) {
+                    if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
                         tempDiv = monsterDiv.find(":contains('summoned'):last,:contains('Summoned'):last");
                         if ($u.hasContent(fMonstStyle)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                         } else {
+			 if ($u.hasContent(nMonstStyle)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+			} else {
+
++                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle2));
+
++                            }
                         }
                     } else {
                         // old pages - shouldn't exist any more
@@ -44282,9 +44322,10 @@ con.log(1, 'chooseFriend');
                             tStr = $j("input[name='mid']", ctaDiv).attr("value");
                             currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mid=' + tStr : '';
                             con.log(2, "Set monster feedLink", currentMonster['feedLink']);
-                            if (config.getItem("DebugLevel", 1) > 1) {
+                            /*if (config.getItem("DebugLevel", 1) > 1) {
                                 $j().alert("Set monster feedLink<br />" + currentMonster['feedLink']);
                             }
+				*/
                         }
                     }
                 }
@@ -45191,7 +45232,7 @@ con.log(1, 'chooseFriend');
                 }
 
                 // Check if on engage monster page
-                if ($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
+                if ($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
                     if (monster.confirmRightPage(monsterName)) {
                         return true;
                     }
