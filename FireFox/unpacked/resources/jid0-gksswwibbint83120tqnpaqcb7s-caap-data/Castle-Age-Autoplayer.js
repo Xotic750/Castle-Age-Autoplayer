@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "14",
+        devVersion    = "15",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -41086,6 +41086,7 @@ con.log(1, 'chooseFriend');
                         pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+			case 'tab_pangaea':
                         case 'tab_fire2':
                         case 'tab_mist3':
                         case 'tab_mist2':
