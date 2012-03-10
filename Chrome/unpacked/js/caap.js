@@ -7365,6 +7365,7 @@
                         pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+                        case 'tab_perdition':
 			case 'tab_pangaea':
                         case 'tab_fire2':
                         case 'tab_mist3':
