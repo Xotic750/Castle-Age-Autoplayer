@@ -451,7 +451,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer1", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
