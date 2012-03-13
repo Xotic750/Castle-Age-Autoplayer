@@ -2751,7 +2751,10 @@
                     caap.pauseListener();
                     caap.reBindCaapDiv();
                 } else {
-                    caap.caapDivObject = caapDiv.appendTo(document.body);
+                    if (document.getElementById ('body'))
+                        caap.caapDivObject = caapDiv.appendTo(document.getElementById ('body'));
+                    else
+                        caap.caapDivObject = caapDiv.appendTo(document.body);caap.caapDivObject = caapDiv.appendTo(document.body);
                 }
 
                 caap.checkLastAction(state.getItem('LastAction', 'idle'));
