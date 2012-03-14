@@ -19776,7 +19776,110 @@
                 p: "eq_xelia_ring",
                 t: 2
             }]
+        },
+
+{
+            b: 196,
+            n: "Aesir",
+            a: 23,
+            d: 19,
+            i: "Grants Physical Pierce Ability",
+            p: "hero_aesir",
+            e: [{
+                b: 197,
+                n: "Thundercrash",
+                a: 25,
+                d: 22,
+                i: "+2 Attack to Aesir",
+                p: "eq_aesir_weapon",
+                t: 3
+            }, {
+                b: 198,
+                n: "Aesir's Battle Armor",
+                a: 24,
+                d: 22,
+                i: "+1 Defense to Aesir",
+                p: "eq_aesir_armor",
+                t: 6
+            }, {
+                b: 199,
+                n: "Stormfury Ring",
+                a: 23,
+                d: 20,
+                i: "+6 stamina when Aesir is equipped",
+                p: "eq_aesir_amulet",
+                t: 2
+            }]
+        },
+
+
+{
+            b: 200,
+            n: "Vanir",
+            a: 18,
+            d: 25,
+            i: "Grants Physical Resistance Ability ",
+            p: "hero_vanir",
+            e: [{
+                b: 201,
+                n: "Force Wand Staff",
+                a: 21,
+                d: 26,
+                i: "+1 Defense to Vanir",
+                p: "eq_vanir_weapon",
+                t: 3
+            }, {
+                b: 202,
+                n: "Protectorate Plate",
+                a: 20,
+                d: 25,
+                i: "+2 Defense to Vanir",
+                p: "eq_vanir_armor",
+                t: 6
+            }, {
+                b: 203,
+                n: "Sunvale Choker",
+                a: 20,
+                d: 23,
+                i: "+1 Attack to Vanir",
+                p: "eq_vanir_amulet",
+                t: 2
+            }]
+        },
+	{
+            b: 206,
+            n: "Frost",
+            a: 22,
+            d: 22,
+            i: "Grants Physical Pierce And Water Piercing",
+            p: "hero_frost",
+            e: [{
+                b: 207,
+                n: "Chillstrike",
+                a: 24,
+                d: 26,
+                i: "+2 Attack to Frost",
+                p: "eq_frost_weapon",
+                t: 3
+            }, {
+                b: 208,
+                n: "Helm of Winter",
+                a: 18,
+                d: 18,
+                i: "+1 Defense to Frost",
+                p: "eq_frost_helm",
+                t: 5
+            }, {
+                b: 209,
+                n: "Plate of Glaciers",
+                a: 25,
+                d: 25,
+                i: "+2 Defense to Frost",
+                p: "eq_frost_armor",
+                t: 6
+            }]
         }
+
 
 
 ]};
