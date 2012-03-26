@@ -19740,7 +19740,7 @@
                 a: 14,
                 d: 15,
                 i: "+1 Defense to Tefaera",
-                p: "eq_tefaera_amulet",
+                p: "eq_tefaera_ring",
                 t: 2
             }]
         },

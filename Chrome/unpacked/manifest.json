@@ -30,7 +30,12 @@
 			"js/gifting.js",
 			"js/town.js",
 			"js/army.js",
-			"js/caap.js",
+			
+			"js/caap_base.js",
+			"js/caap_playerrecon.js",
+			"js/caap_mainloop.js",
+			"js/caap_jquery.js",
+			
 			"js/functions.js",
 			"js/begin.js"
 		],
