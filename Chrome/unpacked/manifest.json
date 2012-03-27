@@ -32,6 +32,15 @@
 			"js/army.js",
 			
 			"js/caap_base.js",
+			
+			"js/caap_autoincome.js",
+			"js/caap_army.js",
+			"js/caap_index.js",
+			"js/caap_autogift.js",
+			"js/caap_autostat.js",
+			"ja/caap.cta.js",
+			"js/caap_fillarmy.js",
+			"ja/caap_idle.js",
 			"js/caap_playerrecon.js",
 			"js/caap_mainloop.js",
 			"js/caap_jquery.js",
