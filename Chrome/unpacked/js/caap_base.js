@@ -33,7 +33,7 @@ caap = {
 		which : -1,
 		protocol : ["http://", "https://"],
 		ptype : 0,
-		url : ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws", "web.castleagegame.com/castle", "www.facebook.com/dialog/apprequests?access_token=46755028429"],
+            url      : ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws", "web.castleagegame.com/castle", "www.facebook.com/dialog/apprequests"],
 		/*
 		 id       : ["app46755028429_", "", ""],
 		 ajax     : ["a46755028429_", "", ""],
