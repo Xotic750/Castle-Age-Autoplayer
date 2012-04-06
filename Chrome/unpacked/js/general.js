@@ -426,7 +426,7 @@
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-										generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
+					generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
@@ -451,7 +451,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j("div.generalSmallContainer1", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -501,7 +501,7 @@
                             con.warn("Unable to find 'itype' container", index);
                         }
 
-                        tempObj = $j("div[style*='train_progress.jpg']", container);
+                        tempObj = $j("div[style*='graphics/gen_chargebarsmall.gif']", container);
                         if ($u.hasContent(tempObj) || container.text().indexOf('Charged!') !== -1) {
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
@@ -516,7 +516,7 @@
                             con.warn("Unable to find 'level' container", index);
                         }
 
-                        tempObj = $j("div[style*='#3b5561'],div[style*='rgb(59, 85, 97)']", container);
+                        tempObj = $j("div[style*='graphics/bar_img.jpg']", container);
                         if ($u.hasContent(tempObj)) {
                             percent = tempObj.getPercent('width');
                         } else {
@@ -530,10 +530,10 @@
                             con.warn("Unable to find 'special' container", index);
                         }
 
-                        tempObj = $j(".generals_indv_stats_padding div", container);
-                        if ($u.hasContent(tempObj) && tempObj.length === 2) {
-                            atk = $u.setContent(tempObj.eq(0).text(), '0').parseInt();
-                            def = $u.setContent(tempObj.eq(1).text(), '0').parseInt();
+                        tempObj = $j(".general_pic_div3", container);
+                        if ($u.hasContent(tempObj)) {
+                            atk = $u.setContent(tempObj.next().find('div:eq(0)').text(), '0').parseInt();
+                            def = $u.setContent(tempObj.next().find('div:eq(0)').text(), '0').parseInt();
                         } else {
                             con.warn("Unable to find 'attack and defence' containers", index);
                         }
