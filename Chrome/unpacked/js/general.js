@@ -532,8 +532,8 @@
 
                         tempObj = $j(".general_pic_div3", container);
                         if ($u.hasContent(tempObj)) {
-                            atk = $u.setContent(tempObj.next().find('div:eq(0)').text(), '0').parseInt();
-                            def = $u.setContent(tempObj.next().find('div:eq(0)').text(), '0').parseInt();
+                            atk = $u.setContent(tempObj.next('div:first').children('div:eq(0)').text(), '0').parseInt();
+                            def = $u.setContent(tempObj.next('div:first').children('div:eq(1)').text(), '0').parseInt();
                         } else {
                             con.warn("Unable to find 'attack and defence' containers", index);
                         }
