@@ -475,7 +475,7 @@
                             tempObj    = $j("div.general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-														name = tempObj.text().trim(); // save all gernerals with complete name (eg Corvintheus**) // 2011-09-27 d11
+							name = tempObj.text().trim(); // save all gernerals with complete name (eg Corvintheus**) // 2011-09-27 d11
                         } else {
                             con.warn("Unable to find 'name' container", index);
                         }
@@ -509,9 +509,9 @@
                             con.log(4, "Not a cool down general", index);
                         }
 
-                        tempObj = container.children().eq(3);
+                        tempObj = container.find('div:contains("Level"):last');
                         if ($u.hasContent(tempObj)) {
-                            level = $u.setContent(tempObj.text(), '0').replace(/Level /gi, '').stripTRN().parseInt();
+                            level = $u.setContent(tempObj.text(), '0').match(/\d+/g, '')[0].parseInt();
                         } else {
                             con.warn("Unable to find 'level' container", index);
                         }
@@ -523,9 +523,9 @@
                             con.warn("Unable to find 'level percent' container", index);
                         }
 
-                        tempObj = container.children().eq(4);
+                        tempObj = container.children('div:last').children('div');
                         if ($u.hasContent(tempObj)) {
-                            special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
+                            special = $u.setContent(tempObj.html(tempObj.html().replace(/<br>/g, ' ')).text().trim());
                         } else {
                             con.warn("Unable to find 'special' container", index);
                         }
