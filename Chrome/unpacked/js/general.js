@@ -426,7 +426,7 @@
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-					generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
+					generalName = $j('div[style*="hot_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
