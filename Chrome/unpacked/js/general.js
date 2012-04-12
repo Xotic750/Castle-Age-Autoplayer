@@ -428,7 +428,11 @@
                     //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
 					generalName = $j('div[style*="hot_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
-
+		if (!generalName) {
+			generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // web3 old layout workaround
+			record      = {};
+		}
+		
                 if (!generalName) {
                     con.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
