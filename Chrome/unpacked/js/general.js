@@ -453,6 +453,21 @@
             }
         },
 
+        Shrink: function () {
+            var generalBox = $j('div[style*="hot_container.gif"]');
+            generalBox[0].style.zIndex = 1;
+            generalBox[0].style.backgroundImage = "url(data:image/gif;base64," + image64['generalBox'] + ")";
+            generalBox[0].style.width = "124px";
+            generalBox[0].style.left = "57px";
+            generalBox[0].children[0].style.width = "124px";
+            generalBox[0].children[0].children[1].style.width = "100px";
+            generalBox[0].children[1].style.width = "63px";
+            generalBox[0].children[1].children[0].children[0].children[0].children[0].style.width = "55px";
+            generalBox[0].children[1].children[0].children[0].children[0].children[0].style.height = "55px";
+            generalBox[0].children[1].children[0].children[0].children[0].children[0].style.paddingBottom = "30px";
+
+            generalBox[0].children[2].children[1].style.paddingTop = "2px";
+        },
         GetGenerals: function () {
             try {
                 var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
