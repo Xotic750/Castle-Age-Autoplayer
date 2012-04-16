@@ -339,14 +339,14 @@
         },
 
         navigate_to_battles: function () {
-            return caap.navigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
+            return caap.navigateTo('guildv2_monster_summon_list,guildv2_current_monster_battles', 'guild_monster_list_on.jpg');
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         populate: function () {
             try {
-                var buttons = $j("input[src*='dragon_list_btn_']"),
+                var buttons = $j("input[src*='guild_battle_']"),
                     slotArr = [],
                     it      = 0;
 
@@ -370,6 +370,8 @@
                                 slotArr.push(slot);
                                 currentRecord = guild_monster.getItem(slot);
                                 name = button.parents().eq(4).text();
+                                name = name.replace ("has  been summoned!", "");
+                                name = name.replace ("Join Battle!", "");
                                 name = name ? name.trim() : '';
                                 if (name) {
                                     if (currentRecord['name'] !== name) {
@@ -395,11 +397,12 @@
                                 imageName = button.attr("src").basename();
                                 if (imageName) {
                                     switch (imageName) {
-                                    case "dragon_list_btn_3.jpg":
+                                    case "guild_battle_joinbtn.gif":
                                         currentRecord['color'] = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
                                         currentRecord['state'] = "Alive";
                                         break;
-                                    case "dragon_list_btn_2.jpg":
+// Need to find the image for dragon_list_btn_4.jpg. Its view or fail, might no longer be in use
+                                    case "guild_battle_collectbtn.gif":
                                     case "dragon_list_btn_4.jpg":
                                         currentRecord['color'] = "grey";
                                         if (currentRecord['state'] !== "Completed") {

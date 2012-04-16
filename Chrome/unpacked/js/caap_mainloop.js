@@ -869,7 +869,7 @@ caap.profilesDialog = function(keys) {
 		return undefined;
 	}
 };
-caap.xportDialog = function(data, title) {
+caap.exportDialog = function(data, title) {
 	try {
 		var h = '', w = $j("#caap_export");
 		if(!$u.hasContent(w)) {

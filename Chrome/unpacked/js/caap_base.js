@@ -4704,10 +4704,18 @@ caap = {
 			//signaturePic: 'tab_monster_class_on.gif',
 			CheckResultsFunction : 'checkResults_view_class_progress'
 		},
-		'guild' : {
-			signaturePic : 'tab_guild_main_on.gif',
+		'guildv2_home' : {
+			signaturePic : 'tab_guild_main_on.jpg',
 			CheckResultsFunction : 'checkResults_guild'
 		},
+		'guildv2_monster_summon_list' : {
+			signaturePic : 'tab_guild_main_on.jpg',
+			CheckResultsFunction : 'checkResults_guild_monster_summon_list'
+		},
+		'guildv2_current_monster_battles' : {
+			signaturePic : 'tab_guild_main_on.jpg',
+			CheckResultsFunction : 'checkResults_guild_current_monster_battles'
+		}, /* some of these older pages can be cleaned up. */
 		'guild_current_battles' : {
 			signaturePic : 'tab_guild_current_battles_on.gif',
 			CheckResultsFunction : 'checkResults_guild_current_battles'
@@ -4822,6 +4830,7 @@ caap = {
 			}
 
 			general.GetCurrent();
+			general.Shrink();
 			if(general.quickSwitch) {
 				general.GetEquippedStats();
 			}
@@ -8450,7 +8459,7 @@ caap = {
 			if(tempDiv && tempDiv.length) {
 				tempDiv.each(function() {
 					con.log(5, "name", $j(this).parent().parent().next().text().trim());
-					con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='dragon_list_btn_']"));
+					con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='guild_battle_']"));
 				});
 			} else {
 				return false;
@@ -8531,7 +8540,7 @@ caap = {
 
 	checkResults_guild_current_monster_battles : function() {
 		try {
-			$j("input[src*='dragon_list_btn_']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+			$j("input[src*='guild_battle_']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
 			guild_monster.populate();
 
 			return true;
