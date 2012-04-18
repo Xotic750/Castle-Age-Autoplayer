@@ -19002,6 +19002,70 @@ offline = {
 			p : "eq_erynion_amulet",
 			t : 2
 		}]
+	}, {
+		b : 220,
+		n : "Kanbe",
+		a : 31,
+		d : 24,
+		i : "+20 to Physical Pierce, +10 to Earth Offense @Level 6",
+		p : "eq_kanbe_divine",
+		e : [{
+			b : 221,
+			n : "Sunder",
+			a : 30,
+			d : 22,
+			i : "+2 Attack to Kanbe",
+			p : "eq_kanbe_weapon",
+			t : 3
+		}, {
+			b : 222,
+			n : "Gaia Armor",
+			a : 25,
+			d : 25,
+			i : "+1 Defense to Kanbe",
+			p : "eq_kanbe_armor",
+			t : 6
+		}, {
+			b : 223,
+			n : "Gaia Shield",
+			a : 20,
+			d : 35,
+			i : "+1 Defense to Kanbe",
+			p : "eq_kanbe_shield",
+			t : 4
+		}]
+	}, {
+		b : 224,
+		n : "Kanbe - Gaia Helm",
+		a : 31,
+		d : 24,
+		i : "+1 Defense to Kanbe",
+		p : "eq_kanbe_helm",
+		e : [{
+			b : 225,
+			n : "Gaia Boots",
+			a : 30,
+			d : 22,
+			i : "+5 Attack to Kanbe",
+			p : "eq_kanbe_greaves",
+			t : 10
+		}, {
+			b : 226,
+			n : "Gaia Bracer",
+			a : 25,
+			d : 25,
+			i : " +1 Attack to Kanbe",
+			p : "eq_kanbe_gloves",
+			t : 7
+		}, {
+			b : 227,
+			n : "Recollection ",
+			a : 20,
+			d : 35,
+			i : "+5 Stamina when Kanbe is equipped. ",
+			p : "eq_kanbe_amulet",
+			t : 2
+		}]
 	}]
 };
 
