@@ -4831,6 +4831,12 @@ caap = {
 
 			general.GetCurrent();
 			general.Shrink();
+			
+
+			// THIS doesn't work and make CAAP infinite loop if no monsters 
+			//- reverting back to previous d27 behaviour -- magowiz
+			//if (monster.records.length == 0)
+            		//	monster.flagReview();
 			if(general.quickSwitch) {
 				general.GetEquippedStats();
 			}
