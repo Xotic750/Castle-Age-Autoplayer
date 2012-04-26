@@ -4831,6 +4831,8 @@ caap = {
 
 			general.GetCurrent();
 			general.Shrink();
+			if (monster.records.length == 0)
+            			monster.flagReview();
 			if(general.quickSwitch) {
 				general.GetEquippedStats();
 			}
