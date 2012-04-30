@@ -992,7 +992,7 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [10, 20, 50, 100],
                 nrgMax       : [20, 40, 100, 200],
@@ -1020,7 +1020,7 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
                 staMax       : [10, 20, 50, 100],
                 nrgMax       : [20, 40, 100, 200],
