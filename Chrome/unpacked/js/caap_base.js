@@ -4832,8 +4832,10 @@ caap = {
 			general.GetCurrent();
 			general.Shrink();
 			var AFrecentAction = localStorage.AFrecentAction;
-			if (AFrecentAction == undefined )
+			if (AFrecentAction == undefined ) {
 				localStorage.AFrecentAction=true;
+				AFrecentAction=true;
+			}
 
 			// THIS doesn't work and make CAAP infinite loop if no monsters 
 			//- reverting back to previous d27 behaviour -- magowiz
