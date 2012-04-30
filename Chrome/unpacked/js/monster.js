@@ -1711,6 +1711,10 @@
                 schedule.setItem('NotargetFrombattle_monster', 0);
                 session.setItem('ReleaseControl', true);
                 caap.updateDashboard(true);
+		if (monster.records.length == 0) 
+			localStorage.AFrecentAction = false;
+		else 
+			localStorage.AFrecentAction = true;
                 return true;
             } catch (err) {
                 con.error("ERROR in monster.flagFullReview: " + err);

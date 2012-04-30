@@ -4831,12 +4831,17 @@ caap = {
 
 			general.GetCurrent();
 			general.Shrink();
-			
+			var AFrecentAction = localStorage.AFrecentAction;
+			if (AFrecentAction == undefined )
+				localStorage.AFrecentAction=true;
 
 			// THIS doesn't work and make CAAP infinite loop if no monsters 
 			//- reverting back to previous d27 behaviour -- magowiz
-			//if (monster.records.length == 0)
-            		//	monster.flagReview();
+			
+			if ((monster.records.length == 0) && ( (AFrecentAction== true) )) 
+            			monster.flagFullReview();
+
+
 			if(general.quickSwitch) {
 				general.GetEquippedStats();
 			}
@@ -10245,6 +10250,11 @@ caap = {
 					caap.setDivContent('monster_mess', attackMess);
 					session.setItem('ReleaseControl', true);
 					caap.click(attackButton);
+					// dashboard autorefresh fix
+					localStorage.AFrecentAction=true;
+
+
+
 					return true;
 				} else {
 					con.warn('No button to attack/fortify with.');
