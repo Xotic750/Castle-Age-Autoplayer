@@ -729,10 +729,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50, 100, 200],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 30,  45],
@@ -992,10 +992,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50, 100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
@@ -1020,10 +1020,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50, 100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
@@ -1711,6 +1711,10 @@
                 schedule.setItem('NotargetFrombattle_monster', 0);
                 session.setItem('ReleaseControl', true);
                 caap.updateDashboard(true);
+		if (monster.records.length == 0) 
+			localStorage.AFrecentAction = false;
+		else 
+			localStorage.AFrecentAction = true;
                 return true;
             } catch (err) {
                 con.error("ERROR in monster.flagFullReview: " + err);
@@ -2220,8 +2224,9 @@
                         'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                         'Never - disables attacking monsters'
                     ],
+		    delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",	
                     monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
-                    demiPtItem = 0,
+		    demiPtItem = 0,
                     subCode = '',
                     htmlCode = '';
 
@@ -2236,6 +2241,9 @@
                 htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions, 1, '', '', true, false);
                 htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+		htmlCode += caap.startDropHide('WhenMonster', 'StayHidden', 'Stay Hidden', false);
+		htmlCode += caap.makeCheckTR("Delay hide if \"safe\"", 'delayStayHidden', true, delayStayHiddenInstructions, true);
+		htmlCode += caap.endDropHide('WhenMonster', 'StayHidden', 'Stay Hidden', false);
                 htmlCode += caap.makeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
                 htmlCode += caap.makeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
                 htmlCode += caap.startCheckHide('UseTactics');
