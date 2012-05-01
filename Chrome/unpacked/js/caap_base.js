@@ -3820,6 +3820,7 @@ caap = {
 						//if (!idName.hasIndexOf('Arena')) {
 						if(!idName.hasIndexOf('Festival')) {
 							caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
+							caap.setDisplay("caapDivObject", idName + 'StayHidden_hide', value === 'Stay Hidden', false);
 						}
 
 						caap.setDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
@@ -8076,7 +8077,8 @@ caap = {
 					caap.setDivContent('battle_mess', 'Battle Recon Only');
 					return false;
 				case 'Stay Hidden' :
-					if(!caap.needToHide()) {
+					if(!caap.needToHide() && config.getItem('delayStayHidden', true) === true )
+					{
 						caap.setDivContent('battle_mess', 'We Dont Need To Hide Yet');
 						con.log(1, 'We Dont Need To Hide Yet');
 						return false;
@@ -10629,6 +10631,11 @@ caap = {
 			if(!state.getItem('targetFrombattle_monster', '')) {
 				con.log(1, 'Stay Hidden Mode: No monster to battle');
 				return true;
+			if(config.getItem('delayStayHidden', true) === false) {
+         			con.log(2, 'Stay Hidden Mode: Delay hide if "safe" not enabled');
+         			return true;
+      				}
+
 			}
 			/*-------------------------------------------------------------------------------------\
 			 The riskConstant helps us determine how much we stay in hiding and how much we are willing

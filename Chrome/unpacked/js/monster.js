@@ -2224,8 +2224,9 @@
                         'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                         'Never - disables attacking monsters'
                     ],
+		    delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",	
                     monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
-                    demiPtItem = 0,
+		    demiPtItem = 0,
                     subCode = '',
                     htmlCode = '';
 
@@ -2240,6 +2241,9 @@
                 htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions, 1, '', '', true, false);
                 htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+		htmlCode += caap.startDropHide('WhenMonster', 'StayHidden', 'Stay Hidden', false);
+		htmlCode += caap.makeCheckTR("Delay hide if \"safe\"", 'delayStayHidden', true, delayStayHiddenInstructions, true);
+		htmlCode += caap.endDropHide('WhenMonster', 'StayHidden', 'Stay Hidden', false);
                 htmlCode += caap.makeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
                 htmlCode += caap.makeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
                 htmlCode += caap.startCheckHide('UseTactics');
