@@ -372,6 +372,7 @@
                                 name = button.parents().eq(4).text();
                                 name = name.replace ("has  been summoned!", "");
                                 name = name.replace ("Join Battle!", "");
+                                name = name.replace ("Collect Now!", "");
                                 name = name ? name.trim() : '';
                                 if (name) {
                                     if (currentRecord['name'] !== name) {
