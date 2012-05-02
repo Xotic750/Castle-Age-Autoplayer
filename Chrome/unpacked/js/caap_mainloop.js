@@ -47,7 +47,8 @@ caap.actionDescTable = {
 	'checkItem' : 'Getting Items',
 	'checkMagic' : 'Getting Magic',
 	'checkCharacterClasses' : 'Character Classes',
-	'festivalBless' : 'Festival Feats'
+	'festivalBless' : 'Festival Feats',
+	'collectConquest' : 'Collect Conquest Resources'
 };
 /*jslint sub: false */
 caap.checkLastAction = function(thisAction) {
@@ -111,7 +112,8 @@ caap.masterActionList = {
 	0x29 : 'ajaxCheckPublic2',
 	0x2A : 'ajaxCheckPublic3',
 	0x2B : 'feedScan',
-	0x2C : 'idle'
+	0x2C : 'collectConquest',
+	0x2D : 'idle'
 };
 caap.actionsList = [];
 caap.makeActionsList = function() {

@@ -10,7 +10,7 @@
                     $j("<link>").appendTo("head").attr({
                         rel  : "stylesheet",
                         type : "text/css",
-                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/themes/smoothness/jquery-ui.css"
+                        href : "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/themes/smoothness/jquery-ui.css"
                     });
                 }
 
