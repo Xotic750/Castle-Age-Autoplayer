@@ -791,7 +791,7 @@
                 fort         : true,
                 staUse       : 10,
                 staLvl       : [0,  50, 100, 200],
-                staMax       : [10, 20, 50,  100],
+                staMax       : [10, 20, 50,  100, 200],
                 nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
