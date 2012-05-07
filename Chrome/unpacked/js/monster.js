@@ -1245,10 +1245,10 @@
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
+                staUse       : 10,
                 staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staMax       : [10, 20, 50, 100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
