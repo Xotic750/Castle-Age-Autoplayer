@@ -100,7 +100,7 @@ caap.loadDemi = function() {
 	con.log(4, 'Demi', caap.demi);
 	session.setItem("UserDashUpdate", true);
 };
-caap.dSaveDemi = function(src) {
+caap.SaveDemi = function(src) {
 	if(caap.domain.which === 3) {
 		caap.messaging.setItem('caap.demi', caap.demi);
 	} else {
