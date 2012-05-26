@@ -41,8 +41,8 @@ caap.checkResults_fightList = function() {
 			feed.checked(monster.getItem(''));
 			return false;
 		}
-
-		var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_']" : ""), caap.appBodyDiv), page = '', monsterReviewed = {}, it = 0, len = 0, url = '', siege = '', engageButtonName = '', monsterName = '', monsterRow = $j("div[style*='monsterlist_container.gif']", caap.appBodyDiv), monsterFull = '', monsterInfo = {}, summonDiv = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv), tempText = '', monsterText = '', userId = 0, userName = '', mName = '', md5 = '', pageUserCheck = 0, newInputsDiv = $j();
+//        var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_']" : ""), caap.appBodyDiv), page = '', monsterReviewed = {}, it = 0, len = 0, url = '', siege = '', engageButtonName = '', monsterName = '', monsterRow = $j("div[style*='monsterlist_container.gif']", caap.appBodyDiv), monsterFull = '', monsterInfo = {}, summonDiv = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv), tempText = '', monsterText = '', userId = 0, userName = '', mName = '', md5 = '', pageUserCheck = 0, newInputsDiv = $j();
+        var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_'],img[src*='festival_monster_'],img[src*='festival_monster2_']", caap.appBodyDiv), page = '', monsterReviewed = {}, it = 0, len = 0, url = '', siege = '', engageButtonName = '', monsterName = '', monsterRow = $j("div[style*='monsterlist_container.gif']", caap.appBodyDiv), monsterFull = '', monsterInfo = {}, summonDiv = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv), tempText = '', monsterText = '', userId = 0, userName = '', mName = '', md5 = '', pageUserCheck = 0, newInputsDiv = $j();
 
 		monster.clean();
 		// get all buttons to check monsterObjectList
@@ -219,6 +219,7 @@ caap.checkResults_fightList = function() {
 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
 /*jslint sub: true */
 caap.checkResults_battle = function() {
+con.log (1, "check results");
 	try {
 		var symDiv = $j(), points = [], success = true;
 
@@ -734,16 +735,42 @@ caap.monsterReview = function() {
 		 We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
 		 the monsterOl completely. Otherwise it will be our index into how far we are into
 		 reviewing monsterOl.
-		 \-------------------------------------------------------------------------------------*/
-		var fCounter = config.getItem("festivalTower", false) ? -4 : -3, counter = state.getItem('monsterReviewCounter', fCounter), link = '', tempTime = 0, isSiege = false, monsterInfo = {};
-
+         Update:
+         monsterReviewCounter is now set to -10 so there is room for more monsters later
+         \-------------------------------------------------------------------------------------*/
+        var fCounter = config.getItem("festivalTower", false) ? -4 : -3,
+            counter = state.getItem('monsterReviewCounter', fCounter),
+            link = '',
+            tempTime = 0,
+            isSiege = false,
+            monsterInfo = {};
+/*
 		if(counter === fCounter) {
 			state.setItem('monsterReviewCounter', counter += 1);
 			return true;
 		}
 
+        // festival tower 2
+        if(config.getItem("festivalTower", false) && counter <= -4) {
+counter = -3;
+            if(caap.stats['level'] > 6) {
+                if(caap.navigateTo('soldiers,festival_home,festival_tower2', 'festival_monster2_towerlist_button.jpg')) {
+                    state.setItem('reviewDone', false);
+                    return true;
+                }
+            } else {
+                con.log(1, "Monsters: Unlock at level 7");
+                state.setItem('reviewDone', true);
+            }
+            if(state.getItem('reviewDone', true)) {
+                state.setItem('monsterReviewCounter', counter += 1);
+            } else {
+                return true;
+            }
+        }
 		// festival tower
 		if(config.getItem("festivalTower", false) && counter === -3) {
+            state.setItem('monsterReviewCounter', counter += 1);
 			if(caap.stats['level'] > 6) {
 				if(caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
 					state.setItem('reviewDone', false);
@@ -754,25 +781,14 @@ caap.monsterReview = function() {
 				state.setItem('reviewDone', true);
 			}
 
-			/*
-			 if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['md5'])) {
-			 caap.click(monster.completeButton['battle_monster']['button']);
-			 monster.deleteItem(monster.completeButton['battle_monster']['md5']);
-			 monster.completeButton['battle_monster'] = {'md5': undefined, 'name': undefined, 'button': undefined};
-			 caap.updateDashboard(true);
-			 con.log(1, 'Cleared a completed monster');
-			 return true;
-			 }
-			 */
-
-			if(state.getItem('reviewDone', true)) {
-				state.setItem('monsterReviewCounter', counter += 1);
-			} else {
-				return true;
-			}
-		}
-
-		if(counter === -2) {
+            if(state.getItem('reviewDone', true)) {
+                state.setItem('monsterReviewCounter', counter += 1);
+            } else {
+                return true;
+            }
+        }
+con.log (1, "starting normal monsters ", counter);
+        if(counter === -2) {
 			if(caap.stats['level'] > 6) {
 				if(caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
 					state.setItem('reviewDone', false);
@@ -957,31 +973,43 @@ caap.checkResults_viewFight = function(ajax) {
 		monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice), actionDiv = $j(), damageDiv = $j(), monsterInfo = {}, targetFromfortify = {}, tStr = '', tNum = 0, tBool = false, fMonstStyle = '', nMonstStyle = '', nMonstStyle2 = '', id = 0, userName = '', mName = '', feedMonster = '', md5 = '',
 		//page              = session.getItem('page', 'battle_monster'),
 		page = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''), matches = true, ctaDiv = $j(), dragonDiv = $j(".dragonContainer", slice), dleadersDiv = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv), maxJoin = dleadersDiv.text().regex(/(\d+)/), countJoin = 0, it = 0, jt = 0, groups = {}, groupMatch = false, found = false;
-
-		con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
-		tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
-		if($u.hasContent(tempDiv)) {
-			tempDiv.each(function(index) {
-				$j(this).parent().attr("id", "mark" + index);
-			});
-
-			tempDiv.each(function(index) {
-				var group = $j(this), levels = $j("b", group).text(), start = levels.regex(/Levels (\d+)/), max = group.text().trim().innerTrim().replace(levels, '').trim(), maxNum = max.regex(/(\d+)/), count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
-
-				con.log(3, "groups", index, levels, start, maxNum, count);
-				groups[levels] = {
-					'level' : start,
-					'max' : maxNum,
-					'count' : count
-				};
-				countJoin += count;
-				if(!feed.isScan && !ajax) {
-					group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+con.log (1, "dragonDiv", dragonDiv);
+			// new monster layout logic
+		if (dleadersDiv.text() == '') {
+			var dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+			maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
+			/* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
+			for (var ii = 1; ii < dleadersDiv2.length; ii++) {		// start at 1 to skip the title 'Damage Leaders:'
+				if (dleadersDiv2[ii].children.length > 0) {
+					con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
 				}
-			});
-		} else {
-			tempDiv = $j("table:eq(1) a", dragonDiv);
-			countJoin = tempDiv.length;
+			}*/
+		} else {		// this is for monster still on the old style, Tower 1, Tower 2, Conquest
+			con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
+			tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
+			if($u.hasContent(tempDiv)) {
+				tempDiv.each(function(index) {
+					$j(this).parent().attr("id", "mark" + index);
+				});
+
+				tempDiv.each(function(index) {
+					var group = $j(this), levels = $j("b", group).text(), start = levels.regex(/Levels (\d+)/), max = group.text().trim().innerTrim().replace(levels, '').trim(), maxNum = max.regex(/(\d+)/), count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
+
+					con.log(3, "groups", index, levels, start, maxNum, count);
+					groups[levels] = {
+						'level' : start,
+						'max' : maxNum,
+						'count' : count
+					};
+					countJoin += count;
+					if(!feed.isScan && !ajax) {
+						group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+					}
+				});
+			} else {
+				tempDiv = $j("table:eq(1) a", dragonDiv);
+				countJoin = tempDiv.length;
+			}
 		}
 
 		groups['total'] = {
@@ -1357,12 +1385,9 @@ caap.checkResults_viewFight = function(ajax) {
 				}
 			}
 		}
-
 		// Get damage done to monster
 		actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", slice);
 		damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
-		con.log (4, "actionDiv", actionDiv);		// these 2 outputs are here for debugging the kraken problems
-		con.log (4, "damageDiv", damageDiv);
 		if($u.hasContent(damageDiv)) {
 			if(monsterInfo && monsterInfo.defense) {
 				tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
@@ -1387,8 +1412,39 @@ caap.checkResults_viewFight = function(ajax) {
 
 			currentMonster['hide'] = true;
 		} else {
-			currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
-			con.log(2, "Player hasn't done damage yet");
+			var dleadersDiv2 = $j("div[id*='leaderboard_0']");
+			if (dleadersDiv2.length == 0) {
+				currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
+				con.log(2, "Player hasn't done damage yet");
+			} else {
+				dleadersDiv2 = $j("a[href*='user=" + caap.stats['FBID'] + "']", dleadersDiv2[0].children);
+				if (dleadersDiv2.length == 0) {		// yinzanat - this is repeated to prevent errors
+					currentMonster['hide'] = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
+					con.log(2, "Player hasn't done damage yet");
+				} else {
+					if(monsterInfo && monsterInfo.defense) {
+						tempArr = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML).trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
+						if($u.hasContent(tempArr) && tempArr.length === 2) {
+							currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
+							currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
+							currentMonster['damage'] = currentMonster['attacked'] + currentMonster['defended'];
+						} else {
+							con.warn("Unable to get attacked and defended damage");
+						}
+/*  Not sure if this needed for the new layout
+					} else if(currentMonster['monster'] === 'The Deathrune Siege') {
+						currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
+						currentMonster['damage'] = currentMonster['attacked'];
+*/
+					} else {
+						currentMonster['attacked'] = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
+						currentMonster['damage'] = currentMonster['attacked'];
+					}
+					if(!feed.isScan && !ajax) {
+						dleadersDiv2.parent().parent().eq(0).css('background-color', ( gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
+					}
+				}
+			}
 		}
 		tBool = currentMonster['monster'] === "The Deathrune Siege" ? true : false;
 		if(/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
