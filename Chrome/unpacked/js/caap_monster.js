@@ -153,8 +153,8 @@ caap.checkResults_fightList = function() {
                 mName = userName + ' ' + monsterText;
                 con.log(2, "Monster Name", mName);
                 userId = $u.setContent(url.regex(/user=(\d+)/), 0);
-                con.log(3, "checkResults_fightList page", page.replace(/festival_tower/, "festival_battle_monster"), url);
-                md5 = (userId + ' ' + monsterText + ' ' + page.replace(/festival_tower/, "festival_battle_monster")).toLowerCase().MD5();
+                con.log(3, "checkResults_fightList page", page.replace(/festival_tower\d/, "festival_battle_monster"), url);
+                md5 = (userId + ' ' + monsterText + ' ' + page.replace(/festival_tower\d/, "festival_battle_monster")).toLowerCase().MD5();
                 monsterReviewed = monster.getItem(md5);
                 monsterReviewed['name'] = mName;
                 monsterReviewed['userName'] = userName;
@@ -162,7 +162,7 @@ caap.checkResults_fightList = function() {
                 monsterReviewed['userId'] = userId;
                 monsterReviewed['md5'] = md5;
                 monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], '');
-                monsterReviewed['page'] = page.replace(/festival_tower/, "festival_battle_monster");
+                monsterReviewed['page'] = page.replace(/festival_tower\d/, "festival_battle_monster");
                 engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                 switch (engageButtonName) {
                     case 'collectbtn' :
@@ -737,21 +737,16 @@ caap.monsterReview = function() {
          Update:
          monsterReviewCounter is now set to -10 so there is room for more monsters later
          \-------------------------------------------------------------------------------------*/
-        var fCounter = config.getItem("festivalTower", false) ? -4 : -3,
-            counter = state.getItem('monsterReviewCounter', fCounter),
+        var counter = state.getItem('monsterReviewCounter', -4),
             link = '',
             tempTime = 0,
             isSiege = false,
             monsterInfo = {};
-/*
-        if(counter === fCounter) {
-            state.setItem('monsterReviewCounter', counter += 1);
-            return true;
-        }
-*/
+
+        state.setItem('monsterReviewCounter', counter = Math.max(counter, -4));         // because it could be lower than -4, this is the first monster area (for now)
+
         // festival tower 2
-        if(config.getItem("festivalTower", false) && counter <= -4) {
-            state.setItem('monsterReviewCounter', counter = -4);       // because it could be lower than -4, this is the first monster area (for now)
+        if(config.getItem("festivalTower", false) && counter === -4) {
             if(caap.stats['level'] > 6) {
                 if(caap.navigateTo('soldiers,festival_home,festival_tower2', 'festival_monster2_towerlist_button.jpg')) {
                     state.setItem('reviewDone', false);
@@ -766,6 +761,8 @@ caap.monsterReview = function() {
             } else {
                 return true;
             }
+        } else if(!config.getItem("festivalTower", false) && counter === -4) {
+            state.setItem('monsterReviewCounter', counter += 1);        // skip the tower if not checked
         }
         // festival tower
         if(config.getItem("festivalTower", false) && counter === -3) {
@@ -785,7 +782,10 @@ caap.monsterReview = function() {
             } else {
                 return true;
             }
+        } else if(!config.getItem("festivalTower", false) && counter === -3) {
+            state.setItem('monsterReviewCounter', counter += 1);        // skip the tower if not checked
         }
+
         if(counter === -2) {
             if(caap.stats['level'] > 6) {
                 if(caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
