@@ -154,7 +154,7 @@ caap.checkResults_fightList = function() {
                 con.log(2, "Monster Name", mName);
                 userId = $u.setContent(url.regex(/user=(\d+)/), 0);
                 con.log(3, "checkResults_fightList page", page.replace(/festival_tower\d/, "festival_battle_monster"), url);
-                md5 = (userId + ' ' + monsterText + ' ' + page.replace(/festival_tower\d/, "festival_battle_monster")).toLowerCase().MD5();
+                md5 = (userId + ' ' + monsterText + ' ' + page.replace(/festival_tower\d*/, "festival_battle_monster")).toLowerCase().MD5();
                 monsterReviewed = monster.getItem(md5);
                 monsterReviewed['name'] = mName;
                 monsterReviewed['userName'] = userName;
@@ -744,7 +744,6 @@ caap.monsterReview = function() {
             monsterInfo = {};
 
         state.setItem('monsterReviewCounter', counter = Math.max(counter, -4));         // because it could be lower than -4, this is the first monster area (for now)
-
         // festival tower 2
         if(config.getItem("festivalTower", false) && counter === -4) {
             if(caap.stats['level'] > 6) {
@@ -766,7 +765,7 @@ caap.monsterReview = function() {
         }
         // festival tower
         if(config.getItem("festivalTower", false) && counter === -3) {
-            state.setItem('monsterReviewCounter', counter += 1);
+//            state.setItem('monsterReviewCounter', counter += 1);
             if(caap.stats['level'] > 6) {
                 if(caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
                     state.setItem('reviewDone', false);
