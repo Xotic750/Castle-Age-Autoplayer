@@ -163,7 +163,7 @@ caap.checkResults_fightList = function() {
                 monsterReviewed['md5'] = md5;
                 monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], '');
                 monsterReviewed['page'] = page.replace(/festival_tower\d/, "festival_battle_monster");
-                engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
+                engageButtonName = (page === 'festival_tower' || page === 'festival_tower2') ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                 switch (engageButtonName) {
                     case 'collectbtn' :
                     case 'dragon_list_btn_2' :
