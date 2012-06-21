@@ -32,6 +32,12 @@
                 var button = caap.checkForImage("war_fort_btnexplore_on.jpg");
                 if ($u.hasContent(button)) {
                     caap.click(button);
+                } else {
+                    if (schedule.check('collectConquestCrystal1Timer')) {
+                        schedule.setItem('collectConquestCrystal1Timer', 60 * 60);
+                    } else {
+                        schedule.setItem('collectConquestCrystal2Timer', 60 * 60);
+                    }
                 }
             } catch (err) {
                 con.error("ERROR in Conquest Land: " + err);
