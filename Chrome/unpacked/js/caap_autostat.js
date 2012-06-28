@@ -179,7 +179,7 @@ caap.autoStat = function() {
 			return false;
 		}
 
-		var atributeSlice = $j("div[class*='keep_attribute_section']", caap.appBodyDiv), startAtt = 0, stopAtt = 4, attrName = '', attribute = '', attrValue = 0, n = 0, returnIncreaseStat = '';
+		var atributeSlice = $j("div[style*='keep_cont_top.jpg']", caap.appBodyDiv), startAtt = 0, stopAtt = 4, attrName = '', attribute = '', attrValue = 0, n = 0, returnIncreaseStat = '';
 
 		if(!$u.hasContent(atributeSlice)) {
 			caap.navigateTo('keep');
