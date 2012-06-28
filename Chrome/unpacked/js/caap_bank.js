@@ -38,7 +38,7 @@ caap.bank = function() {
 			con.warn('Cannot find box to put in number for bank deposit.');
 			return false;
 		}
-		deposit = numberInput.attr("value").parseInt() - minInCash;
+		deposit = caap.stats['gold']['cash'] - minInCash;
 		numberInput.attr("value", deposit);
 		con.log(1, 'Depositing into bank:', deposit);
 		caap.click(depositButton);
