@@ -41,7 +41,7 @@ caap.heal = function() {
 		}
 
 		con.log(1, 'Heal');
-		return caap.navigateTo('keep,heal_button.gif');
+		return caap.navigateTo('keep,keep_healbtn.gif');
 	} catch (err) {
 		con.error("ERROR in heal: " + err);
 		return false;
