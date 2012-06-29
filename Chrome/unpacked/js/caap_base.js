@@ -4735,7 +4735,7 @@ caap = {
     },
     checkResults_keep : function() {
         try {
-            var attrDiv = $j(".keep_attribute_section", caap.appBodyDiv), statsTB = $j(".statsTB", caap.appBodyDiv), keepTable1 = $j(".keepTable1 tr", statsTB), statCont = $j(".attribute_stat_container", attrDiv), tempDiv = $j(), temp, row, head, body;
+            var attrDiv = $j("#keepAltStats", caap.appBodyDiv), statsTB = $j("div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div", caap.appBodyDiv), keepTable1 = $j(".keepTable1 tr", caap.appBodyDiv), statCont = $j("div[style*='keep_cont_top.jpg']>div>div>div", caap.appBodyDiv), tempDiv = $j(), temp, row, head, body;
 
             if($u.hasContent(attrDiv)) {
                 con.log(8, "Getting new values from player keep");
@@ -4748,9 +4748,10 @@ caap = {
                 }
 
                 // PlayerName
-                tempDiv = $j(".keep_stat_title_inc", attrDiv);
+                tempDiv = $j("div[style*='keep_top.jpg'] div", caap.appBodyDiv).first();
                 if($u.hasContent(tempDiv)) {
-                    caap.stats['PlayerName'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(new RegExp("\"(.+)\",")), '');
+                    caap.stats['PlayerName'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(new RegExp("(.+)")), '');
+                    con.log(1, caap.stats['PlayerName']);
                 } else {
                     con.warn('Using stored PlayerName.');
                 }
@@ -4765,7 +4766,7 @@ caap = {
                     }
                 }
 
-                if($u.hasContent(statCont) && statCont.length === 6) {
+                if($u.hasContent(statCont) && statCont.length >= 6) {
                     // Energy
                     tempDiv = statCont.eq(0);
                     if($u.hasContent(tempDiv)) {
@@ -4812,7 +4813,7 @@ caap = {
                 }
 
                 // Check for Gold Stored
-                tempDiv = $j(".money", statsTB);
+                tempDiv = statsTB.eq(4);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['gold']['bank'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
@@ -4831,7 +4832,7 @@ caap = {
                 }
 
                 // Check for income
-                tempDiv = $j(".positive", statsTB).eq(0);
+                tempDiv = statsTB.eq(5);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['gold']['income'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                 } else {
@@ -4839,7 +4840,7 @@ caap = {
                 }
 
                 // Check for upkeep
-                tempDiv = $j(".negative", statsTB);
+                tempDiv = statsTB.eq(6);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['gold']['upkeep'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                 } else {
@@ -4870,7 +4871,7 @@ caap = {
                 caap.stats['other'].atlantis = $u.hasContent(caap.checkForImage("seamonster_map_finished.jpg")) ? true : false;
 
                 // quests Completed
-                tempDiv = $j("td:last", keepTable1.eq(0));
+                tempDiv = statCont.eq(18);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['other']['qc'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                 } else {
@@ -4878,7 +4879,7 @@ caap = {
                 }
 
                 // Battles/Wars Won
-                tempDiv = $j("td:last", keepTable1.eq(1));
+                tempDiv = statCont.eq(19);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['other']['bww'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                 } else {
@@ -4886,7 +4887,7 @@ caap = {
                 }
 
                 // Battles/Wars Lost
-                tempDiv = $j("td:last", keepTable1.eq(2));
+                tempDiv = statCont.eq(20);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['other']['bwl'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                 } else {
@@ -4894,7 +4895,7 @@ caap = {
                 }
 
                 // Times eliminated
-                tempDiv = $j("td:last", keepTable1.eq(3));
+                tempDiv = statCont.eq(21);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['other']['te'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                 } else {
@@ -4902,7 +4903,7 @@ caap = {
                 }
 
                 // Times you eliminated an enemy
-                tempDiv = $j("td:last", keepTable1.eq(4));
+                tempDiv = statCont.eq(22);
                 if($u.hasContent(tempDiv)) {
                     caap.stats['other']['tee'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                 } else {
@@ -7649,7 +7650,7 @@ caap = {
  caap['checkResults_quests'] = caap.checkResults_quests;
  caap['checkResults_gift_accept'] = caap.checkResults_gift_accept;
  caap['checkResults_army'] = caap.checkResults_army;
- caap['checkResults_keep'] = caap.checkResults_keep;
+ caap['checkResults_keep'] = caap.checkResults_keep`;
  caap['checkResults_oracle'] = caap.checkResults_oracle;
  caap['checkResults_alchemy'] = caap.checkResults_alchemy;
  caap['checkResults_battlerank'] = caap.checkResults_battlerank;
