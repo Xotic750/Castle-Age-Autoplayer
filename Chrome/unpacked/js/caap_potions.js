@@ -32,7 +32,7 @@ caap.autoPotions = function() {
 				}
 
 				con.log(1, "Consuming potion", potion);
-				potionDiv = $j("form[id='" + formId + "'] input[src*='potion_consume.gif']");
+				potionDiv = $j("form[id='" + formId + "'] input[src*='keep_consumebtn.jpg']");
 				if(potionDiv && potionDiv.length) {
 					button = potionDiv;
 					if(button) {
