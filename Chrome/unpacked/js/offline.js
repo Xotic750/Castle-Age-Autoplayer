@@ -19065,8 +19065,117 @@ offline = {
 			i : "+5 Stamina when Kanbe is equipped. ",
 			p : "eq_kanbe_amulet",
 			t : 2
+		},]
+	},
+
+
+	{
+		b : 228,
+		n : "Zolthar",
+		a : 22,
+		d : 27,
+		i : "+5 Physical Resistance, +4 Earth Defense",
+		p : "hero_zolthar",
+		e : [{
+			b : 229,
+			n : "Might of Krios",
+			a : 28,
+			d : 25,
+			i : "+3 Attack to Zolthar",
+			p : "eq_zolthar_weapon",
+			t : 3
+		}, {
+			b : 230,
+			n : "Krios Plate",
+			a : 23,
+			d : 28,
+			i : " +3 Defense to Zolthar",
+			p : "eq_zolthar_armor",
+			t : 6
+		}, {
+			b : 231,
+			n : "Amulet of Krios",
+			a : 20,
+			d : 25,
+			i : "+2 Stamina when Zolthar is equipped. ",
+			p : "eq_zolthar_amulet",
+			t : 2
 		}]
-	}]
+	},
+
+	{
+		b : 232,
+		n : "Kendra",
+		a : 23,
+		d : 27,
+		i : "+5 Physical Resistance, +4 Water Defense",
+		p : "hero_kendra",
+		e : [{
+			b : 233,
+			n : "Water Dancer",
+			a : 22,
+			d : 22,
+			i : "+2 Defense to Kendra",
+			p : "eq_kendra_weapon",
+			t : 3
+		}, {
+			b : 234,
+			n : "Korolan Defender",
+			a : 20,
+			d : 17,
+			i : " +2 Defense to Kendra",
+			p : "eq_kendra_helm",
+			t : 5
+		}, {
+			b : 235,
+			n : "Serpent Spirits",
+			a : 20,
+			d : 15,
+			i : "+2 Defense to Kendra",
+			p : "eq_kendra_spell",
+			t : 9
+		}]
+	},
+
+	{
+		b : 236,
+		n : "Brakus",
+		a : 27,
+		d : 23,
+		i : "+5 Physical Resistance, +4 Fire Offense",
+		p : "hero_brakus",
+		e : [{
+			b : 237,
+			n : "Fenix Blade",
+			a : 29,
+			d : 26,
+			i : "+2 Attack to Brakus",
+			p : "eq_brakus_weapon",
+			t : 3
+		}, {
+			b : 238,
+			n : "Fenix Rising",
+			a : 18,
+			d : 21,
+			i : " +2 Defense to Brakus",
+			p : "eq_brakus_helm",
+			t : 5
+		}, {
+			b : 239,
+			n : "Burning Bracers",
+			a : 16,
+			d : 11,
+			i : "+2 Attack to Brakus",
+			p : "eq_brakus_gauntlet",
+			t : 7
+		}]
+	}
+
+
+
+
+
+]
 };
 
 /*

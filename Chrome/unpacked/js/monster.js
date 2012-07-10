@@ -587,7 +587,7 @@
                 join         : [30, 30, 30,  60],
                 mClass       : 'Epic World',
                 mpool        : 3,
-                festival_img : ['festival_monsters_top_alphabahamut.jpg'],
+                festival_img : ['festival_monsters_top_alpha_volcanic_new.jpg'],
                 festival_dur : 192,
                 festival_ach : 2500000,
                 newbg_img    : ['monster_header_alphabahamut.jpg'],
