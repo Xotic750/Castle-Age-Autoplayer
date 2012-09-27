@@ -1019,7 +1019,7 @@
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : ['festival_monsters_top_magmos.jpg'],
+                festival_img : ['festival_monsters_top_lava_giant.jpg'],
                 festival_dur : 192,
                 festival_ach : 2500000,
                 newbg_img    : ['monster_header_magmos.jpg'],
