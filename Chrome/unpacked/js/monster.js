@@ -1316,7 +1316,70 @@
                 cta_img      : ['cta_kessaran.gif'],
                 bodyparts    : 3,
                 partOrder    : [3,2,1]
-            }
+            },
+
+	"urmek" : {
+			alpha : true,
+			duration : 168,
+			hp : 775000000,
+			ach : 1000000,
+			siege : 10,
+			siegeClicks : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+			siegeDam : [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
+			siege_img : ['/graphics/earth_siege_small1','/graphics/earth_siege_small2',
+					‘/graphics/castle_siege_small1’,
+					‘/graphics/castle_siege_small2’,
+					‘/graphics/death_siege_small2’]
+			fort : true,
+			staUse : 10,
+			staLvl : [0, 100, 200, 500],
+			staMax : [10, 20, 50, 100, 200],
+			nrgMax : [20, 40, 100, 200, 200],
+			defense_img : 'nm_green.jpg',
+			levels : [1, 50, 100, 150],
+			join : [30, 30, 35, 60],
+			mClass : 'Epic Boss',
+			mpool : 1,
+			newbg_img : ['monster_header_urmek.jpg'],
+			list_img : ['monster_urmek_list'],
+			cta_img : ['cta_urmek.gif'],
+			bodyparts : 4,
+			partOrder : [4,3,2,1]
+		},
+
+		"abomination" : {
+			alpha : true,
+			duration : 168,
+			hp : 800000000,
+			ach : 1000000,
+			siege : 10,
+			siegeClicks : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+			siegeDam : [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
+			siege_img : [
+				'/graphics/earth_siege_small1',
+				'/graphics/earth_siege_small2',
+				‘/graphics/castle_siege_small1’,
+				‘/graphics/castle_siege_small2’,
+				‘/graphics/death_siege_small2’]
+			fort : true,
+			staUse : 10,
+			staLvl : [0, 100, 200, 500],
+			staMax : [10, 20, 50, 100, 200],
+			nrgMax : [20, 40, 100, 200, 200],
+			defense_img : 'nm_green.jpg',
+			levels : [1, 50, 100, 150],
+			join : [30, 30, 35, 60],
+			mClass : 'Epic Boss',
+			mpool : 1,
+			newbg_img : ['monster_ abomination_header.jpg'],
+			list_img : ['monster_ abomination _list'],
+			cta_img : ['cta_ abomination.gif'],
+			bodyparts : 4,
+			partOrder : [4,3,2,1] 
+
+		}
+
+
         },
 
         list: function () {
