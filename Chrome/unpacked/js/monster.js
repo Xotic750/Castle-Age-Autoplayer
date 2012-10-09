@@ -1327,9 +1327,9 @@
 			siegeClicks : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
 			siegeDam : [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
 			siege_img : ['/graphics/earth_siege_small1','/graphics/earth_siege_small2',
-					‘/graphics/castle_siege_small1’,
-					‘/graphics/castle_siege_small2’,
-					‘/graphics/death_siege_small2’]
+					'/graphics/castle_siege_small1',
+					'/graphics/castle_siege_small2',
+					'/graphics/death_siege_small2']
 			fort : true,
 			staUse : 10,
 			staLvl : [0, 100, 200, 500],
