@@ -1358,9 +1358,9 @@
 			siege_img : [
 				'/graphics/earth_siege_small1',
 				'/graphics/earth_siege_small2',
-				‘/graphics/castle_siege_small1’,
-				‘/graphics/castle_siege_small2’,
-				‘/graphics/death_siege_small2’]
+				'/graphics/castle_siege_small1',
+				'/graphics/castle_siege_small2',
+				'/graphics/death_siege_small2']
 			fort : true,
 			staUse : 10,
 			staLvl : [0, 100, 200, 500],
