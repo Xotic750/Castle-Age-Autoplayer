@@ -1374,7 +1374,7 @@
 			levels : [1, 50, 100, 150],
 			join : [30, 30, 35, 60],
 			mClass : 'Epic Boss',
-			mpool : 1,
+			mpool : 3,
 			newbg_img : ['monster_ abomination_header.jpg'],
 			list_img : ['monster_ abomination _list'],
 			cta_img : ['cta_ abomination.gif'],
