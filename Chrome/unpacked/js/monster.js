@@ -1344,7 +1344,7 @@
 			mClass : 'Epic Boss',
 			mpool : 1,
 			newbg_img : ['monster_header_urmek.jpg'],
-			list_img : ['monster_urmek_list'],
+			list_img : ['monster_urmek_list.jpg'],
 			cta_img : ['cta_urmek.gif'],
 			bodyparts : 4,
 			partOrder : [4,3,2,1]
