@@ -558,17 +558,29 @@ caap.monsters = function() {
                 return true;
             }
             singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
+              
 
-                // if the monster has parts, run through them in reverse order until we find one with health and hit it.
-            var partsTargets = $j("div[id^='monster_target_']");
-            if (partsTargets.length > 0) {
-                for (var ii=2; ii > 0; ii--) {
-                    if (partsTargets[ii].children[0].children[1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
-                        caap.click(partsTargets[ii].children[0].children[1].children[1].children[0]);
-                        break;
-                    }
+// if the monster has parts, run through them in reverse order until we find one with health and hit it.
+                var partsTargets = $j("div[id^='monster_target_']");
+                if (partsTargets.length > 0) {
+                var orderPartsArray=[];
+                if(currentMonster['conditions'] && currentMonster['conditions'].match(/:po/i) ) {
+                   orderPartsArray=currentMonster['conditions'].substring(currentMonster['conditions'].indexOf('[')+1,currentMonster['conditions'].lastIndexOf(']')).split(".");
+                } else {
+                   orderPartsArray = monsterInfo.partOrder;
                 }
-            }
+                if (monsterInfo.bodyparts!=orderPartsArray.length) {
+                   $j().alert("Wrong number of parts in monster condition!");
+                } else {
+                   for (var ii=0; ii < monsterInfo.bodyparts; ii++) {                 
+                      if (partsTargets[orderPartsArray[ii]-1].children[0].children[1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
+                         caap.click(partsTargets[orderPartsArray[ii]-1].children[0].children[1].children[1].children[0]);
+                         break;
+                      }
+                   }
+                }
+                }
+
 
             // Find the attack or fortify button
             if(fightMode === 'Fortify') {
