@@ -1381,7 +1381,39 @@
 			bodyparts : 4,
 			partOrder : [4,3,2,1] 
 
-		}
+		},
+
+
+		"Vorak" : {
+               alpha        : true,
+                duration     : 168,
+                hp           : 650000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 70, 100, 150, 200, 250, 300],
+                siegeDam     : [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 10,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [10, 20, 50, 100, 200],
+                nrgMax       : [20, 40, 100, 200, 200],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  60],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                newbg_img    : ['monster_header_vorak.jpg'],
+                list_img     : ['monster_header_vorak.jpg'],
+                cta_img      : ['cta_vorak.gif'],
+                bodyparts    : 4,
+                partOrder    : [4,3,2,1]
+            }
 
 
         },

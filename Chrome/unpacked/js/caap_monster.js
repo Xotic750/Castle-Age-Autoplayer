@@ -560,25 +560,47 @@ caap.monsters = function() {
             singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
               
 
-// if the monster has parts, run through them in reverse order until we find one with health and hit it.
+ // if the monster has parts, run through them in reverse order until we find one with health and hit it.
                 var partsTargets = $j("div[id^='monster_target_']");
                 if (partsTargets.length > 0) {
-                var orderPartsArray=[];
-                if(currentMonster['conditions'] && currentMonster['conditions'].match(/:po/i) ) {
-                   orderPartsArray=currentMonster['conditions'].substring(currentMonster['conditions'].indexOf('[')+1,currentMonster['conditions'].lastIndexOf(']')).split(".");
-                } else {
-                   orderPartsArray = monsterInfo.partOrder;
-                }
-                if (monsterInfo.bodyparts!=orderPartsArray.length) {
-                   $j().alert("Wrong number of parts in monster condition!");
-                } else {
-                   for (var ii=0; ii < monsterInfo.bodyparts; ii++) {                 
-                      if (partsTargets[orderPartsArray[ii]-1].children[0].children[1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
-                         caap.click(partsTargets[orderPartsArray[ii]-1].children[0].children[1].children[1].children[0]);
-                         break;
-                      }
-                   }
-                }
+               
+               // Define if use user or default order parts
+               var orderPartsArray=[];
+               if(currentMonster['conditions'] && currentMonster['conditions'].match(/:po/i) ) {
+                  orderPartsArray=currentMonster['conditions'].substring(currentMonster['conditions'].indexOf('[')+1,currentMonster['conditions'].lastIndexOf(']')).split(".");
+                  if (monsterInfo.bodyparts!=orderPartsArray.length) {
+                     // Wrong number of parts in monster condition.
+                     // Set Default Order parts
+                     orderPartsArray = monsterInfo.partOrder;
+                  } 
+               } else {
+                  orderPartsArray = monsterInfo.partOrder;
+               }
+               
+               // If minions dead, remove index of minions
+               if (orderPartsArray.length>partsTargets.length) {
+                  var max_index = -1;
+                  var max_value = Number.MIN_VALUE;
+                  for(var i = 0; i < orderPartsArray.length; i++)   {
+                     if(orderPartsArray[i] > max_value) {
+                        max_value = orderPartsArray[i];
+                        max_index = i;
+                     }
+                  }
+                  if (max_index>-1) {
+                     orderPartsArray.splice(max_index, 1);
+                  }
+               }
+               
+               // Click first order parts which have health
+               for (var ii=0; ii < orderPartsArray.length; ii++) {
+               
+                  if (partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
+                     caap.click(partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[1].children[0]);
+                     break;
+                  }
+               }
+                
                 }
 
 
