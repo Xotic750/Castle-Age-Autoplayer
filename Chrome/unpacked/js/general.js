@@ -457,28 +457,18 @@
         },
 
 
-  Shrink: function () {
+   Shrink: function () {
             try {
                 var generalBox = $j('div[style*="hot_container.gif"]');
                 if (generalBox[0]) {
                     generalBox[0].style.zIndex = 1;
-                    generalBox[0].style.backgroundImage = "url(data:image/gif;base64," + image64['generalBox'] + ")";
-                    generalBox[0].id = "generalBox_caap";     // this is here to allow getCurrent to still see the box
-                    generalBox[0].style.width = "124px";
-                    generalBox[0].style.left = "57px";
-                    generalBox[0].children[0].style.width = "124px";
-                    generalBox[0].children[0].children[1].style.width = "100px";
-                    generalBox[0].children[1].style.width = "63px";
-                    generalBox[0].children[1].children[0].children[0].children[0].children[0].style.width = "55px";
-                    generalBox[0].children[1].children[0].children[0].children[0].children[0].style.height = "55px";
-                    generalBox[0].children[1].children[0].children[0].children[0].children[0].style.paddingBottom = "30px";
-
-                    generalBox[0].children[2].children[1].style.paddingTop = "2px";
+                    generalBox.mouseover(function() {this.style.zIndex=100;});
+                    generalBox.mouseout(function() {this.style.zIndex=1;});
                 }
             } catch (err) {
                 con.error("ERROR in general.shrink: " + err);
             }
-        },        
+        },           
 
 
 
