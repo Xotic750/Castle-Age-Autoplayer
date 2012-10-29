@@ -926,7 +926,7 @@
                 join         : [30, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
-                festival_img : ['festival_monsters_top_kromash.jpg'],
+                festival_img : ['festival_monsters_top_storm_giant.jpg'],
                 festival_dur : 192,
                 festival_ach : 2500000,
                 newbg_img    : ['monster_header_kromash.jpg'],
