@@ -4561,6 +4561,14 @@ caap = {
             'monster' : {},
             'other' : {
                 'alchemy' : 0
+            },
+	    'feats' : {
+                'attack' : 0,
+                'defense' : 0,
+                'health' : 0,
+                'energy' : 0,
+                'stamina' : 0,
+                'army' : 0
             }
         },
         'character' : {},
@@ -5456,65 +5464,122 @@ caap = {
             return false;
         }
     },
-    checkResults_achievements : function() {
-        try {
-            var achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2", caap.appBodyDiv), tdDiv = $j("td div", achDiv);
+            checkResults_achievements : function() {
+            try {
+                var achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2", caap.appBodyDiv), tdDiv = $j("td div", achDiv);
 
-            if($u.hasContent(achDiv)) {
-                if($u.hasContent(tdDiv) && tdDiv.length === 6) {
-                    caap.stats['achievements']['battle']['invasions']['won'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['won'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['lost'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['lost'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['streak'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['streak'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['invasions']['won'] / caap.stats['achievements']['battle']['invasions']['lost']).dp(2) : Infinity;
-                    caap.stats['achievements']['battle']['duels']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['duels']['won'] / caap.stats['achievements']['battle']['duels']['lost']).dp(2) : Infinity;
+                if($u.hasContent(achDiv)) {
+                    if($u.hasContent(tdDiv) && tdDiv.length === 6) {
+                        caap.stats['achievements']['battle']['invasions']['won'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['won'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['lost'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['lost'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['streak'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['streak'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['invasions']['won'] / caap.stats['achievements']['battle']['invasions']['lost']).dp(2) : Infinity;
+                        caap.stats['achievements']['battle']['duels']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['duels']['won'] / caap.stats['achievements']['battle']['duels']['lost']).dp(2) : Infinity;
+                        caap.saveStats();
+                    } else {
+                        con.warn('Battle Achievements problem.');
+                    }
+                } else {
+                    con.warn('Battle Achievements not found.');
+                }
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.appBodyDiv);
+                if($u.hasContent(achDiv)) {
+                    tdDiv = $j("td", achDiv);
+                    if($u.hasContent(tdDiv)) {
+                        caap.stats['achievements']['monster'] = {};
+                        tdDiv.each(function() {
+                            var td = $j(this), divNum = $j("div", td).text().parseInt(), tdTxt = td.justtext().trim();
+
+                            caap.stats['achievements']['monster'][tdTxt] = divNum;
+                        });
+
+                        caap.saveStats();
+                    } else {
+                        con.warn('Monster Achievements problem.');
+                    }
+                } else {
+                    con.warn('Monster Achievements not found.');
+                }
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievement_type_container_test_of_might_other", caap.appBodyDiv);
+                if($u.hasContent(achDiv)) {
+                var level = 0;
+                    tdDiv = $j('div[id="achievement_type_container_test_of_might_other"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
+                for (ii=0;ii<tdDiv[0].children[0].children.length;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii;
+                   }
+                }
+                caap.stats['achievements']['other']['alchemy'] = level;
                     caap.saveStats();
                 } else {
-                    con.warn('Battle Achievements problem.');
+                    con.warn('Test of Might Achievements not found.');
                 }
-            } else {
-                con.warn('Battle Achievements not found.');
-            }
-            achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.appBodyDiv);
-            if($u.hasContent(achDiv)) {
-                tdDiv = $j("td", achDiv);
-                if($u.hasContent(tdDiv)) {
-                    caap.stats['achievements']['monster'] = {};
-                    tdDiv.each(function() {
-                        var td = $j(this), divNum = $j("div", td).text().parseInt(), tdTxt = td.justtext().trim();
-
-                        caap.stats['achievements']['monster'][tdTxt] = divNum;
-                    });
-
+             
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievement_type_container_festival_feat", caap.appBodyDiv);
+                if($u.hasContent(achDiv)) {
+                var level = 0;
+                    tdDiv = $j('div[id="achievement_type_container_festival_feat"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
+                for (ii=1;ii<9;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii;
+                   }
+                }
+                caap.stats['achievements']['feats']['attack'] = level;
+                    caap.saveStats();
+                level = 0;
+                for (ii=9;ii<17;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii-8;
+                   }
+                }
+                caap.stats['achievements']['feats']['defense'] = level;
+                    caap.saveStats();
+                level = 0;
+                for (ii=17;ii<25;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii-16;
+                   }
+                }
+                caap.stats['achievements']['feats']['health'] = level;
+                    caap.saveStats();
+                level = 0;
+                for (ii=25;ii<33;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii-24;
+                   }
+                }
+                caap.stats['achievements']['feats']['energy'] = level;
+                    caap.saveStats();
+                level = 0;
+                for (ii=33;ii<41;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii-32;
+                   }
+                }
+                caap.stats['achievements']['feats']['stamina'] = level;
+                    caap.saveStats();
+                level = 0;
+                for (ii=41;ii<49;ii++) {
+                   if (tdDiv[0].children[0].children[ii].style['opacity']==="") {
+                      level=ii-40;
+                   }
+                }
+                caap.stats['achievements']['feats']['army'] = level;
                     caap.saveStats();
                 } else {
-                    con.warn('Monster Achievements problem.');
+                    con.warn('Festival Feats Achievements not found.');
                 }
-            } else {
-                con.warn('Monster Achievements not found.');
-            }
-            achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_4", caap.appBodyDiv);
-            if($u.hasContent(achDiv)) {
-                tdDiv = $j("td div", achDiv);
-                if($u.hasContent(tdDiv) && tdDiv.length === 1) {
-                    caap.stats['achievements']['other']['alchemy'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
-                    caap.saveStats();
-                } else {
-                    con.warn('Other Achievements problem.');
-                }
-            } else {
-                con.warn('Other Achievements not found.');
-            }
 
-            schedule.setItem("achievements", ( gm ? gm.getItem("checkAchievements", 72, hiddenVar) : 72) * 3600, 300);
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_achievements: " + err);
-            return false;
-        }
-    },
+                schedule.setItem("achievements", ( gm ? gm.getItem("checkAchievements", 72, hiddenVar) : 72) * 3600, 300);
+                return true;
+            } catch (err) {
+                con.error("ERROR in checkResults_achievements: " + err);
+                return false;
+            }
+        },
     checkResults_view_class_progress : function() {
         try {
             var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.appBodyDiv);
@@ -6974,57 +7039,108 @@ caap = {
             con.error("ERROR in festivalBlessResults: " + err);
         }
     },
-    festivalBless : function() {
-        try {
-            var autoBless = config.getItem('festivalBless', 'None'), capPic = 'festival_capsule_' + autoBless.toLowerCase() + '.gif', tgeneral = caap.festivalBlessGeneral[autoBless.toLowerCase()], luGeneral = config.getItem('LevelUpGeneral', 'Use Current'), picSlice = $j(), txt = '';
+            festivalBless : function() {
+            try {
+                var autoBless = config.getItem('festivalBless', 'None'), capPic, tgeneral, luGeneral, picSlice, txt;
+             
+             if(autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
+                    return false;
+                }
+             if (autoBless==='All')
+             {
+                var atkFeat = [50,100,150,200,280,375,510,725],
+                   defFeat = [50,100,150,200,280,375,510,725],
+                   heaFeat = [125,150,200,250,300,375,440,500],
+                   eneFeat = [50,100,150,200,280,375,510,725],
+                   staFeat = [25,50,75,100,140,180,255,360],
+                   armFeat = [50,100,200,400,600,800,1000,1200];
+                if (caap.stats['achievements']['feats']['attack']<8) {
+                   if (caap.stats['attack']>= atkFeat[caap.stats['achievements']['feats']['attack']]) {
+                      autoBless = 'Attack';
+                   }
+                }
+                if (caap.stats['achievements']['feats']['defense']<8) {
+                   if (caap.stats['defense']>= defFeat[caap.stats['achievements']['feats']['defense']]) {
+                      autoBless = 'Defense';
+                   }
+                }
+                if (caap.stats['achievements']['feats']['health']<8) {
+                   if (caap.stats['health']['num']>= heaFeat[caap.stats['achievements']['feats']['health']]) {
+                      autoBless = 'Health';
+                   }
+                }
+                if (caap.stats['achievements']['feats']['energy']<8) {
+                   if (caap.stats['energy']['num']>= eneFeat[caap.stats['achievements']['feats']['energy']]) {
+                      autoBless = 'Energy';
+                   }
+                }
+                if (caap.stats['achievements']['feats']['stamina']<8) {
+                   if (caap.stats['stamina']['num']>= staFeat[caap.stats['achievements']['feats']['stamina']]) {
+                      autoBless = 'Stamina';
+                   }
+                }
+                if (caap.stats['achievements']['feats']['army']<8) {
+                   if (caap.stats['army']['actual']>= armFeat[caap.stats['achievements']['feats']['army']]) {
+                      autoBless = 'Army';
+                   }
+                }
+                
+                if(autoBless === 'All') {
+                   return false;
+                }
+             }
+             
+             capPic = 'festival_capsule_' + autoBless.toLowerCase() + '.gif';
+             tgeneral = caap.festivalBlessGeneral[autoBless.toLowerCase()];
+             luGeneral = config.getItem('LevelUpGeneral', 'Use Current');
+             picSlice = $j();
+             txt = '';
 
-            if(autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
-                return false;
-            }
-            tgeneral = tgeneral === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : tgeneral) : tgeneral;
-            if(general.Select(tgeneral)) {
+                tgeneral = tgeneral === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : tgeneral) : tgeneral;
+                if(general.Select(tgeneral)) {
+                    return true;
+                }
+
+                if(caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
+                    return true;
+                }
+                txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
+                if(/Mastered/i.test(txt)) {
+                    con.log(1, 'Area Completed!', autoBless);
+                    $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                if(!new RegExp(autoBless).test(txt)) {
+                    con.warn('No match for text', autoBless);
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+                picSlice = $j("img[src*='festival_feat_completedbutton.jpg']", caap.appBodyDiv);
+                if($u.hasContent(picSlice)) {
+                    con.log(1, 'Area Completed!', autoBless);
+                    $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+                picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
+                if(!$u.hasContent(picSlice)) {
+                    con.warn('No blessing button', autoBless);
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                con.log(1, 'Click blessing button for', autoBless);
+                schedule.setItem('festivalBlessTimer', 300, 300);
+                caap.click(picSlice);
                 return true;
+            } catch (err) {
+                con.error("ERROR in festivalBless: " + err);
+                return false;
             }
+        },
 
-            if(caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
-                return true;
-            }
-            txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
-            if(/Mastered/i.test(txt)) {
-                con.log(1, 'Area Completed!', autoBless);
-                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            if(!new RegExp(autoBless).test(txt)) {
-                con.warn('No match for text', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-            picSlice = $j("img[src*='festival_feat_completedbutton.jpg']", caap.appBodyDiv);
-            if($u.hasContent(picSlice)) {
-                con.log(1, 'Area Completed!', autoBless);
-                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-            picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
-            if(!$u.hasContent(picSlice)) {
-                con.warn('No blessing button', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            con.log(1, 'Click blessing button for', autoBless);
-            schedule.setItem('festivalBlessTimer', 300, 300);
-            caap.click(picSlice);
-            return true;
-        } catch (err) {
-            con.error("ERROR in festivalBless: " + err);
-            return false;
-        }
-    },
     checkResults_festival_duel_home : function() {
         var followerDiv = $j("#follower_list div", caap.appBodyDiv), followers = [], nfollowers = [], a = army.getIdList(), crossList = function(uid) {
             return !followers.hasIndexOf(uid);
