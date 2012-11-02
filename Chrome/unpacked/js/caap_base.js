@@ -2391,7 +2391,7 @@ caap = {
     addFestivalOptionsMenu : function() {
         try {
             // Other controls
-            var festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army'], htmlCode = '';
+            var festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army','All'], htmlCode = '';
             htmlCode += caap.startToggle('FestivalOptions', 'FESTIVAL OPTIONS');
             htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
             htmlCode += caap.makeCheckTR('Enable Tower', 'festivalTower', false, '');
