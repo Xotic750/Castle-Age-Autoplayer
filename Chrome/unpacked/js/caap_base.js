@@ -1887,7 +1887,7 @@ caap = {
     },
     /*jslint sub: false */
 
-    landQuestList : ['Land of Fire', 'Land of Earth', 'Land of Mist', 'Land of Water', 'Demon Realm', 'Undead Realm', 'Underworld', 'Kingdom of Heaven', 'Ivory City', 'Earth II', 'Water II', 'Mist II', 'Mist III', 'Fire II', 'Pangaea', 'Perdition', 'Land of Fire III', 'Land of Earth III', 'Land of Mist IV'],
+    landQuestList : ['Land of Fire', 'Land of Earth', 'Land of Mist', 'Land of Water', 'Demon Realm', 'Undead Realm', 'Underworld', 'Kingdom of Heaven', 'Ivory City', 'Earth II', 'Water II', 'Mist II', 'Mist III', 'Fire II', 'Pangaea', 'Perdition', 'Land of Fire III', 'Land of Earth III', 'Land of Mist IV', 'Land of Water III'],
 
     demiQuestList : ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'],
 
@@ -5805,11 +5805,20 @@ caap = {
         'Land of Mist IV' : {
             clas : 'quests_stage_19',
             base : 'tab_mist4',
-            next : 'DemiChange',
+            next : 'Land of Water III',
             area : '',
             list : '',
             boss : "Vorak",
             orb : 'Orb of Vorak'
+        },
+	'Land of Water III' : {
+            clas : 'quests_stage_20',
+            base : 'tab_water3',
+            next : 'DemiChange',
+            area : '',
+            list : '',
+            boss : "Baal",
+            orb : 'Orb of Baal'
         },
 
 'DemiChange' : {
@@ -5994,6 +6003,7 @@ caap = {
                         pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+			    case 'tab_water3':
                             case 'tab_mist4':
                             case 'tab_earth3':
                             case 'tab_fire4':
