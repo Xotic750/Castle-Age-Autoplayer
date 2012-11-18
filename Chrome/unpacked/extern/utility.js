@@ -2888,19 +2888,28 @@
                 request = window['indexedDB']['open'](name, description);
             } else {
                 request = window['indexedDB']['open'](name, version);
-            }
-            request['onsuccess'] = function (event) {
-                that['db'] = event['target']['result'];
-                that['db']['onversionchange'] = function (evt) {
+
+                request['onupgradeneeded'] = function(evt) {
                     internal['warn']("Version changed", evt);
-                    that['close']();
                     if (isFunction(onversionchange)) {
                         onversionchange(evt);
                     }
-                };
+                }
+            }
+
+            request['onsuccess'] = function (event) {
+                that['db'] = event['target']['result'];
 
                 // old open/setVersion handling - deprecated
                 if ((is_chrome && chrome_major_version < 23) || (is_firefox && firefox_major_version < 10)) {
+                    that['db']['onversionchange'] = function (evt) {
+                        internal['warn']("Version changed", evt);
+                        that['close']();
+                        if (isFunction(onversionchange)) {
+                            onversionchange(evt);
+                        }
+                    };
+
                     if (that['db']['version'] !== version) {
                         // User's first visit, initialize database.
                         request = that['db']['setVersion'](version);
