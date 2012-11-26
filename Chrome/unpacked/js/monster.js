@@ -1198,8 +1198,8 @@
                 mClass       : 'Epic World',
                 mpool        : 3,
                 newbg_img    : ['monster_alpha_kraken_header.jpg'],
-                list_img     : ['monster_alpha_kraken_list.jpg'],
-                cta_img      : ['cta_alpha_kraken.gif']
+                list_img     : ['monster_kraken_list.jpg'],
+                cta_img      : ['cta_kraken.gif']
             },
             "Kraken" : {
                alpha        : true,
