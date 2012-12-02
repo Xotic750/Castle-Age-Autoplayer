@@ -19604,5 +19604,37 @@
                 p: "eq_caine_shield",
                 t: 4
             }]
+        }, {
+            b: 171,
+            n: "Ephraline",
+            a: 20,
+            d: 18,
+            i: "+5% Confuse effect chance and +2 Mage gate damage in guild battles @ Lvl 4",
+            p: "hero_ephraline",
+            e: [{
+                b: 172,
+                n: "Phantasmal Brooch",
+                a: 16,
+                d: 13,
+                i: "+2 Defense",
+                p: "eq_ephraline_amulet",
+                t: 2
+            }, {
+                b: 173,
+                n: "Mystical Illusion",
+                a: 15,
+                d: 18,
+                i: "+1 Attack",
+                p: "eq_ephraline_spell",
+                t: 9
+            }, {
+                b: 174,
+                n: "Conjurers Wand",
+                a: 19,
+                d: 22,
+                i: "+1 Attack",
+                p: "eq_ephraline_weapon",
+                t: 3
+            }]
         }]
     };
