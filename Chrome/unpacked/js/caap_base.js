@@ -1891,7 +1891,7 @@ caap = {
 
     demiQuestList : ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'],
 
-    atlantisQuestList : ['Atlantis','Atlantis II'],
+    atlantisQuestList : ['Atlantis','Atlantis II','Atlantis III'],
 
     selectDropOption : function(idName, value) {
         try {
@@ -5864,15 +5864,26 @@ caap = {
         },
         'Atlantis' : {
             clas : 'monster_quests_stage_1',
+            base : 'land_atlantis',
             next : 'Atlantis II',
             area : 'Atlantis',
             list : ''
         },
 	'Atlantis II' : {
             clas : 'monster_quests_land_2',
-            next : '',
+            base : 'land_atlantis_2',
+            next : 'Atlantis III',
             area : 'Atlantis',
             list : ''
+        },
+	'Atlantis III' : {
+            clas : 'monster_quests_land_3',
+            base : 'land_atlantis_3',
+            next : '',
+            area : 'Atlantis',
+            list : '',
+            boss : 'Poseidon',
+            orb : 'Orb of Poseidon'
         }
     },
 
@@ -5887,7 +5898,13 @@ caap = {
     isExcavationQuest : {
     	'Cave of Wonder' : true,
     	'Rune Mines' : true,
-    	'Nether Vortex' : true
+    	'Nether Vortex' : true,
+        // Atlantis II
+        'Entrance' : true,
+        'Fortress' : true,
+        'Path' : true,
+        'Town' : true,
+        'Underwater' : true
     },
 
     qtom : null,
@@ -6068,8 +6085,45 @@ caap = {
 
                     break;
                 case 'Atlantis' :
-                    if(!caap.hasImage('tab_atlantis_on.gif')) {
-                        return caap.navigateTo('quests,monster_quests');
+                    var pathToPage = 'quests', imageOnPage = 'quest_back_1.jpg', subQArea = 'Land of Fire', landPic = '';
+
+                    if(caap.stats['level'] > 7) {
+                        subQArea = config.getItem('QuestSubArea', 'Atlantis');
+                        landPic = caap.questAreaInfo[subQArea].base;
+                        if($u.hasContent($j("img[src*='" + landPic + "_lock']"))) {
+                            caap.checkResults_quests(true);
+                        }
+
+                        /* may be needed at some future point
+                        if(config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
+                            if(caap.checkMagic()) {
+                                return true;
+                            }
+                        }
+                        */
+                        pathToPage = 'quests,monster_quests,' + landPic;
+                        switch (subQArea) {
+                            case 'Atlantis':
+                                pathToPage += '.gif';
+                                imageOnPage = 'land_atlantis_realm_sel.gif';
+                                break;
+                            case 'Atlantis II':
+                                pathToPage += '_2.gif';
+                                imageOnPage = 'land_atlantis_realm_sel_2.gif';
+                                break;
+                            case 'Atlantis III':
+                                pathToPage += '_small.gif';
+                                imageOnPage = 'tab_atlantis3_big.gif';
+                                break;
+                            default:
+                                pathToPage = 'quests,quest_back_btn.gif,' + landPic + '_small.gif';
+                                imageOnPage += '_big.gif';
+                                break;
+                        }
+                    }
+
+                    if(caap.navigateTo(pathToPage, imageOnPage)) {
+                        return true;
                     }
 
                     break;
@@ -6675,7 +6729,8 @@ caap = {
         'symbolquests_stage_4' : 'Aurora',
         'symbolquests_stage_5' : 'Azeron',
         'monster_quests_stage_1' : 'Atlantis',
-	'monster_quests_land_2' : 'Atlantis II'
+	'monster_quests_land_2' : 'Atlantis II',
+	'monster_quests_land_3' : 'Atlantis III'
     },
 
     checkCurrentQuestArea : function(QuestSubArea) {
