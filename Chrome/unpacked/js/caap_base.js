@@ -5897,8 +5897,7 @@ caap = {
              area : 'Atlantis',
              list : '',
              boss : 'Poseidon',
-             orb : 'Orb of Poseidon'
-             area : '',
+             orb : 'Orb of Poseidon',
              list : ''
          }
      },
