@@ -1891,7 +1891,7 @@ caap = {
 
     demiQuestList : ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'],
 
-    atlantisQuestList : ['Atlantis'],
+    atlantisQuestList : ['Atlantis','Atlantis II'],
 
     selectDropOption : function(idName, value) {
         try {
@@ -5864,8 +5864,14 @@ caap = {
         },
         'Atlantis' : {
             clas : 'monster_quests_stage_1',
+            next : 'Atlantis II',
+            area : 'Atlantis',
+            list : ''
+        },
+	'Atlantis II' : {
+            clas : 'monster_quests_land_2',
             next : '',
-            area : '',
+            area : 'Atlantis',
             list : ''
         }
     },
@@ -6668,7 +6674,8 @@ caap = {
         'symbolquests_stage_3' : 'Corvintheus',
         'symbolquests_stage_4' : 'Aurora',
         'symbolquests_stage_5' : 'Azeron',
-        'monster_quests_stage_1' : 'Atlantis'
+        'monster_quests_stage_1' : 'Atlantis',
+	'monster_quests_land_2' : 'Atlantis II'
     },
 
     checkCurrentQuestArea : function(QuestSubArea) {
