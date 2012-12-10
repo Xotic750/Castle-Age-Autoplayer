@@ -89,7 +89,8 @@
                 "js/caap_start.js",
                 "js/functions.js",
                 "js/begin.js",
-                "js/conquest.js"
+                "js/conquest.js",
+                "js/arena.js"
             ],
             "matches": [
                 "http://*/*",
