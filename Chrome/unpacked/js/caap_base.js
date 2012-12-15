@@ -8159,7 +8159,8 @@ caap = {
             if(!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) {
                 return false;
             }
-            caap.navigateTo('guildv2_conquest_command');
+
+            caap.clickAjaxLinkSend("guildv2_conquest_command.php?tier=3", 1000);
 
             return true;
         } catch (err) {
