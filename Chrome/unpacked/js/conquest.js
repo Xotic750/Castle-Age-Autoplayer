@@ -49,15 +49,15 @@
                 if((!config.getItem('doConquestCrystalCollect1', false) || !schedule.check('collectConquestCrystal1Timer')) && (!config.getItem('doConquestCrystalCollect2', false) || !schedule.check('collectConquestCrystal2Timer'))) {
                     return false;
                 }
-                var tributeMessage = $j("div[style*='cassandra_main']")[0].children[1].children[2].children[3].innerHTML.trim();
-                if (tributeMessage === 'PAY TRIBUTE!') {
-                    var button = caap.checkForImage("war_sanctum_recievebless.gif");
+                //var tributeMessage = $j("div[style*='cassandra_main']")[0].children[1].children[2].children[3].innerHTML.trim();
+                //if (tributeMessage === 'PAY TRIBUTE!') {
+                    var button = caap.checkForImage("conq3_btn_pray.gif");
                     if ($u.hasContent(button)) {
                         caap.click(button);
                         config.setItem('doConquestCrystalCollect', false);
                         //Not going to reset the timer, it will get set on the next pass
                     }
-                } else {
+                else {
                     if (schedule.check('collectConquestCrystal1Timer')) {
                         schedule.setItem('collectConquestCrystal1Timer', tributeMessage.match(/\d*/)[0] * 60 * 60);
                     } else {

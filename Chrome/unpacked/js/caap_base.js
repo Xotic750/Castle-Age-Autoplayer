@@ -8174,7 +8174,9 @@ caap = {
             if(!config.getItem('doConquestCrystalCollect1', false) || !schedule.check('collectConquestCrystal1Timer')) {
                 return false;
             }
-            var link = "guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
+            var link = "guildv2_conquest_command.php";
+
+//"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
             caap.clickAjaxLinkSend(link, 1000);
             return true;
         } catch (err) {
