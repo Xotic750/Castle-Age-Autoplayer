@@ -1751,21 +1751,21 @@ caap = {
             }
 
             function chatListener(event) {
-                if(event.target.className === "fbDockWrapper fbDockWrapperRight bb") {
+                if(event.target.className === "fbDockWrapper fixed_always fbDockWrapperRight") {
                     event.target.style.display = "none";
                     caap.pageletPresenceDiv.unbind("DOMNodeInserted", chatListener);
                 }
             }
 
             if(caap.domain.which === 0) {
-                caap.pageletPresenceDiv = $j("#pagelet_presence");
+                caap.pageletPresenceDiv = $j("#pagelet_dock");
                 // Get rid of those ads now! :P
                 if(config.getItem('HideAds', false)) {
                     $j('#rightCol').css('display', 'none');
                 }
 
                 if(config.getItem('HideFBChat', false)) {
-                    tDiv = $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv);
+                    tDiv = $j("div[class='fbDockWrapper fixed_always fbDockWrapperRight']", caap.pageletPresenceDiv);
                     if($u.hasContent(tDiv)) {
                         tDiv.css('display', 'none');
                     } else {
@@ -1778,7 +1778,7 @@ caap = {
                 if(config.getItem('HideAdsIframe', false)) {
                     //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                     //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                    $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                    $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
                 }
             }
 
@@ -2903,7 +2903,7 @@ caap = {
                         con.log(9, "HideAdsIframe");
                         //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
                         //$j("div[style*='tool_top.jpg']").css('display', e.target.checked ? 'none' : 'block');
-                        $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
+                        $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
                         caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
                         caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
                         styleXY = caap.getDashboardXY();
@@ -2922,7 +2922,7 @@ caap = {
                 case "HideFBChat" :
                     if(caap.domain.which === 0) {
                         con.log(9, "HideFBChat");
-                        $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv).css('display', e.target.checked ? 'none' : 'block');
+                        $j("div[class='fbDockWrapper fixed_always fbDockWrapperRight']", caap.pageletPresenceDiv).css('display', e.target.checked ? 'none' : 'block');
                     }
 
                     break;
@@ -4031,7 +4031,7 @@ caap = {
                             if(config.getItem('HideAdsIframe', false)) {
                                 //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                                 //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                                $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                                $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
                             }
 
                             if(config.getItem('scrollToTop', false)) {
