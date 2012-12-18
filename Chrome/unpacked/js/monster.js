@@ -1064,18 +1064,19 @@
                 ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 43600000, 44800000, 51200000],
+                siegeDam     : [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 45000000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
+		    '/graphics/earth_siege_small2',	
                     '/graphics/castle_siege_small',
                     '/graphics/skaar_siege_small',
                     '/graphics/death_siege_small'
                 ],
                 fort         : true,
-                staUse       : 5,
-                staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staUse       : 10,
+                staLvl       : [0, 100, 200],
+                staMax       : [10, 20, 50, 100, 200],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
                 join         : [30, 30, 35,  50],
@@ -1086,7 +1087,7 @@
                 festival_ach : 2500000,
                 newbg_img    : ['boss_header_malekus.jpg'],
                 list_img     : ['boss_malekus_list.jpg'],
-                cta_img      : ['cta_malekus.gif']
+                cta_img      : ['cta_btn_new.gif']
             },
             "Thanatos" : {
                 alpha        : true,
