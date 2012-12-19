@@ -4294,9 +4294,19 @@ caap = {
             CheckResultsFunction : 'checkResults_guild_formation'
         },
         'guildv2_conquest_command' : {
-            signatureId : 'war_btn_keep_on',
+            signatureId : 'guild_tab6_on.',
             CheckResultsFunction : 'checkResults_conquest'
         },
+	'onConquestEarth' : {
+   		 signatureId : 'conq2_earthnav_on3.',
+    			CheckResultsFunction : 'checkResults_conquestEarth'
+	},
+
+	'onConquestEarth' : {
+   		 signatureId : 'conq2_mistnav_on3.',
+    			CheckResultsFunction : 'checkResults_conquestEarth'
+	},
+
         'guildv2_conquest_expansion_fort' : {
             signatureId : 'war_fort_topinfo.jpg',
             CheckResultsFunction : 'checkResults_conquestLand'
@@ -8177,8 +8187,11 @@ caap = {
             var link = "guildv2_conquest_command.php";
 
 //"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
-            caap.clickAjaxLinkSend(link, 10000);
-		//caap.navigateTo('guildv2_conquest_command');	
+           // caap.clickAjaxLinkSend(link, 10000);
+		caap.navigateTo('guildv2_conquest_command');
+		var button = caap.checkForImage("conq3_btn_pray.gif");
+                    if ($u.hasContent(button)) {
+		caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif');}
             return true;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);
@@ -8205,8 +8218,12 @@ caap = {
         conquest.land();
     },
     checkResults_conquestLand2 : function() {
-        conquest.crystal();
+        //conquest.crystal();
     },
+	checkResults_conquestMist : function () {},
+	checkResults_conquestEarth : function () {},
+	
+
     checkResults_conquestBattle : function() {
         conquest.battle();
     },
