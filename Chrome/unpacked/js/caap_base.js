@@ -4298,7 +4298,7 @@ caap = {
             CheckResultsFunction : 'checkResults_guild_formation'
         },
         'guildv2_conquest_command' : {
-            signatureId : 'guild_tab6_on.',
+            signaturePic : 'guild_tab6_on.jpg',
             CheckResultsFunction : 'checkResults_conquest'
         },
 	'onConquestEarth' : {
@@ -8192,10 +8192,14 @@ caap = {
 
 //"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
            // caap.clickAjaxLinkSend(link, 10000);
-		caap.navigateTo('guildv2_conquest_command');
+		if (caap.navigateTo('guildv2_conquest_command'))
+			{con.log(3,"first navigate is ok");}
 		var button = caap.checkForImage("conq3_btn_pray.gif");
                     if ($u.hasContent(button)) {
-		caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif');}
+		if(caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif'))
+			{con.log(3,"second navigate is ok");}
+
+}
             return true;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);
