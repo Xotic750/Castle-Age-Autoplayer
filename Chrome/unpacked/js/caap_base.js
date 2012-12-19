@@ -8177,7 +8177,8 @@ caap = {
             var link = "guildv2_conquest_command.php";
 
 //"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
-            caap.clickAjaxLinkSend(link, 1000);
+            caap.clickAjaxLinkSend(link, 10000);
+		//caap.navigateTo('guildv2_conquest_command');	
             return true;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);

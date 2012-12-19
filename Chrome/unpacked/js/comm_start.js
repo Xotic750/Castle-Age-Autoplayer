@@ -118,9 +118,9 @@ $(function () {
 
 	    port.onDisconnect.addListener(function (pt) {
 		console.log("onDisconnect", pt);
-		delete ports[pt.tab.id][pt.name];
-		if ($u.isEmptyObject(ports[pt.tab.id])) {
-		    delete ports[pt.tab.id];
+		delete ports[pt.sender.tab.id][pt.name];
+		if ($u.isEmptyObject(ports[pt.sender.tab.id])) {
+		    delete ports[pt.sender.tab.id];
 		}
 
 		console.log("ports", ports);
