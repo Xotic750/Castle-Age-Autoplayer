@@ -22,11 +22,11 @@ caap = {
     jWindow : null,
     jss : "javascript",
     libs : {
-        jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
-        jQueryUI : 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js',
+         jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/' + caapjQuery + '/jquery.min.js',
+        jQueryUI : 'https://ajax.googleapis.com/ajax/libs/jqueryui/' + caapjQueryUI + '/jquery-ui.min.js',
         farbtastic : 'https://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
         utility : 'https://utility-js.googlecode.com/files/utility-0.2.3.min.js',
-        dataTables : 'https://castle-age-auto-player.googlecode.com/files/jquery.dataTables-1.8.1.min.js'
+        dataTables : 'https://ajax.aspnetcdn.com/ajax/jquery.dataTables/' + caapjQueryDataTables + '/jquery.dataTables.min.js'
     },
     removeLibs : [],
     domain : {

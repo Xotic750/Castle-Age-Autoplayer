@@ -15,6 +15,8 @@
 //////////////////////////////////
 //var caapjQuery = "1.6.4";
 var caapjQuery = "1.7.1";
+var caapjQueryUI = "1.8.24";
+var caapjQueryDataTables = "1.9.4";
 //////////////////////////////////
 //       Globals
 //////////////////////////////////
