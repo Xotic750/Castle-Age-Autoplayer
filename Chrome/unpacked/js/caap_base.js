@@ -2415,8 +2415,8 @@ caap = {
             htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 1', 'doConquestCrystalCollect1', false, '');
             htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal1Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
-            htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 2', 'doConquestCrystalCollect2', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal2Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
+     //       htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 2', 'doConquestCrystalCollect2', false, '');
+       //     htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal2Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -8175,7 +8175,7 @@ caap = {
             if(!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) {
                 return false;
             }
-            caap.navigateTo('guildv2_conquest_command');
+            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 
             return true;
         } catch (err) {
@@ -8192,21 +8192,21 @@ caap = {
 
 //"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
            // caap.clickAjaxLinkSend(link, 10000);
-		if (caap.navigateTo('guildv2_conquest_command'))
-			{con.log(3,"first navigate is ok");}
-		var button = caap.checkForImage("conq3_btn_pray.gif");
-                    if ($u.hasContent(button)) {
-		if(caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif'))
-			{con.log(3,"second navigate is ok");}
+	caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000)
+//			{con.log(3,"first navigate is ok");}
+		//var button = caap.checkForImage("conq3_btn_pray.gif");
+                  //  if ($u.hasContent(button)) {
+		//if(caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif'))
+		//	{con.log(3,"second navigate is ok");}
 
-}
+//}
             return true;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);
             return false;
         }
     },
-    collectConquestCrystal2 : function() {
+   /* collectConquestCrystal2 : function() {
         try {
             if(!config.getItem('doConquestCrystalCollect2', false) || !schedule.check('collectConquestCrystal2Timer')) {
                 return false;
@@ -8218,7 +8218,7 @@ caap = {
             con.error("ERROR in collectConquestCrystal: " + err);
             return false;
         }
-    },
+    },*/
     checkResults_conquest : function() {
         conquest.collect();
     },

@@ -374,11 +374,13 @@ result.userName = 'unknown';
 
                 if ($u.isDefined(safeTargets[it]['button'])) {
                     con.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
-con.log (1, "changing general", useGeneral);
-                    if(general.Select(useGeneral)) {
-                        return true;
-                    }
-con.log (1, "done general");
+
+//removing changing general since generates infinite loops
+//con.log (1, "changing general", useGeneral);
+                    //if(general.Select(useGeneral)) {
+                      //  return true;
+                    //}
+//con.log (1, "done general");
                     arena.click(safeTargets[it]['button']);
 
                     delete safeTargets[it]['score'];
