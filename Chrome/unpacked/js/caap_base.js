@@ -841,7 +841,29 @@ caap = {
                 con.error("ERROR in messaging.styleChange: " + err);
                 return false;
             }
-        }
+        },
+
+	     backgroundCA : function(bgcolor) {
+                try {
+                    if(caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
+                        caap.postMessage({
+                            source : "caapfb",
+                            dest : "caapif",
+                            message : "backgroundCA",
+                            data : bgcolor
+                        });
+                    } else {
+                        throw "Wrong domain or destination not connected";
+                    }
+
+                    return true;
+                } catch (err) {
+                    con.error("ERROR in messaging.backgroundCA: " + err);
+                    return false;
+                }
+            }
+
+
     },
 
     scrollToTop : function() {
@@ -1415,6 +1437,13 @@ caap = {
                     con.log(4, "iframe got styleChange", msg);
                     caap.colorUpdate();
                     break;
+		case "backgroundCA":
+                    caap.messaging.ok(msg);
+                    con.log(4, "iframe got backgroundCA", msg);
+                    $j("body").css({
+                        'background-color' : msg.data
+                    });
+                    break;
                 default:
             }
 
@@ -1698,6 +1727,7 @@ caap = {
     injectCATools : function() {
         $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp?" + Math.random());
     },
+    
     init : function() {
         try {
             var tDiv;
@@ -1716,8 +1746,14 @@ caap = {
                     'overflow' : 'hidden'
                 });
             }
+            if(caap.domain.which === 3 && config.getItem('backgroundCA', false)) {
+                $j("body").css({
+                    'background-color' : 'black'
+                });
+            };
 
             if(caap.domain.which === 0 && config.getItem('backgroundCA', false)) {
+                /*
                 $j("body").css({
                     'background-image' : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
                     'background-position' : 'center top',
@@ -1725,15 +1761,31 @@ caap = {
                     'background-color' : 'black',
                     'margin' : '0px'
                 });
+                */
 
-                $j("#contentCol").css({
-                    'background-color' : 'black'
+                $j("body").css({
+                    'background-color' : 'black',
                 });
 
+                $j("#mainContainer").css({
+                    'border-color' : 'black',
+                });
+
+                $j("#contentArea").css({
+                    'border-color' : 'black',
+                });
+
+                $j("#contentCol").css({
+                    'background-color' : 'black',
+                    'border-color' : 'black'
+                });
+
+                /*
                 $j("#contentArea").css({
                     'background-image' : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                     'padding' : '0px 10px'
                 });
+                */
 
                 $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                     'display' : 'none'
@@ -2805,6 +2857,7 @@ caap = {
                 case "backgroundCA" :
                     if(caap.domain.which === 0) {
                         if(e.target.checked) {
+                            /*
                             $j("body").css({
                                 'background-image' : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
                                 'background-position' : 'center top',
@@ -2812,15 +2865,33 @@ caap = {
                                 'background-color' : 'black',
                                 'margin' : '0px'
                             });
+                            */
 
-                            $j("#contentCol").css({
+                            $j("body").css({
                                 'background-color' : 'black'
                             });
 
+                            caap.messaging.backgroundCA("black");
+
+                            $j("#mainContainer").css({
+                                'border-color' : 'black'
+                            });
+
+                            $j("#contentArea").css({
+                                'border-color' : 'black',
+                            });
+
+                            $j("#contentCol").css({
+                                'background-color' : 'black',
+                                'border-color' : 'black'
+                            });
+
+                            /*
                             $j("#contentArea").css({
                                 'background-image' : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                                 'padding' : '0px 10px'
                             });
+                            */
 
                             $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                                 'display' : 'none'
@@ -2828,6 +2899,7 @@ caap = {
 
                             $j("#contentCol").removeClass("clearfix");
                         } else {
+                            /*
                             $j("body").css({
                                 'background-image' : '',
                                 'background-position' : '',
@@ -2835,15 +2907,33 @@ caap = {
                                 'background-color' : '',
                                 'margin' : ''
                             });
+                            */
 
-                            $j("#contentCol").css({
-                                'background-color' : 'white'
+                            $j("body").css({
+                                'background-color' : '',
                             });
 
+                            caap.messaging.backgroundCA("");
+
+                            $j("#mainContainer").css({
+                                'border-color' : ''
+                            });
+
+                            $j("#contentArea").css({
+                                'border-color' : '',
+                            });
+
+                            $j("#contentCol").css({
+                                'background-color' : '',
+                                'border-color' : ''
+                            });
+
+                            /*
                             $j("#contentArea").css({
                                 'background-image' : '',
                                 'padding' : ''
                             });
+                            */
 
                             $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                                 'display' : 'block'
