@@ -1377,7 +1377,7 @@
 			mClass : 'Epic Boss',
 			mpool : 3,
 			newbg_img : ['monster_ abomination_header.jpg'],
-			list_img : ['monster_ abomination _list'],
+			list_img : ['monster_ abomination _list.jpg'],
 			cta_img : ['cta_ abomination.gif'],
 			bodyparts : 4,
 			partOrder : [4,3,2,1] 
@@ -1478,7 +1478,35 @@
                 cta_img      : ['cta_vorak.gif'],
                 bodyparts    : 4,
                 partOrder    : [4,3,2,1]
-            }
+            },
+		"Baal" : {
+				alpha : true,
+				duration : 168,
+				hp : 830000000,
+				ach : 1000000,
+				siege : 10,
+				siegeClicks : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+				siegeDam : [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
+				siege_img : [
+						'/graphics/earth_siege_small1',
+						'/graphics/earth_siege_small2'
+					],
+				fort : true,
+				staUse : 10,
+				staLvl : [0, 100, 200, 500],
+				staMax : [10, 20, 50, 100, 200],
+				nrgMax : [20, 40, 100, 200, 200],
+				defense_img : 'nm_green.jpg',
+				levels : [1, 50, 100, 150],
+				join : [30, 30, 35, 60],
+				mClass : 'Epic Boss',
+				mpool : 1,
+				newbg_img : ['monster_baal_title.jpg'],
+				list_img : ['monster_ball_list.jpg'],
+				cta_img : ['cta_btn_new.gif'],
+				bodyparts : 4,
+				partOrder : [4,3,2,1]
+			}
 
 
         },
