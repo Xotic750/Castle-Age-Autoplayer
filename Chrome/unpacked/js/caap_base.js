@@ -2465,7 +2465,7 @@ caap = {
             htmlCode += caap.makeCheckTR('Enable Conquest Collect', 'doConquestCollect', false, '');
             htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystalNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_collectCrystalNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -3884,7 +3884,7 @@ caap = {
             $j('#caap_CollectConquestNow', caap.caapDivObject).click(function(e) {
                 caap.getCollectConquestButtonListener();
             });
-            $j('#caap_CollectConquestCrystalNow', caap.caapDivObject).click(function(e) {
+            $j('#caap_collectCrystalNow', caap.caapDivObject).click(function(e) {
                 caap.getCollectConquestCrystalButtonListener();
             });
             $j('#caap_ArenaNow', caap.caapDivObject).click(function(e) {
@@ -8269,7 +8269,7 @@ caap = {
             if(!config.getItem('doConquestCrystalCollect', false) || !schedule.check('collectConquestCrystalTimer')) {
                 return false;
             }
-            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000)
+            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 
             return true;
         } catch (err) {

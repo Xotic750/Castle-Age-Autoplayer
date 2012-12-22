@@ -16,10 +16,10 @@
 
                 if ($u.hasContent(button)) {
                     caap.click(button);
-                } else if ($u.hasContent(button2)) {
+                } else if ($u.hasContent(button2)) {con.log (1, "button exists");
                     caap.click(button2);
                 }
-
+con.log (1, "done with buttons", button, button2, buttonCrystal);
                 if ($u.hasContent(buttonCrystal)) {
                     caap.click(buttonCrystal);
                 }
