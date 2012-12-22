@@ -238,7 +238,7 @@ caap.guildMonster = function() {
 					key.attr("value", attack);
 					form = key.parents("form").eq(0);
 					if(form && form.length) {
-						caap.click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
+						caap.click(form.find("input[src*='gb_btn_duel.gif'],input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
 						return true;
 					}
 				}

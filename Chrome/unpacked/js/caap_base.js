@@ -22,11 +22,11 @@ caap = {
     jWindow : null,
     jss : "javascript",
     libs : {
-        jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
-        jQueryUI : 'https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js',
+         jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/' + caapjQuery + '/jquery.min.js',
+        jQueryUI : 'https://ajax.googleapis.com/ajax/libs/jqueryui/' + caapjQueryUI + '/jquery-ui.min.js',
         farbtastic : 'https://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
         utility : 'https://utility-js.googlecode.com/files/utility-0.2.3.min.js',
-        dataTables : 'https://castle-age-auto-player.googlecode.com/files/jquery.dataTables-1.8.1.min.js'
+        dataTables : 'https://ajax.aspnetcdn.com/ajax/jquery.dataTables/' + caapjQueryDataTables + '/jquery.dataTables.min.js'
     },
     removeLibs : [],
     domain : {
@@ -841,7 +841,29 @@ caap = {
                 con.error("ERROR in messaging.styleChange: " + err);
                 return false;
             }
-        }
+        },
+
+	     backgroundCA : function(bgcolor) {
+                try {
+                    if(caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
+                        caap.postMessage({
+                            source : "caapfb",
+                            dest : "caapif",
+                            message : "backgroundCA",
+                            data : bgcolor
+                        });
+                    } else {
+                        throw "Wrong domain or destination not connected";
+                    }
+
+                    return true;
+                } catch (err) {
+                    con.error("ERROR in messaging.backgroundCA: " + err);
+                    return false;
+                }
+            }
+
+
     },
 
     scrollToTop : function() {
@@ -1415,6 +1437,13 @@ caap = {
                     con.log(4, "iframe got styleChange", msg);
                     caap.colorUpdate();
                     break;
+		case "backgroundCA":
+                    caap.messaging.ok(msg);
+                    con.log(4, "iframe got backgroundCA", msg);
+                    $j("body").css({
+                        'background-color' : msg.data
+                    });
+                    break;
                 default:
             }
 
@@ -1698,6 +1727,7 @@ caap = {
     injectCATools : function() {
         $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp?" + Math.random());
     },
+    
     init : function() {
         try {
             var tDiv;
@@ -1716,8 +1746,14 @@ caap = {
                     'overflow' : 'hidden'
                 });
             }
+            if(caap.domain.which === 3 && config.getItem('backgroundCA', false)) {
+                $j("body").css({
+                    'background-color' : 'black'
+                });
+            };
 
             if(caap.domain.which === 0 && config.getItem('backgroundCA', false)) {
+                /*
                 $j("body").css({
                     'background-image' : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
                     'background-position' : 'center top',
@@ -1725,15 +1761,31 @@ caap = {
                     'background-color' : 'black',
                     'margin' : '0px'
                 });
+                */
 
-                $j("#contentCol").css({
-                    'background-color' : 'black'
+                $j("body").css({
+                    'background-color' : 'black',
                 });
 
+                $j("#mainContainer").css({
+                    'border-color' : 'black',
+                });
+
+                $j("#contentArea").css({
+                    'border-color' : 'black',
+                });
+
+                $j("#contentCol").css({
+                    'background-color' : 'black',
+                    'border-color' : 'black'
+                });
+
+                /*
                 $j("#contentArea").css({
                     'background-image' : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                     'padding' : '0px 10px'
                 });
+                */
 
                 $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                     'display' : 'none'
@@ -1751,21 +1803,21 @@ caap = {
             }
 
             function chatListener(event) {
-                if(event.target.className === "fbDockWrapper fbDockWrapperRight bb") {
+                if(event.target.className === "fbDockWrapper fixed_always fbDockWrapperRight") {
                     event.target.style.display = "none";
                     caap.pageletPresenceDiv.unbind("DOMNodeInserted", chatListener);
                 }
             }
 
             if(caap.domain.which === 0) {
-                caap.pageletPresenceDiv = $j("#pagelet_presence");
+                caap.pageletPresenceDiv = $j("#pagelet_dock");
                 // Get rid of those ads now! :P
                 if(config.getItem('HideAds', false)) {
                     $j('#rightCol').css('display', 'none');
                 }
 
                 if(config.getItem('HideFBChat', false)) {
-                    tDiv = $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv);
+                    tDiv = $j("div[class='fbDockWrapper fixed_always fbDockWrapperRight']", caap.pageletPresenceDiv);
                     if($u.hasContent(tDiv)) {
                         tDiv.css('display', 'none');
                     } else {
@@ -1778,7 +1830,7 @@ caap = {
                 if(config.getItem('HideAdsIframe', false)) {
                     //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                     //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                    $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                    $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
                 }
             }
 
@@ -2082,6 +2134,7 @@ caap = {
         'gifting_mess' : "",
         'feats_mess' : "",
         'demibless_mess' : "",
+        'archive_mess' : "",
         'conquestbless_mess' : "",
         'conquestcrystal1bless_mess' : "",
         'conquestcrystal2bless_mess' : "",
@@ -2368,9 +2421,10 @@ caap = {
     addAutoOptionsMenu : function() {
         try {
             // Other controls
-            var autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " + "that do not have missing ingredients. By default, it will not " + "combine Battle Hearts recipes.", autoAlchemyInstructions2 = "If for some reason you do not want " + "to skip Battle Hearts", autoPotionsInstructions0 = "Enable or disable the auto consumption " + "of energy and stamina potions.", autoPotionsInstructions1 = "Number of stamina potions at which to " + "begin consuming.", autoPotionsInstructions2 = "Number of stamina potions to keep.", autoPotionsInstructions3 = "Number of energy potions at which to " + "begin consuming.", autoPotionsInstructions4 = "Number of energy potions to keep.", autoPotionsInstructions5 = "Do not consume potions if the " + "experience points to the next level are within this value.", autoBlessList = ['None', 'Auto Upgrade','Energy', 'Attack', 'Defense', 'Health', 'Stamina'], autoBlessListInstructions = ['None disables the auto bless feature.', 'Auto Upgrade bless feature according to auto upgrade skill setting.', 'Energy performs an automatic daily blessing with Ambrosia.', 'Attack performs an automatic daily blessing with Malekus.', 'Defense performs an automatic daily blessing with Corvintheus.', 'Health performs an automatic daily blessing with Aurora.', 'Stamina performs an automatic daily blessing with Azeron.'], htmlCode = '';
+            var autoArchivesInstructions = "Enable or disable the auto archive bonuses",autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " + "that do not have missing ingredients. By default, it will not " + "combine Battle Hearts recipes.", autoAlchemyInstructions2 = "If for some reason you do not want " + "to skip Battle Hearts", autoPotionsInstructions0 = "Enable or disable the auto consumption " + "of energy and stamina potions.", autoPotionsInstructions1 = "Number of stamina potions at which to " + "begin consuming.", autoPotionsInstructions2 = "Number of stamina potions to keep.", autoPotionsInstructions3 = "Number of energy potions at which to " + "begin consuming.", autoPotionsInstructions4 = "Number of energy potions to keep.", autoPotionsInstructions5 = "Do not consume potions if the " + "experience points to the next level are within this value.", autoBlessList = ['None', 'Auto Upgrade','Energy', 'Attack', 'Defense', 'Health', 'Stamina'], autoBlessListInstructions = ['None disables the auto bless feature.', 'Auto Upgrade bless feature according to auto upgrade skill setting.', 'Energy performs an automatic daily blessing with Ambrosia.', 'Attack performs an automatic daily blessing with Malekus.', 'Defense performs an automatic daily blessing with Corvintheus.', 'Health performs an automatic daily blessing with Aurora.', 'Stamina performs an automatic daily blessing with Azeron.'], htmlCode = '';
             htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
             htmlCode += caap.makeDropDownTR("Auto Bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 62);
+            htmlCode += caap.makeCheckTR('Auto Archives', 'AutoArchives', false, autoArchivesInstructions);
             htmlCode += caap.makeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
             htmlCode += caap.startCheckHide('AutoPotions');
             htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false);
@@ -2413,8 +2467,8 @@ caap = {
             htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 1', 'doConquestCrystalCollect1', false, '');
             htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal1Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
-            htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 2', 'doConquestCrystalCollect2', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal2Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
+     //       htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect on Land 2', 'doConquestCrystalCollect2', false, '');
+       //     htmlCode += caap.makeTD("<input type='button' id='caap_collectConquestCrystal2Now' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -2803,6 +2857,7 @@ caap = {
                 case "backgroundCA" :
                     if(caap.domain.which === 0) {
                         if(e.target.checked) {
+                            /*
                             $j("body").css({
                                 'background-image' : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
                                 'background-position' : 'center top',
@@ -2810,15 +2865,33 @@ caap = {
                                 'background-color' : 'black',
                                 'margin' : '0px'
                             });
+                            */
 
-                            $j("#contentCol").css({
+                            $j("body").css({
                                 'background-color' : 'black'
                             });
 
+                            caap.messaging.backgroundCA("black");
+
+                            $j("#mainContainer").css({
+                                'border-color' : 'black'
+                            });
+
+                            $j("#contentArea").css({
+                                'border-color' : 'black',
+                            });
+
+                            $j("#contentCol").css({
+                                'background-color' : 'black',
+                                'border-color' : 'black'
+                            });
+
+                            /*
                             $j("#contentArea").css({
                                 'background-image' : "url('http://image4.castleagegame.com/graphics/ws_middle.jpg')",
                                 'padding' : '0px 10px'
                             });
+                            */
 
                             $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                                 'display' : 'none'
@@ -2826,6 +2899,7 @@ caap = {
 
                             $j("#contentCol").removeClass("clearfix");
                         } else {
+                            /*
                             $j("body").css({
                                 'background-image' : '',
                                 'background-position' : '',
@@ -2833,15 +2907,33 @@ caap = {
                                 'background-color' : '',
                                 'margin' : ''
                             });
+                            */
 
-                            $j("#contentCol").css({
-                                'background-color' : 'white'
+                            $j("body").css({
+                                'background-color' : '',
                             });
 
+                            caap.messaging.backgroundCA("");
+
+                            $j("#mainContainer").css({
+                                'border-color' : ''
+                            });
+
+                            $j("#contentArea").css({
+                                'border-color' : '',
+                            });
+
+                            $j("#contentCol").css({
+                                'background-color' : '',
+                                'border-color' : ''
+                            });
+
+                            /*
                             $j("#contentArea").css({
                                 'background-image' : '',
                                 'padding' : ''
                             });
+                            */
 
                             $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
                                 'display' : 'block'
@@ -2901,7 +2993,7 @@ caap = {
                         con.log(9, "HideAdsIframe");
                         //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
                         //$j("div[style*='tool_top.jpg']").css('display', e.target.checked ? 'none' : 'block');
-                        $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
+                        $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', e.target.checked ? 'none' : 'block');
                         caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
                         caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
                         styleXY = caap.getDashboardXY();
@@ -2920,7 +3012,7 @@ caap = {
                 case "HideFBChat" :
                     if(caap.domain.which === 0) {
                         con.log(9, "HideFBChat");
-                        $j("div[class='fbDockWrapper fbDockWrapperRight bb']", caap.pageletPresenceDiv).css('display', e.target.checked ? 'none' : 'block');
+                        $j("div[class='fbDockWrapper fixed_always fbDockWrapperRight']", caap.pageletPresenceDiv).css('display', e.target.checked ? 'none' : 'block');
                     }
 
                     break;
@@ -4029,7 +4121,7 @@ caap = {
                             if(config.getItem('HideAdsIframe', false)) {
                                 //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                                 //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                                $j("img[src*='cross_promo_ad2.png']").parents("div:first").css('display', 'none');
+                                $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
                             }
 
                             if(config.getItem('scrollToTop', false)) {
@@ -4235,6 +4327,10 @@ caap = {
          signatureId: 'arena_battle_banner_section',
          CheckResultsFunction: 'checkResults_arena_battle'
          },*/
+        'item_archive_bonus' : {
+            signaturePic : 'archive_icon_ravager.jpg',
+            CheckResultsFunction : 'timerArchives'
+        },
         'army_member' : {
             signaturePic : 'view_army_on.gif',
             CheckResultsFunction : 'checkResults_army_member'
@@ -4292,9 +4388,19 @@ caap = {
             CheckResultsFunction : 'checkResults_guild_formation'
         },
         'guildv2_conquest_command' : {
-            signatureId : 'war_btn_keep_on',
+            signaturePic : 'guild_tab6_on.jpg',
             CheckResultsFunction : 'checkResults_conquest'
         },
+	'onConquestEarth' : {
+   		 signatureId : 'conq2_earthnav_on3.',
+    			CheckResultsFunction : 'checkResults_conquestEarth'
+	},
+
+	'onConquestEarth' : {
+   		 signatureId : 'conq2_mistnav_on3.',
+    			CheckResultsFunction : 'checkResults_conquestEarth'
+	},
+
         'guildv2_conquest_expansion_fort' : {
             signatureId : 'war_fort_topinfo.jpg',
             CheckResultsFunction : 'checkResults_conquestLand'
@@ -8159,8 +8265,7 @@ caap = {
             if(!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) {
                 return false;
             }
-
-            caap.clickAjaxLinkSend("guildv2_conquest_command.php?tier=3", 1000);
+            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 
             return true;
         } catch (err) {
@@ -8173,15 +8278,25 @@ caap = {
             if(!config.getItem('doConquestCrystalCollect1', false) || !schedule.check('collectConquestCrystal1Timer')) {
                 return false;
             }
-            var link = "guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
-            caap.clickAjaxLinkSend(link, 1000);
+            var link = "guildv2_conquest_command.php";
+
+//"guildv2_conquest_expansion_fort.php?guild_id=" + caap.stats['guild']['id'] + "&slot=1";
+           // caap.clickAjaxLinkSend(link, 10000);
+	caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000)
+//			{con.log(3,"first navigate is ok");}
+		//var button = caap.checkForImage("conq3_btn_pray.gif");
+                  //  if ($u.hasContent(button)) {
+		//if(caap.navigateTo('guildv2_conquest_command', 'conq3_btn_pray.gif'))
+		//	{con.log(3,"second navigate is ok");}
+
+//}
             return true;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);
             return false;
         }
     },
-    collectConquestCrystal2 : function() {
+   /* collectConquestCrystal2 : function() {
         try {
             if(!config.getItem('doConquestCrystalCollect2', false) || !schedule.check('collectConquestCrystal2Timer')) {
                 return false;
@@ -8193,7 +8308,7 @@ caap = {
             con.error("ERROR in collectConquestCrystal: " + err);
             return false;
         }
-    },
+    },*/
     checkResults_conquest : function() {
         conquest.collect();
     },
@@ -8201,8 +8316,12 @@ caap = {
         conquest.land();
     },
     checkResults_conquestLand2 : function() {
-        conquest.crystal();
+        //conquest.crystal();
     },
+	checkResults_conquestMist : function () {},
+	checkResults_conquestEarth : function () {},
+	
+
     checkResults_conquestBattle : function() {
         conquest.battle();
     },
