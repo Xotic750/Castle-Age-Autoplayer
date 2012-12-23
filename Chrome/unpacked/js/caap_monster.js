@@ -1088,6 +1088,7 @@ caap.checkResults_viewFight = function(ajax) {
 
         con.log(4, "monsterDiv", monsterDiv);
         if($u.hasContent(monsterDiv)) {
+	    army.eliteCheckImg();
             fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
             con.log(2, "fMonstStyle", fMonstStyle);
             if(!$u.hasContent(fMonstStyle)) {
