@@ -1039,7 +1039,7 @@ caap = {
 
     getSigned : function() {
         try {
-            var params = $u.setContent($j('script').text(), '').regex(new RegExp("params \\+= '&signed_request(.*)'", 'gmi')), inject;
+            var params = $u.setContent($j('script').text(), '').regex(new RegExp("params \\+= '&signed_request=(.*)'", 'gmi')), inject;
 
             if($u.hasContent(params)) {
                 params = $u.isArray(params) ? params[0] : params;
