@@ -2177,7 +2177,21 @@ caap = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
+	if(devVersion === '0') {
+                htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
+                if(caap.newVersionAvailable) {
+                    htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>");
+                }
+            } else
+                htmlCode += caap.makeTD("Version: " + caapVersion + " d" + devVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
+                if(caap.newVersionAvailable) {
+                    htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version') + "!</a>");
+                }
+         caap.setDivContent('Version', htmlCode, caapDiv);            
+
+
+
+		banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64['header'] + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             caap.setDivContent('banner', banner, caapDiv);
             donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
