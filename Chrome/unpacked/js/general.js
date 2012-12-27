@@ -747,7 +747,12 @@
                     con.log(2, 'Using level up general');
                 }
 
-                generalName = zinReady && zinFirst && coolType && whichGeneral !== "GuildMonster" ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+                /*generalName = zinReady && zinFirst && coolType && whichGeneral !== "GuildMonster" ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+                if (!generalName || /use current/i.test(generalName)) {
+                    return false;
+                }*/
+
+                generalName = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
                 if (!generalName || /use current/i.test(generalName)) {
                     return false;
                 }
