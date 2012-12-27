@@ -8311,6 +8311,7 @@ caap = {
         }
 
         arena.battle();
+	return true;
     },
     checkResults_arenaBattle : function() {
         arena.checkResults();

@@ -737,6 +737,8 @@
                     coolZin           = coolName === "Zin" ? caap.stats['stamina']['num'] > (caap.stats['stamina']['max'] - 15) : false,
                     useCool           = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord['charge'] === 100,
                     zinFirst          = config.getItem("useZinFirst", true);
+		    thisAction        = state.getItem('ThisAction', 'idle'),
+                    zinAction         = ["battle","doArenaBattle"];
 
                 con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
                 con.log(3, 'Zin', zinReady, zinFirst, zinRecord);

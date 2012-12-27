@@ -56,6 +56,7 @@ caap.actionDescTable = {
 /*jslint sub: false */
 caap.checkLastAction = function(thisAction) {
 	try {
+		state.setItem('ThisAction', thisAction);
 		var lastAction = state.getItem('LastAction', 'idle');
 		caap.setDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
 		if(lastAction !== thisAction) {
