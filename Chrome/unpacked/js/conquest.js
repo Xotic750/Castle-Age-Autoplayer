@@ -10,7 +10,7 @@
                     return false;
                 }
 
-                var button = caap.checkForImage("conq3_btn_collectpower.gif");     //this is a guess
+                var button = caap.checkForImage("conq3_btn_collectpower_small.gif");
                 var button2 = caap.checkForImage("conq3_btn_collect.gif");
                 var buttonCrystal = caap.checkForImage("conq3_btn_pray.gif");
 
