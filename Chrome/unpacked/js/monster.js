@@ -1376,9 +1376,9 @@
 			join : [30, 30, 35, 60],
 			mClass : 'Epic Boss',
 			mpool : 3,
-			newbg_img : ['monster_ abomination_header.jpg'],
-			list_img : ['monster_ abomination _list.jpg'],
-			cta_img : ['cta_ abomination.gif'],
+			newbg_img : ['monster_abomination_header.jpg'],
+			list_img : ['monster_abomination _list.jpg'],
+			cta_img : ['cta_abomination.gif'],
 			bodyparts : 4,
 			partOrder : [4,3,2,1] 
 
