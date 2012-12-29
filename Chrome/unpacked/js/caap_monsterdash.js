@@ -902,7 +902,7 @@ caap.liveFeedButtonListener = function(e) {
 	caap.clickAjaxLinkSend('army_news_feed.php');
 };
 caap.crusadersButtonListener = function(e) {
-	caap.clickAjaxLinkSend('specialmembership.php');
+	caap.clickAjaxLinkSend('crusaders.php');
 };
 caap.getBQH = function(cb) {
 	try {

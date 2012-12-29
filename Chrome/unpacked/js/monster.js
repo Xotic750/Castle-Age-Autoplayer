@@ -1377,7 +1377,7 @@
 			mClass : 'Epic Boss',
 			mpool : 3,
 			newbg_img : ['monster_abomination_header.jpg'],
-			list_img : ['monster_abomination _list.jpg'],
+			list_img : ['monster_abomination_list.jpg'],
 			cta_img : ['cta_abomination.gif'],
 			bodyparts : 4,
 			partOrder : [4,3,2,1] 
