@@ -3938,10 +3938,13 @@ caap = {
 
             if(caap.domain.which === 0) {
                 caap.pageletPresenceDiv.live('DOMNodeInserted', function(event) {
-                    if(config.getItem('AutoGift', false) && config.getItem('watchBeeper', true) && $u.setContent($j(event.target).text(), '').hasIndexOf("sent you a request in Castle Age")) {
-                        con.log(1, "Beeper saw a gift!");
-                        schedule.setItem("ajaxGiftCheck", 0);
-                        caap.messaging.ajaxGiftCheck();
+                    if(config.getItem('AutoGift', false) && config.getItem('watchBeeper', true)) {
+                        var tText = $u.setContent($j(event.target).text(), '');
+                        if(tText.hasIndexOf("Castle Age") && tText.hasIndexOf("sent you a request.")) {
+                            con.log(1, "Beeper saw a gift!");
+                            schedule.setItem("ajaxGiftCheck", 0);
+                            caap.messaging.ajaxGiftCheck();
+                        }
                     }
                 });
 

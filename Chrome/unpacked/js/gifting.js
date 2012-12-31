@@ -684,13 +684,13 @@
 
         popCheck: function (type) {
             try {
-                var popDiv     = $j("#rfloat mlm"),
+                var popDiv     = $j("#pop_content"),
                     tempDiv    = $j(),
                     tempText   = '',
                     tryAgain   = true;
 
                 if ($u.hasContent(popDiv)) {
-                    tempDiv = $j("input[name='ok_clicked']", popDiv);
+                    tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         con.log(2, 'Sending gifts to Facebook');
                         caap.click(tempDiv);
@@ -698,7 +698,7 @@
                         return true;
                     }
 
-                    tempDiv = $j("input[name='cancel_clicked']", popDiv);
+                    tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         con.log(2, 'Denying Email Nag For Gift Send');
                         caap.click(tempDiv);

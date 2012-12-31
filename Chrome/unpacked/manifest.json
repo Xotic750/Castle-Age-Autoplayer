@@ -31,6 +31,7 @@
                 "http://web.castleagegame.com/castle/*",
                 "https://web.castleagegame.com/castle/*",
                 "http://www.facebook.com/dialog/apprequests*",
+		"http://apps.facebook.com/fbml/ajax/dialog/apprequests",
                 "https://www.facebook.com/dialog/apprequests*"
             ],
             "js": [
@@ -122,8 +123,9 @@
         "https://web.castleagegame.com/castle/*",
         "http://www.facebook.com/dialog/apprequests*",
         "https://www.facebook.com/dialog/apprequests*",
+	"http://apps.facebook.com/fbml/ajax/dialog/apprequests",
         "http://query.yahooapis.com/v1/public/yql*"
     ],
     "update_url": "https://raw.github.com/magowiz/Castle-Age-Autoplayer/master/Chrome/packed/updates.xml",
-    "version": "141.0.0.131"
+    "version": "141.0.0.132"
 }
