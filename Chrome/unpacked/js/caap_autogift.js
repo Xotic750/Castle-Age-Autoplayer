@@ -3,7 +3,7 @@ nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
-schedule,gifting*/
+schedule,gifting,state,army */
 /*jslint maxlen: 256 */
 
 /////////////////////////////////////////////////////////////////////
