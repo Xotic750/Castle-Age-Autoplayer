@@ -1,6 +1,6 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
 nomen: true, bitwise: true, plusplus: true,
-regexp: true, eqeq: true, newcap: true */
+regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,guild_monster */
@@ -163,6 +163,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     actionOrderArray = actionOrderUser.split(",");
                     // We count the number of actions contained in the
                     // Master Action list
+
+		    /*jslint forin: true */
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount += 1;
@@ -172,10 +174,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             con.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
+		    /*jslint forin: false */
                 } else {
                     // We are building the Action Order Array from the
                     // Master Action List
                     con.log(2, "Building the default Action Order");
+
+		    /*jslint forin: true */
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount = actionOrderArray.push(action);
@@ -185,6 +190,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             con.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
+		    /*jslint forin: false */
                 }
 
                 // We notify if the number of actions are not sensible or the
