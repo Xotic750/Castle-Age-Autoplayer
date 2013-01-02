@@ -16,14 +16,14 @@ caap.autoPotions = function() {
 			return false;
 		}
 
-		function consumePotion(potion) {
-			try {
-				if(!$j("div[style*='keep_cont_top']")) {
-					con.log(2, "Going to keep for potions");
-					if(caap.navigateTo('keep')) {
-						return true;
-					}
-				}
+		 function consumePotion(potion) {
+         			try {
+            				if(!caap.hasImage('keep_top.jpg')) {
+               				con.log(2, "Going to keep for potions");
+               				if(caap.navigateTo('keep')) {
+                  				return true;
+               		}
+            	}
 
 				var formId = caap.domain.id[caap.domain.which] + "consume_1", potionDiv = $j(), button = null;
 

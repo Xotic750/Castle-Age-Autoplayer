@@ -1479,7 +1479,7 @@
                 bodyparts    : 4,
                 partOrder    : [4,3,2,1]
             },
-		"Baal" : {
+		"BAAL Stealer of Souls" : {
 				alpha : true,
 				duration : 168,
 				hp : 830000000,
@@ -1500,10 +1500,10 @@
 				levels : [1, 50, 100, 150],
 				join : [30, 30, 35, 60],
 				mClass : 'Epic Boss',
-				mpool : 1,
+				mpool : 101,
 				newbg_img : ['monster_baal_title.jpg'],
-				list_img : ['monster_ball_list.jpg'],
-				cta_img : ['cta_btn_new.gif'],
+				list_img : ['monster_baal_list.jpg'],
+				cta_img : ['cta_baal.gif'],
 				bodyparts : 4,
 				partOrder : [4,3,2,1]
 			}
