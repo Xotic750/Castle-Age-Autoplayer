@@ -43,11 +43,11 @@ schedule,gifting,state,army, general */
                 defense = 0,
                 health = 0,
                 attrAdjustNew = 0,
-                energyDiv = $j("a[href*='energy_max']", atributeSlice),
-                staminaDiv = $j("a[href*='stamina_max']", atributeSlice),
-                attackDiv = $j("a[href*='attack']", atributeSlice),
-                defenseDiv = $j("a[href*='defense']", atributeSlice),
-                healthDiv = $j("a[href*='health_max']", atributeSlice),
+                energyDiv = $j("a[href*='upgrade=energy_max']", atributeSlice),
+                staminaDiv = $j("a[href*='upgrade=stamina_max']", atributeSlice),
+                attackDiv = $j("a[href*='upgrade=attack']", atributeSlice),
+                defenseDiv = $j("a[href*='upgrade=defense']", atributeSlice),
+                healthDiv = $j("a[href*='upgrade=health_max']", atributeSlice),
                 logTxt = "";
 
             switch (attribute) {
@@ -213,7 +213,7 @@ schedule,gifting,state,army, general */
                 return false;
             }
 
-            var atributeSlice = $j("div[style*='keep_top.jpg']", caap.appBodyDiv),
+            var atributeSlice = $j("div[style*='keep_cont_top.jpg']", caap.appBodyDiv),
                 startAtt = 0,
                 stopAtt = 4,
                 attrName = '',
