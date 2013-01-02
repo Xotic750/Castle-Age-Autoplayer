@@ -1727,7 +1727,7 @@ caap = {
     injectCATools : function() {
         $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp?" + Math.random());
     },
-    
+
     init : function() {
         try {
             var tDiv;
@@ -2187,7 +2187,7 @@ caap = {
                 if(caap.newVersionAvailable) {
                     htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version') + "!</a>");
                 }
-         caap.setDivContent('Version', htmlCode, caapDiv);            
+         caap.setDivContent('Version', htmlCode, caapDiv);
 
 
 
@@ -2490,7 +2490,29 @@ caap = {
     addOtherOptionsMenu : function() {
         try {
             // Other controls
-            var timeInstructions = "Use 24 hour format for displayed times.", titleInstructions0 = "Set the title bar.", titleInstructions1 = "Add the current action.", titleInstructions2 = "Add the player name.", hideAdsInstructions = "Hides the sidebar adverts.", hideAdsIframeInstructions = "Hide the FaceBook Iframe adverts", hideFBChatInstructions = "Hide the FaceBook Chat", newsSummaryInstructions = "Enable or disable the news summary on the index page.", bannerInstructions = "Uncheck if you wish to hide the CAAP banner.", donateInstructions = "Uncheck if you wish to hide the CAAP donate button.", itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.", goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.", ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.", alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.", keepShrinkInstructions = "Reduces the size of the item images on the Keep pages.", recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.", recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.", bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.", levelupModeInstructions = "Calculates approx. how many XP points you will get from your current stamina and energy and when you have enough of each to level up it will start using them down to 0.", serializeInstructions = "Setting this value allows you to define your Raids and Monsters all within either the Monster Attack Order or Raid Attack Order list boxes. Selection is serialized so that you only have a single selection from the list active at one time.  This is in contrast to the default mode, where you can have an active Raid and an active Monster, both processing independently.", styleList = ['CA Skin', 'Original', 'Custom', 'None'], htmlCode = '';
+            var timeInstructions = "Use 24 hour format for displayed times.",
+                titleInstructions0 = "Set the title bar.",
+                titleInstructions1 = "Add the current action.",
+                titleInstructions2 = "Add the player name.",
+                hideAdsInstructions = "Hides the sidebar adverts.",
+                hideAdsIframeInstructions = "Hide the FaceBook Iframe adverts",
+                hideFBChatInstructions = "Hide the FaceBook Chat",
+                //newsSummaryInstructions = "Enable or disable the news summary on the index page.",
+                bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+                donateInstructions = "Uncheck if you wish to hide the CAAP donate button.",
+                itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
+                goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
+                ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
+                alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
+                keepShrinkInstructions = "Reduces the size of the item images on the Keep pages.",
+                recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
+                recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
+                bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
+                levelupModeInstructions = "Calculates approx. how many XP points you will get from your current stamina and energy and when you have enough of each to level up it will start using them down to 0.",
+                serializeInstructions = "Setting this value allows you to define your Raids and Monsters all within either the Monster Attack Order or Raid Attack Order list boxes. Selection is serialized so that you only have a single selection from the list active at one time.  This is in contrast to the default mode, where you can have an active Raid and an active Monster, both processing independently.",
+                styleList = ['CA Skin', 'Original', 'Custom', 'None'],
+                htmlCode = '';
+
             htmlCode += caap.startToggle('Other', 'OTHER OPTIONS');
             if(caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('FB Custom Dropdown', 'FBCustomDrop', false, "Enable FB custom request dropdown");
@@ -2535,7 +2557,7 @@ caap = {
                 htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
                 //htmlCode += caap.makeCheckTR('Hide Cross Adverts', 'HideCrossAds', false, "Hide CA cross advertising.");
             }
-            htmlCode += caap.makeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
+            //htmlCode += caap.makeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
             htmlCode += caap.makeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
             htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
             htmlCode += caap.makeTD("Running:");
@@ -5647,7 +5669,7 @@ caap = {
                 } else {
                     con.warn('Test of Might Achievements not found.');
                 }
-             
+
                 achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievement_type_container_festival_feat", caap.appBodyDiv);
                 if($u.hasContent(achDiv)) {
                 var level = 0;
@@ -6937,7 +6959,7 @@ caap = {
 
     // this table is only for quest name corrections; however, if a quest area requires any
     // corrections at all, then all main/sub quest names must be listed here regardless;
-    // because, the array index must match the element index from the HTML container. 
+    // because, the array index must match the element index from the HTML container.
     questNameCorrections : { // note: indent subquests under main quests for readability
         'Mist III' : // this quest area had a duplicate name on a subquest
                             ['Tenvir Summit',
@@ -7410,7 +7432,7 @@ caap = {
                         con.log(4, attrName + " is blank: continue");
                         continue;
                     }
-                    
+
 
                     if(caap.stats['level'] < 10) {
                         if(attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health') {
@@ -7439,7 +7461,7 @@ caap = {
                         default :
                             throw "Unable to match attribute: " + attribute;
                     }
-                    
+
                     if(config.getItem('AutoStatAdv', false)) {
                         attrAdjustNew = eval(attrValue);
                     } else {
@@ -7465,12 +7487,12 @@ caap = {
             }
 
             //var autoBless = config.getItem('AutoBless', 'none');
-            var autoBless = caap.autoBlessSelection(),			
-                autoBlessN = caap.deityTable[autoBless.toLowerCase()], 
-                picSlice = $j(), 
+            var autoBless = caap.autoBlessSelection(),
+                autoBlessN = caap.deityTable[autoBless.toLowerCase()],
+                picSlice = $j(),
                 descSlice = $j();
-            
-            
+
+
             if(!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
                 return false;
             }
@@ -7571,7 +7593,7 @@ caap = {
             festivalBless : function() {
             try {
                 var autoBless = config.getItem('festivalBless', 'None'), capPic, tgeneral, luGeneral, picSlice, txt;
-             
+
              if(autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
                     return false;
                 }
@@ -7620,12 +7642,12 @@ caap = {
                    }
                    default_bless = default_bless === 'All' ? 'Army' : default_bless;
                 }
-                
+
                 if(autoBless === 'All') {
                    autoBless = default_bless !== 'All' ? default_bless : 'Attack' ;
                 }
              }
-             
+
              capPic = 'festival_capsule_' + autoBless.toLowerCase() + '.gif';
              tgeneral = caap.festivalBlessGeneral[autoBless.toLowerCase()];
              luGeneral = config.getItem('LevelUpGeneral', 'Use Current');
@@ -8303,7 +8325,7 @@ caap = {
     },
     checkResults_conquestMist : function () {},
     checkResults_conquestEarth : function () {},
-    
+
 
     checkResults_conquestBattle : function() {
         conquest.battle();
