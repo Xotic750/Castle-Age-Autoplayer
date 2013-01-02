@@ -114,25 +114,28 @@ caap.ajaxLoad = function(link, params, selector_dom, selector_load, result, load
 };
 caap.navigateTo = function(pathToPage, imageOnPage, webSlice) {
 	try {
+		//Fix ( possibly temporary ) for globalContainer slice due to CA hidden beta div:
+
+		/*
 		webSlice = $u.setContent(webSlice, caap.globalContainer);
-		/*if(!$u.hasContent(webSlice)) {
+		if(!$u.hasContent(webSlice)) {
 			con.warn('No content to Navigate to', imageOnPage, pathToPage);
 			return false;
+		}
+		*/
+
+		if(!$u.hasContent(webSlice)) {
+		    webSlice = $u.setContent(webSlice, $j('#globalcss', caap.globalContainer));
+		    if(!$u.hasContent(webSlice)) {
+		       con.warn('No content to Navigate to', imageOnPage, pathToPage);
+		       return false;
+		    }
 		}
 
 		if($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage, webSlice)) {
 			con.log(3, 'Image found on page', imageOnPage);
 			return false;
-		}*/
-
-		 if(!$u.hasContent(webSlice)) {
-		        webSlice = $u.setContent(webSlice, $j('#globalcss', caap.globalContainer));
-         		if(!$u.hasContent(webSlice)) {
-            			con.warn('No content to Navigate to', imageOnPage, pathToPage);
-            			return false;
-         }
-      }
-
+		}
 
 		var pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [], s = 0, jq = $j(), path = '';
 
@@ -183,4 +186,4 @@ caap.hasImage = function(image, webSlice, subDocument, nodeNum) {
 		con.error("ERROR in caap.hasImage: " + err);
 		return undefined;
 	}
-}; 
+};
