@@ -72,7 +72,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     caap.demiPoints = function () {
