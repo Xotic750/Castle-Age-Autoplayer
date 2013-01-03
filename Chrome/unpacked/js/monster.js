@@ -973,10 +973,8 @@
                 siegeClicks  : [30, 60, 90, 120, 200],
                 siegeDam     : [9000000, 12600000, 18000000, 23400000, 27000000, 90000000],
                 siege_img    : [
-                    '/graphics/earth_siege_small',
-                    '/graphics/castle_siege_small',
-                    '/graphics/skaar_siege_small',
-                    '/graphics/death_siege_small'
+                    '/graphics/water_siege_small',
+                    '/graphics/alpha_bahamut_siege_blizzard'
                 ],
                 fort         : true,
                 staUse       : 10,
