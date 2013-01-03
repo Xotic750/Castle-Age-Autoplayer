@@ -71,11 +71,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             state.setItem('ThisAction', thisAction);
             var lastAction = state.getItem('LastAction', 'idle');
+
             caap.setDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
             if (lastAction !== thisAction) {
                 con.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
                 state.setItem('LastAction', thisAction);
             }
+
             return true;
         } catch (err) {
             con.error("ERROR in checkLastAction:" + err);
