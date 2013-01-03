@@ -936,7 +936,7 @@
             "Glacius, The Frost Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 500000000,
+                hp           : 400000000,
                 ach          : 1000000,
                 siege        : 8,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
@@ -954,7 +954,7 @@
                 nrgMax       : [20, 40, 100, 200, 200],
                 defense_img  : 'nm_green.jpg',
                 levels       : [1,  50, 100, 150],
-                join         : [30, 30, 35,  50],
+                join         : [25, 30, 35,  50],
                 mClass       : 'Epic Boss',
                 mpool        : 1,
                 festival_img : ['festival_monsters_top_frost_giant.jpg'],
