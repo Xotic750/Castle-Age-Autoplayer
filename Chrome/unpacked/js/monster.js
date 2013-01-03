@@ -967,11 +967,11 @@
             "Shardros, The Mountain Giant" : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 500000000,
+                hp           : 175000000,
                 ach          : 1000000,
-                siege        : 8,
-                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200],
-                siegeDam     : [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
+                siege        : 5,
+                siegeClicks  : [30, 60, 90, 120, 200],
+                siegeDam     : [9000000, 12600000, 18000000, 23400000, 27000000, 90000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
                     '/graphics/castle_siege_small',
@@ -1067,7 +1067,7 @@
                 siegeDam     : [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 45000000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/earth_siege_small',
-		    '/graphics/earth_siege_small2',	
+		    '/graphics/earth_siege_small2',
                     '/graphics/castle_siege_small',
                     '/graphics/skaar_siege_small',
                     '/graphics/death_siege_small'
@@ -1380,7 +1380,7 @@
 			list_img : ['monster_abomination_list.jpg'],
 			cta_img : ['cta_abomination.gif'],
 			bodyparts : 4,
-			partOrder : [4,3,2,1] 
+			partOrder : [4,3,2,1]
 
 		},
 
@@ -1963,9 +1963,9 @@
                 schedule.setItem('NotargetFrombattle_monster', 0);
                 session.setItem('ReleaseControl', true);
                 caap.updateDashboard(true);
-        if (monster.records.length == 0) 
+        if (monster.records.length == 0)
             localStorage.AFrecentAction = false;
-        else 
+        else
             localStorage.AFrecentAction = true;
                 return true;
             } catch (err) {
@@ -2479,7 +2479,7 @@
                         'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                         'Never - disables attacking monsters'
                     ],
-                    delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",	
+                    delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                     monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                     demiPtItem = 0,
                     subCode = '',
