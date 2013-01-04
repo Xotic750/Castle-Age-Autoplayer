@@ -81,6 +81,32 @@ function getFBFriends() {
 }
 
 function caap_reload() {
+    image64 = null;
+    offline = null;
+    profiles = null;
+    session = null;
+    config = null;
+    state = null;
+    css = null;
+    gm = null;
+    s = null;
+    db = null;
+    sort = null;
+    schedule = null;
+    general = null;
+    monster = null;
+    guild_monster = null;
+    //arena = null;
+    festival = null;
+    feed = null;
+    battle = null;
+    town = null;
+    spreadsheet = null;
+    gifting = null;
+    army = null;
+    caap = null;
+    con = null;
+
     if (window.location.hasOwnProperty("reload")) {
         window.location.reload();
     } else if (window.hasOwnProperty("history") && window.history.hasOwnProperty("go")) {

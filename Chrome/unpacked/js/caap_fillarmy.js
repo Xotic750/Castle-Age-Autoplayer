@@ -17,23 +17,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoFillArmy = function () {
 
-	function addFriend(id) {
-	    function responseCallback(data, textStatus, XMLHttpRequest) {
-		if (caap.addFriendSpamCheck > 0) {
-		    caap.addFriendSpamCheck -= 1;
+		function addFriend(id) {
+			function responseCallback(data, textStatus, XMLHttpRequest) {
+			if (caap.addFriendSpamCheck > 0) {
+				caap.addFriendSpamCheck -= 1;
+			}
+
+			con.log(1, "AddFriend(" + id + "): ", [data, textStatus, XMLHttpRequest]);
+			}
+
+			try {
+			caap.ajax('party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf', null, responseCallback, responseCallback);
+			return true;
+			} catch (err) {
+			con.error("ERROR in addFriend(" + id + "): " + err);
+			return false;
+			}
 		}
-
-		con.log(1, "AddFriend(" + id + "): ", [data, textStatus, XMLHttpRequest]);
-	    }
-
-	    try {
-		caap.ajax('party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf', null, responseCallback, responseCallback);
-		return true;
-	    } catch (err) {
-		con.error("ERROR in addFriend(" + id + "): " + err);
-		return false;
-	    }
-	}
 
         try {
             if (!state.getItem('FillArmy', false) || !config.getItem("EnableArmy", true) || caap.domain.which === 0 || caap.domain.which === 1 || caap.domain.which === 4) {

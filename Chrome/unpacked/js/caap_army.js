@@ -28,6 +28,9 @@ caap.checkResults_army = function () {
 			      "href='" + row.attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>");
 
                 link.insertAfter(row);
+
+				link = null;
+				row = null;
             });
         }
 
@@ -39,10 +42,12 @@ caap.checkResults_army = function () {
                 con.log(2, 'No gifts waiting.');
                 state.setItem('HaveGift', false);
             }
+
             time = time < 15 ? 15 : time;
             schedule.setItem("ajaxGiftCheck", time * 60, 300);
         }
 
+		listHref = null;
         return true;
     } catch (err) {
         con.error("ERROR in checkResults_army: " + err);

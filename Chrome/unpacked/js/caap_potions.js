@@ -16,44 +16,52 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     caap.autoPotions = function () {
-	function consumePotion(potion) {
-	    try {
-		if (!caap.hasImage('keep_top.jpg')) {
-		    con.log(2, "Going to keep for potions");
-		    if (caap.navigateTo('keep')) {
-			return true;
-		    }
+		function consumePotion(potion) {
+			try {
+				if (!caap.hasImage('keep_top.jpg')) {
+					con.log(2, "Going to keep for potions");
+					if (caap.navigateTo('keep')) {
+					return true;
+					}
+				}
+
+				var formId = caap.domain.id[caap.domain.which] + "consume_1",
+					potionDiv = $j(),
+					button = $j();
+
+				if (potion === 'stamina') {
+					formId = caap.domain.id[caap.domain.which] + "consume_2";
+				}
+
+				con.log(1, "Consuming potion", potion);
+				potionDiv = $j("form[id='" + formId + "'] input[src*='keep_consumebtn.jpg']");
+				if (potionDiv && potionDiv.length) {
+					button = potionDiv;
+					if (button) {
+						caap.click(button);
+					} else {
+						con.warn("Could not find consume button for", potion);
+
+						potionDiv = null;
+						button = null;
+						return false;
+					}
+				} else {
+					con.warn("Could not find consume form for", potion);
+
+					potionDiv = null;
+					button = null;
+					return false;
+				}
+
+				potionDiv = null;
+				button = null;
+				return true;
+				} catch (err) {
+				con.error("ERROR in consumePotion: " + err, potion);
+				return false;
+			}
 		}
-
-		var formId = caap.domain.id[caap.domain.which] + "consume_1",
-		    potionDiv = $j(),
-		    button = null;
-
-		if (potion === 'stamina') {
-		    formId = caap.domain.id[caap.domain.which] + "consume_2";
-		}
-
-		con.log(1, "Consuming potion", potion);
-		potionDiv = $j("form[id='" + formId + "'] input[src*='keep_consumebtn.jpg']");
-		if (potionDiv && potionDiv.length) {
-		    button = potionDiv;
-		    if (button) {
-			caap.click(button);
-		    } else {
-			con.warn("Could not find consume button for", potion);
-			return false;
-		    }
-		} else {
-		    con.warn("Could not find consume form for", potion);
-		    return false;
-		}
-
-		return true;
-	    } catch (err) {
-		con.error("ERROR in consumePotion: " + err, potion);
-		return false;
-	    }
-	}
 
         try {
             if (!config.getItem('AutoPotions', true) || !schedule.check('AutoPotionTimerDelay')) {
@@ -89,22 +97,33 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoArchives = function () {
         try {
-            var button, archiveDIV,hours = 24,minutes = 0;
+            var button = $j(),
+				archiveDIV = $j(),
+				hours = 24,
+				minutes = 0,
+				rClick;
 
             con.log(2, "autoArchives");
 
             if ((!config.getItem('AutoArchives', true)) || (!schedule.check('AutoArchiveTimerDelay'))) {
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
-                return false;
+
+				button = null;
+				archiveDIV = null;
+				return false;
             }
 
             archiveDIV = $j("div[style*='archive_top']");
             if (!archiveDIV || archiveDIV.length === 0) {
                 con.log(2, "Going to Item archives for bonuses");
                 if (caap.navigateTo('item_archive_bonus')) {
+					button = null;
+					archiveDIV = null;
                     return true;
                 }
 
+				button = null;
+				archiveDIV = null;
                 throw "Impossible to navigate to Item archives page";
             }
 
@@ -113,8 +132,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(2, "Click enable archives for bonuses");
                 schedule.setItem('AutoArchiveTimerDelay', ((hours * 60) + minutes) * 60, 100);
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
-                return caap.click(button);
+                rClick = caap.click(button);
+
+				button = null;
+				archiveDIV = null;
+				return rClick;
             }
+
             return false;
 
         } catch (err) {
@@ -125,16 +149,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.timerArchives = function () {
         try {
-            var button, hours = 24,
+            var button = $j(),
+				hours = 24,
                 minutes = 0,
                 delay = 100,
-		timespan,
-		timestr,
-		convert1 = new RegExp('([0-9]+)hrs([0-9]+)m', 'i'),
-		convert2 = new RegExp('([0-9]+)m', 'i'),
+				timespan = $j(),
+				timestr = '',
+				convert1 = new RegExp('([0-9]+)hrs([0-9]+)m', 'i'),
+				convert2 = new RegExp('([0-9]+)m', 'i'),
                 timeresult;
 
             con.log(2, "timerArchives");
+
             button = caap.checkForImage('archive_btn_enable.gif');
             con.log(4, "button", button);
             if (button && button.length > 0) {
@@ -172,11 +198,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     minutes = 5;
                 }
             }
+
             con.log(2, "timerArchives [hours minutes delay]", hours, minutes, delay);
             schedule.setItem('AutoArchiveTimerDelay', ((hours * 60) + minutes) * 60, delay);
             caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
-            return false;
 
+			button = null;
+			timespan = null;
+			return false;
         } catch (err) {
             con.error("ERROR in timerArchives: " + err);
             return false;

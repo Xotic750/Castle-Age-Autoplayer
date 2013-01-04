@@ -32,28 +32,41 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var maxInCash = -1,
                 minInCash = 0,
-                depositButton = null,
-                numberInput = null,
+                depositButton = $j(),
+                numberInput = $j(),
                 deposit = 0;
+
             maxInCash = config.getItem('MaxInCash', -1);
             minInCash = config.getItem('MinInCash', 0);
             if (!maxInCash || maxInCash < 0 || caap.stats['gold']['cash'] <= minInCash || caap.stats['gold']['cash'] < maxInCash || caap.stats['gold']['cash'] < 10) {
-                return false;
+
+                depositButton = null;
+                numberInput = null;
+				return false;
             }
 
             if (general.Select('BankingGeneral')) {
+
+                depositButton = null;
+                numberInput = null;
                 return true;
             }
 
             depositButton = $j("input[src*='btn_stash.gif']");
             if (!depositButton || !depositButton.length) {
                 // Cannot find the link
+
+                depositButton = null;
+                numberInput = null;
                 return caap.navigateTo('keep');
             }
 
             numberInput = $j("input[name='stash_gold']");
             if (!numberInput || !numberInput.length) {
                 con.warn('Cannot find box to put in number for bank deposit.');
+
+                depositButton = null;
+                numberInput = null;
                 return false;
             }
 
@@ -61,6 +74,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             numberInput.attr("value", deposit);
             con.log(1, 'Depositing into bank:', deposit);
             caap.click(depositButton);
+
+			depositButton = null;
+			numberInput = null;
             return true;
         } catch (err) {
             con.error("ERROR in Bank: " + err);
@@ -74,24 +90,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            var retrieveButton = null,
-                numberInput = null,
+            var retrieveButton = $j(),
+                numberInput = $j(),
                 minInStore = 0;
 
             retrieveButton = $j("input[src*='keep_btn_retireve.gif']");
             if (!retrieveButton || !retrieveButton.length) {
                 // Cannot find the link
+
+				retrieveButton = null;
+                numberInput = null;
                 return caap.navigateTo('keep');
             }
 
             minInStore = config.getItem('minInStore', 0);
             if (!(minInStore || minInStore <= caap.stats['gold']['bank'] - num)) {
+				retrieveButton = null;
+                numberInput = null;
                 return false;
             }
 
             numberInput = $j("input[name='get_gold']");
             if (!numberInput || !numberInput.length) {
                 con.warn('Cannot find box to put in number for bank retrieve.');
+				retrieveButton = null;
+                numberInput = null;
                 return false;
             }
 
@@ -99,6 +122,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, 'Retrieving from bank:', num);
             state.setItem('storeRetrieve', '');
             caap.click(retrieveButton);
+
+			retrieveButton = null;
+			numberInput = null;
             return true;
         } catch (err) {
             con.error("ERROR in retrieveFromBank: " + err);

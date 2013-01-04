@@ -4,6 +4,8 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,guild_monster,css,
+image64,offline,profiles,session,config,state,css,gm,s,db,sort,schedule,general,
+monster,guild_monster,festival,feed,battle,town,spreadsheet,gifting,army,caap,con,
 caap_timeout,retryDelay,devVersion,caapVersion */
 /*jslint maxlen: 256 */
 
@@ -45,83 +47,112 @@ caap_timeout,retryDelay,devVersion,caapVersion */
             return;
         }
 
-	if (caap.domain.which === 3) {
-            caap.initDb();
-            caap.getSigned();
-            //con.log(2, "session", session);
-            caap.caapifStartup();
-            return;
-        }
+		if (caap.domain.which === 3) {
+			caap.initDb();
+			caap.getSigned();
+			//con.log(2, "session", session);
+			caap.caapifStartup();
+			return;
+		}
 
-	/* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-	/*jslint sub: true */
-	if (caap.domain.which >= 0 && caap.domain.which < 2) {
-	    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
-	    aName = $j('#navAccountName').text();
-	} else {
-	    FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
-	    aName = $u.setContent(caap.fbData.me.name, '');
-	}
+		/* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+		/*jslint sub: true */
+		if (caap.domain.which >= 0 && caap.domain.which < 2) {
+			FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
+			aName = $j('#navAccountName').text();
+		} else {
+			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
+			aName = $u.setContent(caap.fbData.me.name, '');
+		}
 
-	if ($u.isNumber(FBID) && FBID > 0) {
-	    caap.stats['FBID'] = FBID;
-	    idOk = true;
-	}
+		if ($u.isNumber(FBID) && FBID > 0) {
+			caap.stats['FBID'] = FBID;
+			idOk = true;
+		}
 
-	/*jslint sub: false */
-	if (!idOk && caap.domain.which >= 0 && caap.domain.which < 2) {
-	    // Force reload without retrying
-	    con.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-	    window.setTimeout(function () {
-		var newdiv = document.createElement('div');
-		newdiv.innerHTML = "<p>CAAP will retry shortly!</p>";
-		document.body.appendChild(newdiv);
-		window.setTimeout(function () {
-		    $u.reload();
-		}, 60000 + (Math.floor(Math.random() * 60) * 1000));
-	    }, retryDelay);
-	    return;
-	}
+		/*jslint sub: false */
+		if (!idOk && caap.domain.which >= 0 && caap.domain.which < 2) {
+			// Force reload without retrying
+			con.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
+			window.setTimeout(function () {
+				var newdiv = document.createElement('div');
 
-	caap.initDb(FBID);
-	con.log_level = config.getItem('DebugLevel', 1);
-	//con.log(3, "config", config);
-	//con.log(3, "state", state);
-	//con.log(3, "schedule", schedule);
-	caap.lsUsed();
-	schedule.setItem("clickedOnSomething", 3600);
-	caap.loadStats(FBID, aName);
-	gifting.init();
-	gifting.loadCurrent();
+				newdiv.innerHTML = "<p>CAAP will retry shortly!</p>";
+				document.body.appendChild(newdiv);
+				window.setTimeout(function () {
+					image64 = null;
+					offline = null;
+					profiles = null;
+					session = null;
+					config = null;
+					state = null;
+					css = null;
+					gm = null;
+					s = null;
+					db = null;
+					sort = null;
+					schedule = null;
+					general = null;
+					monster = null;
+					guild_monster = null;
+					//arena = null;
+					festival = null;
+					feed = null;
+					battle = null;
+					town = null;
+					spreadsheet = null;
+					gifting = null;
+					army = null;
+					caap = null;
+					con = null;
+					$u.reload();
+				}, 60000 + (Math.floor(Math.random() * 60) * 1000));
 
-	/////////////////////////////////////////////////////////////////////
-	// Put code to be run once to upgrade an old version's variables to
-	// new format or such here.
-	/////////////////////////////////////////////////////////////////////
+				newdiv = null;
+			}, retryDelay);
 
-	if (devVersion !== '0') {
-	    if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
-		state.setItem('LastVersion', caapVersion);
-		state.setItem('LastDevVersion', devVersion);
-	    }
-	} else {
-	    if (state.getItem('LastVersion', '0') !== caapVersion) {
-		state.setItem('LastVersion', caapVersion);
-		state.setItem('LastDevVersion', '0');
-	    }
-	}
+			return;
+		}
 
-	if (caap.domain.which === 0 || caap.domain.which === 2) {
-	    state.setItem('caapPause', 'none');
-	    session.setItem('ReleaseControl', true);
-	    window.setTimeout(caap.init, 200);
-	}
+		caap.initDb(FBID);
+		con.log_level = config.getItem('DebugLevel', 1);
+		//con.log(3, "config", config);
+		//con.log(3, "state", state);
+		//con.log(3, "schedule", schedule);
+		caap.lsUsed();
+		schedule.setItem("clickedOnSomething", 3600);
+		caap.loadStats(FBID, aName);
+		gifting.init();
+		gifting.loadCurrent();
 
-	if (caap.domain.which === 1 || caap.domain.which === 2) {
-	    caap.mainCaapLoop();
-	}
+		/////////////////////////////////////////////////////////////////////
+		// Put code to be run once to upgrade an old version's variables to
+		// new format or such here.
+		/////////////////////////////////////////////////////////////////////
 
-	caap.caapfbStartup();
+		if (devVersion !== '0') {
+			if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
+			state.setItem('LastVersion', caapVersion);
+			state.setItem('LastDevVersion', devVersion);
+			}
+		} else {
+			if (state.getItem('LastVersion', '0') !== caapVersion) {
+			state.setItem('LastVersion', caapVersion);
+			state.setItem('LastDevVersion', '0');
+			}
+		}
+
+		if (caap.domain.which === 0 || caap.domain.which === 2) {
+			state.setItem('caapPause', 'none');
+			session.setItem('ReleaseControl', true);
+			window.setTimeout(caap.init, 200);
+		}
+
+		if (caap.domain.which === 1 || caap.domain.which === 2) {
+			caap.mainCaapLoop();
+		}
+
+		caap.caapfbStartup();
     };
 
 }());

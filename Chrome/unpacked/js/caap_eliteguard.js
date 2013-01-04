@@ -27,6 +27,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
     caap.autoElite = function () {
         try {
             if (!config.getItem("EnableArmy", true) || !config.getItem('AutoElite', true) || !schedule.check('AutoEliteGetList')) {

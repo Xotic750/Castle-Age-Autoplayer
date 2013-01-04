@@ -18,14 +18,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
             jQuery.fn['getPercent'] = jQuery.fn.getPercent = function (type) {
-                var t = [];
+                var t = [],
+					rVal;
+
                 if (!type || type === 'width') {
                     t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
                 } else if (!type || type === 'height') {
                     t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
                 }
 
-                return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+				rVal = (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+				t = null;
+                return rVal;
             };
 
             jQuery.fn.justtext = function () {
