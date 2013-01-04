@@ -369,6 +369,32 @@ caap = {
         } catch (err) {
             con.error("ERROR in postMessage: " + err, msg);
             //alert("ERROR in postMessage: " + err);
+
+			image64 = null;
+			offline = null;
+			profiles = null;
+			session = null;
+			config = null;
+			state = null;
+			css = null;
+			gm = null;
+			s = null;
+			db = null;
+			sort = null;
+			schedule = null;
+			general = null;
+			monster = null;
+			guild_monster = null;
+			//arena = null;
+			festival = null;
+			feed = null;
+			battle = null;
+			town = null;
+			spreadsheet = null;
+			gifting = null;
+			army = null;
+			caap = null;
+			con = null;
             $u.reload();
         }
     },

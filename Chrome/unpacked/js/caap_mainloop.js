@@ -71,11 +71,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             state.setItem('ThisAction', thisAction);
             var lastAction = state.getItem('LastAction', 'idle');
+
             caap.setDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
             if (lastAction !== thisAction) {
                 con.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
                 state.setItem('LastAction', thisAction);
             }
+
             return true;
         } catch (err) {
             con.error("ERROR in checkLastAction:" + err);
@@ -164,7 +166,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // We count the number of actions contained in the
                     // Master Action list
 
-		    /*jslint forin: true */
+					/*jslint forin: true */
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount += 1;
@@ -174,13 +176,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             con.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
-		    /*jslint forin: false */
+					/*jslint forin: false */
                 } else {
                     // We are building the Action Order Array from the
                     // Master Action List
                     con.log(2, "Building the default Action Order");
 
-		    /*jslint forin: true */
+					/*jslint forin: true */
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount = actionOrderArray.push(action);
@@ -190,7 +192,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             con.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
-		    /*jslint forin: false */
+					/*jslint forin: false */
                 }
 
                 // We notify if the number of actions are not sensible or the
@@ -267,6 +269,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0";
                 }
             }, 60000);
+
             caap.errorCheckWait = true;
             return true;
         }
@@ -279,12 +282,41 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.setTimeout(function () {
                 caap.click(button);
                 window.setTimeout(function () {
+					image64 = null;
+					offline = null;
+					profiles = null;
+					session = null;
+					config = null;
+					state = null;
+					css = null;
+					gm = null;
+					s = null;
+					db = null;
+					sort = null;
+					schedule = null;
+					general = null;
+					monster = null;
+					guild_monster = null;
+					//arena = null;
+					festival = null;
+					feed = null;
+					battle = null;
+					town = null;
+					spreadsheet = null;
+					gifting = null;
+					army = null;
+					caap = null;
+					con = null;
                     $u.reload();
                 }, 180000);
             }, 60000 + (Math.floor(Math.random() * 60) * 1000));
+
             caap.errorCheckWait = true;
+			button = null;
             return true;
         }
+
+		button = null;
         return false;
     };
 
@@ -336,6 +368,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             /*jslint sub: false */
 
+			gtv = null;
+			ecv = null;
+			scv = null;
+			hcv = null;
+			arr = null;
             return true;
         } catch (err) {
             con.error("ERROR in stsPoll: " + err);
@@ -345,7 +382,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.mainLoop = function () {
         try {
-            var button = null,
+            var button = $j(),
                 noWindowLoad = 0,
                 actionsListCopy = [],
                 action = 0,
@@ -354,10 +391,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // assorted errors...
             if (caap.errorCheck()) {
+				button = null;
                 return true;
             }
 
             if (caap.domain.which === 1) {
+				button = null;
                 gifting.collect();
                 caap.waitMainLoop();
                 return true;
@@ -369,6 +408,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'Undoing/skipping notification');
                 caap.click(button);
             }
+
+			button = null;
 
             if (!$u.mutationTypes['DOMSubtreeModified']) {
                 caap.stsPoll();
@@ -406,7 +447,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.getDomWaiting()) {
                 if (schedule.since("clickedOnSomething", 45)) {
                     con.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.', session, schedule);
-                    caap.reloadCastleAge();
+					caap.reloadCastleAge();
                     return true;
                 }
 
@@ -465,6 +506,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 caap.mainLoop();
             }, caap.waitMilliSecs * (1 + Math.random() * 0.2));
+
             return true;
         } catch (err) {
             con.error("ERROR in waitMainLoop: " + err);
@@ -482,6 +524,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.setTimeout(function () {
                     doit();
                 }, 100);
+
                 return;
             }
 
@@ -504,6 +547,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.reloadOccasionally = function () {
         try {
             var reloadMin = config.getItem('ReloadFrequency', 8);
+
             reloadMin = !$u.isNumber(reloadMin) || reloadMin < 8 ? 8 : reloadMin;
             window.setTimeout(function () {
                 if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40) {
@@ -513,6 +557,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 caap.reloadOccasionally();
             }, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
+
             return true;
         } catch (err) {
             con.error("ERROR in reloadOccasionally: " + err);
@@ -795,7 +840,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.exportList = function () {
         try {
-            var it, list = [];
+            var it,
+			list = [];
+
             for (it in caap.exportTable) {
                 if (caap.exportTable.hasOwnProperty(it)) {
                     list.push(it);
@@ -1008,7 +1055,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var h = '',
                 w = $j("#caap_import"),
-                l = {}, v = '',
+                l = {},
+				v = '',
                 resp = false;
 
             if (!$u.hasContent(w)) {
@@ -1148,11 +1196,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         w.dialog("destroy").remove();
                     }
                 });
+
                 csa.sortable({
                     containment: w,
                     placeholder: "ui-state-highlight"
                 }).disableSelection();
             }
+
             return w;
         } catch (err) {
             con.error("ERROR in caap.actionDialog: " + err);

@@ -48,7 +48,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
             caap.setDomWaiting();
-            var evt = document.createEvent("MouseEvents");
+            var evt = document.createEvent("MouseEvents"),
+				bRet;
+
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
             Return Value: boolean
@@ -56,7 +58,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             which handled the event called preventDefault. If preventDefault was called
             the value is false, else the value is true.
             */
-            return !(obj.jquery ? obj.get(0) : obj).dispatchEvent(evt);
+
+			bRet = !(obj.jquery ? obj.get(0) : obj).dispatchEvent(evt);
+			evt = null;
+
+            return bRet;
         } catch (err) {
             con.error("ERROR in caap.click: " + err);
             return undefined;
@@ -166,12 +172,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
 
-
                     con.log(3, 'No anchor or image found', path);
                 }
             }
 
             con.warn('Unable to Navigate to', imageOnPage, pathToPage);
+
+			pathList = null;
+			jq = null;
+
             return false;
         } catch (err) {
             con.error("ERROR in caap.navigateTo: " + err, imageOnPage, pathToPage);

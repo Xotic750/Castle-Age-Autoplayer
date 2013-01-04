@@ -32,6 +32,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(t)) {
                     e.html(t);
                 }
+
+				e = null;
+				a = null;
             });
 
             return true;

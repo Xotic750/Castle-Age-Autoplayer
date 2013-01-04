@@ -67,11 +67,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     button = healthDiv;
                     break;
                 default:
+					energyDiv = null;
+					staminaDiv = null;
+					attackDiv = null;
+					defenseDiv = null;
+					healthDiv = null;
+					button = null;
                     throw "Unable to match attribute: " + attribute;
             }
 
             if (!$u.hasContent(button)) {
                 con.warn("Unable to locate upgrade button: Fail ", attribute);
+
+				energyDiv = null;
+                staminaDiv = null;
+                attackDiv = null;
+                defenseDiv = null;
+                healthDiv = null;
+				button = null;
                 return "Fail";
             }
 
@@ -98,25 +111,59 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
                 if (attrAdjustNew <= attrCurrent) {
                     con.log(2, "Stamina at requirement: Next");
+
+					energyDiv = null;
+					staminaDiv = null;
+					attackDiv = null;
+					defenseDiv = null;
+					healthDiv = null;
+					button = null;
                     return "Next";
                 }
 
                 if (config.getItem("StatSpendAll", false)) {
                     con.log(2, "Stamina requires 2 upgrade points: Next");
+
+					energyDiv = null;
+					staminaDiv = null;
+					attackDiv = null;
+					defenseDiv = null;
+					healthDiv = null;
+					button = null;
                     return "Next";
                 }
 
                 con.log(2, "Stamina requires 2 upgrade points: Save");
                 state.setItem("statsMatch", false);
+
+				energyDiv = null;
+                staminaDiv = null;
+                attackDiv = null;
+                defenseDiv = null;
+                healthDiv = null;
+				button = null;
                 return "Save";
             }
 
             if (attrAdjustNew > attrCurrent) {
                 con.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
                 caap.click(button);
+
+				energyDiv = null;
+                staminaDiv = null;
+                attackDiv = null;
+                defenseDiv = null;
+                healthDiv = null;
+				button = null;
                 return "Click";
             }
 
+			energyDiv = null;
+			staminaDiv = null;
+			attackDiv = null;
+			defenseDiv = null;
+			healthDiv = null;
+			button = null;
             return "Next";
         } catch (err) {
             con.error("ERROR in increaseStat: " + err);
@@ -224,6 +271,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (!$u.hasContent(atributeSlice)) {
                 caap.navigateTo('keep');
+
+				atributeSlice = null;
                 return true;
             }
 
@@ -249,9 +298,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 break;
                             case "Click":
                                 con.log(4, attrName + " : click");
+
+								atributeSlice = null;
                                 return true;
                             default:
                                 con.log(4, attrName + " return value: " + returnIncreaseStat);
+
+								atributeSlice = null;
                                 return false;
                         }
                     }
@@ -260,6 +313,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             con.log(1, "No rules match to increase stats");
             state.setItem("statsMatch", false);
+
+			atributeSlice = null;
             return false;
         } catch (err) {
             con.error("ERROR in autoStat: " + err);
