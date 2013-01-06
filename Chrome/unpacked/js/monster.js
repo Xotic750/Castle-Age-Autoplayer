@@ -1471,7 +1471,7 @@
 				bodyparts : 4,
 				partOrder : [4,3,2,1]
 			},
-		    },
+		   
           "Lord of Darkness" : {
                 	alpha : true,
                 	duration : 168,
