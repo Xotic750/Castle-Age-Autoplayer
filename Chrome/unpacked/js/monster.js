@@ -1470,7 +1470,36 @@
 				cta_img : ['cta_baal.gif'],
 				bodyparts : 4,
 				partOrder : [4,3,2,1]
-			}
+			},
+		    },
+          "Lord of Darkness" : {
+                	alpha : true,
+                	duration : 168,
+                	hp : 850000000,
+                	ach : 1000000,
+                	siege : 10,
+                	siegeClicks : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                	siegeDam : [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
+                	siege_img : [
+                  	    '/graphics/earth_siege_small1',
+                  	    '/graphics/earth_siege_small2'
+                  	 ],
+               		fort : true,
+                	staUse : 10,
+                	staLvl : [0, 100, 200, 500],
+                	staMax : [10, 20, 50, 100, 200],
+                	nrgMax : [20, 40, 100, 200, 200],
+                	defense_img : 'nm_green.jpg',
+                	levels : [1, 50, 100, 150],
+                	join : [30, 30, 35, 70],
+                	mClass : 'Epic World',
+                	mpool : 101,
+                	newbg_img : ['monster_darkness_header.jpg'],
+               		list_img : ['monster_darkness_list.jpg'],
+                	cta_img : ['cta_darkness.gif'],
+                	bodyparts : 4,
+                	partOrder : [4,3,2,1]
+		}
 
 
         },
