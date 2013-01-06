@@ -101,8 +101,9 @@
                         } else {
                             con.log(3, "Unable to find arena_battlepoints in caap.resultsWrapperDiv");
                         }
-result.gold = 100000;   // don't really care about the gold
-/*
+
+                        result.gold = 100000;   // don't really care about the gold
+
                         tempDiv = $j("b[class*='gold']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
@@ -114,11 +115,11 @@ result.gold = 100000;   // don't really care about the gold
                         } else {
                             con.warn("Unable to find gold element in caap.resultsWrapperDiv");
                         }
-*/
-result.userId = state.getItem("lastArenaBattleID", 0);
-result.userId = $j('form[id*="fight_opp_"]')[0].children[0].value;
-result.userName = 'unknown';
-/*
+
+                        result.userId = state.getItem("lastArenaBattleID", 0);
+                        result.userId = $j('form[id*="fight_opp_"]')[0].children[0].value;
+                        result.userName = 'unknown';
+
                         tempDiv = $j("a[href*='keep.php?casuser=']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.attr("href"), '');
@@ -145,7 +146,7 @@ result.userName = 'unknown';
                             con.warn("Unable to find keep.php?casuser= in caap.resultsWrapperDiv");
                             throw "Unable to get userId!";
                         }
-*/
+
                     } else {
                         con.warn("Unable to find result div");
                         throw "Unable to get userId!";
@@ -376,12 +377,13 @@ result.userName = 'unknown';
                 if ($u.isDefined(safeTargets[it]['button'])) {
                     con.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
 
-//removing changing general since generates infinite loops
-//con.log (1, "changing general", useGeneral);
-                    //if(general.Select(useGeneral)) {
-                      //  return true;
-                    //}
-//con.log (1, "done general");
+                    //removing changing general since generates infinite loops
+                    //con.log (1, "changing general", useGeneral);
+                                        //if(general.Select(useGeneral)) {
+                                          //  return true;
+                                        //}
+                    //con.log (1, "done general");
+
                     arena.click(safeTargets[it]['button']);
 
                     delete safeTargets[it]['score'];
