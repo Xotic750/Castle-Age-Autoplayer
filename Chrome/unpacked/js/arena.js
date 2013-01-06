@@ -1,3 +1,4 @@
+/*
     ////////////////////////////////////////////////////////////////////
     //                          ARENA OBJECT
     // this is the main object for dealing with Arena VI
@@ -419,3 +420,5 @@ result.userName = 'unknown';
             }
         }
     };
+
+*/

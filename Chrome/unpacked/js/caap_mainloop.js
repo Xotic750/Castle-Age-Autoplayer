@@ -62,8 +62,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'checkCharacterClasses': 'Character Classes',
         'festivalBless': 'Festival Feats',
         'collectConquest': 'Collect Conquest Resources',
-        'collectConquestCrystal': 'Collect Conquest Crystals',
+        'collectConquestCrystal': 'Collect Conquest Crystals'
+	/*
         'doArenaBattle': 'Battling in Arena'
+        */
     };
 
     /*jslint sub: false */
@@ -134,7 +136,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x2B: 'feedScan',
         0x2C: 'collectConquest',
         0x2D: 'collectConquestCrystal',
-        0x2E: 'doArenaBattle',
+        //0x2E: 'doArenaBattle',
         0x2F: 'autoArchives',
         0x30: 'idle'
     };
@@ -758,7 +760,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 gm.deleteItem("gifting.gifts");
             }
         },
-        /*'Arena' : {
+        /*
+	'Arena' : {
          'export' : function () {
          return arena.records;
          },
@@ -770,7 +773,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
          arena.records = [];
          gm.deleteItem("arena.records");
          }
-         },*/
+         },
+        */
         'Army': {
             'export': function () {
                 return army.records;

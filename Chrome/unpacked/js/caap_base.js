@@ -1750,10 +1750,11 @@ caap = {
             return undefined;
         }
     },
+    /*
     injectCATools : function() {
         $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp?" + Math.random());
     },
-
+    */
     init : function() {
         try {
             var tDiv;
@@ -1913,9 +1914,11 @@ caap = {
                 offline.bga.sort($u.sortBy(false, 'n'));
             }
 
+            /*
             if(caap.domain.which === 0 && config.getItem('injectCATools', false)) {
                 caap.injectCATools();
             }
+            */
 
             if(caap.domain.which === 3 && state.getItem('caapPause', 'none') === 'block') {
                 caap.pauseListener();
@@ -2183,6 +2186,7 @@ caap = {
                     caapDiv += "<div class='caap_ww' id='caap_" + divID + "'></div>";
                 }
             }
+
             caapDiv += "</div>";
             caap.controlXY.x = state.getItem('caap_div_menuLeft', '');
             caap.controlXY.y = state.getItem('caap_div_menuTop', $j(caap.controlXY.selector).offset().top);
@@ -2203,7 +2207,7 @@ caap = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-	if(devVersion === '0') {
+            if(devVersion === '0') {
                 htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
                 if(caap.newVersionAvailable) {
                     htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>");
@@ -2212,12 +2216,11 @@ caap = {
                 htmlCode += caap.makeTD("Version: " + caapVersion + " d" + devVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
                 if(caap.newVersionAvailable) {
                     htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version') + "!</a>");
-                }
-         caap.setDivContent('Version', htmlCode, caapDiv);
+            }
 
+            caap.setDivContent('Version', htmlCode, caapDiv);
 
-
-		banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
+            banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64['header'] + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             caap.setDivContent('banner', banner, caapDiv);
             donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
@@ -2242,6 +2245,7 @@ caap = {
                     config.setItem("WhenFestival", "Never");
                 }
             }
+
             htmlCode += general.menu();
             htmlCode += caap.addSkillPointsMenu();
             htmlCode += army.menu();
@@ -2251,10 +2255,11 @@ caap = {
                 config.setItem("AutoGift", false);
                 config.setItem("watchBeeper", false);
             }
+
             htmlCode += caap.addAutoOptionsMenu();
             htmlCode += caap.addFestivalOptionsMenu();
             htmlCode += caap.addConquestOptionsMenu();
-            htmlCode += arena.menu();
+            //htmlCode += arena.menu();
             htmlCode += town.menu();
             htmlCode += caap.addOtherOptionsMenu();
             htmlCode += caap.addFooterMenu();
@@ -2296,9 +2301,12 @@ caap = {
             if(caap.domain.which !== 2 && caap.domain.which !== 3) {
                 throw "can not be called on this domain: " + caap.domain.which;
             }
+
             params = $u.hasContent(params) && $u.isPlainObject(params) && !$u.isEmptyObject(params) ? params : {};
             params["ajax"] = 1;
+
             var signedRequest = session.getItem("signedRequest");
+
             if($u.hasContent(signedRequest) && $u.isString(signedRequest)) {
                 params["signed_request"] = signedRequest;
             }
@@ -3030,6 +3038,7 @@ caap = {
                     }
 
                     break;
+                /*
                 case "injectCATools" :
                     if(caap.domain.which === 0) {
                         if(e.target.checked) {
@@ -3040,6 +3049,7 @@ caap = {
                     }
 
                     break;
+                */
                 case "HideAds" :
                     if(caap.domain.which === 0) {
                         con.log(9, "HideAds");
@@ -3519,8 +3529,10 @@ caap = {
                     schedule.setItem('collectConquestTimer', 0);
                 } else if(idName === 'doConquestCrystalCollect' && value === 'None') {
                     schedule.setItem('collectConquestCrystalTimer', 0);
+                /*
                 } else if(idName === 'doArenaBattle' && value === 'None') {
                     schedule.setItem('arenaTimer', 0);
+                */
                 } else if(idName === 'festivalBless' && value === 'None') {
                     schedule.setItem('festivalBlessTimer', 0);
                 } else if(idName === 'TargetType') {
@@ -3532,8 +3544,10 @@ caap = {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Use Current');
                 } else if(/Attribute?/.test(idName)) {
                     state.setItem("statsMatch", true);
-                    /*} else if (idName === 'chainArena') {
-                     caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');*/
+                /*
+                } else if (idName === 'chainArena') {
+                 caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');
+                 */
                 } else if(idName === 'chainFestival') {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');
                 } else if(idName === 'DisplayStyle') {
@@ -3902,14 +3916,23 @@ caap = {
             }
 
             $j('input:checkbox[id^="caap_"]', caap.caapDivObject).change(caap.checkBoxListener);
+
             $j('input[data-subtype="text"]', caap.caapDivObject).change(caap.textBoxListener);
+
             $j('input[data-subtype="color"]', caap.caapDivObject).keyup(caap.colorBoxListener).change(caap.colorBoxChangeListener).click(caap.colorBoxClickListener);
+
             $j('input[data-subtype="number"]', caap.caapDivObject).change(caap.numberBoxListener);
+
             $j('#caap_TownBestReport', caap.caapDivObject).click(town.runReport);
+
             $j('#unlockMenu', caap.caapDivObject).change(caap.checkBoxListener);
+
             $j('select[id^="caap_"]', caap.caapDivObject).change(caap.dropBoxListener);
+
             $j('textarea[id^="caap_"]', caap.caapDivObject).change(caap.textAreaListener);
+
             $j('a[id^="caap_Switch"]', caap.caapDivObject).click(caap.foldingBlockListener);
+
             $j('#caap_ImportData', caap.caapDivObject).click(function() {
                 caap.importDialog($u.setContent($j('#caap_DataSelect', caap.caapDivObject).val(), 'Config'));
             });
@@ -3936,23 +3959,32 @@ caap = {
             });
 
             $j('#caap_TownItemReport', caap.caapDivObject).click(town.report);
+
             $j('#caap_ActionList', caap.caapDivObject).click(caap.actionDialog);
+
             $j('#caap_FillArmy', caap.caapDivObject).click(function(e) {
                 state.setItem("FillArmy", true);
                 state.setItem("ArmyCount", 0);
                 state.setItem('FillArmyList', []);
                 caap.getArmyButtonListener();
             });
+
             $j('#caap_CollectConquestNow', caap.caapDivObject).click(function(e) {
                 caap.getCollectConquestButtonListener();
             });
+
             $j('#caap_collectCrystalNow', caap.caapDivObject).click(function(e) {
                 caap.getCollectConquestCrystalButtonListener();
             });
+
+            /*
             $j('#caap_ArenaNow', caap.caapDivObject).click(function(e) {
                 caap.getArenaButtonListener();
             });
+            */
+
             $j('#caap_ResetMenuLocation', caap.caapDivObject).click(caap.resetMenuLocationListener);
+
             $j('#caap_resetElite', caap.caapDivObject).click(function(e) {
                 schedule.setItem('AutoEliteGetList', 0);
                 schedule.setItem('AutoEliteReqNext', 0);
@@ -3960,12 +3992,16 @@ caap = {
             });
 
             $j('#caapRestart', caap.caapDivObject).click(caap.restartListener);
+
             $j('#caap_playbutton', caap.caapPlayButtonDiv).bind('click', caap.restartListener);
+
             $j('#caap_control', caap.caapDivObject).mousedown(caap.pauseListener);
+
             $j('#caap_stopAutoQuest', caap.caapDivObject).click(function(e) {
                 con.log(1, 'Change: setting stopAutoQuest and go to Manual');
                 caap.manualAutoQuest();
             });
+
             return true;
         } catch (err) {
             con.error("ERROR in reBindCaapDiv: " + err);
@@ -4069,7 +4105,9 @@ caap = {
 
                 // Fires once when page loads
                 $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
+
                 $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
+
                 if($u.mutationTypes['DOMSubtreeModified']) {
                     con.log(3, "Bind sts onload");
                     $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
@@ -4079,6 +4117,7 @@ caap = {
                 }
 
                 //arena.addListeners();
+
                 festival.addListeners();
 
                 caap.globalContainer.bind('DOMNodeInserted', function(event) {
@@ -4157,6 +4196,7 @@ caap = {
                      "festival_duel_battle"
                      ],
                      */
+
                     page = $j(".game", caap.globalContainer).eq(0).attr("id"), caap_topXY;
 
                     // Uncomment this to see the id of domNodes that are inserted
@@ -4376,14 +4416,16 @@ caap = {
             signatureId : 'guild_battle_banner_section',
             CheckResultsFunction : 'checkResults_guild_battle_monster'
         },
-        /*'arena': {
+        /*
+         'arena': {
          signaturePic: 'tab_arena_on.gif',
          CheckResultsFunction: 'checkResults_arena'
          },
          'arena_battle': {
          signatureId: 'arena_battle_banner_section',
          CheckResultsFunction: 'checkResults_arena_battle'
-         },*/
+         },
+         */
         'item_archive_bonus' : {
             signaturePic : 'archive_icon_ravager.jpg',
             CheckResultsFunction : 'timerArchives'
@@ -4448,16 +4490,10 @@ caap = {
             signaturePic : 'guild_tab6_on.jpg',
             CheckResultsFunction : 'checkResults_conquest'
         },
-    'onConquestEarth' : {
-         signatureId : 'conq2_earthnav_on3.',
-                CheckResultsFunction : 'checkResults_conquestEarth'
-    },
-
-    'onConquestEarth' : {
-         signatureId : 'conq2_mistnav_on3.',
-                CheckResultsFunction : 'checkResults_conquestEarth'
-    },
-
+        'onConquestEarth' : {
+             signatureId : 'conq2_earthnav_on3.',
+                    CheckResultsFunction : 'checkResults_conquestEarth'
+        },
         'guildv2_conquest_expansion_fort' : {
             signatureId : 'war_fort_topinfo.jpg',
             CheckResultsFunction : 'checkResults_conquestLand'
@@ -4469,11 +4505,13 @@ caap = {
         'conquest_duel' : {
             signatureId : 'war_conquest_header2.jpg',
             CheckResultsFunction : 'checkResults_conquestBattle'
-        },
+        }
+        /*
         'arena' : {
             signatureId : 'arena_homemid.jpg',
             CheckResultsFunction : 'checkResults_arenaBattle'
         }
+        */
     },
 
     addExpDisplay : function() {
@@ -8355,7 +8393,8 @@ caap = {
 
     checkResults_conquestBattle : function() {
         conquest.battle();
-    },
+    }
+    /*
     doArenaBattle : function() {
         if (!config.getItem('enableArena', false) || !schedule.check('arenaTimer')) {
             return false;
@@ -8367,11 +8406,14 @@ caap = {
     checkResults_arenaBattle : function() {
         arena.checkResults();
     }
+    */
+
     /////////////////////////////////////////////////////////////////////
     //                          ARENA
     /////////////////////////////////////////////////////////////////////
 
-    /*checkResults_arena: function () {
+    /*
+    checkResults_arena: function () {
     try {
     return arena.checkResults_arena();
     } catch (err) {
@@ -8387,9 +8429,8 @@ caap = {
     con.error("ERROR in checkResults_arena_battle: " + err);
     return false;
     }
-    },*/
-
-    /*-------------------------------------------------------------------------------------\
+    },
+    -------------------------------------------------------------------------------------\
     ArenaReview is a primary action subroutine to mange the Arena on the dashboard
     \-------------------------------------------------------------------------------------*/
     /*arenaReview: function () {
@@ -8408,7 +8449,8 @@ caap = {
     con.error("ERROR in arena: " + err);
     return false;
     }
-    },*/
+    }
+    */
 
 };
 

@@ -41,7 +41,7 @@ var caapjQuery = "1.7.1",
 	general = {},
 	monster = {},
 	guild_monster = {},
-	//arena         = {},
+	//arena = {},
 	festival = {},
 	feed = {},
 	battle = {},
@@ -52,7 +52,6 @@ var caapjQuery = "1.7.1",
 	caap = {},
 	con = {},
 	retryDelay = 1000;
-
 
 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
 /*jslint sub: true */
@@ -65,20 +64,22 @@ String.prototype['numberOnly'] = function() {
 };
 
 String.prototype['parseTimer'] = function() {
-        var a = [],
-        b = 0,
-        i = 0,
-        l = 0;
+	var a = [],
+		b = 0,
+		i = 0,
+		l = 0;
 
-        a = this.split(':');
-        for( i = 0, l = a.length; i < l; i += 1) {
-                        b = b * 60 + parseInt(a[i], 10);
-        }
+	a = this.split(':');
+	for( i = 0, l = a.length; i < l; i += 1) {
+		b = b * 60 + parseInt(a[i], 10);
+	}
 
-        if(isNaN(b)) {
-                        b = -1;
-        }
+	if(isNaN(b)) {
+		b = -1;
+	}
 
-        return b;
+	a = null;
+
+	return b;
 };
 /*jslint sub: false */

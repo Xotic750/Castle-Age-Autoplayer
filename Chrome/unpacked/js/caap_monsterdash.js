@@ -99,8 +99,8 @@ caap.updateDashboard = function(force) {
 		if(config.getItem('DBDisplay', '') === 'Target List' && session.getItem("ReconDashUpdate", true)) {
 			head = "";
 			body = "";
-			headers = ['UserId', 'Name', 'Deity', 'BR#', 'Arena#', 'WR#', 'Level', 'Army', 'Last Alive'];
-			values = ['userId', 'nameStr', 'deityNum', 'rankNum', 'arenaRankNum', 'warRankNum', 'levelNum', 'armyNum', 'aliveTime'];
+			headers = ['UserId', 'Name', 'Deity', 'BR#', /*'Arena#',*/ 'WR#', 'Level', 'Army', 'Last Alive'];
+			values = ['userId', 'nameStr', 'deityNum', 'rankNum', /*'arenaRankNum',*/ 'warRankNum', 'levelNum', 'armyNum', 'aliveTime'];
 			for( pp = 0; pp < headers.length; pp += 1) {
 				switch (headers[pp]) {
 					case 'UserId':
@@ -127,12 +127,14 @@ caap.updateDashboard = function(force) {
 							width : '7%'
 						});
 						break;
+                    /*
 					case 'arena#':
 						head += caap.makeTh({
 							text : headers[pp],
 							width : '7%'
 						});
 						break;
+					*/
 					case 'WR#':
 						head += caap.makeTh({
 							text : headers[pp],
@@ -186,12 +188,14 @@ caap.updateDashboard = function(force) {
 								title : battle.battleRankTable[battle.reconRecords[i][values[pp]]]
 							});
 							break;
+                        /*
 						case 'arenaRankNum':
 							row += caap.makeTd({
 								text : battle.reconRecords[i][values[pp]],
 								title : battle.battleRankTable[battle.reconRecords[i][values[pp]]]
 							});
 							break;
+						*/
 						case 'warRankNum':
 							row += caap.makeTd({
 								text : battle.reconRecords[i][values[pp]],
@@ -800,10 +804,11 @@ caap.updateDashboard = function(force) {
 		return false;
 	}
 };
+
 /*jslint sub: false */
 /*-------------------------------------------------------------------------------------\
- addDBListener creates the listener for our dashboard controls.
- \-------------------------------------------------------------------------------------*/
+addDBListener creates the listener for our dashboard controls.
+\-------------------------------------------------------------------------------------*/
 caap.dbDisplayListener = function(e) {
 	var idName = e.target.id.stripCaap(), value = e.target.options[e.target.selectedIndex].value, title = e.target.options[e.target.selectedIndex].title;
 	con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
@@ -871,9 +876,11 @@ caap.dbDisplayListener = function(e) {
 			caap.setDisplay("caapTopObject", 'infoMonster', true);
 			caap.setDisplay("caapTopObject", 'buttonMonster', true);
 			break;
-		/*case "Arena" :
-		 caap.setDisplay("caapTopObject", 'arena', true);
-		 break;*/
+		/*
+        case "Arena" :
+            caap.setDisplay("caapTopObject", 'arena', true);
+            break;
+		*/
 		case "Festival" :
 			caap.setDisplay("caapTopObject", 'festival', true);
 			break;
@@ -939,40 +946,50 @@ caap.fastHealButtonListener = function(e) {
 		});
 	}
 };
+
 /*jslint sub: false */
 caap.clearTargetsButtonListener = function(e) {
 	battle.reconRecords = [];
 	battle.saveRecon();
 	caap.updateDashboard(true);
 };
+
 caap.clearBattleButtonListener = function(e) {
 	battle.clear();
 	caap.updateDashboard(true);
 };
+
 caap.clearGiftingButtonListener = function(e) {
 	gifting.clear("history");
 	caap.updateDashboard(true);
 };
+
 caap.clearGiftQueueButtonListener = function(e) {
 	gifting.clear("queue");
 	caap.updateDashboard(true);
 };
+
 caap.getArmyButtonListener = function(e) {
 	schedule.setItem("army_member", 0);
 	army.deleteTemp();
 };
+
 caap.getCollectConquestButtonListener = function(e) {
 	schedule.setItem('collectConquestTimer', 0);
 	caap.setDivContent('conquestbless_mess', schedule.check('collectConquestTimer') ? 'Conquest Collect = none' : 'Next Conquest: ' + $u.setContent(caap.displayTime('collectConquestTimer'), "Unknown"));
 };
+
 caap.getCollectConquestCrystalButtonListener = function(e) {
 	schedule.setItem('collectConquestCrystalTimer', 0);
 	caap.setDivContent('conquestcrystalbless_mess', schedule.check('collectConquestCrystalTimer') ? 'Crystal Collect = none' : 'Next Crystal: ' + $u.setContent(caap.displayTime('collectConquestCrystalTimer'), "Unknown"));
 };
 
+/*
 caap.getArenaButtonListener = function(e) {
 	schedule.setItem('arenaTimer', 0);
 };
+*/
+
 caap.addDBListener = function() {
 	try {
 		con.log(4, "Adding listeners for caap_top");
