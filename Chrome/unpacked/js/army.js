@@ -61,6 +61,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.save = function (src) {
         try {
             var compress = false;
+
             if (caap.domain.which === 3) {
                 caap.messaging.setItem('army.records', army.records);
             } else {
@@ -246,6 +247,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 search = $j("a[href*='comments.php?casuser=']", slice);
                 search.each(function () {
                     var el = $j(this);
+
                     record = army.record();
                     record['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
                     tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
@@ -261,6 +263,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     } else {
                         con.warn("army.page skipping record", record);
                     }
+
+                    el = null;
                 });
 
                 if (number === pCount) {
@@ -281,6 +285,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
                 con.log(2, "army.page", number, pCount, army.recordsTemp.length);
                 army.pageDone = true;
+
+                pages = null;
+                search = null;
             }
 
             return true;
@@ -518,6 +525,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.eliteFull = function () {
         try {
             var eliteList = state.getItem('MyEliteTodo', []);
+
             schedule.setItem('AutoEliteGetList', 21600, 300);
             state.setItem('AutoEliteEnd', 'Full');
             state.setItem('AutoEliteListFilled', false);
@@ -837,27 +845,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 $j("#caap_army", caap.caapTopObject).html(
-                $j(caap.makeTable("army", head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false,
-                    "aoColumnDefs": [{
-                        "bSortable": false,
-                        "aTargets": [6]
-                    }, {
-                        "sSortDataType": "dom-checkbox",
-                        "aTargets": [5]
-                    }, {
-                        "sSortDataType": "scan-date",
-                        "aTargets": [4]
-                    }]
-                }));
+                    $j(caap.makeTable("army", head, body)).dataTable({
+                        "bAutoWidth": false,
+                        "bFilter": false,
+                        "bJQueryUI": false,
+                        "bInfo": false,
+                        "bLengthChange": false,
+                        "bPaginate": false,
+                        "bProcessing": false,
+                        "bStateSave": true,
+                        "bSortClasses": false,
+                        "aoColumnDefs": [{
+                            "bSortable": false,
+                            "aTargets": [6]
+                        }, {
+                            "sSortDataType": "dom-checkbox",
+                            "aTargets": [5]
+                        }, {
+                            "sSortDataType": "scan-date",
+                            "aTargets": [4]
+                        }]
+                    })
+                );
 
                 handler = function (e) {
                     var visitUserIdLink = {
