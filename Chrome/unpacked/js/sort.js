@@ -5,10 +5,12 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,sort,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
+
 ////////////////////////////////////////////////////////////////////
 //                          sort OBJECT
 // this is the main object for dealing with sort routines
 /////////////////////////////////////////////////////////////////////
+
 (function () {
     "use strict";
 
