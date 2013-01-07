@@ -2777,7 +2777,7 @@
                         caap.clickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    $j("span[id*='caap_monster_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    $j("span[id*='caap_monster_']", caap.caapTopObject).off('click', handler).click(handler);
 
                     handler = function (e) {
                         var monsterRemove = {
@@ -2810,7 +2810,7 @@
                         }
                     };
 
-                    $j("span[id*='caap_remove_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    $j("span[id*='caap_remove_']", caap.caapTopObject).off('click', handler).click(handler);
                     session.setItem("MonsterDashUpdate", false);
                 }
 

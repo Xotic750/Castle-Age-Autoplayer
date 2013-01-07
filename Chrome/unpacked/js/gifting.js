@@ -1517,9 +1517,9 @@ con.log(1, 'chooseFriend');
 
                     con.log(1, "gifting.queue.checkSent begin");
                     if ($u.mutationTypes['DOMSubtreeModified']) {
-                        gifting.queue.resultsContainer.unbind("DOMSubtreeModified", gifting.queue.checkSent);
+                        gifting.queue.resultsContainer.off("DOMSubtreeModified", gifting.queue.checkSent);
                     } else if ($u.mutationTypes['DOMAttrModified']) {
-                        gifting.queue.resultsContainer.unbind("DOMAttrModified", gifting.queue.checkSent);
+                        gifting.queue.resultsContainer.off("DOMAttrModified", gifting.queue.checkSent);
                     } else {
                         window.clearTimeout(gifting.queue.checkSentTo);
                     }
@@ -1550,9 +1550,9 @@ con.log(1, 'chooseFriend');
                     con.log(1, "gifting.queue.setCheckedIds");
                     gifting.queue.resultsContainer = $j("#results_container", caap.appBodyDiv);
                     if ($u.mutationTypes['DOMSubtreeModified']) {
-                        gifting.queue.resultsContainer.bind("DOMSubtreeModified", gifting.queue.checkSent);
+                        gifting.queue.resultsContainer.on("DOMSubtreeModified", gifting.queue.checkSent);
                     } else if ($u.mutationTypes['DOMAttrModified']) {
-                        gifting.queue.resultsContainer.bind("DOMAttrModified", gifting.queue.checkSent);
+                        gifting.queue.resultsContainer.on("DOMAttrModified", gifting.queue.checkSent);
                     } else {
                         gifting.queue.checkSentTo = window.setTimeout(function () {
                             gifting.queue.checkSent();
@@ -1717,7 +1717,7 @@ con.log(1, 'chooseFriend');
                             caap.clickAjaxLinkSend(visitUserIdLink.arlink);
                         };
 
-                        $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).off('click', handler).click(handler);
 
                         handler = function (e) {
                             var index = -1,
@@ -1738,7 +1738,7 @@ con.log(1, 'chooseFriend');
                             }
                         };
 
-                        $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        $j("span[id*='caap_removeq_']", caap.caapTopObject).off('click', handler).click(handler);
                         session.setItem("GiftQueueDashUpdate", false);
                     }
 
@@ -2035,7 +2035,7 @@ con.log(1, 'chooseFriend');
                             caap.clickAjaxLinkSend(visitUserIdLink.arlink);
                         };
 
-                        $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                        $j("span[id*='caap_targetgift_']", caap.caapTopObject).off('click', handler).click(handler);
                         session.setItem("GiftHistoryDashUpdate", false);
                     }
 

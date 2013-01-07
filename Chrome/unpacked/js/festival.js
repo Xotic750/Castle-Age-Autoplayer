@@ -1278,7 +1278,7 @@
                         caap.clickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    $j("span[id='caap_festival_1']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    $j("span[id='caap_festival_1']", caap.caapTopObject).off('click', handler).click(handler);
 
                     session.setItem("FestivalDashUpdate", false);
                 }
@@ -1312,7 +1312,7 @@
         /*jslint sub: true */
         checkResults_festival_battle_home: function () {
             try {
-                //caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', festival.engageListener);
+                //caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
                 festival.checkInfo();
                 return true;
             } catch (err) {
@@ -1324,7 +1324,7 @@
         checkResults_festival_guild_battle: function () {
             try {
                 caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
-                    $j(this).parent().parent().attr("id", index).bind('click', festival.dualListener);
+                    $j(this).parent().parent().attr("id", index).on('click', festival.dualListener);
                 });
 
                 festival.onBattle();
@@ -1507,7 +1507,7 @@
                     tStr      = '',
                     festivalInfo = {};
 
-                $j("div[style*='arena3_newsfeed']").unbind('click', festival.engageListener).bind('click', caap.arenaEngageListener);
+                $j("div[style*='arena3_newsfeed']").off('click', festival.engageListener).on('click', caap.arenaEngageListener);
                 tokenSpan = $j("span[id='" + caap.domain.id[caap.domain.which] + "arena_token_current_value']");
                 if (tokenSpan && tokenSpan.length) {
                     tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
@@ -1530,10 +1530,10 @@
 
         addListeners: function () {
             try {
-                $j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', festival.engageListener);
-                //$j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', festival.engageListener);
+                $j("input[src*='battle_enter_battle']", caap.globalContainer).on('click', festival.engageListener);
+                //$j("div[style*='arena3_newsfeed']", caap.globalContainer).on('click', festival.engageListener);
                 $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
-                    $j(this).attr("id", index).bind('click', festival.dualListener);
+                    $j(this).attr("id", index).on('click', festival.dualListener);
                 });
 
                 return true;

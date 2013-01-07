@@ -689,9 +689,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.dashboard = function () {
         try {
             /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_army' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
+            Next we build the HTML to be included into the 'caap_army' div. We set our
+            table and then build the header row.
+            \-------------------------------------------------------------------------------------*/
             if (config.getItem('DBDisplay', '') === 'Army' && session.getItem("ArmyDashUpdate", true)) {
                 var headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', '&nbsp;'],
                     values = ['userId', 'user', 'name', 'lvl', 'change'],
@@ -887,7 +887,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.clickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
-                $j("span[id*='caap_targetarmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                $j("span[id*='caap_targetarmy_']", caap.caapTopObject).off('click', handler).click(handler);
 
                 handler = function (e) {
                     var userid = 0,
@@ -913,7 +913,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 };
 
-                $j("input[id*='caap_elitearmy_']", caap.caapTopObject).unbind('change', handler).change(handler);
+                $j("input[id*='caap_elitearmy_']", caap.caapTopObject).off('change', handler).change(handler);
 
                 handler = function (e) {
                     var mname = '',
@@ -939,7 +939,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 };
 
-                $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                $j("span[id*='caap_removearmy_']", caap.caapTopObject).off('click', handler).click(handler);
 
                 session.setItem("ArmyDashUpdate", false);
             }

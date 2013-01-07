@@ -1178,7 +1178,7 @@ caap = {
             window.setTimeout(function() {
                 var objDiv = $j('.fbProfileBrowserListContainer').parent(), domDiv = objDiv.get(1), to;
 
-                objDiv.bind("DOMNodeInserted", function() {
+                objDiv.on("DOMNodeInserted", function() {
                     con.log(3, "Scroll ...");
                     window.clearTimeout(to);
                     domDiv.scrollTop = domDiv.scrollHeight;
@@ -1355,7 +1355,7 @@ caap = {
                     caap.messaging.connected.push("caapifp");
                     caap.mTarget["caapif"].ref = window.parent;
                     $u.addEvent(window, "message", caap.caapifpPMListener);
-                    caap.jWindow.bind("unload", caap.messaging.disconnect);
+                    caap.jWindow.on("unload", caap.messaging.disconnect);
                 }
 
                 caap.messaging.connect();
@@ -1372,7 +1372,7 @@ caap = {
                     caap.port = null;
                 } else {
                     $u.removeEvent(window, "message", caap.caapifpPMListener);
-                    caap.jWindow.unbind("unload", caap.messaging.disconnect);
+                    caap.jWindow.off("unload", caap.messaging.disconnect);
                 }
             }
         } catch (err) {
@@ -1501,9 +1501,9 @@ caap = {
                     caap.port.onMessage.addListener(caap.iframeHandler);
                 } else {
                     caap.messaging.connected.push("caapif");
-                    //caap.jWindow.bind("message", caap.caapifPMListener);
+                    //caap.jWindow.on("message", caap.caapifPMListener);
                     $u.addEvent(window, "message", caap.caapifPMListener);
-                    caap.jWindow.bind("unload", caap.messaging.disconnect);
+                    caap.jWindow.on("unload", caap.messaging.disconnect);
                     caap.mTarget["caapfb"].ref = window.parent;
                 }
 
@@ -1520,9 +1520,9 @@ caap = {
                     caap.port.onMessage.removeListener(caap.iframeHandler);
                     caap.port = null;
                 } else {
-                    //caap.jWindow.unbind("message", caap.caapifPMListener);
+                    //caap.jWindow.off("message", caap.caapifPMListener);
                     $u.removeEvent(window, "message", caap.caapifPMListener);
-                    caap.jWindow.unbind("unload", caap.messaging.disconnect);
+                    caap.jWindow.off("unload", caap.messaging.disconnect);
                 }
             }
         } catch (err) {
@@ -1637,7 +1637,7 @@ caap = {
                     caap.messaging.connect();
                 } else {
                     caap.messaging.connected.push("caapfb");
-                    //$j(window).bind("message", caap.caapfbPMListener);
+                    //$j(window).on("message", caap.caapfbPMListener);
                     $u.addEvent(window, "message", caap.caapfbPMListener);
                 }
             }
@@ -1652,7 +1652,7 @@ caap = {
                     caap.port.onMessage.removeListener(caap.chromeHandler);
                     caap.port = null;
                 } else {
-                    //$j(window).unbind("message", caap.caapfbPMListener);
+                    //$j(window).off("message", caap.caapfbPMListener);
                     $u.removeEvent(window, "message", caap.caapfbPMListener);
                 }
             }
@@ -1832,7 +1832,7 @@ caap = {
             function chatListener(event) {
                 if(event.target.className === "fbDockWrapper fixed_always fbDockWrapperRight") {
                     event.target.style.display = "none";
-                    caap.pageletPresenceDiv.unbind("DOMNodeInserted", chatListener);
+                    caap.pageletPresenceDiv.off("DOMNodeInserted", chatListener);
                 }
             }
 
@@ -1848,7 +1848,7 @@ caap = {
                     if($u.hasContent(tDiv)) {
                         tDiv.css('display', 'none');
                     } else {
-                        caap.pageletPresenceDiv.bind("DOMNodeInserted", chatListener);
+                        caap.pageletPresenceDiv.on("DOMNodeInserted", chatListener);
                     }
                 }
             }
@@ -3893,14 +3893,14 @@ caap = {
 
     reBind : function() {
         try {
-            $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
-            $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+            $j('a', caap.globalContainer).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
+            $j("div[id*='friend_box_']", caap.globalContainer).off('click', caap.whatFriendBox).on('click', caap.whatFriendBox);
             if($u.mutationTypes['DOMSubtreeModified']) {
                 con.log(3, "reBind sts");
-                $j("span[id*='gold_time_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
-                $j("span[id*='energy_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
-                $j("span[id*='stamina_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
-                $j("span[id*='health_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
+                $j("span[id*='gold_time_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.goldTimeListener).on('DOMSubtreeModified', caap.goldTimeListener);
+                $j("span[id*='energy_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.energyListener).on('DOMSubtreeModified', caap.energyListener);
+                $j("span[id*='stamina_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.staminaListener).on('DOMSubtreeModified', caap.staminaListener);
+                $j("span[id*='health_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.healthListener).on('DOMSubtreeModified', caap.healthListener);
             }
 
             return true;
@@ -3993,7 +3993,7 @@ caap = {
 
             $j('#caapRestart', caap.caapDivObject).click(caap.restartListener);
 
-            $j('#caap_playbutton', caap.caapPlayButtonDiv).bind('click', caap.restartListener);
+            $j('#caap_playbutton', caap.caapPlayButtonDiv).on('click', caap.restartListener);
 
             $j('#caap_control', caap.caapDivObject).mousedown(caap.pauseListener);
 
@@ -4017,11 +4017,12 @@ caap = {
                     throw "Unable to find div for caap_div";
                 }
 
-                caap.jWindow.bind('resize', caap.windowResizeListener);
+                caap.jWindow.on('resize', caap.windowResizeListener);
             }
 
             if(caap.domain.which === 0) {
-                caap.pageletPresenceDiv.live('DOMNodeInserted', function(event) {
+                //caap.pageletPresenceDiv.live('DOMNodeInserted', function(event) {
+                $j(document).on('DOMNodeInserted', caap.pageletPresenceDiv, function(event) {
                     if(config.getItem('AutoGift', false) && config.getItem('watchBeeper', true)) {
                         var tText = $u.setContent($j(event.target).text(), '');
                         if(tText.hasIndexOf("Castle Age") && tText.hasIndexOf("sent you a request.")) {
@@ -4032,7 +4033,7 @@ caap = {
                     }
                 });
 
-                $j("#contentCol").bind('DOMNodeInserted', function(event) {
+                $j("#contentCol").on('DOMNodeInserted', function(event) {
                     if(event.target.id !== 'CA-Tools') {
                         return;
                     }
@@ -4057,18 +4058,18 @@ caap = {
                             left : styleXY.x + 'px'
                         });
 
-                        $j('a', caap.caToolsDiv).bind('click', caap.whatClickedURLListener);
+                        $j('a', caap.caToolsDiv).on('click', caap.whatClickedURLListener);
                         caap.reBind();
-                        caap.caToolsDiv.bind('DOMNodeInserted', function(evt) {
+                        caap.caToolsDiv.on('DOMNodeInserted', function(evt) {
                             if(evt.target.id.hasIndexOf("alt_sts")) {
-                                $j('a', caap.caToolsDiv).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                                $j('a', caap.caToolsDiv).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
                                 caap.reBind();
                             } else if(evt.target.id.hasIndexOf("st_2_5")) {
-                                $j('#' + evt.target.id + ' a', caap.caToolsDiv).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                                $j('#' + evt.target.id + ' a', caap.caToolsDiv).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
                             }
                         });
 
-                        $j("img[src*='facebook-icon.png']", caap.caToolsDiv).bind('click', function() {
+                        $j("img[src*='facebook-icon.png']", caap.caToolsDiv).on('click', function() {
                             con.log(1, "CA-Tools quit! Changing layout.");
                             caap.caTools = false;
                             caap.caToolsDiv = null;
@@ -4104,23 +4105,23 @@ caap = {
                 }
 
                 // Fires once when page loads
-                $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
+                $j('a', caap.globalContainer).on('click', caap.whatClickedURLListener);
 
-                $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
+                $j("div[id*='friend_box_']", caap.globalContainer).on('click', caap.whatFriendBox);
 
                 if($u.mutationTypes['DOMSubtreeModified']) {
                     con.log(3, "Bind sts onload");
-                    $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
-                    $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
-                    $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
-                    $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
+                    $j("span[id*='gold_time_value']", caap.globalContainer).on('DOMSubtreeModified', caap.goldTimeListener);
+                    $j("span[id*='energy_current_value']", caap.globalContainer).on('DOMSubtreeModified', caap.energyListener);
+                    $j("span[id*='stamina_current_value']", caap.globalContainer).on('DOMSubtreeModified', caap.staminaListener);
+                    $j("span[id*='health_current_value']", caap.globalContainer).on('DOMSubtreeModified', caap.healthListener);
                 }
 
                 //arena.addListeners();
 
                 festival.addListeners();
 
-                caap.globalContainer.bind('DOMNodeInserted', function(event) {
+                caap.globalContainer.on('DOMNodeInserted', function(event) {
                     var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
                     /*
                      targetList = [
@@ -5457,7 +5458,7 @@ caap = {
                         }
                         text += '</select></form>';
                         tDiv.html(text);
-                        tDiv.children("form").bind('change', function(event) {
+                        tDiv.children("form").on('change', function(event) {
                             var v = event.target.value, it = 0;
 
                             function change(t, i, n, a, d, b, o, p) {
@@ -6526,8 +6527,8 @@ caap = {
 
     checkResults_symbolquests : function() {
         try {
-            $j("div[id*='symbol_tab_symbolquests']", caap.appBodyDiv).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
-            $j("form[id*='symbols_form_']", caap.appBodyDiv).unbind('click', caap.symbolquestsClickListener).bind('click', caap.symbolquestsClickListener);
+            $j("div[id*='symbol_tab_symbolquests']", caap.appBodyDiv).off('click', caap.symbolquestsListener).on('click', caap.symbolquestsListener);
+            $j("form[id*='symbols_form_']", caap.appBodyDiv).off('click', caap.symbolquestsClickListener).on('click', caap.symbolquestsClickListener);
             var demiDiv = $j("div[id*='symbol_desc_symbolquests']", caap.globalContainer), points = [], success = true;
 
             caap.blessingResults();

@@ -825,7 +825,7 @@
                         caap.clickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    $j("span[id*='caap_feed_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                    $j("span[id*='caap_feed_']", caap.caapTopObject).off('click', handler).click(handler);
 
                     session.setItem("FeedlDashUpdate", false);
                 }

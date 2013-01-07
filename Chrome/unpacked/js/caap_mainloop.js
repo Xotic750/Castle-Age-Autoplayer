@@ -944,7 +944,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 list = $j("#caap_backup_list", w);
                 name = $j("#caap_backup_name", w);
                 status = $j("#caap_backup_status", w);
-                list.bind("dblclick", getKeys);
+                list.on("dblclick", getKeys);
                 name.autocomplete({
                     source: keys
                 });
@@ -1007,12 +1007,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             }
                         },
                         "Close": function () {
-                            list.unbind("dblclick", getKeys);
+                            list.off("dblclick", getKeys);
                             w.dialog("destroy").remove();
                         }
                     },
                     close: function () {
-                        list.unbind("dblclick", getKeys);
+                        list.off("dblclick", getKeys);
                         w.dialog("destroy").remove();
                     }
                 });

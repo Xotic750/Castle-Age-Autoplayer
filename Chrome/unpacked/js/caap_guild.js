@@ -79,7 +79,7 @@ caap.guildTabListener = function(event) {
 	session.setItem("clickUrl", $u.setContent($j(event.target).parent().attr("onclick"), '').regex(new RegExp(",'(.+\\.php.*?)'")));
 };
 caap.guildTabAddListener = function() {
-	$j("div[style*='guild_tab_off_tile.jpg'],div[style*='guild_tab_on_tile.jpg']").unbind('click', caap.guildTabListener).bind('click', caap.guildTabListener);
+	$j("div[style*='guild_tab_off_tile.jpg'],div[style*='guild_tab_on_tile.jpg']").off('click', caap.guildTabListener).on('click', caap.guildTabListener);
 };
 caap.checkResults_guild_panel = function() {
 	caap.guildTabAddListener();

@@ -241,7 +241,7 @@ caap.updateDashboard = function(force) {
 				}
 				caap.clickAjaxLinkSend(visitUserIdLink.arlink);
 			};
-			$j("span[id*='caap_targetrecon_']", caap.caapTopObject).unbind('click', handler).click(handler);
+			$j("span[id*='caap_targetrecon_']", caap.caapTopObject).off('click', handler).click(handler);
 			session.setItem("ReconDashUpdate", false);
 		}
 		/*-------------------------------------------------------------------------------------\
@@ -996,25 +996,25 @@ caap.addDBListener = function() {
 		if(!$u.hasContent($j('#caap_DBDisplay', caap.caapTopObject))) {
 			caap.reloadCastleAge();
 		}
-		$j('#caap_DBDisplay', caap.caapTopObject).bind('change', caap.dbDisplayListener);
-		$j('#caap_refreshMonsters', caap.caapTopObject).bind('click', caap.refreshMonstersListener);
-		$j('#caap_refreshGuildMonsters', caap.caapTopObject).bind('click', caap.refreshGuildMonstersListener);
-		$j('#caap_liveFeed', caap.caapTopObject).bind('click', caap.liveFeedButtonListener);
-		$j('#caap_crusaders', caap.caapTopObject).bind('click', caap.crusadersButtonListener);
-		$j('#caap_fastHeal', caap.caapTopObject).bind('click', caap.fastHealButtonListener);
-		$j('#caap_clearTargets', caap.caapTopObject).bind('click', caap.clearTargetsButtonListener);
-		$j('#caap_clearBattle', caap.caapTopObject).bind('click', caap.clearBattleButtonListener);
-		$j('#caap_clearGifting', caap.caapTopObject).bind('click', caap.clearGiftingButtonListener);
-		$j('#caap_clearGiftQueue', caap.caapTopObject).bind('click', caap.clearGiftQueueButtonListener);
-		$j('#caap_getArmy', caap.caapTopObject).bind('click', caap.getArmyButtonListener);
-		$j('#caap_dashMin', caap.caapTopObject).bind('click', function() {
+		$j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
+		$j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
+		$j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
+		$j('#caap_liveFeed', caap.caapTopObject).on('click', caap.liveFeedButtonListener);
+		$j('#caap_crusaders', caap.caapTopObject).on('click', caap.crusadersButtonListener);
+		$j('#caap_fastHeal', caap.caapTopObject).on('click', caap.fastHealButtonListener);
+		$j('#caap_clearTargets', caap.caapTopObject).on('click', caap.clearTargetsButtonListener);
+		$j('#caap_clearBattle', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
+		$j('#caap_clearGifting', caap.caapTopObject).on('click', caap.clearGiftingButtonListener);
+		$j('#caap_clearGiftQueue', caap.caapTopObject).on('click', caap.clearGiftQueueButtonListener);
+		$j('#caap_getArmy', caap.caapTopObject).on('click', caap.getArmyButtonListener);
+		$j('#caap_dashMin', caap.caapTopObject).on('click', function() {
 			caap.caapTopObject.toggle('fold', {
 			}, '', function() {
 				caap.caapTopMinObject.css('display', 'block');
 			});
 			config.setItem("dashMinimised", true);
 		});
-		$j('#caap_dashMax', caap.caapTopMinObject).bind('click', function() {
+		$j('#caap_dashMax', caap.caapTopMinObject).on('click', function() {
 			caap.caapTopObject.toggle('fold');
 			caap.caapTopMinObject.css('display', 'none');
 			config.setItem("dashMinimised", false);

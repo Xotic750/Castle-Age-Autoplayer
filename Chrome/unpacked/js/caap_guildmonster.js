@@ -67,7 +67,7 @@ caap.guildMonsterReview = function() {
 
 caap.checkResults_guild_current_monster_battles = function() {
 	try {
-		$j("input[src*='guild_battle_']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+		$j("input[src*='guild_battle_']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
 		guild_monster.populate();
 
 		return true;
@@ -90,7 +90,7 @@ caap.checkResults_guild_monster_summon_list = function() {
 };
 caap.checkResults_guild_battle_monster = function() {
 	try {
-		$j("input[src*='guild_duel_button']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+		$j("input[src*='guild_duel_button']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
 		guild_monster.onMonster();
 		if(config.getItem("enableTitles", true)) {
 			spreadsheet.doTitles();

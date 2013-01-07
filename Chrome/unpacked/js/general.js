@@ -1190,7 +1190,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 };
 
-                $j("span[id*='caap_general_']", caap.caapTopObject).unbind('click', handler).click(handler);
+                $j("span[id*='caap_general_']", caap.caapTopObject).off('click', handler).click(handler);
 
                 session.setItem("GeneralsDashUpdate", false);
             }
