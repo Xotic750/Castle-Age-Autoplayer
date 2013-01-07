@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            139
+// @dev            140
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -23,7 +23,7 @@ var caapjQuery = "1.7.1",
 	caapjQueryUI = "1.8.24",
 	caapjQueryDataTables = "1.9.4",
 	caapVersion = "141.0.0",
-	devVersion = "139",
+	devVersion = "140",
 	hiddenVar = true,
 	caap_timeout = 0,
 	image64 = {},
