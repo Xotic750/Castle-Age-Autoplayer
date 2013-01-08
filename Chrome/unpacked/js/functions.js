@@ -233,7 +233,6 @@ function caap_WaitForjQuery() {
             injectScript(caap.libs.jQueryUI);
         }
 
-        $j('div.fixedAux').remove(); // removes sidebar stuff from fb as it could overlap with CAAP sidebar // 2011-09-27 CAGE
         caap_WaitForjQueryUI();
     } else {
         caap_log("Waiting for jQuery ...");

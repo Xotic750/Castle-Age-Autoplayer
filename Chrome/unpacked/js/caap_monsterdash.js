@@ -1010,15 +1010,17 @@ caap.addDBListener = function() {
 		$j('#caap_dashMin', caap.caapTopObject).on('click', function() {
 			caap.caapTopObject.toggle('fold', {
 			}, '', function() {
-				caap.caapTopMinObject.css('display', 'block');
+				caap.caapTopMinObject.show();
 			});
 			config.setItem("dashMinimised", true);
 		});
+
 		$j('#caap_dashMax', caap.caapTopMinObject).on('click', function() {
 			caap.caapTopObject.toggle('fold');
-			caap.caapTopMinObject.css('display', 'none');
+			caap.caapTopMinObject.hide();
 			config.setItem("dashMinimised", false);
 		});
+
 		con.log(4, "Listeners added for caap_top");
 		return true;
 	} catch (err) {

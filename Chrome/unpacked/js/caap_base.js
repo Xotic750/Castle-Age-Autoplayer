@@ -1791,6 +1791,10 @@ caap = {
         try {
             var tDiv;
 
+            if(caap.domain.which === 0)  {
+                $j('div.fixedAux').hide();
+            }
+
             if(caap.domain.which === 2 || caap.domain.which === 3) {
                 caap.ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
             }
@@ -1846,9 +1850,7 @@ caap = {
                 });
                 */
 
-                $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
-                    'display' : 'none'
-                });
+                $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").hide();
 
                 $j("#contentCol").removeClass("clearfix");
             }
@@ -1872,13 +1874,13 @@ caap = {
                 caap.pageletPresenceDiv = $j("#pagelet_dock");
                 // Get rid of those ads now! :P
                 if(config.getItem('HideAds', false)) {
-                    $j('#rightCol').css('display', 'none');
+                    $j('#rightCol').hide();
                 }
 
                 if(config.getItem('HideFBChat', false)) {
                     tDiv = $j("div[class='fbDockWrapper fixed_always fbDockWrapperRight']", caap.pageletPresenceDiv);
                     if($u.hasContent(tDiv)) {
-                        tDiv.css('display', 'none');
+                        tDiv.hide();
                     } else {
                         caap.pageletPresenceDiv.on("DOMNodeInserted", chatListener);
                     }
@@ -1889,7 +1891,7 @@ caap = {
                 if(config.getItem('HideAdsIframe', false)) {
                     //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                     //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                    $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
+                    $j("img[src*='cross_promo.jpg']").parents("div:first").hide();
                 }
             }
 
@@ -2996,9 +2998,7 @@ caap = {
                             });
                             */
 
-                            $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
-                                'display' : 'none'
-                            });
+                            $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").hide();
 
                             $j("#contentCol").removeClass("clearfix");
                         } else {
@@ -3038,9 +3038,7 @@ caap = {
                             });
                             */
 
-                            $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").css({
-                                'display' : 'block'
-                            });
+                            $j("#leftColContainer,#pagelet_canvas_footer_content,#bottomContent").show();
 
                             $j("#contentCol").addClass("clearfix");
                         }
@@ -3704,8 +3702,8 @@ caap = {
         }
 
         if(caap.domain.which !== 3) {
-            $j('#caapPaused', caap.caapDivObject).css('display', 'block');
-            caap.caapPlayButtonDiv.css('display', 'block');
+            $j('#caapPaused', caap.caapDivObject).show();
+            caap.caapPlayButtonDiv.show();
         }
 
         state.setItem('caapPause', 'block');
@@ -3716,8 +3714,8 @@ caap = {
         var bgc = state.getItem('StyleBackgroundLight', '#E0C691'), bgo = state.getItem('StyleOpacityLight', 1), btc = $u.bestTextColor(bgc), chk = $u.bestTextColor(state.getItem('StyleBackgroundDark', '#B09060'));
 
         if(caap.domain.which !== 3) {
-            $j('#caapPaused', caap.caapDivObject).css('display', 'none');
-            caap.caapPlayButtonDiv.css('display', 'none');
+            $j('#caapPaused', caap.caapDivObject).hide();
+            caap.caapPlayButtonDiv.hide();
             caap.caapDivObject.css({
                 'background' : bgc,
                 'color' : btc,
@@ -4258,7 +4256,7 @@ caap = {
                             if(config.getItem('HideAdsIframe', false)) {
                                 //$j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                                 //$j("div[style*='tool_top.jpg']").css('display', 'none');
-                                $j("img[src*='cross_promo.jpg']").parents("div:first").css('display', 'none');
+                                $j("img[src*='cross_promo.jpg']").parents("div:first").hide();
                             }
 
                             if(config.getItem('scrollToTop', false)) {
