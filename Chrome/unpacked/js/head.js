@@ -19,8 +19,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //       Globals
 //////////////////////////////////
 
-var caapjQuery = "1.7.1",
-	caapjQueryUI = "1.8.24",
+var caapjQuery = "1.8.3",
+	caapjQueryUI = "1.9.2",
 	caapjQueryDataTables = "1.9.4",
 	caapVersion = "141.0.0",
 	devVersion = "140",
