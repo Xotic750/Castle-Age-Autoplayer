@@ -4062,6 +4062,7 @@ caap = {
                     }
                 });
 
+                /*
                 $j("#contentCol").on('DOMNodeInserted', function(event) {
                     if(event.target.id !== 'CA-Tools') {
                         return;
@@ -4125,6 +4126,7 @@ caap = {
                         });
                     }, 2000);
                 });
+                */
             }
 
             if(caap.domain.which !== 0) {
