@@ -268,6 +268,7 @@
                         for (it2 = town[town.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
                             record = spreadsheet.getItem(town[town.types[it1]][it2]['name'], town[town.types[it1]][it2]['image']);
                             if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record) || town[town.types[it1]][it2]['image'] !== record['image'] || town[town.types[it1]][it2]['atk'] !== record['attack'] || town[town.types[it1]][it2]['def'] !== record['defense']) {
+                                //con.log(1, 'record', record, town[town.types[it1]][it2]['name'], town[town.types[it1]][it2]['image']);
                                 h = bbcode ? "[tr][td]" : "<tr>";
                                 if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record)) {
                                     h += sbbcolor + town[town.types[it1]][it2]['name'] + ebbcolor;

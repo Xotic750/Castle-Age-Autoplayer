@@ -1931,7 +1931,7 @@ caap = {
                 //alert($u.CommunicationHelper.toString());
             }
 
-            if(caap.domain.which === 2 || caap.domain.which === 3) {
+            if(caap.domain.which === 0 || caap.domain.which === 2 || caap.domain.which === 3) {
                 spreadsheet.load();
             }
 

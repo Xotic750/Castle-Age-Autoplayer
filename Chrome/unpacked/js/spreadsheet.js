@@ -29,6 +29,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, "spreadsheet.load called");
 
             spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
+
+            if(caap.domain.which === 0) {
+                return true;
+            }
+
             if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
                 con.log(1, "spreadsheet.load ajax", spreadsheet.records);
 
@@ -127,7 +132,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.messaging.setItem('spreadsheet.records', spreadsheet.records);
                 ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
             } else {
-                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
+                spreadsheet.records = ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
                 con.log(1, "spreadsheet.save", spreadsheet.records);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
                     con.log(2, "spreadsheet.save send");
@@ -169,6 +174,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 record = {};
 
             for (it = 0, len = spreadsheet.records.length; it < len; it += 1) {
+                //con.log(1, 'spreadsheet.records', spreadsheet.records[it]);
                 if (image) {
                     if (spreadsheet.records[it]['name'] === name && spreadsheet.records[it]['image'] === image) {
                         record = spreadsheet.records[it];

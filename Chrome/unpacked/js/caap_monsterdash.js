@@ -996,6 +996,7 @@ caap.addDBListener = function() {
 		if(!$u.hasContent($j('#caap_DBDisplay', caap.caapTopObject))) {
 			caap.reloadCastleAge();
 		}
+
 		$j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
 		$j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
 		$j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
@@ -1012,6 +1013,7 @@ caap.addDBListener = function() {
 			}, '', function() {
 				caap.caapTopMinObject.show();
 			});
+
 			config.setItem("dashMinimised", true);
 		});
 
