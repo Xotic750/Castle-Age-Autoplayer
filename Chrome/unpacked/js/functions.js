@@ -67,7 +67,6 @@ function getFBData() {
     inject = null;
 }
 
-
 function getFBFriends() {
     var inject = document.createElement('script');
 
