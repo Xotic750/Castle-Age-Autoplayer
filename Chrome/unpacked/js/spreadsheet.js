@@ -26,11 +26,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
+            con.log(1, "spreadsheet.load called");
+
             spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
             if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
+                con.log(1, "spreadsheet.load ajax");
+
                 spreadsheet.records = [];
                 $j.ajax({
-                    url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
+                    url: "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: ($u.is_opera ? "jsonp" : "json"),
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         con.log(1, "Using offline items");
@@ -40,6 +44,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     },
                     success: function (msg) {
                         try {
+                            con.log(1, "spreadsheet.load success");
                             con.log(3, "msg", msg);
                             var rows = [],
                                 row = 0,
@@ -122,7 +127,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.messaging.setItem('spreadsheet.records', spreadsheet.records);
             } else {
                 ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
-                con.log(3, "spreadsheet.save", spreadsheet.records);
+                con.log(1, "spreadsheet.save", spreadsheet.records);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
                     con.log(2, "spreadsheet.save send");
                     caap.messaging.setItem('spreadsheet.records', spreadsheet.records);

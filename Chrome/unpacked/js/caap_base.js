@@ -22,7 +22,7 @@ caap = {
     jWindow : null,
     jss : "javascript",
     libs : {
-         jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/' + caapjQuery + '/jquery.min.js',
+        jQuery : 'https://ajax.googleapis.com/ajax/libs/jquery/' + caapjQuery + '/jquery.min.js',
         jQueryUI : 'https://ajax.googleapis.com/ajax/libs/jqueryui/' + caapjQueryUI + '/jquery-ui.min.js',
         farbtastic : 'https://castle-age-auto-player.googlecode.com/files/farbtastic.min.js',
         utility : 'https://utility-js.googlecode.com/files/utility-0.2.3.min.js',
@@ -869,27 +869,45 @@ caap = {
             }
         },
 
-         backgroundCA : function(bgcolor) {
-                try {
-                    if(caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
-                        caap.postMessage({
-                            source : "caapfb",
-                            dest : "caapif",
-                            message : "backgroundCA",
-                            data : bgcolor
-                        });
-                    } else {
-                        throw "Wrong domain or destination not connected";
-                    }
-
-                    return true;
-                } catch (err) {
-                    con.error("ERROR in messaging.backgroundCA: " + err);
-                    return false;
+        backgroundCA : function(bgcolor) {
+            try {
+                if(caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
+                    caap.postMessage({
+                        source : "caapfb",
+                        dest : "caapif",
+                        message : "backgroundCA",
+                        data : bgcolor
+                    });
+                } else {
+                    throw "Wrong domain or destination not connected";
                 }
+
+                return true;
+            } catch (err) {
+                con.error("ERROR in messaging.backgroundCA: " + err);
+                return false;
             }
+        },
 
+        goblinHinting : function() {
+            try {
+                if(caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
+                    caap.postMessage({
+                        source : "caapfb",
+                        dest : "caapif",
+                        message : "goblinHinting",
+                        data : ""
+                    });
+                } else {
+                    throw "Wrong domain or destination not connected";
+                }
 
+                return true;
+            } catch (err) {
+                con.error("ERROR in messaging.goblinHinting: " + err);
+                return false;
+            }
+        }
     },
 
     scrollToTop : function() {
@@ -1463,12 +1481,18 @@ caap = {
                     con.log(4, "iframe got styleChange", msg);
                     caap.colorUpdate();
                     break;
-        case "backgroundCA":
+                case "backgroundCA":
                     caap.messaging.ok(msg);
                     con.log(4, "iframe got backgroundCA", msg);
                     $j("body").css({
                         'background-color' : msg.data
                     });
+                    break;
+                case "goblinHinting":
+                    caap.messaging.ok(msg);
+                    con.log(1, "iframe got goblinHinting", msg);
+                    spreadsheet.clear();
+                    spreadsheet.load();
                     break;
                 default:
             }
@@ -1884,7 +1908,7 @@ caap = {
                 town.load('item');
                 town.load('magic');
                 army.init();
-                spreadsheet.load();
+                //spreadsheet.load();
                 caap.addControl();
                 caap.addPlayButton();
                 var chelper = new $u.CommunicationHelper('test_div', true, function(data) {
@@ -1895,6 +1919,10 @@ caap = {
                 chelper = chelper.destroy();
                 con.log(1, "destroyed", chelper);
                 //alert($u.CommunicationHelper.toString());
+            }
+
+            if(caap.domain.which === 2 || caap.domain.which === 3) {
+                spreadsheet.load();
             }
 
             if(caap.domain.which === 2 || caap.domain.which === 3) {
@@ -3123,6 +3151,7 @@ caap = {
                             $j(":input[id^='caap_']", caap.caapDivObject).attr({
                                 disabled : true
                             });
+
                             caap.caapDivObject.css('cursor', 'move').draggable({
                                 stop : function() {
                                     caap.saveControlXY();
@@ -3134,6 +3163,7 @@ caap = {
                             $j(":input[id^='caap_']", caap.caapTopObject).attr({
                                 disabled : true
                             });
+
                             caap.caapTopObject.css('cursor', 'move').draggable({
                                 stop : function() {
                                     caap.saveDashboardXY();
@@ -3187,8 +3217,7 @@ caap = {
                 case "enableTitles" :
                 case "goblinHinting" :
                     if(e.target.checked) {
-                        spreadsheet.clear();
-                        spreadsheet.load();
+                        caap.messaging.goblinHinting();
                     }
 
                     break;
