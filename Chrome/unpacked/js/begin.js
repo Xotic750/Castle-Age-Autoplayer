@@ -77,7 +77,7 @@ injectScript,caap_WaitForjQuery,$ */
             injectScript(caap.libs.jQuery);
         }
 
-        $('body').removeClass('center_fixed_width_app');
+        //$('body').removeClass('center_fixed_width_app');
         caap_WaitForjQuery();
     }
 
