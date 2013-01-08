@@ -482,6 +482,7 @@ caap = {
                         message : "getItem",
                         data : data
                     });
+
                     session.incItem("messageCount");
                 } else {
                     throw "Destination not connected";
@@ -1110,7 +1111,8 @@ caap = {
     },
     getMsgItem : function(msg) {
         try {
-            var done = true, it;
+            var done = true,
+                it;
 
             caap.dataRegister[msg.data.name]['set'](msg.data.value);
             caap.dataRegister[msg.data.name]["loaded"] = true;
@@ -1128,7 +1130,7 @@ caap = {
 
             if(done) {
                 con.log_level = config.getItem('DebugLevel', 1);
-                con.log(2, "iframe all data loaded");
+                con.log(1, "iframe all data loaded");
                 //con.log(2, "config", config);
                 //con.log(2, "state", state);
                 //con.log(2, "schedule", schedule);
@@ -1222,6 +1224,7 @@ caap = {
                 caap.messaging.setItem('config.options', config.getAll());
                 return config.getItem(name, value);
             };
+
             state = new $u.VarsHelper();
             state.oldSetItem = state.setItem;
             state.setItem = function(name, value) {
@@ -1229,6 +1232,7 @@ caap = {
                 caap.messaging.setItem('state.flags', state.getAll());
                 return state.getItem(name, value);
             };
+
             schedule = new $u.ScheduleVarsHelper();
             schedule.oldSetItem = schedule.setItem;
             schedule.setItem = function(name, seconds, randomSecs) {
@@ -1276,6 +1280,7 @@ caap = {
                     }
                 };
             }
+
             state = new $u.ConfigHelper("state.flags", "current", {
                 'namespace' : caap.namespace,
                 'storage_id' : FBID.toString(),
@@ -1448,6 +1453,7 @@ caap = {
                 case "getItem":
                     caap.messaging.ok(msg);
                     caap.getMsgItem(msg);
+
                     break;
                 case "setItem":
                     caap.messaging.ok(msg);
@@ -1588,6 +1594,7 @@ caap = {
                 case "hello":
                     caap.messaging.ok(msg);
                     caap.messaging.hello(msg);
+
                     break;
                 case "getItem":
                     caap.messaging.ok(msg);
@@ -1595,6 +1602,7 @@ caap = {
                         name : msg.data,
                         value : caap.dataRegister[msg.data]['get']()
                     });
+
                     break;
                 case "setItem":
                     caap.messaging.ok(msg);

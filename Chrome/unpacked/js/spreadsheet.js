@@ -30,7 +30,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
             if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
-                con.log(1, "spreadsheet.load ajax");
+                con.log(1, "spreadsheet.load ajax", spreadsheet.records);
 
                 spreadsheet.records = [];
                 $j.ajax({
@@ -125,6 +125,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
             if (caap.domain.which === 3) {
                 caap.messaging.setItem('spreadsheet.records', spreadsheet.records);
+                ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
             } else {
                 ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
                 con.log(1, "spreadsheet.save", spreadsheet.records);
