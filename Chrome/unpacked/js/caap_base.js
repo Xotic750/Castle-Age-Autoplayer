@@ -13,7 +13,6 @@ caap = {
     fbIframeDiv : {},
     ajaxLoadIcon : {},
     globalContainer : {},
-    caToolsDiv : {},
     appBodyDiv : {},
     pageletPresenceDiv : {},
     tempAjax : {},
@@ -1921,6 +1920,7 @@ caap = {
                 //spreadsheet.load();
                 caap.addControl();
                 caap.addPlayButton();
+                /*
                 var chelper = new $u.CommunicationHelper('test_div', true, function(data) {
                     con.log(1, "fired", chelper, data);
                 });
@@ -1929,6 +1929,7 @@ caap = {
                 chelper = chelper.destroy();
                 con.log(1, "destroyed", chelper);
                 //alert($u.CommunicationHelper.toString());
+                */
             }
 
             if(caap.domain.which === 0 || caap.domain.which === 2 || caap.domain.which === 3) {
@@ -2125,9 +2126,11 @@ caap = {
         y : 0
     },
 
-    getControlXY : function(reset, tools) {
+    getControlXY : function(reset) {
         try {
-            var selector = $j(caap.controlXY.selector), outer = selector.outerWidth(true), xoff = !tools && (caap.domain.which === 2 || (caap.domain.which === 0 && !config.getItem('backgroundCA', false))) ? outer + 10 : outer;
+            var selector = $j(caap.controlXY.selector),
+                outer = selector.outerWidth(true),
+                xoff = (caap.domain.which === 2 || (caap.domain.which === 0 && !config.getItem('backgroundCA', false))) ? outer + 10 : outer;
 
             return {
                 y : reset ? selector.offset().top : caap.controlXY.y,
@@ -3924,18 +3927,16 @@ caap = {
     },
     /*jslint sub: false */
 
-    caTools : false,
-
     reBind : function() {
         try {
             $j('a', caap.globalContainer).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
             $j("div[id*='friend_box_']", caap.globalContainer).off('click', caap.whatFriendBox).on('click', caap.whatFriendBox);
             if($u.mutationTypes['DOMSubtreeModified']) {
                 con.log(3, "reBind sts");
-                $j("span[id*='gold_time_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.goldTimeListener).on('DOMSubtreeModified', caap.goldTimeListener);
-                $j("span[id*='energy_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.energyListener).on('DOMSubtreeModified', caap.energyListener);
-                $j("span[id*='stamina_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.staminaListener).on('DOMSubtreeModified', caap.staminaListener);
-                $j("span[id*='health_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).off('DOMSubtreeModified', caap.healthListener).on('DOMSubtreeModified', caap.healthListener);
+                $j("span[id*='gold_time_value']", caap.globalContainer).off('DOMSubtreeModified', caap.goldTimeListener).on('DOMSubtreeModified', caap.goldTimeListener);
+                $j("span[id*='energy_current_value']", caap.globalContainer).off('DOMSubtreeModified', caap.energyListener).on('DOMSubtreeModified', caap.energyListener);
+                $j("span[id*='stamina_current_value']", caap.globalContainer).off('DOMSubtreeModified', caap.staminaListener).on('DOMSubtreeModified', caap.staminaListener);
+                $j("span[id*='health_current_value']", caap.globalContainer).off('DOMSubtreeModified', caap.healthListener).on('DOMSubtreeModified', caap.healthListener);
             }
 
             return true;
@@ -4067,72 +4068,6 @@ caap = {
                         }
                     }
                 });
-
-                /*
-                $j("#contentCol").on('DOMNodeInserted', function(event) {
-                    if(event.target.id !== 'CA-Tools') {
-                        return;
-                    }
-
-                    con.log(1, "CA-Tools detected! Changing layout.");
-                    caap.caTools = true;
-                    caap.caToolsDiv = $j('#CA-Tools');
-                    window.setTimeout(function() {
-                        var styleXY = caap.getControlXY(true, true);
-                        caap.caapDivObject.css({
-                            top : styleXY.y + 'px',
-                            left : styleXY.x + 'px'
-                        });
-                        styleXY = caap.getDashboardXY(true);
-                        caap.caapTopObject.css({
-                            top : styleXY.y + 'px',
-                            left : styleXY.x + 'px'
-                        });
-
-                        caap.caapTopMinObject.css({
-                            top : styleXY.y + 'px',
-                            left : styleXY.x + 'px'
-                        });
-
-                        $j('a', caap.caToolsDiv).on('click', caap.whatClickedURLListener);
-                        caap.reBind();
-                        caap.caToolsDiv.on('DOMNodeInserted', function(evt) {
-                            if(evt.target.id.hasIndexOf("alt_sts")) {
-                                $j('a', caap.caToolsDiv).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
-                                caap.reBind();
-                            } else if(evt.target.id.hasIndexOf("st_2_5")) {
-                                $j('#' + evt.target.id + ' a', caap.caToolsDiv).off('click', caap.whatClickedURLListener).on('click', caap.whatClickedURLListener);
-                            }
-                        });
-
-                        $j("img[src*='facebook-icon.png']", caap.caToolsDiv).on('click', function() {
-                            con.log(1, "CA-Tools quit! Changing layout.");
-                            caap.caTools = false;
-                            caap.caToolsDiv = null;
-
-                            window.setTimeout(function() {
-                                var styleXY = caap.getControlXY(true, true);
-                                caap.caapDivObject.css({
-                                    top : styleXY.y + 'px',
-                                    left : styleXY.x + 'px'
-                                });
-                                styleXY = caap.getDashboardXY(true);
-                                caap.caapTopObject.css({
-                                    top : styleXY.y + 'px',
-                                    left : styleXY.x + 'px'
-                                });
-
-                                caap.caapTopMinObject.css({
-                                    top : styleXY.y + 'px',
-                                    left : styleXY.x + 'px'
-                                });
-
-                                caap.reBind();
-                            }, 2000);
-                        });
-                    }, 2000);
-                });
-                */
             }
 
             if(caap.domain.which !== 0) {
@@ -4554,14 +4489,16 @@ caap = {
 
     addExpDisplay : function() {
         try {
-            if(!caap.caTools && config.getItem("displayETNL", true)) {
-                var catSTS = caap.caTools ? $j("#alt_sts", caap.caToolsDiv) : null, catOK = caap.caTools && catSTS && catSTS.css("display") !== 'none', etnlDiv = $j("#caap_etnl", catOK ? catSTS : caap.globalContainer);
-                etnlDiv = $u.hasContent(etnlDiv) ? etnlDiv.html(caap.stats['exp']['dif']) : $j("#" + caap.domain.id[caap.domain.which] + "st_2_5 strong", catOK ? catSTS : caap.globalContainer).prepend("(<span id='caap_etnl' style='color:red'>" + caap.stats['exp']['dif'] + "</span>) ");
+            if(config.getItem("displayETNL", true)) {
+                var etnlDiv = $j("#caap_etnl", caap.globalContainer);
+
+                etnlDiv = $u.hasContent(etnlDiv) ? etnlDiv.html(caap.stats['exp']['dif']) : $j("#" + caap.domain.id[caap.domain.which] + "st_2_5 strong", caap.globalContainer).prepend("(<span id='caap_etnl' style='color:red'>" + caap.stats['exp']['dif'] + "</span>) ");
                 if(!$u.hasContent(etnlDiv)) {
                     con.warn("Unable to get experience array");
                 }
 
                 caap.setDivContent('exp_mess', "Experience to next level: " + caap.stats['exp']['dif']);
+                etnlDiv = null;
             }
 
             return true;
@@ -4870,7 +4807,13 @@ caap = {
     /*jslint sub: true */
     getStats : function() {
         try {
-            var passed = true, tNum = 0, xS = 0, xE = 0, ststbDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb", caap.caTools ? caap.caToolsDiv : caap.globalContainer), bntpDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp", caap.globalContainer), tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "gold_current_value", ststbDiv);
+            var passed = true,
+                tNum = 0,
+                xS = 0,
+                xE = 0,
+                ststbDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb", caap.globalContainer),
+                bntpDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp", caap.globalContainer),
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "gold_current_value", ststbDiv);
 
             // gold
             if($u.hasContent(tempDiv)) {
@@ -4988,6 +4931,9 @@ caap = {
                 caap.pauseListener();
             }
 
+            ststbDiv = null;
+            bntpDiv = null;
+            tempDiv = null;
             return passed;
         } catch (err) {
             con.error("ERROR getStats: " + err);
@@ -5223,7 +5169,7 @@ caap = {
 
                 schedule.setItem("keep", ( gm ? gm.getItem("checkKeep", 1, hiddenVar) : 1) * 3600, 300);
                 caap.saveStats();
-                if(!caap.caTools && config.getItem("displayKStats", true)) {
+                if(config.getItem("displayKStats", true)) {
                     tempDiv = $j("div[style*='keep_top']");
                     backgroundDiv = $j("div[style*='keep_tabheader']");
 

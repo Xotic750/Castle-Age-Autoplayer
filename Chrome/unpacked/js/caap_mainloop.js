@@ -333,10 +333,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.stsPoll = function () {
         try {
-            var gtv = $j("span[id*='gold_time_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).text(),
-                ecv = $j("span[id*='energy_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).text(),
-                scv = $j("span[id*='stamina_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).text(),
-                hcv = $j("span[id*='health_current_value']", caap.caTools ? caap.caToolsDiv : caap.globalContainer).text(),
+            var gtv = $j("span[id*='gold_time_value']", caap.globalContainer).text(),
+                ecv = $j("span[id*='energy_current_value']", caap.globalContainer).text(),
+                scv = $j("span[id*='stamina_current_value']", caap.globalContainer).text(),
+                hcv = $j("span[id*='health_current_value']", caap.globalContainer).text(),
                 arr = [],
                 num = 0;
 
