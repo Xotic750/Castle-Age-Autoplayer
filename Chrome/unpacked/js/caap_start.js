@@ -88,7 +88,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 					state = null;
 					css = null;
 					gm = null;
-					s = null;
+					ss = null;
 					db = null;
 					sort = null;
 					schedule = null;

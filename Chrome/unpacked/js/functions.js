@@ -88,7 +88,7 @@ function caap_reload() {
     state = null;
     css = null;
     gm = null;
-    s = null;
+    ss = null;
     db = null;
     sort = null;
     schedule = null;
