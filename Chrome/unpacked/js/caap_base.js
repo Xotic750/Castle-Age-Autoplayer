@@ -1781,11 +1781,6 @@ caap = {
             return undefined;
         }
     },
-    /*
-    injectCATools : function() {
-        $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp?" + Math.random());
-    },
-    */
     init : function() {
         try {
             var tDiv;
@@ -1952,12 +1947,6 @@ caap = {
                 caap.sellLand = {};
                 offline.bga.sort($u.sortBy(false, 'n'));
             }
-
-            /*
-            if(caap.domain.which === 0 && config.getItem('injectCATools', false)) {
-                caap.injectCATools();
-            }
-            */
 
             if(caap.domain.which === 3 && state.getItem('caapPause', 'none') === 'block') {
                 caap.pauseListener();
@@ -2626,7 +2615,6 @@ caap = {
             htmlCode += caap.makeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
             if(caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Use CA Background', 'backgroundCA', false, '');
-                //htmlCode += caap.makeCheckTR('Inject CA-Tools', 'injectCATools', false, 'EXPERIMENTAL: Injects the CA-Tools bookmarklet.');
                 htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
                 htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                 htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
@@ -3075,18 +3063,6 @@ caap = {
                     }
 
                     break;
-                /*
-                case "injectCATools" :
-                    if(caap.domain.which === 0) {
-                        if(e.target.checked) {
-                            caap.injectCATools();
-                        } else {
-                            caap.reloadCastleAge(true);
-                        }
-                    }
-
-                    break;
-                */
                 case "HideAds" :
                     if(caap.domain.which === 0) {
                         con.log(9, "HideAds");
