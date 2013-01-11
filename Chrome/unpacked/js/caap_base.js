@@ -2604,12 +2604,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!$u.hasContent(cbError) || !$u.isFunction(cbError)) {
+                caap.tempAjax = null;
                 cbError = function (XMLHttpRequest, textStatus, errorThrown) {
                     con.error("ajax: ", [XMLHttpRequest, textStatus, errorThrown]);
                 };
             }
 
             if (!$u.hasContent(cbSuccess) || !$u.isFunction(cbSuccess)) {
+                caap.tempAjax = null;
                 cbSuccess = function (data, textStatus, XMLHttpRequest) {
                     con.log(2, "ajax:", [data, textStatus, XMLHttpRequest]);
                 };

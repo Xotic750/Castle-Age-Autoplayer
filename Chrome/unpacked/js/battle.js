@@ -833,6 +833,8 @@
                     noSafeCount     = 0,
                     noSafeCountSet  = 0;
 
+                caap.tempAjax = null;
+
                 if (!$u.hasContent(inputDiv)) {
                     con.warn('Not on battlepage');
                     caap.navigateTo(caap.battlePage);

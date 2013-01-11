@@ -1088,6 +1088,7 @@ caap.checkResults_viewFight = function(ajax) {
             ctaDiv = $j(),
             dragonDiv = $j(".dragonContainer", slice),
             dleadersDiv = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv),
+            dleadersDiv2 = $j(),
             maxJoin = dleadersDiv.text().regex(/(\d+)/),
             countJoin = 0,
             it = 0,
@@ -1096,9 +1097,11 @@ caap.checkResults_viewFight = function(ajax) {
             groupMatch = false,
             found = false;
 
+        caap.tempAjax = null;
+
         // new monster layout logic
         if (dleadersDiv.text() == '') {
-            var dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+            dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
 
             maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
             /* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now

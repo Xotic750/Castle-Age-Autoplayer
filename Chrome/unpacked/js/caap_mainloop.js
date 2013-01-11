@@ -311,7 +311,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.army = null;
                     window.caap = null;
                     window.con = null;
-                    caap.tempAjax = null;
                     $u.reload();
                 }, 180000);
             }, 60000 + (Math.floor(Math.random() * 60) * 1000));
