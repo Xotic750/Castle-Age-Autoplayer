@@ -1002,7 +1002,6 @@ caap.monsterReview = function() {
                  \-------------------------------------------------------------------------------------*/
                 con.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
                 session.setItem('ReleaseControl', true);
-                //link = link.replace(caap.domain.link + '/', '').replace('?', '?twt2&');
                 link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
 
                 con.log(3, "Link", link);
@@ -1036,9 +1035,9 @@ caap.monsterReview = function() {
 
 /*jslint sub: false */
 
-caap.checkResults_viewFight = function(aslice) {
+caap.checkResults_viewFight = function(ajax, aslice) {
     try {
-        var slice = aslice ? $j(aslice) : $j("#app_body"),
+        var slice = ajax === true ? $j(aslice) : $j("#app_body"),
             currentMonster = {},
             time = [],
             tempDiv = $j(),
@@ -1082,9 +1081,7 @@ caap.checkResults_viewFight = function(aslice) {
             mName = '',
             feedMonster = '',
             md5 = '',
-            //page = session.getItem('page', 'battle_monster'),
-            //page = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''),
-            page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id"),
+            page = $j(".game", slice).eq(0).attr("id"),
             matches = true,
             ctaDiv = $j(),
             dragonDiv = $j(".dragonContainer", slice),

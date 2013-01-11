@@ -641,7 +641,7 @@
                 }
 
                 function onSuccess(data, textStatus, XMLHttpRequest) {
-                    caap.checkResults_viewFight(data);
+                    caap.checkResults_viewFight(true, data);
                     feed.ajaxScanWait = false;
                 }
 
