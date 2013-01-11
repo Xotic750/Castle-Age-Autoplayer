@@ -34,12 +34,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 feed.publicItems();
             }
 
-            $j("input[name='Attack Dragon']").click(function () {
+            $j("input[name='Attack Dragon']").on('click', function () {
                 var form = $j(this).parents("form").eq(0),
                     userId = $j("input[name='casuser']", form).val().parseInt(),
                     mpool = $j("input[name='mpool']", form).val().parseInt();
 
                 caap.setDomWaiting("/battle_monster.php?casuser=" + userId + "&mpool=" + mpool);
+
+                form = null;
             });
 
             return true;
@@ -84,6 +86,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // get all buttons to check monsterObjectList
             if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
                 con.log(2, "No buttons found");
+                buttonsDiv = null;
+                monsterRow = null;
+                summonDiv = null;
+                newInputsDiv = null;
                 return false;
             }
 
@@ -160,6 +166,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "No monsters to review");
                     //feed.checked("Not Found");
                     state.setItem('reviewDone', true);
+                    buttonsDiv = null;
+                    monsterRow = null;
+                    summonDiv = null;
+                    newInputsDiv = null;
                     return true;
                 }
 
@@ -167,6 +177,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 pageUserCheck = session.getItem('pageUserCheck', 0);
                 if (pageUserCheck && tempText && !(new RegExp('user=' + caap.stats['FBID']).test(tempText) || /alchemy\.php/.test(tempText))) {
                     con.log(2, "On another player's keep.", pageUserCheck);
+                    buttonsDiv = null;
+                    monsterRow = null;
+                    summonDiv = null;
+                    newInputsDiv = null;
                     return false;
                 }
 
@@ -262,6 +276,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             state.setItem('reviewDone', true);
             caap.updateDashboard(true);
+            buttonsDiv = null;
+            monsterRow = null;
+            summonDiv = null;
+            newInputsDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_fightList: " + err);
