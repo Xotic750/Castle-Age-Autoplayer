@@ -222,8 +222,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.page = function (slice) {
         try {
             if (!army.pageDone) {
-                slice = $u.setContent(slice, caap.globalContainer);
-                var pages = $j(),
+                //slice = $u.setContent(slice, caap.globalContainer);
+                var newslice = $u.setContent(slice, $j('#globalContainer')),
+                    pages = $j(),
                     search = $j(),
                     record = {},
                     tStr = '',
@@ -235,7 +236,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     useAjaxArmy = config.getItem("useAjaxArmy", true);
 
                 if (number === 1) {
-                    pages = $j("a[href*='army_member.php?page=']", slice).last();
+                    pages = $j("a[href*='army_member.php?page=']", newslice).last();
                     tStr = $u.hasContent(pages) ? pages.attr("href") : '';
                     tNum = $u.hasContent(tStr) ? tStr.regex(/page=(\d+)/) : null;
                     pCount = $u.setContent(tNum, 1);
@@ -244,7 +245,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     pCount = state.getItem("ArmyPageCount", 1);
                 }
 
-                search = $j("a[href*='comments.php?casuser=']", slice);
+                search = $j("a[href*='comments.php?casuser=']", newslice);
                 search.each(function () {
                     var el = $j(this);
 
@@ -268,7 +269,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
 
                 if (number === pCount) {
-                    search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", slice).parent().parent());
+                    search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", newslice).parent().parent());
                     if ($u.hasContent(search)) {
                         len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members? x(\d+)/), 0);
                         for (it = 1; it <= len; it += 1) {
@@ -286,6 +287,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(2, "army.page", number, pCount, army.recordsTemp.length);
                 army.pageDone = true;
 
+
+                newslice = null;
                 pages = null;
                 search = null;
             }

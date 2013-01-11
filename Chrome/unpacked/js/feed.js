@@ -353,9 +353,9 @@
 
         items: function (type, slice) {
             try {
-                slice = $u.setContent(slice, caap.appBodyDiv);
-                var ft = config.getItem("festivalTower", false);
-                $j("#" + caap.domain.id[caap.domain.which] + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
+                slice = $u.setContent(slice, $j("#app_body"));
+                var ft = config.getItem("festivalTower", false)
+                $j("#" + (type === 'feed' ? "army_feed_body a[href*='twt2']" : "cta_log a[href*='twt2']:even"), slice).each(function () {
                     var post  = $j(this),
                         link  = post.attr("href").replace(new RegExp(".*(castle_age|castle_ws)\\/"), '').replace(/&action=doObjective/, '').replace(/&lka=\d+/, ''),
                         mon   = (type === 'feed' ? $j("div[style*='bold']", post) : post).text().trim().innerTrim().replace(new RegExp("((.+ \\S+ to help \\S* (the |in an Epic Battle against the )*)|.+ has challenged )"), '').replace(/( raid)* on Castle Age!| in an epic battle!| to a team battle!|!/, '').replace(new RegExp("^(The )(Amethyst|Emerald|Ancient|Sapphire|Frost|Gold|Colossus)( Sea| Red| Dragon| of Terra)"), '$2$3').replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
@@ -451,7 +451,7 @@
 
         publicItems: function (slice) {
             try {
-                slice = $u.setContent(slice, caap.appBodyDiv);
+                slice = $u.setContent(slice, $j("#app_body"));
                 $j("div[style*='pubmonster_middlef.gif']", slice).each(function () {
                     var post = $j(this),
                         userId = 0,

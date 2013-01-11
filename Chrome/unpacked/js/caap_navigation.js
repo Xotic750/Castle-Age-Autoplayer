@@ -108,7 +108,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         function onSuccess() {
             $j(selector_dom).html(selector_load === "" ? caap.tempAjax.html() : $j(selector_load, caap.tempAjax).html());
             caap.ajaxLoadIcon.css("display", "none");
-            caap.reBind();
             caap.clearDomWaiting();
             caap.checkResults();
         }
@@ -136,32 +135,44 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.navigateTo = function (pathToPage, imageOnPage, webSlice) {
         try {
-            webSlice = $u.setContent(webSlice, caap.globalContainer);
-            if (!$u.hasContent(webSlice)) {
+            //webSlice = $u.setContent(webSlice, caap.globalContainer);
+            var newwebSlice = $u.setContent(webSlice, $j('#globalContainer')),
+                pathList,
+                s = 0,
+                jq,
+                path = '';
+
+
+            if (!$u.hasContent(newwebSlice)) {
                 con.warn('No content to Navigate to', imageOnPage, pathToPage);
                 return false;
             }
 
-            if ($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage, webSlice)) {
+            if ($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage, newwebSlice)) {
                 con.log(3, 'Image found on page', imageOnPage);
                 return false;
             }
 
+            /*
             var pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
                 s = 0,
                 jq = $j(),
                 path = '';
+            */
+
+            pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
+            jq = $j();
 
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 path = $u.setContent(pathList[s], '');
                 if (!$u.hasContent(path)) {
                     con.warn('pathList had no content!', pathList[s]);
                 } else {
-                    jq = $j("a[href*='" + path + ".php']", webSlice).not("a[href*='" + path + ".php?']", webSlice);
+                    jq = $j("a[href*='" + path + ".php']", newwebSlice).not("a[href*='" + path + ".php?']", newwebSlice);
                     if ($u.hasContent(jq)) {
                         con.log(2, 'Go to', path);
                     } else {
-                        jq = caap.checkForImage(path.hasIndexOf(".") ? path : path + '.', webSlice);
+                        jq = caap.checkForImage(path.hasIndexOf(".") ? path : path + '.', newwebSlice);
                         if ($u.hasContent(jq)) {
                             con.log(2, 'Click on image', jq.attr("src").basename());
                         }
@@ -178,6 +189,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             con.warn('Unable to Navigate to', imageOnPage, pathToPage);
 
+            newwebSlice = null;
 			pathList = null;
 			jq = null;
 

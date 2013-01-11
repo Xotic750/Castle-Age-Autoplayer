@@ -165,7 +165,7 @@ caap.battle = function(mode) {
 		}
 
 		// Check if we should chain attack
-		if($u.hasContent($j("img[src*='battle_victory.gif']", caap.resultsWrapperDiv))) {
+		if($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
 			button = caap.checkForImage(chainImg);
 			battleChainId = state.getItem("BattleChainId", 0);
 			if($u.hasContent(button) && battleChainId) {
@@ -200,7 +200,7 @@ caap.battle = function(mode) {
 
 				caap.setDivContent('battle_mess', 'Joining the Raid');
 				// This is a temporary fix for the web3 url until CA fix their HTML
-				if(caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
+				if(caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
 					if(caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
 						return true;
 					}
@@ -230,7 +230,7 @@ caap.battle = function(mode) {
 					monsterObject = monster.getItem(raidName);
 				}
 
-				if(!$u.hasContent($j("div[style*='dragon_title_owner']", caap.appBodyDiv))) {
+				if(!$u.hasContent($j("#app_body div[style*='dragon_title_owner']"))) {
 					button = monster.engageButtons[monsterObject['md5']];
 					if($u.hasContent(button)) {
 						caap.click(button);
@@ -248,7 +248,7 @@ caap.battle = function(mode) {
 				// The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
 				if(targetType === "Userid List") {
 					if(battle.freshmeat('Raid')) {
-						if($u.hasContent($j("span[class*='result_body']", caap.appBodyDiv))) {
+						if($u.hasContent($j("#app_body span[class*='result_body']"))) {
 							battle.nextTarget();
 						}
 						noSafeCountSet = config.getItem("notSafeCount", 20);
@@ -287,7 +287,7 @@ caap.battle = function(mode) {
 				// The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
 				if(targetType === "Userid List") {
 					if(battle.freshmeat('Freshmeat')) {
-						if($u.hasContent($j("span[class*='result_body']", caap.appBodyDiv))) {
+						if($u.hasContent($j("#app_body span[class*='result_body']"))) {
 							battle.nextTarget();
 						}
 						noSafeCountSet = config.getItem("notSafeCount", 20);

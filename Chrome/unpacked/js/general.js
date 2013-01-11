@@ -425,7 +425,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     /*jslint sub: true */
     general.GetCurrent = function () {
         try {
-            var //equipDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
+            var //equipDiv = $j("#main_bn", caap.globalContainer),
             //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
             //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
             generalName = $j('div[style*="hot_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // get current general name after CA update // 2011-09-27 CAGE
@@ -482,7 +482,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.GetGenerals = function () {
         try {
-            var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
+            var generalsDiv = $j("#app_body div.generalSmallContainer2"),
                 update = false,
                 save = false;
 
@@ -816,8 +816,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var generalName = general.GetCurrent(),
                 it = 0,
                 len = 0,
-                //                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
-                generalDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
+                //generalDiv   = $j("#equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
+                //generalDiv = $j("#main_bn", caap.globalContainer),
+                generalDiv = $j('#globalContainer #main_bn'),
                 tempObj = $j();
                 //success = false;
 
@@ -1185,7 +1186,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             caap.clickAjaxLinkSend(changeLink.rlink + "?itype=" + gen.itype + "&item=" + gen.item);
                         } else {
                             general.quickSwitch = true;
-                            caap.ajaxLoad(changeLink.rlink, gen, "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", "#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", page);
+                            caap.ajaxLoad(changeLink.rlink, gen, "#equippedGeneralContainer", "#equippedGeneralContainer", page);
                         }
                     }
                 };

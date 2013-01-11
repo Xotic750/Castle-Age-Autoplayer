@@ -333,10 +333,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.stsPoll = function () {
         try {
-            var gtv = $j("span[id*='gold_time_value']", caap.globalContainer).text(),
-                ecv = $j("span[id*='energy_current_value']", caap.globalContainer).text(),
-                scv = $j("span[id*='stamina_current_value']", caap.globalContainer).text(),
-                hcv = $j("span[id*='health_current_value']", caap.globalContainer).text(),
+            //var gtv = $j("span[id*='gold_time_value']", caap.globalContainer).text(),
+                //ecv = $j("span[id*='energy_current_value']", caap.globalContainer).text(),
+                //scv = $j("span[id*='stamina_current_value']", caap.globalContainer).text(),
+                //hcv = $j("span[id*='health_current_value']", caap.globalContainer).text(),
+            var mainSts = $j("#globalContainer #mainsts"),
+                gtv = $j("#gold_time_value", mainSts).text(),
+                ecv = $j("#energy_current_value", mainSts).text(),
+                scv = $j("#stamina_current_value", mainSts).text(),
+                hcv = $j("#health_current_value", mainSts).text(),
                 arr = [],
                 num = 0;
 
@@ -370,6 +375,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             /*jslint sub: false */
 
+            mainSts = null;
 			gtv = null;
 			ecv = null;
 			scv = null;

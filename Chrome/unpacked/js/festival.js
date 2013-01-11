@@ -421,7 +421,7 @@
         /*jslint sub: true */
         checkInfo: function () {
             try {
-                var infoDiv      = $j("#current_battle_info", caap.appBodyDiv),
+                var infoDiv      = $j("#app_body #current_battle_info"),
                     now          = new Date(),
                     tDate        = new Date(),
                     next         = $u.setContent(infoDiv.children().eq(0).children().eq(0).text(), '').trim().innerTrim(),
@@ -532,13 +532,15 @@
                 lastAttacked = state.getItem('FestivalMinionAttacked', {});
                 state.setItem('FestivalMinionAttacked', {});
                 if (!$j.isEmptyObject(lastAttacked) && lastAttacked['index'] >= 0 && lastAttacked['index'] < 40) {
-                    resultBody = $j("span[class='result_body']", caap.globalContainer);
+                    //resultBody = $j("span[class='result_body']", caap.globalContainer);
+                    resultBody = $j("#globalContainer span[class='result_body']");
                     if ($u.hasContent(resultBody)) {
                         tStr = resultBody.text();
                         tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
                     }
 
-                    imgDiv = $j("img[src*='battle_defeat.gif']", caap.globalContainer);
+                    //imgDiv = $j("img[src*='battle_defeat.gif']", caap.globalContainer);
+                    imgDiv = $j("#globalContainer img[src*='battle_defeat.gif']");
                     if ($u.hasContent(imgDiv)) {
                         if (lastAttacked['poly']) {
                             con.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
@@ -559,7 +561,8 @@
                             con.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         }
                     } else {
-                        imgDiv = $j("img[src*='battle_victory.gif']", caap.globalContainer);
+                        //imgDiv = $j("img[src*='battle_victory.gif']", caap.globalContainer);
+                        imgDiv = $j("#globalContainer img[src*='battle_victory.gif']");
                         if ($u.hasContent(imgDiv)) {
                             if (lastAttacked['poly']) {
                                 con.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
@@ -578,7 +581,8 @@
                                 con.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                             }
                         } else {
-                            resultsTxt = $j("div[class='results']", caap.globalContainer).text();
+                            //resultsTxt = $j("div[class='results']", caap.globalContainer).text();
+                            resultsTxt = $j("#globalContainer div[class='results']").text();
                             if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/i)) {
                                 con.log(1, "You didn't have enough battle tokens");
                             } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
@@ -592,7 +596,8 @@
                     }
                 }
 
-                bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer);
+                //bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer);
+                bannerDiv = $j("#globalContainer #arena_battle_banner_section");
                 con.log(2, "arena_battle_banner_section");
                 myStatsTxt = bannerDiv.text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
@@ -608,9 +613,11 @@
                     currentRecord['teamHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
                     if (!notStarted) {
-                        gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']", caap.globalContainer);
+                        //gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']", caap.globalContainer);
+                        gates = $j("#globalContainerdiv[id*='enemy_guild_member_list_']");
                         if (!$u.hasContent(gates)) {
-                            tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']", caap.globalContainer);
+                            //tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']", caap.globalContainer);
+                            tabs = $j("#globalContainer div[id*='your_arena_tab']");
                             if (!$u.hasContent(tabs)) {
                                 con.warn("No gates found");
                             }
@@ -725,11 +732,14 @@
                         }
                     }
 
-                    collectDiv = $j("input[src*='arena3_collectbutton.gif']", caap.globalContainer);
-                    enterDiv = $j("input[src*='guild_enter_battle_button.gif']", caap.globalContainer);
+                    //collectDiv = $j("input[src*='arena3_collectbutton.gif']", caap.globalContainer);
+                    //enterDiv = $j("input[src*='guild_enter_battle_button.gif']", caap.globalContainer);
+                    collectDiv = $j("#globalContainer input[src*='arena3_collectbutton.gif']");
+                    enterDiv = $j("#globalContainer input[src*='guild_enter_battle_button.gif']");
                     if (!notStarted && !battleOver && !$u.hasContent(collectDiv) && !$u.hasContent(enterDiv)) {
                         currentRecord['state'] = 'Alive';
-                        tStr = $j("span[id='" +  caap.domain.id[caap.domain.which] + "monsterTicker']", caap.globalContainer).text();
+                        //tStr = $j("span[id='" +  caap.domain.id[caap.domain.which] + "monsterTicker']", caap.globalContainer).text();
+                        tStr = $j("#globalContainer span[id='monsterTicker']").text();
                         currentRecord['ticker'] = tStr ? tStr.trim() : '';
                         schedule.setItem("festivalTokenTicker", currentRecord['ticker'].parseTimer(), 5);
                         if (myStatsTxt) {
@@ -745,15 +755,18 @@
                             }
                         }
 
-                        tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']", caap.globalContainer);
+                        //tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']", caap.globalContainer);
+                        tokenSpan = $j("#globalContainer span[id='guild_token_current_value']");
                         tStr = $u.hasContent(tokenSpan) ? tokenSpan.text().trim() : '';
                         currentRecord['tokens'] = tStr ? tStr.parseInt() : 0;
 
-                        timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']", caap.globalContainer);
+                        //timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']", caap.globalContainer);
+                        timerSpan = $j("#globalContainer span[id='guild_token_time_value']");
                         tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
                         currentRecord['tokenTime'] = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
 
-                        health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health", caap.globalContainer);
+                        //health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health", caap.globalContainer);
+                        health = $j('#globalContainer #guild_battle_health');
                         if ($u.hasContent(health)) {
                             healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
                             if ($u.hasContent(healthEnemy)) {
@@ -1295,7 +1308,6 @@
             caap.setDomWaiting("festival_battle_home.php");
         },
 
-
         dualListener: function (event) {
             var index  = -1,
                 minion = {};
@@ -1323,7 +1335,8 @@
 
         checkResults_festival_guild_battle: function () {
             try {
-                caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
+                //caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
+                $j('#globalContainer input[src*="monster_duel_button"]').each(function (index) {
                     $j(this).parent().parent().attr("id", index).on('click', festival.dualListener);
                 });
 
@@ -1433,7 +1446,8 @@
                     return true;
                 }
 
-                if (!$u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer))) {
+                //if (!$u.hasContent($j("#arena_battle_banner_section", caap.globalContainer))) {
+                if (!$u.hasContent($j('#globalContainer #arena_battle_banner_section'))) {
                     con.log(1, "FestivalRefresh2");
                     /*
                     if (state.getItem('FestivalRefresh', true)) {
@@ -1483,7 +1497,7 @@
                 if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                     con.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                     caap.setDivContent('festival_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
-                    key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
+                    key = $j("#attack_key_" + minion['target_id']);
                     if (key && key.length) {
                         form = key.parents("form").eq(0);
                         if (form && form.length) {
@@ -1508,7 +1522,7 @@
                     festivalInfo = {};
 
                 $j("div[style*='arena3_newsfeed']").off('click', festival.engageListener).on('click', caap.arenaEngageListener);
-                tokenSpan = $j("span[id='" + caap.domain.id[caap.domain.which] + "arena_token_current_value']");
+                tokenSpan = $j("span[id='arena_token_current_value']");
                 if (tokenSpan && tokenSpan.length) {
                     tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
                     festivalInfo = festival.getItem();
@@ -1530,9 +1544,10 @@
 
         addListeners: function () {
             try {
-                $j("input[src*='battle_enter_battle']", caap.globalContainer).on('click', festival.engageListener);
+                //$j("input[src*='battle_enter_battle']", caap.globalContainer).on('click', festival.engageListener);
+                $j(document).on('click', '#globalContainer input[src*="battle_enter_battle"]', festival.engageListener);
                 //$j("div[style*='arena3_newsfeed']", caap.globalContainer).on('click', festival.engageListener);
-                $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
+                $j('#globalContainer input[src*="monster_duel_button"]').each(function (index) {
                     $j(this).attr("id", index).on('click', festival.dualListener);
                 });
 

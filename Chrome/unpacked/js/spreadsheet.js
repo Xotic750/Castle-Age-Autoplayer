@@ -26,6 +26,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
+            if(caap.domain.which !== 0 && caap.domain.which !== 2 && caap.domain.which !== 3) {
+                return true;
+            }
+
             con.log(1, "spreadsheet.load called");
 
             spreadsheet.records = ss.getItem('spreadsheet.records', 'default', true);
@@ -297,7 +301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     spreadsheet.doTitles = function (goblin) {
         try {
-            var images = $j("#" + caap.domain.id[caap.domain.which] + "globalContainer img");
+            var images = $j("#globalContainer img");
 
             if ($u.hasContent(images)) {
                 images.each(function () {

@@ -942,7 +942,7 @@ caap.fastHealButtonListener = function(e) {
 				"action" : "heal_avatar",
 				"bqh" : bqh
 			};
-			caap.ajaxLoad('keep.php', params, "#" + caap.domain.id[caap.domain.which] + "health_current_value", "#" + caap.domain.id[caap.domain.which] + "health_current_value", session.getItem("page", ""));
+			caap.ajaxLoad('keep.php', params, "#health_current_value", "#health_current_value", session.getItem("page", ""));
 		});
 	}
 };

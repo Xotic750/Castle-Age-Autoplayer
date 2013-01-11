@@ -34,7 +34,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     user = {}, tStr = '',
                     $b = null,
                     $c = null;
-                $b = $j('#' + caap.domain.id[caap.domain.which] + 'battleUpdateBox');
+                $b = $j('#battleUpdateBox');
                 if ($b && $b.length) {
                     $c = $j('.alertsContainer', $b);
                     $j('.alert_content', $c).each(function (i, el) {

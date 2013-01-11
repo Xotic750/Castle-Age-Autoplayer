@@ -260,7 +260,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            var atributeSlice = $j("div[style*='keep_cont_top.jpg']", caap.appBodyDiv),
+            var atributeSlice = $j("#app_body div[style*='keep_cont_top.jpg']"),
                 startAtt = 0,
                 stopAtt = 4,
                 attrName = '',

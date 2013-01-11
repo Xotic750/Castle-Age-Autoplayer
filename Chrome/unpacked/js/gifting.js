@@ -162,7 +162,7 @@
                     tempDiv;
 
                 if ($u.hasContent(giftImg)) {
-                    giftContainer = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer", caap.appBodyDiv);
+                    giftContainer = $j("#app_body #giftContainer");
                     if (!$u.hasContent(giftContainer)) {
                         con.warn("Could not find giftContainer");
                         return false;
@@ -271,7 +271,7 @@
                             return false;
                         }
 
-                        button = $j("img[src*='invite_sendgift.gif']", caap.appBodyDiv);
+                        button = $j("#app_body img[src*='invite_sendgift.gif']");
                         if ($u.hasContent(button)) {
                             if (!gifting.clickedButton) {
                                 caap.click(button);
@@ -299,7 +299,8 @@
                         }
 
                         if (caap.domain.which === 2) {
-                            tempDiv = $j("form[id*='req_form_'] input[name='send']", caap.globalContainer);
+                            //tempDiv = $j("form[id*='req_form_'] input[name='send']", caap.globalContainer);
+                            tempDiv = $j('#globalContainer form[id*="req_form_"] input[name="send"]');
                             if ($u.hasContent(tempDiv)) {
                                 caap.click(tempDiv);
                                 return true;
@@ -330,7 +331,8 @@
         /*jslint sub: true */
         accept: function () {
             try {
-                var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id=']", caap.globalContainer).eq(0),
+                //var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id=']", caap.globalContainer).eq(0),
+                var giftDiv   = $j('#globalContainer div[class="messages"] a[href*="profile.php?id="]').eq(0),
                     tempText  = '',
                     tempNum   = 0,
                     current   = {};
@@ -909,7 +911,8 @@
 
             populate: function () {
                 try {
-                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']", caap.globalContainer),
+                    //var giftDiv  = $j("#giftContainer div[id*='gift']", caap.globalContainer),
+                    var giftDiv  = $j('#globalContainer #giftContainer div[id*="gift"]'),
                         tempText = '',
                         tempArr  = [],
                         update   = false,
@@ -1256,8 +1259,8 @@
                         it1            = 0,
                         len            = 0,
                         tempGift       = '',
-                        unselListDiv   = $j("div[class='unselected_list']", caap.appBodyDiv),
-                        selListDiv     = $j("div[class='selected_list']", caap.appBodyDiv),
+                        unselListDiv   = $j("#app_body div[class='unselected_list']"),
+                        selListDiv     = $j("#app_body div[class='selected_list']"),
                         unselDiv       = $j(),
                         selDiv         = $j(),
                         first          = true,
@@ -1366,8 +1369,8 @@
                         it1            = 0,
                         len            = 0,
                         tempGift       = '',
-                        unselListDiv   = $j("div[class='unselected_list']", caap.appBodyDiv),
-                        selListDiv     = $j("div[class='selected_list']", caap.appBodyDiv),
+                        unselListDiv   = $j("#app_body div[class='unselected_list']"),
+                        selListDiv     = $j("#app_body div[class='selected_list']"),
                         unselDiv       = $j(),
                         selDiv         = $j(),
                         first          = true,
@@ -1513,7 +1516,7 @@ con.log(1, 'chooseFriend');
             checkSent: function (event) {
                 try {
                     var howMany,
-                        button = $j("img[src*='tab_gifts_on.gif']", caap.appBodyDiv);
+                        button = $j("#app_body img[src*='tab_gifts_on.gif']");
 
                     con.log(1, "gifting.queue.checkSent begin");
                     if ($u.mutationTypes['DOMSubtreeModified']) {
@@ -1548,7 +1551,7 @@ con.log(1, 'chooseFriend');
             setCheckedIds: function (idArray) {
                 try {
                     con.log(1, "gifting.queue.setCheckedIds");
-                    gifting.queue.resultsContainer = $j("#results_container", caap.appBodyDiv);
+                    gifting.queue.resultsContainer = $j("#app_body #results_container");
                     if ($u.mutationTypes['DOMSubtreeModified']) {
                         gifting.queue.resultsContainer.on("DOMSubtreeModified", gifting.queue.checkSent);
                     } else if ($u.mutationTypes['DOMAttrModified']) {

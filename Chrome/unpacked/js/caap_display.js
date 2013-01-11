@@ -14,12 +14,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
-    caap.chatLink = function (slice, query) {
+    caap.chatLink = function (query) {
         try {
             var hr = new RegExp('.*(http:.*)'),
                 qr = /"/g;
 
-            $j(query, slice).each(function () {
+            $j(query).each(function () {
                 var e = $j(this),
                     h = '',
                     t = '',

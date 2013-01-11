@@ -84,7 +84,7 @@
                 }
 
                 if ($u.hasContent(result.battleType)) {
-                    if ($u.hasContent(caap.resultsWrapperDiv)) {
+                    if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                         tempDiv = $j("img[src*='arena_battlepoints']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
@@ -99,7 +99,7 @@
                                 con.warn("Unable to find arena points text in tempDiv.parent().parent()");
                             }
                         } else {
-                            con.log(3, "Unable to find arena_battlepoints in caap.resultsWrapperDiv");
+                            con.log(3, "Unable to find arena_battlepoints in $j('#app_body #results_main_wrapper')");
                         }
 
                         result.gold = 100000;   // don't really care about the gold
@@ -113,7 +113,7 @@
                                 con.warn("Unable to find gold text in tempDiv");
                             }
                         } else {
-                            con.warn("Unable to find gold element in caap.resultsWrapperDiv");
+                            con.warn("Unable to find gold element in $j('#app_body #results_main_wrapper')");
                         }
 
                         result.userId = state.getItem("lastArenaBattleID", 0);
@@ -143,7 +143,7 @@
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            con.warn("Unable to find keep.php?casuser= in caap.resultsWrapperDiv");
+                            con.warn("Unable to find keep.php?casuser= in $j('#app_body #results_main_wrapper')");
                             throw "Unable to get userId!";
                         }
 

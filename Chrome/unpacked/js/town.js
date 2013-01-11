@@ -95,7 +95,7 @@
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv = $j("div[style*='town_unit_bar.jpg'],div[style*='town_unit_bar_owned.jpg']", caap.appBodyDiv),
+                var rowDiv = $j("#app_body div[style*='town_unit_bar.jpg'],div[style*='town_unit_bar_owned.jpg']"),
                     passed = true,
                     save   = false;
 

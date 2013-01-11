@@ -25,12 +25,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 				}
 
-				var formId = caap.domain.id[caap.domain.which] + "consume_1",
+				var formId = "consume_1",
 					potionDiv = $j(),
 					button = $j();
 
 				if (potion === 'stamina') {
-					formId = caap.domain.id[caap.domain.which] + "consume_2";
+					formId = "consume_2";
 				}
 
 				con.log(1, "Consuming potion", potion);

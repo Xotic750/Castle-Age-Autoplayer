@@ -13,12 +13,18 @@ caap.checkResults_guild = function() {
 		}
 
 		// Guild
-		var guildTxt = '', guildDiv = $j(), tStr = '', members = [], save = false;
+		var guildTxt = '',
+            guildDiv = $j(),
+            tStr = '',
+            members = [],
+            save = false;
 
 		if(config.getItem('enableMonsterFinder', false)) {
 			feed.items("guild");
 		}
-		guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_achievement", caap.appBodyDiv).text().trim().innerTrim();
+
+		//guildTxt = $j("#guild_achievement", caap.appBodyDiv).text().trim().innerTrim();
+        guildTxt = $j("#globalContainer #guild_achievement").text().trim().innerTrim();
 		if($u.hasContent(guildTxt)) {
 			tStr = guildTxt.regex(/Monster ([\d,]+)/);
 			caap.stats['guild']['mPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
@@ -32,21 +38,27 @@ caap.checkResults_guild = function() {
 		} else {
 			con.warn('Using stored guild Monster and Battle points.');
 		}
-		guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_blast input[name='guild_id']", caap.globalContainer).attr("value");
+
+        //guildTxt = $j("#guild_blast input[name='guild_id']", caap.globalContainer).attr("value");
+		guildTxt = $j("#globalContainer #guild_blast input[name='guild_id']").attr("value");
 		if($u.hasContent(guildTxt)) {
 			caap.stats['guild']['id'] = guildTxt;
 			save = true;
 		} else {
 			con.warn('Using stored guild_id.');
 		}
-		guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_banner_section", caap.globalContainer).text().trim();
+
+		//guildTxt = $j("#guild_banner_section", caap.globalContainer).text().trim();
+        guildTxt = $j("#globalContainer #guild_banner_section").text().trim();
 		if($u.hasContent(guildTxt)) {
 			caap.stats['guild']['name'] = guildTxt;
 			save = true;
 		} else {
 			con.warn('Using stored guild name.');
 		}
-		guildDiv = $j("#" + caap.domain.id[caap.domain.which] + "cta_log div[style*='guild_main_score_middle'] a[href*='keep.php?casuser']", caap.globalContainer);
+
+        //guildDiv = $j("#cta_log div[style*='guild_main_score_middle'] a[href*='keep.php?casuser']", caap.globalContainer);
+		guildDiv = $j("#globalContainer #cta_log div[style*='guild_main_score_middle'] a[href*='keep.php?casuser']");
 		if($u.hasContent(guildDiv)) {
 			guildDiv.each(function() {
 				var t = $j(this), uid = t.attr("href").regex(/casuser=(\d+)/), name = t.text().trim();

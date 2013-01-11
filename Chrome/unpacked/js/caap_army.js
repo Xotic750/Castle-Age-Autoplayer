@@ -15,7 +15,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 caap.checkResults_army = function () {
     try {
-        var listHref = $j("div[class='messages'] a[href*='army.php?act=ignore']", caap.appBodyDiv),
+        var listHref = $j("#app_body div[class='messages'] a[href*='army.php?act=ignore']"),
             autoGift = config.getItem('AutoGift', false),
             time = autoGift ? config.getItem('CheckGiftMins', 15) : 0;
 
@@ -30,7 +30,7 @@ caap.checkResults_army = function () {
                 link.insertAfter(row);
 
 				link = null;
-				row = null;
+
             });
         }
 

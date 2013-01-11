@@ -36,13 +36,33 @@ caap.checkResults_public_monster_list = function() {
 /*jslint sub: true */
 caap.checkResults_fightList = function() {
     try {
-        if(feed.isScan && $u.hasContent($j("div[style*='no_monster_back.jpg']", caap.appBodyDiv))) {
+        if(feed.isScan && $u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
             con.log(2, "No monster");
             feed.checked(monster.getItem(''));
             return false;
         }
 //        var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_']" : ""), caap.appBodyDiv), page = '', monsterReviewed = {}, it = 0, len = 0, url = '', siege = '', engageButtonName = '', monsterName = '', monsterRow = $j("div[style*='monsterlist_container.gif']", caap.appBodyDiv), monsterFull = '', monsterInfo = {}, summonDiv = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv), tempText = '', monsterText = '', userId = 0, userName = '', mName = '', md5 = '', pageUserCheck = 0, newInputsDiv = $j();
-        var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='monster_button_'],img[src*='festival_monster_'],img[src*='festival_monster2_']", caap.appBodyDiv), page = '', monsterReviewed = {}, it = 0, len = 0, url = '', siege = '', engageButtonName = '', monsterName = '', monsterRow = $j("div[style*='monsterlist_container.gif']", caap.appBodyDiv), monsterFull = '', monsterInfo = {}, summonDiv = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv), tempText = '', monsterText = '', userId = 0, userName = '', mName = '', md5 = '', pageUserCheck = 0, newInputsDiv = $j();
+        var buttonsDiv = $j("#app_body img[src*='dragon_list_btn_'],input[src*='monster_button_'],img[src*='festival_monster_'],img[src*='festival_monster2_']"),
+            page = '',
+            monsterReviewed = {},
+            it = 0,
+            len = 0,
+            url = '',
+            siege = '',
+            engageButtonName = '',
+            monsterName = '',
+            monsterRow = $j("#app_body div[style*='monsterlist_container.gif']"),
+            monsterFull = '',
+            monsterInfo = {},
+            summonDiv = $j("#app_body img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : "")),
+            tempText = '',
+            monsterText = '',
+            userId = 0,
+            userName = '',
+            mName = '',
+            md5 = '',
+            pageUserCheck = 0,
+            newInputsDiv = $j();
 
         monster.clean();
         // get all buttons to check monsterObjectList
@@ -224,7 +244,7 @@ caap.checkResults_battle = function() {
         var symDiv = $j(), points = [], success = true;
 
         battle.checkResults();
-        symDiv = caap.appBodyDiv.find("img[src*='symbol_tiny_']").not("img[src*='rewards.jpg']");
+        symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
         if($u.hasContent(symDiv) && symDiv.length === 5) {
             symDiv.each(function(index) {
                 var txt = '';
@@ -554,17 +574,17 @@ caap.monsters = function() {
         }
 
         // Check if on engage monster page
-        if($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
+        if($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='festival_monsters_top_']"))) {
             if(monster.confirmRightPage(monsterName)) {
                 return true;
             }
             singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
-              
+
 
  // if the monster has parts, run through them in reverse order until we find one with health and hit it.
                 var partsTargets = $j("div[id^='monster_target_']");
                 if (partsTargets.length > 0) {
-               
+
                // Define if use user or default order parts
                var orderPartsArray=[];
                if(currentMonster['conditions'] && currentMonster['conditions'].match(/:po/i) ) {
@@ -573,11 +593,11 @@ caap.monsters = function() {
                      // Wrong number of parts in monster condition.
                      // Set Default Order parts
                      orderPartsArray = monsterInfo.partOrder;
-                  } 
+                  }
                } else {
                   orderPartsArray = monsterInfo.partOrder;
                }
-               
+
                // If minions dead, remove index of minions
                if (orderPartsArray.length>partsTargets.length) {
                   var max_index = -1;
@@ -592,16 +612,16 @@ caap.monsters = function() {
                      orderPartsArray.splice(max_index, 1);
                   }
                }
-               
+
                // Click first order parts which have health
                for (var ii=0; ii < orderPartsArray.length; ii++) {
-               
+
                   if (partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
                      caap.click(partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[1].children[0]);
                      break;
                   }
                }
-                
+
                 }
 
 
@@ -715,7 +735,7 @@ caap.monsters = function() {
             con.warn('What kind of monster?', currentMonster);
             return false;
         }
-        buttonHref = $u.setContent($j("img[src*='dragon_list_btn_']", caap.appBodyDiv).eq(0).parent().attr("href"), '');
+        buttonHref = $u.setContent($j("#app_body img[src*='dragon_list_btn_']").eq(0).parent().attr("href"), '');
         pageUserCheck = session.getItem('pageUserCheck', 0);
         if(pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats['FBID']).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
             con.log(2, "On another player's keep.", pageUserCheck);
@@ -870,7 +890,7 @@ caap.monsterReview = function() {
         if(counter === -1) {
             if(caap.stats['level'] > 7) {
                 // This is a temporary fix for the web3 url until CA fix their HTML
-                if(caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
+                if(caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
                     if(caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
                         return true;
                     }
@@ -1017,13 +1037,69 @@ caap.monsterReview = function() {
 
 caap.checkResults_viewFight = function(ajax) {
     try {
-        var slice = ajax ? caap.tempAjax : caap.appBodyDiv, currentMonster = {}, time = [], tempDiv = $j(), tempText = '', tempArr = [], counter = 0, monstHealthImg = '', totalCount = 0, ind = 0, len = 0, searchStr = '', searchRes = $j(), achLevel = 0, maxDamage = 0, maxToFortify = 0, isTarget = false, KOBenable = false, KOBbiasHours = 0, KOBach = false, KOBmax = false, KOBminFort = false, KOBtmp = 0, KOBtimeLeft = 0, KOBbiasedTF = 0, KOBPercentTimeRemaining = 0, KOBtotalMonsterTime = 0,
-        monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice), actionDiv = $j(), damageDiv = $j(), damageDivNew = false, monsterInfo = {}, targetFromfortify = {}, tStr = '', tNum = 0, tBool = false, fMonstStyle = '', nMonstStyle = '', nMonstStyle2 = '', id = 0, userName = '', mName = '', feedMonster = '', md5 = '',
-        //page              = session.getItem('page', 'battle_monster'),
-        page = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''), matches = true, ctaDiv = $j(), dragonDiv = $j(".dragonContainer", slice), dleadersDiv = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv), maxJoin = dleadersDiv.text().regex(/(\d+)/), countJoin = 0, it = 0, jt = 0, groups = {}, groupMatch = false, found = false;
-            // new monster layout logic
+        var slice = ajax ? caap.tempAjax : $j("#app_body"),
+            currentMonster = {},
+            time = [],
+            tempDiv = $j(),
+            tempText = '',
+            tempArr = [],
+            counter = 0,
+            monstHealthImg = '',
+            totalCount = 0,
+            ind = 0,
+            len = 0,
+            searchStr = '',
+            searchRes = $j(),
+            achLevel = 0,
+            maxDamage = 0,
+            maxToFortify = 0,
+            isTarget = false,
+            KOBenable = false,
+            KOBbiasHours = 0,
+            KOBach = false,
+            KOBmax = false,
+            KOBminFort = false,
+            KOBtmp = 0,
+            KOBtimeLeft = 0,
+            KOBbiasedTF = 0,
+            KOBPercentTimeRemaining = 0,
+            KOBtotalMonsterTime = 0,
+            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+            actionDiv = $j(),
+            damageDiv = $j(),
+            damageDivNew = false,
+            monsterInfo = {},
+            targetFromfortify = {},
+            tStr = '',
+            tNum = 0,
+            tBool = false,
+            fMonstStyle = '',
+            nMonstStyle = '',
+            nMonstStyle2 = '',
+            id = 0,
+            userName = '',
+            mName = '',
+            feedMonster = '',
+            md5 = '',
+            //page = session.getItem('page', 'battle_monster'),
+            //page = $j(".game", ajax ? slice : caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], ''),
+            page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id"),
+            matches = true,
+            ctaDiv = $j(),
+            dragonDiv = $j(".dragonContainer", slice),
+            dleadersDiv = $j("td:eq(1) div[style*='bold']:eq(0) div:last", dragonDiv),
+            maxJoin = dleadersDiv.text().regex(/(\d+)/),
+            countJoin = 0,
+            it = 0,
+            jt = 0,
+            groups = {},
+            groupMatch = false,
+            found = false;
+
+        // new monster layout logic
         if (dleadersDiv.text() == '') {
             var dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+
             maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
             /* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
             for (var ii = 1; ii < dleadersDiv2.length; ii++) {		// start at 1 to skip the title 'Damage Leaders:'
@@ -1040,7 +1116,12 @@ caap.checkResults_viewFight = function(ajax) {
                 });
 
                 tempDiv.each(function(index) {
-                    var group = $j(this), levels = $j("b", group).text(), start = levels.regex(/Levels (\d+)/), max = group.text().trim().innerTrim().replace(levels, '').trim(), maxNum = max.regex(/(\d+)/), count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
+                    var group = $j(this),
+                        levels = $j("b", group).text(),
+                        start = levels.regex(/Levels (\d+)/),
+                        max = group.text().trim().innerTrim().replace(levels, '').trim(),
+                        maxNum = max.regex(/(\d+)/),
+                        count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
 
                     con.log(3, "groups", index, levels, start, maxNum, count);
                     groups[levels] = {
@@ -1048,6 +1129,7 @@ caap.checkResults_viewFight = function(ajax) {
                         'max' : maxNum,
                         'count' : count
                     };
+
                     countJoin += count;
                     if(!feed.isScan && !ajax) {
                         group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
@@ -1063,6 +1145,7 @@ caap.checkResults_viewFight = function(ajax) {
             'max' : maxJoin,
             'count' : countJoin
         };
+
         con.log(3, "groups", groups);
         if(!feed.isScan && !ajax) {
             dleadersDiv.html("[" + countJoin + "/" + maxJoin + "max]");
@@ -1083,7 +1166,7 @@ caap.checkResults_viewFight = function(ajax) {
                 spreadsheet.doTitles();
             }
 
-            caap.chatLink(slice, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
+            caap.chatLink(slice, "#chat_log div[style*='hidden'] div[style*='320px']");
         }
 
         con.log(4, "monsterDiv", monsterDiv);
@@ -1142,14 +1225,17 @@ caap.checkResults_viewFight = function(ajax) {
         }
 
         if($u.hasContent(monsterDiv)) {
-//            id = $u.setContent($j("input[name*='casuser']", $j("form[onsubmit*='newsFeed']"))[0].value, '');
+            //id = $u.setContent($j("input[name*='casuser']", $j("form[onsubmit*='newsFeed']"))[0].value, '');
             id = $u.setContent($j("input[name*='casuser']").eq(0).attr("value"), '');
             id = $u.setContent(id, $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/));
             id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
             id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
             id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", slice).attr("onclick") + "", '').regex(/user=(\d+)/));
             if ($j("input[name*='guild_creator_id']").length > 0)
+            {
                 id = $u.setContent(id, $j("input[name*='guild_creator_id']")[0].value);
+            }
+
             id = $u.setContent(id, (feed.isScan || ajax) ? feed.scanRecord['id'] : 0);
             con.log(3, "USER ID", id);
             if(id === 0 || !$u.hasContent(id)) {
@@ -1185,6 +1271,7 @@ caap.checkResults_viewFight = function(ajax) {
         } else {
             con.warn("checkResults_viewFight monsterDiv issue!");
         }
+
         mName = userName + ' ' + feedMonster;
         con.log(2, "Monster name", mName);
         if(feed.isScan || ajax) {
@@ -1216,6 +1303,7 @@ caap.checkResults_viewFight = function(ajax) {
                 feed.checked(monster.getItem(''));
             }
         }
+
         md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5();
         if((feed.isScan || ajax) && matches && feed.scanRecord['md5'] !== md5) {
             con.warn("MD5 mismatch!", md5, feed.scanRecord['md5']);
@@ -1225,6 +1313,7 @@ caap.checkResults_viewFight = function(ajax) {
 
             throw "MD5 mismatch!";
         }
+
         currentMonster = monster.getItem(md5);
         currentMonster['save'] = true;
         if((!$u.hasContent(currentMonster['userId']) || currentMonster['userId'] === 0) && $u.hasContent(id) && id !== 0) {
@@ -1351,7 +1440,7 @@ caap.checkResults_viewFight = function(ajax) {
         currentMonster['review'] = Date.now();
         state.setItem('monsterRepeatCount', 0);
         // Extract info
-        tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", slice);
+        tempDiv = $j("#monsterTicker", slice);
         if($u.hasContent(tempDiv)) {
             time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
         } else {
@@ -1435,8 +1524,9 @@ caap.checkResults_viewFight = function(ajax) {
                 }
             }
         }
+
         // Get damage done to monster
-        actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", slice);
+        actionDiv = $j("#action_logs", slice);
         damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
         if($u.hasContent(damageDiv)) {
             if(monsterInfo && monsterInfo.defense) {
@@ -1791,7 +1881,7 @@ caap.checkResults_viewFight = function(ajax) {
 					// HACK: Forces caap to check before dumping stamina into a monster that doesn't need it
 					// Not elegant, but it works
 					caap.navigateTo('keep');
-				}			
+				}
                 currentMonster['color'] = 'red';
                 currentMonster['over'] = 'max';
                 //used with KOB code

@@ -1471,7 +1471,7 @@
 				bodyparts : 4,
 				partOrder : [4,3,2,1]
 			},
-		   
+
           "Lord of Darkness" : {
                 	alpha : true,
                 	duration : 168,
@@ -2325,7 +2325,7 @@
         confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
+                var monsterDiv  = $j("#app_body div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : "")),
                     tempDiv     = $j(),
                     tempText    = '',
                     fMonstStyle = '',
@@ -2337,7 +2337,8 @@
                     id          = 0,
                     md5         = '',
                     //page        = session.getItem('page', 'battle_monster');
-                    page         = $j(".game", caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], '');
+                    //page         = $j(".game", caap.globalContainer).eq(0).attr("id").replace(caap.domain.id[caap.domain.which], '');
+                    page         = $j('#globalContainer .game').eq(0).attr("id");
 
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
@@ -2360,10 +2361,10 @@
 
                     con.log(2, "confirmRightPage tempText", tempText);
                 } else {
-                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
+                    monsterDiv = $j("#app_body div[style*='nm_top']");
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
-                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
+                        tempDiv = $j("#app_body div[style*='nm_bars']");
                         if ($u.hasContent(tempDiv)) {
                             tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
@@ -2375,7 +2376,7 @@
                             $j().alert(fMonstStyle + "<br />I do not know this monster!<br />Please inform me.");
                         }
 
-                        if ($u.hasContent($j("div[style*='no_monster_back.jpg']", caap.appBodyDiv))) {
+                        if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
                             con.log(2, "No monster");
                         }  else {
                             con.warn("Problem finding dragon_title_owner and nm_top");
@@ -2389,7 +2390,7 @@
                     id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
                     id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                     id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
-                    id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", caap.appBodyDiv).attr("onclick") + "", '').regex(/user=(\d+)/));
+                    id = $u.setContent(id, $u.setContent($j("#app_body button[onclick*='ajaxSectionUpdate']").attr("onclick") + "", '').regex(/user=(\d+)/));
                     id = $u.setContent(id, 0);
                     if (id === 0 || !$u.hasContent(id)) {
                         con.warn("Unable to get id!");

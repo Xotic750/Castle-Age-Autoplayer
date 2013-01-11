@@ -88,7 +88,7 @@
 
         enableSpider: function () {
             try {
-                var ladies   = $j("div[style*='monster_summon_ladies.jpg']", caap.appBodyDiv).parent(),
+                var ladies   = $j("#app_body div[style*='monster_summon_ladies.jpg']").parent(),
                     cloned   = ladies.clone(),
                     tempText = '',
                     tempDiv;
@@ -97,7 +97,7 @@
                 tempText = tempDiv.attr("style").replace("ladies", "spider");
                 tempDiv.attr("style", tempText);
                 tempDiv = $j("div[style*='guild_summon_monster_progress_bar.jpg']", cloned);
-                tempText = caap.resultsText.hasIndexOf("Giant Arachnid :") ? $u.setContent($j("img[src*='nm_class_progress.jpg']", caap.appBodyDiv).parent().css("width"), "0px") : "0px";
+                tempText = caap.resultsText.hasIndexOf("Giant Arachnid :") ? $u.setContent($j("#app_body img[src*='nm_class_progress.jpg']").parent().css("width"), "0px") : "0px";
                 tempDiv.css("width", tempText);
                 tempDiv = $j("input[name='b_type']", cloned);
                 tempDiv.val("spider");
@@ -476,10 +476,10 @@
                     currentRecord = {},
                     minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
-                caap.chatLink(caap.appBodyDiv, "#" +  caap.domain.id[caap.domain.which] + "guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+                caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
                 slot = $j("input[name='slot']").eq(0).attr("value");
                 slot = slot ? slot.parseInt() : 0;
-                bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_banner_section");
+                bannerDiv = $j("#guild_battle_banner_section");
                 myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
                 if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
@@ -490,7 +490,7 @@
                     currentRecord['guildHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
                     if (!bannerDiv.attr("style").match(/_dead/)) {
-                        currentRecord['ticker'] = $j("#" +  caap.domain.id[caap.domain.which] + "monsterTicker").text();
+                        currentRecord['ticker'] = $j("#monsterTicker").text();
                         currentRecord['ticker'] = currentRecord['ticker'] ? currentRecord['ticker'].trim() : '';
                         if (myStatsTxt) {
                             con.log(3, "myStatsTxt", myStatsTxt);
@@ -504,7 +504,7 @@
                             }
                         }
 
-                        allowedDiv = $j("#" +  caap.domain.id[caap.domain.which] + "allowedAttacks");
+                        allowedDiv = $j("#allowedAttacks");
                         if (allowedDiv && allowedDiv.length) {
                             currentRecord['attacks'] = allowedDiv.attr("value") ? allowedDiv.attr("value").parseInt() : 1;
                             if (currentRecord['attacks'] < 1 || currentRecord['attacks'] > 5) {
@@ -515,7 +515,7 @@
                             con.warn("Could not find allowedAttacks");
                         }
 
-                        health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health");
+                        health = $j("#guild_battle_health");
                         if (health && health.length) {
                             healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
                             if ($u.hasContent(healthEnemy)) {
@@ -542,7 +542,7 @@
                             con.warn("guild_battle_health error");
                         }
 
-                        gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']");
+                        gates = $j("div[id*='enemy_guild_member_list_']");
                         if (!gates || !gates.length) {
                             con.warn("No gates found");
                         } else if (gates && gates.length !== 4) {

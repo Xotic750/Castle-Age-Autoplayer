@@ -309,13 +309,13 @@
                         unknown    : false
                     };
 
-                if ($u.hasContent($j("img[src*='battle_victory.gif']", caap.resultsWrapperDiv))) {
+                if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
                     warWinLoseImg = 'war_win_left.jpg';
                     result.win = true;
-                } else if ($u.hasContent($j("img[src*='battle_defeat.gif']", caap.resultsWrapperDiv))) {
+                } else if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_defeat.gif']"))) {
                     warWinLoseImg = 'war_lose_left.jpg';
                 } else {
-                    if ($u.hasContent(caap.resultsWrapperDiv)) {
+                    if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                         if (/Your opponent is hiding, please try again/.test(caap.resultsText)) {
                             result.hiding = true;
                             con.log(1, "Your opponent is hiding");
@@ -332,10 +332,10 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[src*='war_castle.jpg']", caap.resultsWrapperDiv))) {
+                if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_castle.jpg']"))) {
                     result.battleType = 'War';
-                    if ($u.hasContent(caap.resultsWrapperDiv)) {
-                        tempDiv = $j("img[src*='war_rank_small_icon']", caap.resultsWrapperDiv).eq(0);
+                    if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
+                        tempDiv = $j("#app_body #results_main_wrapper img[src*='war_rank_small_icon']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.parent().text(), '').trim().innerTrim();
                             if ($u.hasContent(tempText)) {
@@ -352,7 +352,7 @@
                             con.log(3, "Unable to find war_rank_small_icon");
                         }
 
-                        tempDiv = $j("b[class*='gold']", caap.resultsWrapperDiv).eq(0);
+                        tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
                             if ($u.hasContent(tNum)) {
@@ -364,7 +364,7 @@
                             con.warn("Unable to find gold element");
                         }
 
-                        tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", caap.resultsWrapperDiv).eq(0);
+                        tempDiv = $j("#app_body #results_main_wrapper form[id*='fight_opp_'] input[name='target_id']").eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tNum = $u.setContent(tempDiv.attr("value"), '0').parseInt();
                             if ($u.hasContent(tNum) && tNum > 0) {
@@ -374,11 +374,11 @@
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            con.warn("Unable to find target_id in caap.resultsWrapperDiv");
+                            con.warn("Unable to find target_id in $j('#app_body #results_main_wrapper')");
                             throw "Unable to get userId!";
                         }
 
-                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", caap.resultsWrapperDiv);
+                        tempDiv = $j("#app_body #results_main_wrapper div[style*='" + warWinLoseImg + "']");
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
                             if ($u.hasContent(tempText)) {
@@ -394,21 +394,21 @@
                         throw "Unable to get userId!";
                     }
                 } else {
-                    if ($u.hasContent($j("input[src*='battle_invade_again.gif']", caap.resultsWrapperDiv))) {
+                    if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='battle_invade_again.gif']"))) {
                         result.battleType = 'Invade';
-                    } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']", caap.resultsWrapperDiv))) {
+                    } else if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='battle_duel_again.gif']"))) {
                         result.battleType = 'Duel';
                     } else {
-                        if ($u.hasContent($j("img[src*='icon_weapon.gif']", caap.resultsWrapperDiv))) {
+                        if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='icon_weapon.gif']"))) {
                             result.battleType = 'Duel';
-                        } else if ($u.hasContent($j("div[class='full_invade_results']", caap.resultsWrapperDiv))) {
+                        } else if ($u.hasContent($j("#app_body #results_main_wrapper div[class='full_invade_results']"))) {
                             result.battleType = 'Invade';
                         }
                     }
 
                     if ($u.hasContent(result.battleType)) {
-                        if ($u.hasContent(caap.resultsWrapperDiv)) {
-                            tempDiv = $j("img[src*='battle_rank_small_icon']", caap.resultsWrapperDiv).eq(0);
+                        if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
+                            tempDiv = $j("#app_body #results_main_wrapper img[src*='battle_rank_small_icon']").eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
                                 if ($u.hasContent(tempText)) {
@@ -422,10 +422,10 @@
                                     con.warn("Unable to find battle points text in tempDiv.parent().parent()");
                                 }
                             } else {
-                                con.log(3, "Unable to find battle_rank_small_icon in caap.resultsWrapperDiv");
+                                con.log(3, "Unable to find battle_rank_small_icon in $j('#app_body #results_main_wrapper')");
                             }
 
-                            tempDiv = $j("b[class*='gold']", caap.resultsWrapperDiv).eq(0);
+                            tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
                                 if ($u.hasContent(tNum)) {
@@ -434,10 +434,10 @@
                                     con.warn("Unable to find gold text in tempDiv");
                                 }
                             } else {
-                                con.warn("Unable to find gold element in caap.resultsWrapperDiv");
+                                con.warn("Unable to find gold element in $j('#app_body #results_main_wrapper')");
                             }
 
-                            tempDiv = $j("a[href*='keep.php?casuser=']", caap.resultsWrapperDiv).eq(0);
+                            tempDiv = $j("#app_body #results_main_wrapper a[href*='keep.php?casuser=']").eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.attr("href"), '');
                                 if ($u.hasContent(tempText)) {
@@ -460,7 +460,7 @@
                                     throw "Unable to get userId!";
                                 }
                             } else {
-                                con.warn("Unable to find keep.php?casuser= in caap.resultsWrapperDiv");
+                                con.warn("Unable to find keep.php?casuser= $j('#app_body #results_main_wrapper')");
                                 throw "Unable to get userId!";
                             }
                         } else {
@@ -543,7 +543,7 @@
                     battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
                 }
 
-                if ($u.hasContent(caap.resultsWrapperDiv)) {
+                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                     if ($u.hasContent(caap.resultsText)) {
                         if (/Your opponent is dead or too weak to battle/.test(caap.resultsText)) {
                             con.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
@@ -804,7 +804,7 @@
         freshmeat: function (type) {
             try {
                 var buttonType      = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
-                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && config.getItem('bgRecon', true) ? caap.tempAjax : caap.appBodyDiv)),
+                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && config.getItem('bgRecon', true) ? caap.tempAjax : $j("#app_body"))),
                     plusOneSafe     = false,
                     safeTargets     = [],
                     chainId         = '',

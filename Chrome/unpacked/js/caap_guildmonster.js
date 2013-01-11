@@ -67,7 +67,8 @@ caap.guildMonsterReview = function() {
 
 caap.checkResults_guild_current_monster_battles = function() {
 	try {
-		$j("input[src*='guild_battle_']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
+		//$j("input[src*='guild_battle_']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
+        $j("#globalContainer input[src*='guild_battle_']").off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
 		guild_monster.populate();
 
 		return true;
@@ -90,7 +91,8 @@ caap.checkResults_guild_monster_summon_list = function() {
 };
 caap.checkResults_guild_battle_monster = function() {
 	try {
-		$j("input[src*='guild_duel_button']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
+        //$j("input[src*='guild_duel_button']", caap.globalContainer).off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
+		$j("#globalContainer input[src*='guild_duel_button']").off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
 		guild_monster.onMonster();
 		if(config.getItem("enableTitles", true)) {
 			spreadsheet.doTitles();
@@ -228,7 +230,7 @@ caap.guildMonster = function() {
 			if(minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
 				con.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
 				caap.setDivContent('guild_monster_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
-				key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
+				key = $j("#attack_key_" + minion['target_id']);
 				if(key && key.length) {
 					attack = guild_monster.getAttackValue(record, minion);
 					if(!attack) {

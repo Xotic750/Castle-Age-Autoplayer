@@ -15,7 +15,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_party = function () {
         try {
-            if ($u.hasContent($j("input[src*='elite_guard_request.gif']", caap.appBodyDiv))) {
+            if ($u.hasContent($j("#app_body input[src*='elite_guard_request.gif']"))) {
                 army.eliteCheckImg();
             } else {
                 army.eliteResult();
