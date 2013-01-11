@@ -224,6 +224,10 @@
 
         getItem: function (index) {
             try {
+                if (!config.getItem('enableMonsterFinder', false) || !$u.hasContent(feed.records) ) {
+                    return null;
+                }
+
                 if (!$u.isString(index) || index === '') {
                     throw "Index supplied is 'undefined' or 'null'!";
                 }
