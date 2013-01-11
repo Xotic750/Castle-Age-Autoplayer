@@ -582,7 +582,7 @@ caap.monsters = function() {
             singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
 
 
- // if the monster has parts, run through them in reverse order until we find one with health and hit it.
+                // if the monster has parts, run through them in reverse order until we find one with health and hit it.
                 var partsTargets = $j("div[id^='monster_target_']");
                 if (partsTargets.length > 0) {
 
@@ -609,6 +609,7 @@ caap.monsters = function() {
                         max_index = i;
                      }
                   }
+
                   if (max_index>-1) {
                      orderPartsArray.splice(max_index, 1);
                   }
@@ -616,7 +617,6 @@ caap.monsters = function() {
 
                // Click first order parts which have health
                for (var ii=0; ii < orderPartsArray.length; ii++) {
-
                   if (partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[0].children[0].style.width.replace ('%', '') * 1 > 0) {
                      caap.click(partsTargets[orderPartsArray[ii]-1].children[0].children[partsTargets[orderPartsArray[ii]-1].children[0].children.length-1].children[1].children[0]);
                      break;
@@ -624,7 +624,6 @@ caap.monsters = function() {
                }
 
                 }
-
 
             // Find the attack or fortify button
             if(fightMode === 'Fortify') {
@@ -736,6 +735,7 @@ caap.monsters = function() {
             con.warn('What kind of monster?', currentMonster);
             return false;
         }
+
         buttonHref = $u.setContent($j("#app_body img[src*='dragon_list_btn_']").eq(0).parent().attr("href"), '');
         pageUserCheck = session.getItem('pageUserCheck', 0);
         if(pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats['FBID']).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
@@ -777,6 +777,7 @@ caap.monsters = function() {
         return false;
     }
 };
+
 /*-------------------------------------------------------------------------------------\
  MonsterReview is a primary action subroutine to mange the monster and raid list
  on the dashboard
@@ -784,22 +785,22 @@ caap.monsters = function() {
 caap.monsterReview = function() {
     try {
         /*-------------------------------------------------------------------------------------\
-         We do monster review once an hour.  Some routines may reset this timer to drive
-         MonsterReview immediately.
-         \-------------------------------------------------------------------------------------*/
+        We do monster review once an hour.  Some routines may reset this timer to drive
+        MonsterReview immediately.
+        \-------------------------------------------------------------------------------------*/
         if(!schedule.check("monsterReview") || (config.getItem('WhenMonster', 'Never') === 'Never' && config.getItem('WhenBattle', 'Never') === 'Never')) {
             return false;
         }
 
         /*-------------------------------------------------------------------------------------\
-         We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
-         the monsterOl completely. Otherwise it will be our index into how far we are into
-         reviewing monsterOl.
-         Update:
-         monsterReviewCounter is now set to -10 so there is room for more monsters later
-         \-------------------------------------------------------------------------------------*/
+        We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
+        the monsterOl completely. Otherwise it will be our index into how far we are into
+        reviewing monsterOl.
+        Update:
+        monsterReviewCounter is now set to -10 so there is room for more monsters later
+        \-------------------------------------------------------------------------------------*/
         var fCounter = config.getItem("festivalTower", false) ? -4 : -3,
-//            counter = state.getItem('monsterReviewCounter', fCounter),
+            //counter = state.getItem('monsterReviewCounter', fCounter),
             firstMonster = -4,
             counter = state.getItem('monsterReviewCounter', firstMonster),
             link = '',
@@ -834,6 +835,7 @@ caap.monsterReview = function() {
                 state.setItem('monsterReviewCounter', counter += 1);
             }
         }
+
         // festival tower
         if(counter === -3) {
             if(config.getItem("festivalTower", false)) {
@@ -857,6 +859,7 @@ caap.monsterReview = function() {
                     state.setItem('monsterReviewCounter', counter += 1);
             }
         }
+
         if(counter === -2) {
             if(caap.stats['level'] > 6) {
                 if(caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
@@ -876,6 +879,7 @@ caap.monsterReview = function() {
                     'name' : undefined,
                     'button' : undefined
                 };
+
                 caap.updateDashboard(true);
                 con.log(1, 'Cleared a completed monster');
                 return true;
@@ -917,6 +921,7 @@ caap.monsterReview = function() {
                     'name' : undefined,
                     'button' : undefined
                 };
+
                 caap.updateDashboard(true);
                 con.log(1, 'Cleared a completed raid');
                 return true;
@@ -934,17 +939,18 @@ caap.monsterReview = function() {
         }
 
         /*-------------------------------------------------------------------------------------\
-         Now we step through the monsterOl objects. We set monsterReviewCounter to the next
-         index for the next reiteration since we will be doing a click and return in here.
-         \-------------------------------------------------------------------------------------*/
+        Now we step through the monsterOl objects. We set monsterReviewCounter to the next
+        index for the next reiteration since we will be doing a click and return in here.
+        \-------------------------------------------------------------------------------------*/
         while(counter < monster.records.length) {
             if(!monster.records[counter]) {
                 state.setItem('monsterReviewCounter', counter += 1);
                 continue;
             }
+
             /*-------------------------------------------------------------------------------------\
-             If we looked at this monster more recently than an hour ago, skip it
-             \-------------------------------------------------------------------------------------*/
+            If we looked at this monster more recently than an hour ago, skip it
+            \-------------------------------------------------------------------------------------*/
             if(monster.records[counter]['color'] === 'grey' && monster.records[counter]['life'] !== -1) {
                 monster.records[counter]['life'] = -1;
                 monster.records[counter]['fortify'] = -1;
@@ -954,6 +960,7 @@ caap.monsterReview = function() {
                 monster.records[counter]['phase'] = '';
                 monster.save();
             }
+
             tempTime = monster.records[counter]['review'] ? monster.records[counter]['review'] : -1;
             con.log(4, "Review", monster.records[counter], !schedule.since(tempTime, ( gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60));
             if(monster.records[counter]['status'] === 'Complete' || !schedule.since(tempTime, ( gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
@@ -961,20 +968,22 @@ caap.monsterReview = function() {
                 state.setItem('monsterRepeatCount', 0);
                 continue;
             }
+
             /*-------------------------------------------------------------------------------------\
-             We get our monster link
-             \-------------------------------------------------------------------------------------*/
+            We get our monster link
+            \-------------------------------------------------------------------------------------*/
             caap.setDivContent('monster_mess', 'Reviewing/sieging ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
             link = monster.records[counter]['link'];
+
             /*-------------------------------------------------------------------------------------\
-             If the link is good then we get the url and any conditions for monster
-             \-------------------------------------------------------------------------------------*/
+            If the link is good then we get the url and any conditions for monster
+            \-------------------------------------------------------------------------------------*/
             if(/href/.test(link)) {
                 link = link.split("'")[1];
                 /*-------------------------------------------------------------------------------------\
-                 If the autocollect token was specified then we set the link to do auto collect. If
-                 the conditions indicate we should not do sieges then we fix the link.
-                 \-------------------------------------------------------------------------------------*/
+                If the autocollect token was specified then we set the link to do auto collect. If
+                the conditions indicate we should not do sieges then we fix the link.
+                \-------------------------------------------------------------------------------------*/
                 isSiege = monster.records[counter]['monster'] === 'The Deathrune Siege' ? true : false;
                 monsterInfo = monster.getInfo(monster.records[counter]);
                 con.log(4, "monster.records[counter]", monster.records[counter]);
@@ -983,6 +992,7 @@ caap.monsterReview = function() {
                     if(general.Select('CollectGeneral')) {
                         return true;
                     }
+
                     link += '&action=collectReward';
                     if(isSiege) {
                         if(monster.records[counter]['rix'] !== -1) {
@@ -991,15 +1001,17 @@ caap.monsterReview = function() {
                             link += '&rix=2';
                         }
                     }
+
                     link = link.replace('&action=doObjective', '');
                     state.setItem('CollectedRewards', true);
                 } else if((monster.records[counter]['conditions'] && monster.records[counter]['conditions'].match(':!s')) || (!config.getItem('raidDoSiege', true) && isSiege) || (!config.getItem('monsterDoSiege', true) && !isSiege && monsterInfo && monsterInfo.siege) || caap.stats['stamina']['num'] === 0) {
                     con.log(2, "Do not siege");
                     link = link.replace('&action=doObjective', '');
                 }
+
                 /*-------------------------------------------------------------------------------------\
-                 Now we use ajaxSendLink to display the monsters page.
-                 \-------------------------------------------------------------------------------------*/
+                Now we use ajaxSendLink to display the monsters page.
+                \-------------------------------------------------------------------------------------*/
                 con.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
                 session.setItem('ReleaseControl', true);
                 link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
@@ -1011,10 +1023,11 @@ caap.monsterReview = function() {
                 return true;
             }
         }
+
         /*-------------------------------------------------------------------------------------\
-         All done.  Set timer and tell monster.select and dashboard they need to do thier thing.
-         We set the monsterReviewCounter to do a full refresh next time through.
-         \-------------------------------------------------------------------------------------*/
+        All done.  Set timer and tell monster.select and dashboard they need to do thier thing.
+        We set the monsterReviewCounter to do a full refresh next time through.
+        \-------------------------------------------------------------------------------------*/
         schedule.setItem("monsterReview", ( gm ? gm.getItem('monsterReviewMins', 60, hiddenVar) : 60) * 60, 300);
         session.setItem('resetselectMonster', true);
         state.setItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
@@ -1037,7 +1050,9 @@ caap.monsterReview = function() {
 
 caap.checkResults_viewFight = function(ajax, aslice) {
     try {
-        var slice = ajax === true ? $j(aslice) : $j("#app_body"),
+        ajax = ajax || false;
+
+        var slice = ajax ? $j(aslice) : $j("#app_body"),
             currentMonster = {},
             time = [],
             tempDiv = $j(),
@@ -1081,7 +1096,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
             mName = '',
             feedMonster = '',
             md5 = '',
-            page = $j(".game", slice).eq(0).attr("id"),
+            page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id"),
             matches = true,
             ctaDiv = $j(),
             dragonDiv = $j(".dragonContainer", slice),
@@ -1366,10 +1381,10 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                     currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mid=' + tStr : '';
                     con.log(2, "Set monster feedLink", currentMonster['feedLink']);
                     /*
-                     if (config.getItem("DebugLevel", 1) > 1) {
-                     $j().alert("Set monster feedLink<br />" + currentMonster['feedLink']);
-                     }
-                     */
+                    if (config.getItem("DebugLevel", 1) > 1) {
+                        $j().alert("Set monster feedLink<br />" + currentMonster['feedLink']);
+                    }
+                    */
                 }
             }
         }
@@ -1598,6 +1613,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                 currentMonster['rix'] = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent($u.setContent($j("a[href*='&rix=']", slice).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
             }
         }
+
         monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' : 'monster_health_background.jpg';
         monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
         if($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
@@ -1612,6 +1628,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                             tempDiv = tempDiv.children().eq(0);
                         }
                     }
+
                     tempText = tempDiv.text().trim();
                     if(!$u.hasContent(tempDiv.children()) && (tempText.toLowerCase().hasIndexOf('life') || tempText.toLowerCase().hasIndexOf('soldiers'))) {
                         tempDiv.text(tempText + " (" + currentMonster['life'] + "%)");
@@ -1626,6 +1643,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                 con.warn('Unknown monster', currentMonster);
                 return;
             }
+
             if(($u.hasContent(damageDiv) || damageDivNew) && monsterInfo && monsterInfo.alpha) {
                 // Character type stuff
                 monsterDiv = $j("div[style*='nm_bottom']", slice);
@@ -1640,6 +1658,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                         } else {
                             con.warn("Can't get character", tempText);
                         }
+
                         tStr = tempText.regex(/Tip: ([\w ]+) Status/);
                         if($u.hasContent(tStr)) {
                             currentMonster['tip'] = tStr;
@@ -1647,6 +1666,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                         } else {
                             con.warn("Can't get tip", tempText);
                         }
+
                         tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
                         if($u.hasContent(tempArr) && tempArr.length === 3) {
                             currentMonster['stunTime'] = Date.now() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
@@ -1654,6 +1674,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                         } else {
                             con.warn("Can't get statusTime", tempText);
                         }
+
                         tempDiv = $j("img[src*='nm_stun_bar']", monsterDiv);
                         if($u.hasContent(tempDiv)) {
                             tempText = tempDiv.getPercent('width').dp(2);
@@ -1726,6 +1747,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
                             searchStr += ",";
                         }
                     }
+
                     searchRes = $j(searchStr, slice);
                     if($u.hasContent(searchRes)) {
                         totalCount = currentMonster['monster'] === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
@@ -1758,6 +1780,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
             if(monsterInfo && achLevel === false) {
                 achLevel = monsterInfo.ach;
             }
+
             maxDamage = monster.parseCondition('max', currentMonster['conditions']);
             maxToFortify = monster.parseCondition('f%', currentMonster['conditions']);
             maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
@@ -1881,6 +1904,7 @@ caap.checkResults_viewFight = function(ajax, aslice) {
 					// Not elegant, but it works
 					caap.navigateTo('keep');
 				}
+
                 currentMonster['color'] = 'red';
                 currentMonster['over'] = 'max';
                 //used with KOB code
