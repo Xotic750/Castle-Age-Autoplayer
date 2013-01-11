@@ -2626,7 +2626,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 },
 
                 success: function (data, textStatus, XMLHttpRequest) {
-                    data = caap.tempAjax.html($j("<div>" + data + "</div>").html());
+                    caap.tempAjax = $j("<div>" + data + "</div>");
+                    data = caap.tempAjax.html();
                     con.log(2, "ajax", [data, textStatus, XMLHttpRequest]);
                     cbSuccess(data, textStatus, XMLHttpRequest);
                 }
