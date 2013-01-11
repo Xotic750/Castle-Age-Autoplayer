@@ -488,31 +488,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in postMessage: " + err, msg);
             //alert("ERROR in postMessage: " + err);
 
-            image64 = null;
-            offline = null;
-            profiles = null;
-            session = null;
-            config = null;
-            state = null;
-            css = null;
-            gm = null;
-            ss = null;
-            db = null;
-            sort = null;
-            schedule = null;
-            general = null;
-            monster = null;
-            guild_monster = null;
-            //arena = null;
-            festival = null;
-            feed = null;
-            battle = null;
-            town = null;
-            spreadsheet = null;
-            gifting = null;
-            army = null;
-            caap = null;
-            con = null;
+            window.image64 = null;
+            window.offline = null;
+            window.profiles = null;
+            window.session = null;
+            window.config = null;
+            window.state = null;
+            window.css = null;
+            window.gm = null;
+            window.ss = null;
+            window.db = null;
+            window.sort = null;
+            window.schedule = null;
+            window.general = null;
+            window.monster = null;
+            window.guild_monster = null;
+            //window.arena = null;
+            window.festival = null;
+            window.feed = null;
+            window.battle = null;
+            window.town = null;
+            window.spreadsheet = null;
+            window.gifting = null;
+            window.army = null;
+            window.caap = null;
+            window.con = null;
             $u.reload();
         }
     };
@@ -1076,6 +1076,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         window.scrollTo(0, config.getItem("scrollToPosition", 0));
     };
 
+    /*
     caap.showRequestForm = (function (tit, msg, track, request_params) {
         FB.api({
             method: 'fql.query',
@@ -1196,13 +1197,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             for (i in lists) {
                 if (lists.hasOwnProperty(i)) {
-                    /*jslint continue: true */
                     if (!lists[i].all) {
                         if ((!gift && !fest && !recr && !mons && !prom) || (gift && !lists[i].gift) || (fest && !lists[i].fest) || (recr && !lists[i].recr) || (mons && !lists[i].mons) || (prom && !lists[i].prom)) {
                             continue;
                         }
                     }
-                    /*jslint continue: false */
 
                     list = '';
                     if (lists[i].list) {
@@ -1263,6 +1262,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             });
         });
     }).toString();
+    */
 
     caap.getSigned = function () {
         try {
@@ -1407,7 +1407,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.initDb = function (FBID) {
         if (caap.domain.which === 3 || caap.domain.which === 4) {
-            config = new $u.VarsHelper();
+            window.config = new $u.VarsHelper();
             config.oldSetItem = config.setItem;
             config.setItem = function (name, value) {
                 config.oldSetItem(name, value);
@@ -1415,7 +1415,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return config.getItem(name, value);
             };
 
-            state = new $u.VarsHelper();
+            window.state = new $u.VarsHelper();
             state.oldSetItem = state.setItem;
             state.setItem = function (name, value) {
                 state.oldSetItem(name, value);
@@ -1423,7 +1423,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return state.getItem(name, value);
             };
 
-            schedule = new $u.ScheduleVarsHelper();
+            window.schedule = new $u.ScheduleVarsHelper();
             schedule.oldSetItem = schedule.setItem;
             schedule.setItem = function (name, seconds, randomSecs) {
                 schedule.oldSetItem(name, seconds, randomSecs);
@@ -1431,21 +1431,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return schedule.getItem(name);
             };
         } else {
-            db = new $u.IDBHelperAsync();
+            window.db = new $u.IDBHelperAsync();
             if (db && db.available) {
                 //db.onsuccess = function () {con.log(1, "db", db)};
                 db.open(caap.namespace + "." + FBID, "CAAP Database", "1");
             }
 
             //con.log(1, "$u", $u);
-            gm = new $u.StorageHelper({
+            window.gm = new $u.StorageHelper({
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
                 'storage_type': 'localStorage'
             });
 
             //con.log(1, "gm", gm);
-            ss = new $u.StorageHelper({
+            window.ss = new $u.StorageHelper({
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
                 'storage_type': 'sessionStorage'
@@ -1453,7 +1453,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             //con.log(1, "ss", ss);
             //gm.clear('0');
-            config = new $u.ConfigHelper("config.options", "current", {
+            window.config = new $u.ConfigHelper("config.options", "current", {
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
                 'storage_type': 'localStorage'
@@ -1471,7 +1471,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 };
             }
 
-            state = new $u.ConfigHelper("state.flags", "current", {
+            window.state = new $u.ConfigHelper("state.flags", "current", {
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
                 'storage_type': 'localStorage'
@@ -1489,7 +1489,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 };
             }
 
-            schedule = new $u.ScheduleStorageHelper("schedule.timers", "current", {
+            window.schedule = new $u.ScheduleStorageHelper("schedule.timers", "current", {
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
                 'storage_type': 'localStorage'
@@ -7633,9 +7633,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.updateQuestNames = function (qc) {
         var qa = caap.getCurrentQuestArea(),
-            qnc,
-            ttl,
-            firstb;
+            qnc = '',
+            ttl = $j(),
+            firstb = $j();
 
         if (caap.questNameCorrections[qa]) {
             qnc = caap.questNameCorrections[qa];
@@ -7643,9 +7643,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ttl = $j(".quest_desc,.quest_sub_title", ele);
                 firstb = $j("b", ttl).eq(0);
                 firstb[0].innerHTML = qnc[idx];
+                ttl = null;
+                firstb = null;
             });
         }
 
+        ttl = null;
+        firstb = null;
         return;
     };
 
@@ -7821,6 +7825,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.selectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.showAutoQuest();
             caap.checkResults_quests();
+            mainDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in labelListener: " + err);
@@ -7834,7 +7839,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return;
             }
 
-            var newdiv = {},
+            var newdiv,
                 b,
                 setAutoQuest,
                 quest_nameObj,
@@ -8033,6 +8038,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return autoBless;
         }
     };
+
     caap.autoBless = function () {
         try {
             if (caap.blessingPerformed) {
@@ -8042,36 +8048,50 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var autoBless = caap.autoBlessSelection(),
                 autoBlessN = caap.deityTable[autoBless.toLowerCase()],
                 picSlice = $j(),
-                descSlice = $j();
+                descSlice = $j(),
+                rVal;
 
 
             if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
+                picSlice = null;
+                descSlice = null;
                 return false;
             }
 
             if (caap.navigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
+                picSlice = null;
+                descSlice = null;
                 return true;
             }
 
             picSlice = $j("#app_body #symbol_image_symbolquests" + autoBlessN);
             if (!$u.hasContent(picSlice)) {
                 con.warn('No diety image for', autoBless);
+                picSlice = null;
+                descSlice = null;
                 return false;
             }
 
             descSlice = $j("#app_body #symbol_desc_symbolquests" + autoBlessN);
             if (!$u.hasContent(descSlice)) {
                 con.warn('No diety description for', autoBless);
+                picSlice = null;
+                descSlice = null;
                 return false;
             }
 
             if (descSlice.css('display') === 'none') {
-                return caap.navigateTo(picSlice.attr("src").basename());
+                rVal = caap.navigateTo(picSlice.attr("src").basename());
+                picSlice = null;
+                descSlice = null;
+                return rVal;
             }
 
             picSlice = $j("#symbols_form_" + autoBlessN + " input[name='symbolsubmit']", descSlice);
             if (!$u.hasContent(picSlice)) {
                 con.warn('No image for deity blessing', autoBless);
+                picSlice = null;
+                descSlice = null;
                 return false;
             }
 
@@ -8079,6 +8099,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem('BlessingTimer', 300, 300);
             caap.blessingPerformed = true;
             caap.click(picSlice);
+            picSlice = null;
+            descSlice = null;
             return true;
         } catch (err) {
             con.error("ERROR in autoBless: " + err);
@@ -8142,11 +8164,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else {
                     tDiv = $j("#globalContainer div[style*='festival_defeat_popup.jpg']");
                     if ($u.hasContent(tDiv)) {
-                        con.log(1, "Festival Feat Defeat!");
-                        $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                        con.log(1, "Festival Feat Defeat!", autoBless, caap.festivalBlessTable[autoBless.toLowerCase()]);
+                        $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', autoBless === 'All' ? 'All' : caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
                     }
                 }
             }
+
+            tDiv = null;
         } catch (err) {
             con.error("ERROR in festivalBlessResults: " + err);
         }
@@ -8156,8 +8180,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var autoBless = config.getItem('festivalBless', 'None'),
                 capPic,
-                tgeneral,
-                luGeneral,
                 picSlice,
                 txt,
                 atkFeat,
@@ -8235,15 +8257,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             capPic = 'festival_capsule_' + autoBless.toLowerCase() + '.gif';
-            tgeneral = caap.festivalBlessGeneral[autoBless.toLowerCase()];
-            luGeneral = config.getItem('LevelUpGeneral', 'Use Current');
             picSlice = $j();
             txt = '';
-
-            tgeneral = tgeneral === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : tgeneral) : tgeneral;
-            if (general.Select(tgeneral)) {
-                return true;
-            }
 
             if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
                 return true;
@@ -8254,12 +8269,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                picSlice = null;
                 return false;
             }
 
             if (!new RegExp(autoBless).test(txt)) {
                 con.warn('No match for text', autoBless);
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                picSlice = null;
                 return false;
             }
 
@@ -8268,6 +8285,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                picSlice = null;
                 return false;
             }
 
@@ -8275,12 +8293,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!$u.hasContent(picSlice)) {
                 con.warn('No blessing button', autoBless);
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                picSlice = null;
                 return false;
             }
 
             con.log(1, 'Click blessing button for', autoBless);
             schedule.setItem('festivalBlessTimer', 300, 300);
             caap.click(picSlice);
+            picSlice = null;
             return true;
         } catch (err) {
             con.error("ERROR in festivalBless: " + err);

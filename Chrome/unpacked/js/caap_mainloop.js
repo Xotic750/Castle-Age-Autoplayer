@@ -1,8 +1,8 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true,
+nomen: true, bitwise: true, plusplus: true, sub: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
+/*global window,escape,jQuery,$j,rison,utility,feed,spreadsheet,ss,
+$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,battle,profiles,town,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -68,7 +68,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         */
     };
 
-    /*jslint sub: false */
     caap.checkLastAction = function (thisAction) {
         try {
             state.setItem('ThisAction', thisAction);
@@ -144,20 +143,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.actionsList = [];
 
     caap.makeActionsList = function () {
+        var action = '',
+            actionOrderArray = [],
+            masterActionListCount = 0,
+            actionOrderUser = '',
+            actionOrderArrayCount = 0,
+            itemCount = 0,
+            actionItem = '',
+            jt;
+
         try {
             if (!$u.hasContent(caap.actionsList)) {
                 con.log(2, "Loading a fresh Action List");
                 // actionOrder is a comma seperated string of action numbers as
                 // hex pairs and can be referenced in the Master Action List
                 // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12"
-                var action = '',
-                    actionOrderArray = [],
-                    masterActionListCount = 0,
-                    actionOrderUser = config.getItem("actionOrder", ''),
-                    actionOrderArrayCount = 0,
-                    itemCount = 0,
-                    actionItem = '';
 
+                actionOrderUser = config.getItem("actionOrder", '');
                 if ($u.hasContent(actionOrderUser)) {
                     // We are using the user defined actionOrder set in the
                     // Advanced Hidden Options
@@ -242,7 +244,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Something went wrong, log it and use the emergency Action List.
             con.error("ERROR in makeActionsList: " + err);
 
-            for (var jt in caap.masterActionList) {
+            for (jt in caap.masterActionList) {
                 if (caap.masterActionList.hasOwnProperty(jt)) {
                     caap.actionsList.push(caap.masterActionList[jt]);
                 }
@@ -263,9 +265,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         if (window.location.href.hasIndexOf('/error.html') || window.location.href.hasIndexOf('/sorry.php')) {
             con.warn('Detected "error" or "sorry" page, waiting to go back to previous page.');
             window.setTimeout(function () {
-                if ("history" in window && "back" in window.history) {
+                if (window.hasOwnProperty("history") && window.history.hasOwnProperty("back")) {
                     window.history.back();
-                } else if ("history" in window && "go" in window.history) {
+                } else if (window.hasOwnProperty("history") && window.history.hasOwnProperty("go")) {
                     window.history.go(-1);
                 } else {
                     window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0";
@@ -284,31 +286,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.setTimeout(function () {
                 caap.click(button);
                 window.setTimeout(function () {
-					image64 = null;
-					offline = null;
-					profiles = null;
-					session = null;
-					config = null;
-					state = null;
-					css = null;
-					gm = null;
-					s = null;
-					db = null;
-					sort = null;
-					schedule = null;
-					general = null;
-					monster = null;
-					guild_monster = null;
-					//arena = null;
-					festival = null;
-					feed = null;
-					battle = null;
-					town = null;
-					spreadsheet = null;
-					gifting = null;
-					army = null;
-					caap = null;
-					con = null;
+                    window.image64 = null;
+                    window.offline = null;
+                    window.profiles = null;
+                    window.session = null;
+                    window.config = null;
+                    window.state = null;
+                    window.css = null;
+                    window.gm = null;
+                    window.ss = null;
+                    window.db = null;
+                    window.sort = null;
+                    window.schedule = null;
+                    window.general = null;
+                    window.monster = null;
+                    window.guild_monster = null;
+                    //window.arena = null;
+                    window.festival = null;
+                    window.feed = null;
+                    window.battle = null;
+                    window.town = null;
+                    window.spreadsheet = null;
+                    window.gifting = null;
+                    window.army = null;
+                    window.caap = null;
+                    window.con = null;
+                    caap.tempAjax = null;
                     $u.reload();
                 }, 180000);
             }, 60000 + (Math.floor(Math.random() * 60) * 1000));
@@ -345,8 +348,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 arr = [],
                 num = 0;
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             arr = $u.setContent($u.setContent(gtv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
                 caap.stats['gold']['ticker'] = arr;
@@ -373,7 +374,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.stats['staminaT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
                 con.log(3, "stsPoll scv", num);
             }
-            /*jslint sub: false */
 
             mainSts = null;
 			gtv = null;
@@ -443,9 +443,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 session.setItem("pageLoadOK", caap.getStats());
                 caap.waitMainLoop();
                 return true;
-            } else {
-                state.setItem('NoWindowLoad', 0);
             }
+
+            state.setItem('NoWindowLoad', 0);
 
             if (state.getItem('caapPause', 'none') !== 'none') {
                 caap.waitMainLoop();
@@ -685,8 +685,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 gm.deleteItem("general.records");
             }
         },
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         'Soldiers': {
             'export': function () {
                 return town['soldiers'];
@@ -726,7 +724,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 gm.deleteItem("magic.records");
             }
         },
-        /*jslint sub: false */
         'Gift Stats': {
             'export': function () {
                 return gifting.history.records;
@@ -1157,7 +1154,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 t = t.substring(0, t.length - 1);
-                w = $j('<div id="caap_action" class="caap_ff caap_fs" title="Action Order"><div style="margin:20px 0px; width: 150px; height: 480px;">' + caap.makeCheckTR('Disable AutoIncome', 'disAutoIncome', false, '') + '<ul class="caap_ul" id="caap_action_sortable">' + h + '</ul></div></div>').appendTo(document.body);
+                w = $j('<div id="caap_action" class="caap_ff caap_fs" title="Action Order"><div style="margin:20px 0px; width: 150px; height: 480px;">' +
+                    caap.makeCheckTR('Disable AutoIncome', 'disAutoIncome', false, '') + '<ul class="caap_ul" id="caap_action_sortable">' + h + '</ul></div></div>').appendTo(document.body);
                 csa = $j("#caap_action_sortable", w);
                 w.dialog({
                     resizable: false,

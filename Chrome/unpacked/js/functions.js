@@ -80,31 +80,31 @@ function getFBFriends() {
 }
 
 function caap_reload() {
-    image64 = null;
-    offline = null;
-    profiles = null;
-    session = null;
-    config = null;
-    state = null;
-    css = null;
-    gm = null;
-    ss = null;
-    db = null;
-    sort = null;
-    schedule = null;
-    general = null;
-    monster = null;
-    guild_monster = null;
-    //arena = null;
-    festival = null;
-    feed = null;
-    battle = null;
-    town = null;
-    spreadsheet = null;
-    gifting = null;
-    army = null;
-    caap = null;
-    con = null;
+    window.image64 = null;
+    window.offline = null;
+    window.profiles = null;
+    window.session = null;
+    window.config = null;
+    window.state = null;
+    window.css = null;
+    window.gm = null;
+    window.ss = null;
+    window.db = null;
+    window.sort = null;
+    window.schedule = null;
+    window.general = null;
+    window.monster = null;
+    window.guild_monster = null;
+    //window.arena = null;
+    window.festival = null;
+    window.feed = null;
+    window.battle = null;
+    window.town = null;
+    window.spreadsheet = null;
+    window.gifting = null;
+    window.army = null;
+    window.caap = null;
+    window.con = null;
 
     if (window.location.hasOwnProperty("reload")) {
         window.location.reload();
@@ -147,8 +147,8 @@ function caap_WaitForutility() {
     if (window.utility) {
         caap_log("utility ready ...");
 
-        session = new $u.VarsHelper();
-        con = new utility.LogHelper();
+        window.session = new $u.VarsHelper();
+        window.con = new utility.LogHelper();
         con.log_version = "(" + caap.domain.which + ")" + caapVersion + (devVersion !== '0' ? 'd' + devVersion : '');
         con.log_level = 1;
         $j(function () {
