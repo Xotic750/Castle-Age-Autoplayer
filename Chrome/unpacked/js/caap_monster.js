@@ -988,19 +988,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monsterReviewCounter is now set to -10 so there is room for more monsters later
             \-------------------------------------------------------------------------------------*/
             var //fCounter = config.getItem("festivalTower", false) ? -4 : -3,
-            //counter = state.getItem('monsterReviewCounter', fCounter),
-            firstMonster = -4,
+                //counter = state.getItem('monsterReviewCounter', fCounter),
+                firstMonster = -4,
                 counter = state.getItem('monsterReviewCounter', firstMonster),
                 link = '',
                 tempTime = 0,
                 isSiege = false,
                 monsterInfo = {};
+
             /*
             if(counter === fCounter) {
                 state.setItem('monsterReviewCounter', counter += 1);
                 return true;
             }
-    */
+            */
+
             // festival tower 2
             if (counter <= -4) {
                 state.setItem('monsterReviewCounter', counter = firstMonster);
@@ -1422,6 +1424,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                     } else {
                         con.warn("Problem finding nm_bars");
+                        slice = null;
+                        tempDiv = null;
+                        monsterDiv = null;
+                        actionDiv = null;
+                        damageDiv = null;
+                        ctaDiv  = null;
+                        dragonDiv = null;
+                        dleadersDiv = null;
+                        dleadersDiv2 = null;
                         return;
                     }
                 } else {
@@ -1436,6 +1447,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     feed.checked(monster.getItem(''));
+                    slice = null;
+                    tempDiv = null;
+                    monsterDiv = null;
+                    actionDiv = null;
+                    damageDiv = null;
+                    ctaDiv  = null;
+                    dragonDiv = null;
+                    dleadersDiv = null;
+                    dleadersDiv2 = null;
                     return;
                 }
             }
@@ -1464,6 +1484,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         feed.checked(monster.getItem(''));
                     }
 
+                    slice = null;
+                    tempDiv = null;
+                    monsterDiv = null;
+                    actionDiv = null;
+                    damageDiv = null;
+                    ctaDiv  = null;
+                    dragonDiv = null;
+                    dleadersDiv = null;
+                    dleadersDiv2 = null;
                     return;
                 }
 
@@ -1649,6 +1678,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "Raid Type", currentMonster['type']);
                 } else {
                     con.warn("Problem finding raid_back");
+                    slice = null;
+                    tempDiv = null;
+                    monsterDiv = null;
+                    actionDiv = null;
+                    damageDiv = null;
+                    ctaDiv  = null;
+                    dragonDiv = null;
+                    dleadersDiv = null;
+                    dleadersDiv2 = null;
                     return;
                 }
             }
@@ -1845,6 +1883,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (currentMonster['life'] && !monsterInfo) {
                     monster.setItem(currentMonster);
                     con.warn('Unknown monster', currentMonster);
+                    slice = null;
+                    tempDiv = null;
+                    monsterDiv = null;
+                    actionDiv = null;
+                    damageDiv = null;
+                    ctaDiv  = null;
+                    dragonDiv = null;
+                    dleadersDiv = null;
+                    dleadersDiv2 = null;
                     return;
                 }
 
@@ -2184,6 +2231,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.setDivContent('monster_mess', '');
                 }, 2000);
             }
+
+            slice = null;
+            tempDiv = null;
+            monsterDiv = null;
+            actionDiv = null;
+            damageDiv = null;
+            ctaDiv  = null;
+            dragonDiv = null;
+            dleadersDiv = null;
+            dleadersDiv2 = null;
         } catch (err) {
             con.error("ERROR in checkResults_viewFight: " + err);
         }
