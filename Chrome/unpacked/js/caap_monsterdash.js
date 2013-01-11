@@ -915,7 +915,6 @@ caap.getBQH = function(cb) {
 	try {
 		function onError() {
 			$j().alert("Unable to get bqh");
-            caap.tempAjax = null;
 		}
 
 		function onSuccess(data, textStatus, XMLHttpRequest) {
@@ -926,8 +925,6 @@ caap.getBQH = function(cb) {
 			} else {
 				$j().alert("Unable to get bqh");
 			}
-
-            caap.tempAjax = null;
 		}
 
 

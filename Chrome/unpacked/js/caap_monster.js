@@ -316,6 +316,7 @@ caap.inLevelUpMode = function() {
         return false;
     }
 };
+
 caap.checkStamina = function(battleOrMonster, attackMinStamina) {
     try {
         con.log(4, "checkStamina", battleOrMonster, attackMinStamina);
@@ -1035,9 +1036,9 @@ caap.monsterReview = function() {
 
 /*jslint sub: false */
 
-caap.checkResults_viewFight = function(ajax) {
+caap.checkResults_viewFight = function(aslice) {
     try {
-        var slice = ajax ? caap.tempAjax : $j("#app_body"),
+        var slice = aslice ? $j(aslice) : $j("#app_body"),
             currentMonster = {},
             time = [],
             tempDiv = $j(),

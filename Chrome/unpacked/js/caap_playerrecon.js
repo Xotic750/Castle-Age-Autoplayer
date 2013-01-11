@@ -18,12 +18,10 @@ caap.reconPlayers = function() {
 
 		function onError(XMLHttpRequest, textStatus, errorThrown) {
 			con.error("reconPlayers", textStatus);
-            caap.tempAjax = null;
 		}
 
 		function onSuccess(data, textStatus, XMLHttpRequest) {
-			battle.freshmeat("recon", true);
-            caap.tempAjax = null;
+			battle.freshmeat("recon", data);
 		}
 
 

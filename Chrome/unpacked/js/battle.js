@@ -801,12 +801,10 @@
             }
         },
 
-        freshmeat: function (type, ajax) {
+        freshmeat: function (type, slice) {
             try {
-                ajax = ajax || false;
-
                 var buttonType      = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
-                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && ajax ? caap.tempAjax : $j("#app_body"))),
+                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && slice ? $j(slice) : $j("#app_body"))),
                     plusOneSafe     = false,
                     safeTargets     = [],
                     chainId         = '',

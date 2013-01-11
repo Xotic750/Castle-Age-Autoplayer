@@ -127,13 +127,10 @@
                         con.log(2, 'No gifts waiting.');
                         state.setItem('HaveGift', false);
                     }
-
-                    caap.tempAjax = null;
                 }
 
                 function onError(XMLHttpRequest, textStatus, errorThrown) {
                     con.warn('ajaxGiftCheck failed!');
-                    caap.tempAjax = null;
                 }
 
                 if (config.getItem('useAjaxGiftCheck', true) && $u.hasContent(session.getItem("signedRequest"))) {

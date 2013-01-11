@@ -38,8 +38,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.ajaxLoadIcon = {};
 
-    caap.tempAjax = {};
-
     caap.resultsText = '';
 
     caap.jWindow = null;
@@ -2149,7 +2147,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.addDashboardMin();
             }
 
-            caap.addCaapAjax();
             caap.addListeners();
 
             if (caap.domain.which === 2 || caap.domain.which === 3) {
@@ -2572,17 +2569,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.addCaapAjax = function () {
-        try {
-            //caap.tempAjax = true ? $j("<div id='caap_ajax'></div>") : $j("<div id='caap_ajax'></div>").appendTo(document.body);
-            caap.tempAjax = $j("<div id='caap_ajax'></div>");
-            return true;
-        } catch (err) {
-            con.error("ERROR in addCaapAjax: " + err);
-            return false;
-        }
-    };
-
     caap.ajax = function (page, params, cbError, cbSuccess) {
         try {
             if (caap.domain.which !== 2 && caap.domain.which !== 3) {
@@ -2606,14 +2592,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!$u.hasContent(cbError) || !$u.isFunction(cbError)) {
                 cbError = function (XMLHttpRequest, textStatus, errorThrown) {
                     con.error("ajax: ", [XMLHttpRequest, textStatus, errorThrown]);
-                    caap.tempAjax = null;
                 };
             }
 
             if (!$u.hasContent(cbSuccess) || !$u.isFunction(cbSuccess)) {
                 cbSuccess = function (data, textStatus, XMLHttpRequest) {
                     con.log(2, "ajax:", [data, textStatus, XMLHttpRequest]);
-                    caap.tempAjax = null;
                 };
             }
 
@@ -2626,8 +2610,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 },
 
                 success: function (data, textStatus, XMLHttpRequest) {
-                    caap.tempAjax = $j("<div>" + data + "</div>");
-                    data = caap.tempAjax.html();
+                    data = "<div>" + data + "</div>";
                     con.log(2, "ajax", [data, textStatus, XMLHttpRequest]);
                     cbSuccess(data, textStatus, XMLHttpRequest);
                 }
@@ -8338,7 +8321,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.ajax_festival_duel_home = function () {
         function onError(XMLHttpRequest, textStatus, errorThrown) {
             con.error("ajax_festival_duel_home", [XMLHttpRequest, textStatus, errorThrown]);
-            caap.tempAjax = null;
         }
 
         function onSuccess(data) {
@@ -8363,7 +8345,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             session.setItem("nfollowers", nfollowers);
             sessionStorage.setItem("caap_nfollowers", JSON.stringify(nfollowers));
             con.log(1, "followers/non", followers, nfollowers);
-            caap.tempAjax = null;
             followerDiv = null;
         }
 

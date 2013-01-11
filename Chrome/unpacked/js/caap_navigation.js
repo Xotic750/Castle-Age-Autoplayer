@@ -103,12 +103,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.ajaxLoad = function (link, params, selector_dom, selector_load, result, loadWaitTime) {
         function onError(XMLHttpRequest, textStatus, errorThrown) {
             con.error("caap.ajaxLoad", [XMLHttpRequest, textStatus, errorThrown]);
-            caap.tempAjax = null;
         }
 
-        function onSuccess() {
-            $j(selector_dom).html(selector_load === "" ? caap.tempAjax.html() : $j(selector_load, caap.tempAjax).html());
-            caap.tempAjax = null;
+        function onSuccess(data) {
+            $j(selector_dom).html(selector_load === "" ? $j(data).html() : $j(selector_load, data).html());
             caap.ajaxLoadIcon.hide();
             caap.clearDomWaiting();
             caap.checkResults();
