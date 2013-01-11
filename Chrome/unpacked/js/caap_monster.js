@@ -327,6 +327,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 battle.freshmeat("recon");
             }
 
+            symDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_battle: " + err);
@@ -655,18 +656,36 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     fightMode = 'Monster';
                 } else {
                     schedule.setItem('NotargetFrombattle_monster', 60);
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return false;
                 }
             }
 
             // Set right general
             if (general.Select(fightMode + 'General')) {
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return true;
             }
 
             // Check if on engage monster page
             if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='festival_monsters_top_']"))) {
                 if (monster.confirmRightPage(monsterName)) {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return true;
                 }
 
@@ -802,11 +821,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // dashboard autorefresh fix
                     localStorage.AFrecentAction = true;
 
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return true;
                 }
 
                 con.warn('No button to attack/fortify with.');
                 schedule.setItem('NotargetFrombattle_monster', 60);
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return false;
             }
 
@@ -814,18 +845,42 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (currentMonster['page'] === 'battle_monster') {
                 if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return true;
                 }
             } else if (currentMonster['page'] === 'festival_battle_monster' && currentMonster['feedLink'].indexOf("tower=2") >= 0) {
                 if (caap.navigateTo('soldiers,festival_home,festival_tower2', 'festival_monster2_towerlist_button.jpg')) {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return true;
                 }
             } else if (currentMonster['page'] === 'festival_battle_monster') {
                 if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return true;
                 }
             } else {
                 con.warn('What kind of monster?', currentMonster);
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return false;
             }
 
@@ -834,14 +889,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats['FBID']).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
                 con.log(2, "On another player's keep.", pageUserCheck);
                 if (currentMonster['page'] === 'battle_monster') {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
 
                 if (currentMonster['page'] === 'festival_battle_monster') {
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+                    partsTargets = null;
+                    partsTarget = null;
+                    partsElem = null;
                     return caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg');
                 }
 
                 con.warn('What kind of monster?', currentMonster);
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return false;
             }
 
@@ -853,19 +926,38 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'name': undefined,
                     'button': undefined
                 };
+
                 caap.updateDashboard(true);
                 con.log(1, 'Cleared a completed monster');
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return true;
             }
 
             if ($u.hasContent(monster.engageButtons[currentMonster['md5']])) {
                 caap.setDivContent('monster_mess', 'Opening ' + monsterName);
                 caap.click(monster.engageButtons[currentMonster['md5']]);
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                partsTargets = null;
+                partsTarget = null;
+                partsElem = null;
                 return true;
             }
 
             schedule.setItem('NotargetFrombattle_monster', 60);
             con.warn('No "Engage" button for ', monsterName);
+            attackButton = null;
+            singleButtonList = null;
+            buttonList = null;
+            partsTargets = null;
+            partsTarget = null;
+            partsElem = null;
             return false;
         } catch (err) {
             con.error("ERROR in monsters: " + err);
