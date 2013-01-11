@@ -26,10 +26,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.doCTAs = function () {
         function onError() {
             caap.waitAjaxCTA = false;
+            caap.tempAjax = null;
         }
 
         function onSuccess() {
             caap.waitAjaxCTA = false;
+            caap.tempAjax = null;
         }
 
         try {

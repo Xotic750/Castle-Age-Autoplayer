@@ -1097,8 +1097,6 @@ caap.checkResults_viewFight = function(ajax) {
             groupMatch = false,
             found = false;
 
-        caap.tempAjax = null;
-
         // new monster layout logic
         if (dleadersDiv.text() == '') {
             dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;

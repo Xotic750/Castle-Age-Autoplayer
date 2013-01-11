@@ -523,11 +523,13 @@
                 function onError(XMLHttpRequest, textStatus, errorThrown) {
                     con.error("feed.ajaxFeed", textStatus);
                     feed.ajaxFeedWait = false;
+                    caap.tempAjax = null;
                 }
 
                 function onSuccess(data, textStatus, XMLHttpRequest) {
                     feed.items("feed", data);
                     feed.ajaxFeedWait = false;
+                    caap.tempAjax = null;
                 }
 
                 if (config.getItem("useAjaxMonsterFinder", true)) {
@@ -560,11 +562,13 @@
                 function onError(XMLHttpRequest, textStatus, errorThrown) {
                     con.error("feed.ajaxGuild", textStatus);
                     feed.ajaxGuildWait = false;
+                    caap.tempAjax = null;
                 }
 
                 function onSuccess(data, textStatus, XMLHttpRequest) {
                     feed.items("guild", data);
                     feed.ajaxGuildWait = false;
+                    caap.tempAjax = null;
                 }
 
                 if (config.getItem("useAjaxMonsterFinder", true)) {
@@ -597,18 +601,13 @@
                 function onError(XMLHttpRequest, textStatus, errorThrown) {
                     con.error("feed.ajaxPublic", textStatus);
                     feed.ajaxPublicWait = false;
+                    caap.tempAjax = null;
                 }
 
                 function onSuccess(data, textStatus, XMLHttpRequest) {
                     feed.publicItems(data);
                     feed.ajaxPublicWait = false;
-                }
-
-                function onReturn(message) {
-                    con.log(2, "ajaxPublic onReturn", message);
-                    message.responseText = message.responseText.unescapeCAHTML();
-                    feed.publicItems(message.responseText);
-                    feed.ajaxPublicWait = false;
+                    caap.tempAjax = null;
                 }
 
                 var url     = 'public_monster_list.php?monster_tier=' + tier,
@@ -645,11 +644,13 @@
                 function onError(XMLHttpRequest, textStatus, errorThrown) {
                     con.error("feed.ajaxScan", textStatus);
                     feed.ajaxScanWait = false;
+                    caap.tempAjax = null;
                 }
 
                 function onSuccess(data, textStatus, XMLHttpRequest) {
                     caap.checkResults_viewFight(true);
                     feed.ajaxScanWait = false;
+                    caap.tempAjax = null;
                 }
 
                 caap.ajax(record['url'], null, onError, onSuccess);

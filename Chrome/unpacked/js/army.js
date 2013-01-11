@@ -305,10 +305,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.run = function () {
         function onError(XMLHttpRequest, textStatus, errorThrown) {
             con.error("army.run", [XMLHttpRequest, textStatus, errorThrown]);
+            caap.tempAjax = null;
         }
 
         function onSuccess(data) {
             army.page(data);
+            caap.tempAjax = null;
         }
 
         try {

@@ -801,10 +801,12 @@
             }
         },
 
-        freshmeat: function (type) {
+        freshmeat: function (type, ajax) {
             try {
+                ajax = ajax || false;
+
                 var buttonType      = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
-                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && config.getItem('bgRecon', true) ? caap.tempAjax : $j("#app_body"))),
+                    inputDiv        = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && ajax ? caap.tempAjax : $j("#app_body"))),
                     plusOneSafe     = false,
                     safeTargets     = [],
                     chainId         = '',
@@ -832,8 +834,6 @@
                     entryLimit      = 0,
                     noSafeCount     = 0,
                     noSafeCountSet  = 0;
-
-                caap.tempAjax = null;
 
                 if (!$u.hasContent(inputDiv)) {
                     con.warn('Not on battlepage');

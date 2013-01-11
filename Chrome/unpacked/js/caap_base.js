@@ -2604,16 +2604,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!$u.hasContent(cbError) || !$u.isFunction(cbError)) {
-                caap.tempAjax = null;
                 cbError = function (XMLHttpRequest, textStatus, errorThrown) {
                     con.error("ajax: ", [XMLHttpRequest, textStatus, errorThrown]);
+                    caap.tempAjax = null;
                 };
             }
 
             if (!$u.hasContent(cbSuccess) || !$u.isFunction(cbSuccess)) {
-                caap.tempAjax = null;
                 cbSuccess = function (data, textStatus, XMLHttpRequest) {
                     con.log(2, "ajax:", [data, textStatus, XMLHttpRequest]);
+                    caap.tempAjax = null;
                 };
             }
 
@@ -8337,6 +8337,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.ajax_festival_duel_home = function () {
         function onError(XMLHttpRequest, textStatus, errorThrown) {
             con.error("ajax_festival_duel_home", [XMLHttpRequest, textStatus, errorThrown]);
+            caap.tempAjax = null;
         }
 
         function onSuccess(data) {
@@ -8350,6 +8351,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             followerDiv.each(function () {
                 var uid = $u.setContent($j(this).children().eq(0).attr("uid"), "").parseInt();
+
                 if (uid) {
                     followers.push(uid);
                 }
@@ -8360,6 +8362,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             session.setItem("nfollowers", nfollowers);
             sessionStorage.setItem("caap_nfollowers", JSON.stringify(nfollowers));
             con.log(1, "followers/non", followers, nfollowers);
+            caap.tempAjax = null;
+            followerDiv = null;
         }
 
 

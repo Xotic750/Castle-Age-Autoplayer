@@ -915,15 +915,19 @@ caap.getBQH = function(cb) {
 	try {
 		function onError() {
 			$j().alert("Unable to get bqh");
+            caap.tempAjax = null;
 		}
 
 		function onSuccess(data, textStatus, XMLHttpRequest) {
 			var bqh = $j("input[name='bqh']", data).eq(0).val();
+
 			if($u.hasContent(bqh)) {
 				cb(bqh);
 			} else {
 				$j().alert("Unable to get bqh");
 			}
+
+            caap.tempAjax = null;
 		}
 
 
