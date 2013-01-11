@@ -2857,9 +2857,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
             htmlCode += caap.makeCheckTR('Enable Conquest Collect', 'doConquestCollect', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0, font-size: 10px, height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_collectCrystalNow' value='Collect Now' style='padding: 0, font-size: 10px, height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_collectCrystalNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -2960,17 +2960,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 8 minutes.', 8, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_ActionList' value='Modify Action Order' style='padding: 0, font-size: 10px, height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_ActionList' value='Modify Action Order' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endTR;
             htmlCode += "<form><fieldset><legend>Database</legend>";
             htmlCode += caap.makeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
-            htmlCode += caap.makeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
-            htmlCode += caap.makeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
+            htmlCode += caap.makeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+            htmlCode += caap.makeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+            htmlCode += caap.makeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
             htmlCode += caap.makeCheckTR("Town Item Report BBCode", "townBBCode", true, 'Switches between BBCode for forum posts and a screen viewable table.');
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_TownItemReport' value='Town Item Report' style='padding: 0, font-size: 10px, height: 18px' />", false, false, "text-align: center;");
+            htmlCode += caap.makeTD("<input type='button' id='caap_TownItemReport' value='Town Item Report' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "text-align: center;");
             htmlCode += caap.endTR;
             htmlCode += caap.endTR;
             htmlCode += "</fieldset></form>";
@@ -2978,9 +2978,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (db && db.available) {
                 htmlCode += "<form><fieldset><legend>Config</legend>";
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("<input type='button' id='caap_BackupConfig' value='Profiles' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
-                htmlCode += caap.makeTD("<input type='button' id='caap_BackupCurrent' value='Backup' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
-                htmlCode += caap.makeTD("<input type='button' id='caap_RestoreCurrent' value='Restore' style='padding: 0, font-size: 10px, height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.makeTD("<input type='button' id='caap_BackupConfig' value='Profiles' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.makeTD("<input type='button' id='caap_BackupCurrent' value='Backup' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.makeTD("<input type='button' id='caap_RestoreCurrent' value='Restore' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.endTR;
                 htmlCode += "</fieldset></form>";
             }
@@ -2998,7 +2998,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var htmlCode = '';
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0, font-size: 10px, height: 18px' />", false, false, "width: 90%, display: inline-block;");
+            htmlCode += caap.makeTD("Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "width: 90%, display: inline-block;");
             htmlCode += caap.makeTD("<input type='checkbox' id='unlockMenu' />", false, true, "width: 10%, display: inline-block;");
             htmlCode += caap.endTR;
 
