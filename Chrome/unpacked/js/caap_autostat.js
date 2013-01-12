@@ -78,6 +78,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (!$u.hasContent(button)) {
                 con.warn("Unable to locate upgrade button: Fail ", attribute);
+
 				energyDiv = null;
                 staminaDiv = null;
                 attackDiv = null;
@@ -223,16 +224,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             value = caap.stats[attribute]['num'];
                         }
 
-                        /*jslint continue: true */
-                        if(attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
-                            if(config.getItem("StatSpendAll", false) && attrAdjust > value) {
-                                continue;
-                            } else {
-                                passed = false;
-                                break;
-                            }
+                        if (attribute === 'stamina' && caap.stats['points']['skill'] < 2 && !config.getItem("StatSpendAll", false) && attrAdjust <= value) {
+                            passed = false;
+                            break;
                         }
-                        /*jslint continue: false */
 
                         if (attrAdjust > value) {
                             passed = true;
@@ -272,8 +267,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attribute = '',
                 attrValue = 0,
                 n = 0,
-                returnIncreaseStat = '',
-                doNavigate = false;
+                returnIncreaseStat = '';
+
+            if (!$u.hasContent(atributeSlice)) {
+                caap.navigateTo('keep');
+
+				atributeSlice = null;
+                return true;
+            }
 
             if (config.getItem("AutoStatAdv", false)) {
                 startAtt = 5;
@@ -289,29 +290,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (caap.stats['level'] < 10 && (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health')) {
                         con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                     } else {
-                        // current thinking is that continue should not be used as it can cause reader confusion
-                        // therefore when linting, it throws a warning
-                        /*jslint continue: true */
-                        if(attribute === 'Stamina') {
-                            if(caap.stats['points']['skill'] > 1) {
-                                doNavigate = true;
-                            } else {
-                                continue;
-                            }
-                        } else if (caap.stats['points']['skill'] > 0 && config.getItem("StatSpendAll", false)) {
-                            doNavigate = true;
-                        } else {
-                            continue;
-                        }
-                        /*jslint continue: false */
-
-                        if (doNavigate && !$u.hasContent(atributeSlice)) {
-                            caap.navigateTo('keep');
-
-                            atributeSlice = null;
-                            return true;
-                        }
-
                         attrValue = config.getItem('AttrValue' + n, 0);
                         returnIncreaseStat = caap.increaseStat(attribute, attrValue, atributeSlice);
                         switch (returnIncreaseStat) {
@@ -323,10 +301,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 								atributeSlice = null;
                                 return true;
-                            case "Fail":
-                                // There is no code to handle this but as a hacky fix is to allow fall through,
-                                // CAAP will try again but won't keep banging it's head if there is a CA problem.
-                                break;
                             default:
                                 con.log(4, attrName + " return value: " + returnIncreaseStat);
 
