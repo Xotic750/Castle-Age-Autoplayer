@@ -94,11 +94,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             attrCurrent = getValue(button);
             energy = getValue(energyDiv);
             stamina = getValue(staminaDiv);
-            if (level >= 10) {
+            //if (level >= 10) {
                 attack = getValue(attackDiv);
                 defense = getValue(defenseDiv);
                 health = getValue(healthDiv);
-            }
+            //}
 
             if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -185,7 +185,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 passed = false;
 
             if (!config.getItem('AutoStat', false) || !caap.stats['points']['skill']) {
-                return false;
+                return ['', 0];
             }
 
             if (config.getItem("AutoStatAdv", false)) {
@@ -199,11 +199,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 // therefore when linting, it throws a warning
                 /*jslint continue: true */
                 if (attribute === '') {
+                    con.log(1, "Skipping blank entry: continue");
                     continue;
                 }
 
                 if (caap.stats['level'] < 10) {
                     if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
+                        con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                         continue;
                     }
                 }
@@ -214,11 +216,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 level = caap.stats['level'];
                 energy = caap.stats['energy']['num'];
                 stamina = caap.stats['stamina']['num'];
-                if (level >= 10) {
-                    attack = caap.stats['attack'];
-                    defense = caap.stats['defense'];
-                    health = caap.stats['health']['num'];
-                }
+                attack = caap.stats['attack'];
+                defense = caap.stats['defense'];
+                health = caap.stats['health']['num'];
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -253,7 +253,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             state.setItem("statsMatch", passed);
-            return passed;
+
+            if (passed) {
+                con.log(1, "Rule match to increase stats", attribute);
+                return [attribute, attrValue];
+            }
+
+            con.log(1, "No rules match to increase stats");
+            return ['', 0];
         } catch (err) {
             con.error("ERROR in autoStatCheck: " + err);
             return false;
@@ -275,69 +282,43 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            var atributeSlice = $j("#app_body div[style*='keep_cont_top.jpg']"),
-                startAtt = 0,
-                stopAtt = 4,
-                attrName = '',
-                attribute = '',
-                attrValue = 0,
-                n = 0,
+            var atributeSlice,
+                attribute = [],
                 returnIncreaseStat = '';
 
+            attribute = caap.autoStatCheck();
+            if (attribute[0] === '') {
+                return false;
+            }
+
+            atributeSlice = $j("#app_body div[style*='keep_cont_top.jpg']");
             if (!$u.hasContent(atributeSlice)) {
                 caap.navigateTo('keep');
                 atributeSlice = null;
                 return true;
             }
 
-            if (config.getItem("AutoStatAdv", false)) {
-                startAtt = 5;
-                stopAtt = 9;
-            }
-
-            for (n = startAtt; n <= stopAtt; n += 1) {
-                attrName = 'Attribute' + n;
-                attribute = config.getItem(attrName, '');
-                // current thinking is that continue should not be used as it can cause reader confusion
-                // therefore when linting, it throws a warning
-                /*jslint continue: true */
-                if (attribute === '') {
-                    con.log(4, attrName + " is blank: continue");
-                    continue;
-                }
-
-                if (caap.stats['level'] < 10) {
-                    if (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health') {
-                        con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
-                        continue;
-                    }
-                }
-                /*jslint continue: true */
-
-                attrValue = config.getItem('AttrValue' + n, 0);
-                returnIncreaseStat = caap.increaseStat(attribute, attrValue, atributeSlice);
-                switch (returnIncreaseStat) {
-                    case "Next":
-                        con.log(4, attrName + " : next");
-                        continue;
-                    case "Click":
-                        con.log(4, attrName + " : click");
-                        return true;
-                    case "Fail":
-                        // There is no code to handle this but as a hacky fix is to allow fall through,
-                        // CAAP will try again but won't keep banging it's head if there is a CA problem.
-                        break;
-                    default:
-                        con.log(4, attrName + " return value: " + returnIncreaseStat);
-                        atributeSlice = null;
-                        return false;
-                }
-            }
-
-            con.log(1, "No rules match to increase stats");
-            state.setItem("statsMatch", false);
+            returnIncreaseStat = caap.increaseStat(attribute[0], attribute[1], atributeSlice);
+            con.log(1, attribute, returnIncreaseStat);
             atributeSlice = null;
-            return false;
+            switch (returnIncreaseStat) {
+                case "Next":
+                    return true;
+                case "Click":
+                    return true;
+                case "Fail":
+                    // There is no code to handle this but as a hacky fix is to say that no stats match,
+                    // CAAP will try again but won't keep banging it's head if there is a CA problem.
+                    state.setItem("statsMatch", false);
+                    return false;
+                case "Save":
+                    // There is no code to handle this but as a hacky fix is to say that no stats match,
+                    // CAAP will try again but won't keep banging it's head if there is a CA problem.
+                    state.setItem("statsMatch", false);
+                    return false;
+                default:
+                    return false;
+            }
         } catch (err) {
             con.error("ERROR in autoStat: " + err);
             return false;
