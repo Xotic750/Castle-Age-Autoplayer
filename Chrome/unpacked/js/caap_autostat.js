@@ -43,11 +43,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 defense = 0,
                 health = 0,
                 attrAdjustNew = 0,
-                energyDiv = $j("a[href*='upgrade=energy_max']", atributeSlice),
-                staminaDiv = $j("a[href*='upgrade=stamina_max']", atributeSlice),
-                attackDiv = $j("a[href*='upgrade=attack']", atributeSlice),
-                defenseDiv = $j("a[href*='upgrade=defense']", atributeSlice),
-                healthDiv = $j("a[href*='upgrade=health_max']", atributeSlice),
+                energyDiv = $j("a[href*='energy_max']", atributeSlice),
+                staminaDiv = $j("a[href*='stamina_max']", atributeSlice),
+                attackDiv = $j("a[href*='attack']", atributeSlice),
+                defenseDiv = $j("a[href*='defense']", atributeSlice),
+                healthDiv = $j("a[href*='health_max']", atributeSlice),
                 logTxt = "";
 
             switch (attribute) {
@@ -67,29 +67,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     button = healthDiv;
                     break;
                 default:
-					energyDiv = null;
-					staminaDiv = null;
-					attackDiv = null;
-					defenseDiv = null;
-					healthDiv = null;
-					button = null;
+                    energyDiv = null;
+                    staminaDiv = null;
+                    attackDiv = null;
+                    defenseDiv = null;
+                    healthDiv = null;
+                    button = null;
                     throw "Unable to match attribute: " + attribute;
             }
 
             if (!$u.hasContent(button)) {
                 con.warn("Unable to locate upgrade button: Fail ", attribute);
-				energyDiv = null;
+                energyDiv = null;
                 staminaDiv = null;
                 attackDiv = null;
                 defenseDiv = null;
                 healthDiv = null;
-				button = null;
+                button = null;
                 return "Fail";
             }
 
             attrAdjustNew = attrAdjust;
             logTxt = attrAdjust;
             level = caap.stats['level'];
+
             attrCurrent = getValue(button);
             energy = getValue(energyDiv);
             stamina = getValue(staminaDiv);
@@ -110,59 +111,55 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
                 if (attrAdjustNew <= attrCurrent) {
                     con.log(2, "Stamina at requirement: Next");
-
-					energyDiv = null;
-					staminaDiv = null;
-					attackDiv = null;
-					defenseDiv = null;
-					healthDiv = null;
-					button = null;
+                    energyDiv = null;
+                    staminaDiv = null;
+                    attackDiv = null;
+                    defenseDiv = null;
+                    healthDiv = null;
+                    button = null;
                     return "Next";
                 }
 
                 if (config.getItem("StatSpendAll", false)) {
                     con.log(2, "Stamina requires 2 upgrade points: Next");
-
-					energyDiv = null;
-					staminaDiv = null;
-					attackDiv = null;
-					defenseDiv = null;
-					healthDiv = null;
-					button = null;
+                    energyDiv = null;
+                    staminaDiv = null;
+                    attackDiv = null;
+                    defenseDiv = null;
+                    healthDiv = null;
+                    button = null;
                     return "Next";
                 }
 
                 con.log(2, "Stamina requires 2 upgrade points: Save");
                 state.setItem("statsMatch", false);
-
-				energyDiv = null;
+                energyDiv = null;
                 staminaDiv = null;
                 attackDiv = null;
                 defenseDiv = null;
                 healthDiv = null;
-				button = null;
+                button = null;
                 return "Save";
             }
 
             if (attrAdjustNew > attrCurrent) {
                 con.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
                 caap.click(button);
-
-				energyDiv = null;
+                energyDiv = null;
                 staminaDiv = null;
                 attackDiv = null;
                 defenseDiv = null;
                 healthDiv = null;
-				button = null;
+                button = null;
                 return "Click";
             }
 
-			energyDiv = null;
-			staminaDiv = null;
-			attackDiv = null;
-			defenseDiv = null;
-			healthDiv = null;
-			button = null;
+            energyDiv = null;
+            staminaDiv = null;
+            attackDiv = null;
+            defenseDiv = null;
+            healthDiv = null;
+            button = null;
             return "Next";
         } catch (err) {
             con.error("ERROR in increaseStat: " + err);
@@ -198,52 +195,65 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             for (n = startAtt; n <= stopAtt; n += 1) {
                 attribute = config.getItem('Attribute' + n, '').toLowerCase();
-                if (attribute !== '') {
-                    level = caap.stats['level'];
+                // current thinking is that continue should not be used as it can cause reader confusion
+                // therefore when linting, it throws a warning
+                /*jslint continue: true */
+                if (attribute === '') {
+                    continue;
+                }
 
-                    if (level >= 10 || (level < 10 && attribute !== 'attack' && attribute !== 'defense' && attribute !== 'health')) {
-                        attrValue = config.getItem('AttrValue' + n, 0);
-                        attrAdjust = attrValue;
-                        energy = caap.stats['energy']['num'];
-                        stamina = caap.stats['stamina']['num'];
-                        attack = caap.stats['attack'];
-                        defense = caap.stats['defense'];
-                        health = caap.stats['health']['num'];
-
-                        if (config.getItem('AutoStatAdv', false)) {
-                            //Using eval, so user can define formulas on menu, like energy = level + 50
-                            /*jslint evil: true */
-                            attrAdjust = eval(attrValue);
-                            /*jslint evil: false */
-                        }
-
-                        if (attribute === "attack" || attribute === "defense") {
-                            value = caap.stats[attribute];
-                        } else {
-                            value = caap.stats[attribute]['num'];
-                        }
-
-                        /*jslint continue: true */
-                        if(attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
-                            if(config.getItem("StatSpendAll", false) && attrAdjust > value) {
-                                continue;
-                            } else {
-                                passed = false;
-                                break;
-                            }
-                        }
-                        /*jslint continue: false */
-
-                        if (attrAdjust > value) {
-                            passed = true;
-                            break;
-                        }
+                if (caap.stats['level'] < 10) {
+                    if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
+                        continue;
                     }
+                }
+                /*jslint continue: false */
+
+                attrValue = config.getItem('AttrValue' + n, 0);
+                attrAdjust = attrValue;
+                level = caap.stats['level'];
+                energy = caap.stats['energy']['num'];
+                stamina = caap.stats['stamina']['num'];
+                if (level >= 10) {
+                    attack = caap.stats['attack'];
+                    defense = caap.stats['defense'];
+                    health = caap.stats['health']['num'];
+                }
+
+                if (config.getItem('AutoStatAdv', false)) {
+                    //Using eval, so user can define formulas on menu, like energy = level + 50
+                    /*jslint evil: true */
+                    attrAdjust = eval(attrValue);
+                    /*jslint evil: false */
+                }
+
+                if (attribute === "attack" || attribute === "defense") {
+                    value = caap.stats[attribute];
+                } else {
+                    value = caap.stats[attribute]['num'];
+                }
+
+                // current thinking is that continue should not be used as it can cause reader confusion
+                // therefore when linting, it throws a warning
+                /*jslint continue: true */
+                if (attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
+                    if (config.getItem("StatSpendAll", false) && attrAdjust > value) {
+                        continue;
+                    } else {
+                        passed = false;
+                        break;
+                    }
+                }
+                /*jslint continue: true */
+
+                if (attrAdjust > value) {
+                    passed = true;
+                    break;
                 }
             }
 
             state.setItem("statsMatch", passed);
-            return true;
+            return passed;
         } catch (err) {
             con.error("ERROR in autoStatCheck: " + err);
             return false;
@@ -272,8 +282,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attribute = '',
                 attrValue = 0,
                 n = 0,
-                returnIncreaseStat = '',
-                doNavigate = false;
+                returnIncreaseStat = '';
+
+            if (!$u.hasContent(atributeSlice)) {
+                caap.navigateTo('keep');
+                return true;
+            }
 
             if (config.getItem("AutoStatAdv", false)) {
                 startAtt = 5;
@@ -283,64 +297,43 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             for (n = startAtt; n <= stopAtt; n += 1) {
                 attrName = 'Attribute' + n;
                 attribute = config.getItem(attrName, '');
+                // current thinking is that continue should not be used as it can cause reader confusion
+                // therefore when linting, it throws a warning
+                /*jslint continue: true */
                 if (attribute === '') {
                     con.log(4, attrName + " is blank: continue");
-                } else {
-                    if (caap.stats['level'] < 10 && (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health')) {
+                    continue;
+                }
+
+                if (caap.stats['level'] < 10) {
+                    if (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health') {
                         con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
-                    } else {
-                        // current thinking is that continue should not be used as it can cause reader confusion
-                        // therefore when linting, it throws a warning
-                        /*jslint continue: true */
-                        if(attribute === 'Stamina') {
-                            if(caap.stats['points']['skill'] > 1) {
-                                doNavigate = true;
-                            } else {
-                                continue;
-                            }
-                        } else if (caap.stats['points']['skill'] > 0 && config.getItem("StatSpendAll", false)) {
-                            doNavigate = true;
-                        } else {
-                            continue;
-                        }
-                        /*jslint continue: false */
-
-                        if (doNavigate && !$u.hasContent(atributeSlice)) {
-                            caap.navigateTo('keep');
-
-                            atributeSlice = null;
-                            return true;
-                        }
-
-                        attrValue = config.getItem('AttrValue' + n, 0);
-                        returnIncreaseStat = caap.increaseStat(attribute, attrValue, atributeSlice);
-                        switch (returnIncreaseStat) {
-                            case "Next":
-                                con.log(4, attrName + " : next");
-                                break;
-                            case "Click":
-                                con.log(4, attrName + " : click");
-
-								atributeSlice = null;
-                                return true;
-                            case "Fail":
-                                // There is no code to handle this but as a hacky fix is to allow fall through,
-                                // CAAP will try again but won't keep banging it's head if there is a CA problem.
-                                break;
-                            default:
-                                con.log(4, attrName + " return value: " + returnIncreaseStat);
-
-								atributeSlice = null;
-                                return false;
-                        }
+                        continue;
                     }
+                }
+                /*jslint continue: true */
+
+                attrValue = config.getItem('AttrValue' + n, 0);
+                returnIncreaseStat = caap.increaseStat(attribute, attrValue, atributeSlice);
+                switch (returnIncreaseStat) {
+                    case "Next":
+                        con.log(4, attrName + " : next");
+                        continue;
+                    case "Click":
+                        con.log(4, attrName + " : click");
+                        return true;
+                    case "Fail":
+                        // There is no code to handle this but as a hacky fix is to allow fall through,
+                        // CAAP will try again but won't keep banging it's head if there is a CA problem.
+                        break;
+                    default:
+                        con.log(4, attrName + " return value: " + returnIncreaseStat);
+                        return false;
                 }
             }
 
             con.log(1, "No rules match to increase stats");
             state.setItem("statsMatch", false);
-
-			atributeSlice = null;
             return false;
         } catch (err) {
             con.error("ERROR in autoStat: " + err);
