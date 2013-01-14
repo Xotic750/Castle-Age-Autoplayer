@@ -286,6 +286,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (!$u.hasContent(atributeSlice)) {
                 caap.navigateTo('keep');
+                atributeSlice = null;
                 return true;
             }
 
@@ -328,12 +329,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         break;
                     default:
                         con.log(4, attrName + " return value: " + returnIncreaseStat);
+                        atributeSlice = null;
                         return false;
                 }
             }
 
             con.log(1, "No rules match to increase stats");
             state.setItem("statsMatch", false);
+            atributeSlice = null;
             return false;
         } catch (err) {
             con.error("ERROR in autoStat: " + err);
