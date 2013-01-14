@@ -1827,11 +1827,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             } else {
                                 con.warn("Unable to get attacked and defended damage");
                             }
-                            /*  Not sure if this needed for the new layout
+                        /*  Not sure if this needed for the new layout
                         } else if(currentMonster['monster'] === 'The Deathrune Siege') {
                             currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
                             currentMonster['damage'] = currentMonster['attacked'];
-    */
+                        */
                         } else {
                             currentMonster['attacked'] = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
                             currentMonster['damage'] = currentMonster['attacked'];
@@ -2023,6 +2023,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 currentMonster['joinable'] = {};
                 session.setItem('resetselectMonster', true);
                 monster.setItem(currentMonster);
+                slice = null;
+                tempDiv = null;
+                monsterDiv = null;
+                actionDiv = null;
+                damageDiv = null;
+                ctaDiv  = null;
+                dragonDiv = null;
+                dleadersDiv = null;
+                dleadersDiv2 = null;
                 return;
             }
 
