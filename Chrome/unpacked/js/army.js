@@ -222,7 +222,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.page = function (slice) {
         try {
             if (!army.pageDone) {
-                //slice = $u.setContent(slice, caap.globalContainer);
                 var newslice = $u.setContent(slice, $j('#globalContainer')),
                     pages = $j(),
                     search = $j(),
@@ -234,6 +233,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     len = 0,
                     number = ss.getItem("army.currentPage", 1, true),
                     useAjaxArmy = config.getItem("useAjaxArmy", true);
+
 
                 if (number === 1) {
                     pages = $j("a[href*='army_member.php?page=']", newslice).last();
@@ -286,7 +286,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
                 con.log(2, "army.page", number, pCount, army.recordsTemp.length);
                 army.pageDone = true;
-
 
                 newslice = null;
                 pages = null;
@@ -808,7 +807,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 tempVar = army.records[i]['appUser'] ? '' : config.getItem("ArmyAgeDaysColor4", 'red');
                                 userIdLinkInstructions = "Clicking this link will take you to the Facebook page of " + army.records[i][values[pp]];
                                 row += caap.makeTd({
-                                    text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? "<a href='http://www.facebook.com/profile.php?id=" + army.records[i]['userId'] + "'>" + army.records[i][values[pp]] + "</a>" : '',
+                                    text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? "<a href='http://www.facebook.com/profile.php?id=" +
+                                        army.records[i]['userId'] + "'>" + army.records[i][values[pp]] + "</a>" : '',
                                     bgcolor: tempVar,
                                     color: $u.hasContent(tempVar) ? $u.bestTextColor(tempVar) : '',
                                     id: '',
@@ -825,7 +825,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
 
                         data = {
-                            text: '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i]['userId'] + '" cstate="' + (army.records[i]['elite'] ? 'true' : 'false') + '" ' + (army.records[i]['elite'] ? ' checked' : '') + ' />',
+                            text: '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i]['userId'] +
+                                '" cstate="' + (army.records[i]['elite'] ? 'true' : 'false') + '" ' + (army.records[i]['elite'] ? ' checked' : '') + ' />',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -836,7 +837,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempVar = $u.setContent(army.records[i]['user'], '').escapeHTML();
                         removeLinkInstructions = "Clicking this link will remove " + tempVar + " from your army!";
                         data = {
-                            text: '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + tempVar + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            text: '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + tempVar +
+                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -890,7 +892,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.clickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
-                $j("span[id*='caap_targetarmy_']", caap.caapTopObject).off('click', handler).click(handler);
+                $j("span[id*='caap_targetarmy_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                handler = null;
 
                 handler = function (e) {
                     var userid = 0,
@@ -916,7 +919,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 };
 
-                $j("input[id*='caap_elitearmy_']", caap.caapTopObject).off('change', handler).change(handler);
+                $j("input[id*='caap_elitearmy_']", caap.caapTopObject).off('change', handler).on('change', handler);
+                handler = null;
 
                 handler = function (e) {
                     var mname = '',
@@ -942,7 +946,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 };
 
-                $j("span[id*='caap_removearmy_']", caap.caapTopObject).off('click', handler).click(handler);
+                $j("span[id*='caap_removearmy_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                handler = null;
 
                 session.setItem("ArmyDashUpdate", false);
             }
