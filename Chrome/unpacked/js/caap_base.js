@@ -2759,10 +2759,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('AutoStatAdv', true);
             for (it = 0; it < 5; it += 1) {
                 htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("Increase", false, false, "width: 27%, display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%, display: inline-block;");
-                htmlCode += caap.makeTD("to", false, false, "text-align: center, width: 10%, display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, 0), false, true, "width: 20%, display: inline-block;");
+                htmlCode += caap.makeTD("Increase", false, false, "width: 27%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%; display: inline-block;");
+                htmlCode += caap.makeTD("to", false, false, "text-align: center; width: 10%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, 0), false, true, "width: 20%; display: inline-block;");
                 htmlCode += caap.endTR;
             }
 
@@ -2770,9 +2770,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('AutoStatAdv');
             for (it = 5; it < 10; it += 1) {
                 htmlCode += caap.startTR();
-                htmlCode += it === 5 ? caap.makeTD("Increase", false, false, "width: 25%, display: inline-block;") : caap.makeTD("Then", false, false, "width: 25%, display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%, display: inline-block;");
-                htmlCode += caap.makeTD("using", true, false, "width: 25%, display: inline-block;");
+                htmlCode += it === 5 ? caap.makeTD("Increase", false, false, "width: 25%; display: inline-block;") : caap.makeTD("Then", false, false, "width: 25%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
+                htmlCode += caap.makeTD("using", true, false, "width: 25%; display: inline-block;");
                 htmlCode += caap.endTR;
                 htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'));
             }
