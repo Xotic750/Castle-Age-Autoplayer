@@ -127,6 +127,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.save = function(src) {
         try {
             var compress = false;
+
             if (caap.domain.which === 3) {
                 caap.messaging.setItem('battle.records', battle.records);
             } else {
@@ -326,16 +327,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (/Your opponent is hiding, please try again/.test(caap.resultsText)) {
                         result.hiding = true;
                         con.log(1, "Your opponent is hiding");
+                        tempDiv = null;
                         return result;
                     }
 
                     result.unknown = true;
                     con.warn("Unable to determine won, lost or hiding!", caap.resultsText);
+                    tempDiv = null;
                     return result;
                 }
 
                 result.unknown = true;
                 con.warn("Unable to determine won or lost!");
+                tempDiv = null;
                 return result;
             }
 
@@ -378,10 +382,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             result.userId = tNum;
                         } else {
                             con.warn("No value in tempDiv");
+                            tempDiv = null;
                             throw "Unable to get userId!";
                         }
                     } else {
                         con.warn("Unable to find target_id in $j('#app_body #results_main_wrapper')");
+                        tempDiv = null;
                         throw "Unable to get userId!";
                     }
 
@@ -398,6 +404,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 } else {
                     con.warn("Unable to find result div");
+                    tempDiv = null;
                     throw "Unable to get userId!";
                 }
             } else {
@@ -453,6 +460,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                     result.userId = tNum;
                                 } else {
                                     con.warn("Unable to match user's id in", tempText);
+                                    tempDiv = null;
                                     throw "Unable to get userId!";
                                 }
 
@@ -464,18 +472,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 }
                             } else {
                                 con.warn("No href text in tempDiv");
+                                tempDiv = null;
                                 throw "Unable to get userId!";
                             }
                         } else {
                             con.warn("Unable to find keep.php?casuser= $j('#app_body #results_main_wrapper')");
+                            tempDiv = null;
                             throw "Unable to get userId!";
                         }
                     } else {
                         con.warn("Unable to find result div");
+                        tempDiv = null;
                         throw "Unable to get userId!";
                     }
                 } else {
                     con.warn("Unable to determine battle type");
+                    tempDiv = null;
                     throw "Unable to get userId!";
                 }
             }
@@ -534,6 +546,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             battle.setItem(battleRecord);
+            tempDiv = null;
             return result;
         } catch (err) {
             con.error("ERROR in battle.getResult: " + err);
@@ -544,7 +557,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.deadCheck = function() {
         try {
             var battleRecord = {},
-            dead = false;
+                dead = false;
 
             if (state.getItem("lastBattleID", 0)) {
                 battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
@@ -830,7 +843,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 form = $j(),
                 firstId = '',
                 lastBattleID = 0,
-                engageButton = null,
+                engageButton = $j(),
                 time = 0,
                 found = 0,
                 entryLimit = 0,
@@ -840,6 +853,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!$u.hasContent(inputDiv)) {
                 con.warn('Not on battlepage');
                 caap.navigateTo(caap.battlePage);
+                inputDiv = null;
+                inp = null;
+                form = null;
+                engageButton = null;
                 return false;
             }
 
@@ -926,12 +943,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 inp = $j("input[name='target_id']", tr);
                 if (!$u.hasContent(inp)) {
                     con.warn("Could not find 'target_id' input");
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
                 tempRecord.data['userId'] = $u.setContent(inp.val(), '0').parseInt();
                 if (!$u.isNumber(tempRecord.data['userId']) || tempRecord.data['userId'] <= 0) {
                     con.warn("Not a valid userId", tempRecord.data['userId']);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -951,6 +978,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     levelm = battle.battles['Raid']['regex1'].exec(tempTxt);
                     if (!$u.hasContent(levelm)) {
                         con.warn("Can't match Raid regex in ", tempTxt);
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
 
@@ -962,6 +994,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else {
                     if (!$u.hasContent(tr)) {
                         con.warn("Can't find parent tr in tempRecord.data['button']");
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
 
@@ -984,11 +1021,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                             if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0 || !config.getItem('DemiPoint' + tempRecord.data['deityNum'], true)) {
                                 con.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
+                                inputDiv = null;
+                                inp = null;
+                                form = null;
+                                engageButton = null;
+                                tr = null;
                                 return true;
                             }
                         } else if (config.getItem('WhenBattle', 'Never') === "Demi Points Only") {
                             if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0) {
                                 con.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
+                                inputDiv = null;
+                                inp = null;
+                                form = null;
+                                engageButton = null;
+                                tr = null;
                                 return true;
                             }
                         }
@@ -997,6 +1044,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempTxt = $u.setContent(tr.text(), '').trim();
                     if (!$u.hasContent(tempTxt)) {
                         con.warn("Can't find tempTxt in tr");
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
 
@@ -1016,6 +1068,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if (!levelm) {
                         con.warn("Can't match Freshmeat regex in ", tempTxt);
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
 
@@ -1033,6 +1090,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (battle.hashCheck(tempRecord.data)) {
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1042,6 +1104,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 armyRatio = Math.max(armyRatio, ARMin);
                 if (armyRatio <= 0) {
                     con.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1051,6 +1118,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         'levelDif': tempRecord.data['levelNum'] - caap.stats['level'],
                         'maxLevel': maxLevel
                     });
+
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1060,6 +1133,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         'levelDif': caap.stats['level'] - tempRecord.data['levelNum'],
                         'minLevel': minLevel
                     });
+
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1069,6 +1148,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             'rankDif': caap.stats['rank']['war'] - tempRecord.data['warRankNum'],
                             'minRank': minRank
                         });
+
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
                 } else {
@@ -1077,6 +1162,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             'rankDif': caap.stats['rank']['battle'] - tempRecord.data['rankNum'],
                             'minRank': minRank
                         });
+
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
                 }
@@ -1088,6 +1179,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         'armyNum': tempRecord.data['armyNum'],
                         'armyMax': (caap.stats['army']['capped'] * armyRatio).dp()
                     });
+
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1102,6 +1199,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "Push UserRecord", tempRecord);
                     battle.reconRecords.push(tempRecord.data);
                     found += 1;
+
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1119,12 +1222,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     switch (config.getItem("BattleType", 'Invade')) {
                     case 'Invade':
                         tempTime = $u.setContent(battleRecord['invadeLostTime'], 0);
+
                         break;
                     case 'Duel':
                         tempTime = $u.setContent(battleRecord['duelLostTime'], 0);
+
                         break;
                     case 'War':
                         tempTime = $u.setContent(battleRecord['warLostTime'], 0);
+
                         break;
                     default:
                         con.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
@@ -1132,6 +1238,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if (battleRecord && !battleRecord['newRecord'] && tempTime && !schedule.since(tempTime, 604800)) {
                         con.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
+                        tr = null;
                         return true;
                     }
                 }
@@ -1140,6 +1251,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempTime = $u.setContent(battleRecord['unknownTime'], 0);
                 if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                     con.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1147,6 +1263,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempTime = $u.setContent(battleRecord['deadTime'], 0);
                 if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                     con.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1154,6 +1275,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempTime = $u.setContent(battleRecord['chainTime'], 0);
                 if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 86400)) {
                     con.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1161,6 +1287,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempTime = $u.setContent(battleRecord['ignoreTime'], 0);
                 if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
                     con.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
+                    inputDiv = null;
+                    inp = null;
+                    form = null;
+                    engageButton = null;
+                    tr = null;
                     return true;
                 }
 
@@ -1177,6 +1308,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     plusOneSafe = true;
                 }
 
+                inputDiv = null;
+                inp = null;
+                form = null;
+                engageButton = null;
+                tr = null;
                 return true;
             });
 
@@ -1190,6 +1326,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 schedule.setItem('PlayerReconTimer', (gm ? gm.getItem('PlayerReconRetry', 60, hiddenVar) : 60), 60);
                 battle.reconInProgress = false;
+                inputDiv = null;
+                inp = null;
+                form = null;
+                engageButton = null;
                 return true;
             }
 
@@ -1205,6 +1345,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         state.setItem("lastBattleID", chainId);
                         caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                         state.setItem("notSafeCount", 0);
+                        inputDiv = null;
+                        inp = null;
+                        form = null;
+                        engageButton = null;
                         return true;
                     }
 
@@ -1222,6 +1366,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             state.setItem("lastBattleID", firstId);
                             caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                             state.setItem("notSafeCount", 0);
+                            inputDiv = null;
+                            inp = null;
+                            form = null;
+                            engageButton = null;
                             return true;
                         }
 
@@ -1274,6 +1422,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             battle.setItem(battleRecord);
                             caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                             state.setItem("notSafeCount", 0);
+                            inputDiv = null;
+                            inp = null;
+                            form = null;
+                            engageButton = null;
                             return true;
                         }
 
@@ -1292,6 +1444,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 time = config.getItem("NoTargetDelay", 45);
                 time = time < 10 ? 10 : time;
                 schedule.setItem("NoTargetDelay", time);
+                inputDiv = null;
+                inp = null;
+                form = null;
+                engageButton = null;
                 return false;
             }
 
@@ -1308,6 +1464,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.navigateTo(caap.battlePage + ',battle_on.gif');
             }
 
+            inputDiv = null;
+            inp = null;
+            form = null;
+            engageButton = null;
             return true;
         } catch (err) {
             con.error("ERROR in battle.freshmeat: " + err);
@@ -1513,7 +1673,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         switch (values[pp]) {
                         case 'userId':
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
-                            //userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
                             userIdLink = "keep.php?casuser=" + battle.records[i][values[pp]];
                             data = {
                                 text: '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
@@ -1602,7 +1761,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            //visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             visitUserIdLink.arlink = visitUserIdLink.rlink;
                         }
                     }
