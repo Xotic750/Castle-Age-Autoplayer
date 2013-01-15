@@ -66,6 +66,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn('Using stored guild name.');
             }
 
+            // not available any more - was used for composing gift lists
+            /*
             guildDiv = $j("#globalContainer #cta_log div[style*='guild_main_score_middle'] a[href*='keep.php?casuser']");
             if ($u.hasContent(guildDiv)) {
                 guildDiv.each(function() {
@@ -80,11 +82,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         });
                     }
                 });
+
                 caap.stats['guild']['members'] = members.slice();
                 save = true;
             } else {
                 con.warn('Using stored guild member count.');
             }
+            */
 
             con.log(2, "checkResults_guild", caap.stats['guild']);
             if (save) {
