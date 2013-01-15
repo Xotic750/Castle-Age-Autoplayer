@@ -2,7 +2,7 @@
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
-festival,feed,battle,town,
+festival,feed,battle,town,conquest,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,hiddenVar,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
@@ -424,9 +424,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         color: valueCol
                     }],
                     [{
-                        text: '&nbsp;'
+                        text: 'Conquest Rank'
                     }, {
-                        text: '&nbsp;'
+                        text: conquest.conquestRankTable[caap.stats['rank']['conquest']] + ' (' + caap.stats['rank']['conquest'] + ')',
+                        color: valueCol
                     }, {
                         text: 'Generals'
                     }, {
@@ -434,9 +435,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         color: valueCol
                     }],
                     [{
-                        text: '&nbsp;'
+                        text: 'Conquest Rank Points'
                     }, {
-                        text: '&nbsp;',
+                        text: caap.stats['rank']['conquestPoints'].addCommas(),
                         color: valueCol
                     }, {
                         text: 'Generals When Invade',

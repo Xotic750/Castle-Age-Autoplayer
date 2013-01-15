@@ -4559,6 +4559,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'tab_war_on.gif',
             CheckResultsFunction: 'checkResults_war_rank'
         },
+        'conquest_battlerank': {
+            signaturePic: 'conqrank_on2.jpg',
+            CheckResultsFunction: 'checkResults_conquest_rank'
+        },
         'achievements': {
             signaturePic: 'tab_achievements_on.gif',
             CheckResultsFunction: 'checkResults_achievements'
@@ -4917,7 +4921,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'battle': 0,
             'battlePoints': 0,
             'war': 0,
-            'warPoints': 0
+            'warPoints': 0,
+            'conquest': 0,
+            'conquestPoints': 0
         },
         'potions': {
             'energy': 0,
@@ -5936,7 +5942,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0;
 
             if ($u.hasContent(rankDiv)) {
-                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(';', '').regex(/with (\d+) Battle Points/i), 0);
+                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) Battle Points/i), 0);
                 if ($u.hasContent(tNum)) {
                     con.log(2, 'Got Battle Rank Points', tNum);
                     caap.stats['rank']['battlePoints'] = tNum;
@@ -5962,7 +5968,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0;
 
             if ($u.hasContent(rankDiv)) {
-                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(';', '').regex(/with (\d+) War Points/i), 0);
+                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) War Points/i), 0);
                 if ($u.hasContent(tNum)) {
                     con.log(2, 'Got War Rank Points', tNum);
                     caap.stats['rank']['warPoints'] = tNum;
@@ -5981,6 +5987,35 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
+    caap.checkResults_conquest_rank = function () {
+        try {
+            var rankDiv = $j("#app_body div[style*='conquest_duel_rank_header.jpg']"),
+                tNum = 0;
+
+            if ($u.hasContent(rankDiv)) {
+                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/Conquest Duel Points:\s+(\d+)/i), 0);
+                if ($u.hasContent(tNum)) {
+                    con.log(1, 'Got Conquest Rank Points', tNum);
+                    caap.stats['rank']['conquestPoints'] = tNum;
+                    caap.stats['rank']['conquest'] = conquest.conquestRankTier(tNum);
+                    con.log(1, 'Got Conquest Rank Points', tNum, caap.stats['rank']['conquest']);
+                    caap.saveStats();
+                } else {
+                    con.warn('Conquest Rank Points RegExp not matched.');
+                }
+            } else {
+                con.warn('Conquest Rank Points div not found.');
+            }
+
+            schedule.setItem("conquestrank", (gm ? gm.getItem("checkConquestRank", 48, hiddenVar) : 48) * 3600, 300);
+            return true;
+        } catch (err) {
+            con.error("ERROR in checkResults_conquest_rank: " + err);
+            return false;
+        }
+    };
+
     caap.checkResults_achievements = function () {
         try {
             var achDiv = $j("#app_body #achievements_2"),
@@ -8691,6 +8726,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return caap.navigateTo('battle,war_rank', 'tab_war_on.gif');
         } catch (err) {
             con.error("ERROR in CheckWar: " + err);
+            return false;
+        }
+    };
+
+    caap.conquestWarRank = function () {
+        try {
+            if (!schedule.check("conquestrank") || caap.stats['level'] < 100) {
+                return false;
+            }
+
+            con.log(2, 'Visiting Conquest Rank to get stats');
+            return caap.navigateTo('battle,conquest_battlerank', 'conqrank_on2.jpg');
+        } catch (err) {
+            con.error("ERROR in conquestWarRank: " + err);
             return false;
         }
     };
