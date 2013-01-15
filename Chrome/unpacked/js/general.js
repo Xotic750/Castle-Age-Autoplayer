@@ -1116,11 +1116,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     row = "";
                     for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (values[pp] === 'name') {
-                            //link = "generals.php?itype=" + general.records[it]['itype'] + "&item=" + general.records[it]['item'];
                             link = "generals.php";
                             instructions = "Clicking this link will change General to " + general.records[it]['name'];
                             data = {
-                                text: '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link + '" itype="' + general.records[it]['itype'] + '" item="' + general.records[it]['item'] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it]['name'] + '</span>',
+                                text: '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link + '" itype="' + general.records[it]['itype'] + '" item="' + general.records[it]['item'] +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it]['name'] + '</span>',
                                 color: 'blue',
                                 id: '',
                                 title: ''
