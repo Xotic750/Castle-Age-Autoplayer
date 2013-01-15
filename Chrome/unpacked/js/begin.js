@@ -4,7 +4,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,guild_monster,
-retryDelay,caap_log,top,caap_timeout,caap_reload,caapjQuery,caap_DomTimeOut,
+retryDelay:true,caap_log,top,caap_timeout:true,caap_reload,caapjQuery,caap_DomTimeOut,
 injectScript,caap_WaitForjQuery,$ */
 /*jslint maxlen: 256 */
 
@@ -66,7 +66,7 @@ injectScript,caap_WaitForjQuery,$ */
         caap_log('Domain', caap.domain.which, caap.domain.protocol[caap.domain.ptype], caap.domain.url[caap.domain.which]);
         caap.documentTitle = document.title;
         caap_log(window.navigator.userAgent);
-        if (typeof CAAP_SCOPE_RUN !== "undefined") {
+        if (CAAP_SCOPE_RUN !== "undefined") {
             caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
         }
 
