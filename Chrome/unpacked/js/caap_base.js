@@ -5999,7 +5999,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(1, 'Got Conquest Rank Points', tNum);
                     caap.stats['rank']['conquestPoints'] = tNum;
                     caap.stats['rank']['conquest'] = conquest.conquestRankTier(tNum);
-                    con.log(1, 'Got Conquest Rank Points', tNum, caap.stats['rank']['conquest']);
+                    con.log(2, 'Got Conquest Rank Points', tNum, caap.stats['rank']['conquest']);
                     caap.saveStats();
                 } else {
                     con.warn('Conquest Rank Points RegExp not matched.');
