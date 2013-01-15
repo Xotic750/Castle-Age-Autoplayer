@@ -51,6 +51,7 @@ var caapjQuery = "1.8.3",
 	army = {},
 	caap = {},
 	con = {},
+    conquest = {},
 	retryDelay = 1000;
 
 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */

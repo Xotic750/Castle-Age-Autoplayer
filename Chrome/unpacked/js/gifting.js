@@ -652,6 +652,7 @@
                     window.army = null;
                     window.caap = null;
                     window.con = null;
+                    window.conquest = null;
                     $u.reload();
                 }
 

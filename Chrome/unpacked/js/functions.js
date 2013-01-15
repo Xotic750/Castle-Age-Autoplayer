@@ -105,6 +105,7 @@ function caap_reload() {
     window.army = null;
     window.caap = null;
     window.con = null;
+    window.conquest = null;
 
     if (window.location.hasOwnProperty("reload")) {
         window.location.reload();

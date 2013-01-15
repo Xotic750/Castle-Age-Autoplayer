@@ -105,6 +105,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
                                     window.army = null;
                                     window.caap = null;
                                     window.con = null;
+                                    window.conquest = null;
                                     $u.reload();
 				}, 60000 + (Math.floor(Math.random() * 60) * 1000));
 

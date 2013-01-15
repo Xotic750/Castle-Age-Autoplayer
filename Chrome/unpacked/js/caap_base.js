@@ -511,6 +511,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.army = null;
             window.caap = null;
             window.con = null;
+            window.conquest = null;
             $u.reload();
         }
     };
@@ -4722,6 +4723,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
     caap.checkResults = function () {
         try {
             // Check page to see if we should go to a page specific check function
@@ -8934,6 +8936,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) {
                 return false;
             }
+
             caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 
             return true;
@@ -8948,6 +8951,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!config.getItem('doConquestCrystalCollect', false) || !schedule.check('collectConquestCrystalTimer')) {
                 return false;
             }
+
             caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 
             return true;
@@ -8957,19 +8961,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    // these conquest functions do not appear to be correct
     caap.checkResults_conquest = function () {
+        if ((!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) && (!config.getItem('doConquestCrystalCollect', false) || !schedule.check('collectConquestCrystalTimer'))) {
+            return false;
+        }
+
         conquest.collect();
+        return true;
     };
 
     caap.checkResults_conquestLand = function () {
         conquest.land();
+        return false;
     };
 
-    caap.checkResults_conquestMist = function () {};
-    caap.checkResults_conquestEarth = function () {};
+    caap.checkResults_conquestMist = function () {
+        return false;
+    };
+
+    caap.checkResults_conquestEarth = function () {
+        return false;
+    };
 
     caap.checkResults_conquestBattle = function () {
         conquest.battle();
+        return true;
     };
 
     //window['caap'] = true, // sets caap to boolean should (must?) be object // 2011-09-27 CAGE
