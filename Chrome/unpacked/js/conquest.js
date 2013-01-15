@@ -59,7 +59,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     conquest.conquestRankTable = {
-
         0: 'No Rank',
         1: 'Scout',
         2: 'Soldier',
