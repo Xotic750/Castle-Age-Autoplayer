@@ -66,7 +66,7 @@ injectScript,caap_WaitForjQuery,$ */
         caap_log('Domain', caap.domain.which, caap.domain.protocol[caap.domain.ptype], caap.domain.url[caap.domain.which]);
         caap.documentTitle = document.title;
         caap_log(window.navigator.userAgent);
-        if ($u.hasContent(CAAP_SCOPE_RUN)) {
+        if (typeof CAAP_SCOPE_RUN !== "undefined") {
             caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
         }
 
