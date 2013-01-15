@@ -130,6 +130,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 step: step,
                 value: config.getItem(id, defaultValue),
                 slide: function (event, ui) {
+                    con.log(1, "slide event", event);
+
                     if (opacity) {
                         state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
                         caap.colorUpdate();
