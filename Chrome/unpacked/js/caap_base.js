@@ -5996,10 +5996,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(rankDiv)) {
                 tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/Conquest Duel Points:\s+(\d+)/i), 0);
                 if ($u.hasContent(tNum)) {
-                    con.log(1, 'Got Conquest Rank Points', tNum);
+                    con.log(2, 'Got Conquest Rank Points', tNum);
                     caap.stats['rank']['conquestPoints'] = tNum;
                     caap.stats['rank']['conquest'] = conquest.conquestRankTier(tNum);
-                    con.log(2, 'Got Conquest Rank Points', tNum, caap.stats['rank']['conquest']);
                     caap.saveStats();
                 } else {
                     con.warn('Conquest Rank Points RegExp not matched.');
