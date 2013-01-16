@@ -8734,7 +8734,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.conquestWarRank = function () {
+    caap.checkConquestRank = function () {
         try {
             if (!schedule.check("conquestrank") || caap.stats['level'] < 100) {
                 return false;
@@ -8743,7 +8743,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, 'Visiting Conquest Rank to get stats');
             return caap.navigateTo('battle,conquest_battlerank', 'conqrank_on2.jpg');
         } catch (err) {
-            con.error("ERROR in conquestWarRank: " + err);
+            con.error("ERROR in checkConquestRank: " + err);
             return false;
         }
     };

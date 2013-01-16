@@ -55,6 +55,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'checkOracle': 'Checking Oracle',
         'checkBattleRank': 'Battle Rank',
         'checkWarRank': 'War Rank',
+        'checkConquestRank': 'Conquest Rank',
         'checkSymbolQuests': 'Demi Blessing Stats',
         'checkSoldiers': 'Getting Soldiers',
         'checkItem': 'Getting Items',
@@ -63,9 +64,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'festivalBless': 'Festival Feats',
         'collectConquest': 'Collect Conquest Resources',
         'collectConquestCrystal': 'Collect Conquest Crystals'
-	/*
-        'doArenaBattle': 'Battling in Arena'
-        */
     };
 
     caap.checkLastAction = function (thisAction) {
@@ -92,11 +90,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x02: 'immediateBanking',
         0x03: 'immediateAutoStat',
         0x04: 'maxEnergyQuest',
-        //0x05: 'arenaReview',
         0x05: 'festivalReview',
         0x06: 'guildMonsterReview',
         0x07: 'monsterReview',
-        //0x08: 'arena',
         0x08: 'festival',
         0x09: 'guildMonster',
         0x0A: 'demiPoints',
@@ -121,21 +117,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x1D: 'checkOracle',
         0x1E: 'checkBattleRank',
         0x1F: 'checkWarRank',
-        0x20: 'checkSymbolQuests',
-        0x21: 'checkSoldiers',
-        0x22: 'checkItem',
-        0x23: 'checkMagic',
-        0x24: 'checkCharacterClasses',
-        0x25: 'festivalBless',
-        0x26: 'ajaxCheckFeed',
-        0x27: 'ajaxCheckGuild',
-        0x28: 'ajaxCheckPublic1',
-        0x29: 'ajaxCheckPublic2',
-        0x2A: 'ajaxCheckPublic3',
-        0x2B: 'feedScan',
-        0x2C: 'collectConquest',
-        0x2D: 'collectConquestCrystal',
-        //0x2E: 'doArenaBattle',
+        0x20: 'checkConquestRank',
+        0x21: 'checkSymbolQuests',
+        0x22: 'checkSoldiers',
+        0x23: 'checkItem',
+        0x24: 'checkMagic',
+        0x25: 'checkCharacterClasses',
+        0x26: 'festivalBless',
+        0x27: 'ajaxCheckFeed',
+        0x28: 'ajaxCheckGuild',
+        0x29: 'ajaxCheckPublic1',
+        0x2A: 'ajaxCheckPublic2',
+        0x2B: 'ajaxCheckPublic3',
+        0x2C: 'feedScan',
+        0x2D: 'collectConquest',
+        0x2E: 'collectConquestCrystal',
         0x2F: 'autoArchives',
         0x30: 'idle'
     };
@@ -336,10 +332,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.stsPoll = function () {
         try {
-            //var gtv = $j("span[id*='gold_time_value']", caap.globalContainer).text(),
-                //ecv = $j("span[id*='energy_current_value']", caap.globalContainer).text(),
-                //scv = $j("span[id*='stamina_current_value']", caap.globalContainer).text(),
-                //hcv = $j("span[id*='health_current_value']", caap.globalContainer).text(),
             var mainSts = $j("#globalContainer #mainsts"),
                 gtv = $j("#gold_time_value", mainSts).text(),
                 ecv = $j("#energy_current_value", mainSts).text(),
@@ -763,21 +755,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 gm.deleteItem("gifting.gifts");
             }
         },
-        /*
-	'Arena' : {
-         'export' : function () {
-         return arena.records;
-         },
-         'import' : function (d) {
-         arena.records = d;
-         arena.save();
-         },
-         'delete' : function () {
-         arena.records = [];
-         gm.deleteItem("arena.records");
-         }
-         },
-        */
         'Army': {
             'export': function () {
                 return army.records;
