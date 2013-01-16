@@ -5016,13 +5016,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.loadStats = function (FBID, AccName) {
         var Stats = gm.getItem('stats.record', 'default');
+
         if (Stats === 'default' || !$j.isPlainObject(Stats)) {
             Stats = gm.setItem('stats.record', caap.stats);
         }
 
         $j.extend(true, caap.stats, Stats);
         caap.stats['FBID'] = FBID;
-        caap.stats['account'] = AccName;
+
+        if ($u.hasContent(AccName) && $u.isString(AccName)) {
+            caap.stats['account'] = AccName;
+        }
+
         con.log(4, "Stats", caap.stats);
         session.setItem("UserDashUpdate", true);
     };
