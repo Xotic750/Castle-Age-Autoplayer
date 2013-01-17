@@ -4892,7 +4892,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'defense': 0,
         'points': {
             'skill': 0,
-            'favor': 0
+            'favor': 0,
+            'guild': 0,
         },
         'indicators': {
             'bsi': 0,
@@ -4923,7 +4924,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'war': 0,
             'warPoints': 0,
             'conquest': 0,
-            'conquestPoints': 0
+            'conquestPoints': 0,
+            'conquestLevel': 0,
+            'conquestLevelPercent': 0
         },
         'potions': {
             'energy': 0,
@@ -4960,6 +4963,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'dif': 0
         },
         'exp': {
+            'num': 0,
+            'max': 0,
+            'dif': 0
+        },
+        'guildTokens': {
             'num': 0,
             'max': 0,
             'dif': 0
@@ -5024,7 +5032,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         $j.extend(true, caap.stats, Stats);
         caap.stats['FBID'] = FBID;
 
-        if ($u.hasContent(AccName) && $u.isString(AccName)) {
+        if ($u.hasContent(AccName) && $u.isString(AccName) && caap.stats['account'] !== AccName) {
             caap.stats['account'] = AccName;
         }
 

@@ -59,7 +59,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     conquest.conquestRankTable = {
-        0: 'No Rank',
+        0: 'Grunt',
         1: 'Scout',
         2: 'Soldier',
         3: 'Elite Soldier',
@@ -117,20 +117,251 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     conquest.battle = function() {
-        var inputDiv = $j("div[style*='war_conquest_mid']");
+        var slice = $j("#app_body div[style*='war_conquest_header2.jpg']"),
+            levelDiv = $j(),
+            percentageDiv = $j(),
+            rechargeDiv = $j(),
+            rechargeSecs = 0,
+            timeDiv = $j(),
+            timeSecs = 0,
+            tokensMaxDiv = $j(),
+            tokensDiv = $j(),
+            passedStats = true,
+            passedTimes = true,
+            opponentsSlice = $j("#app_body div[style*='war_conquest_mid']");
 
-        con.log(1, "in battle", inputDiv);
-        inputDiv.each(function(index) {
-            var rank = /\d+/.exec(inputDiv[index].children[4].children[0].children[0].title)[0],
-                playerId = $j("input[name*='target_id']", inputDiv[index].children[5].children[0].children[0].children[0])[0].value,
-                armySize = inputDiv[index].children[3].children[0].innerHTML,
-                duelNum = battle.getItem(playerId).duelwinsNum - battle.getItem(playerId).duellossesNum,
-                invadeNum = battle.getItem(playerId).invadewinsNum - battle.getItem(playerId).invadelossesNum;
+        if ($u.hasContent(slice)) {
+            levelDiv = $j("div[style*='width:160px;height:12px;color:#80cfec']", slice);
+            if ($u.hasContent(levelDiv)) {
+                caap.stats['rank']['conquestLevel'] = $u.setContent(levelDiv.text(), '').regex(/(\d+)/);
+            } else {
+                con.warn("Unable to get conquest levelDiv");
+                passedStats = false;
+            }
 
-            con.log(1, playerId, rank, armySize, duelNum, invadeNum);
-        });
+            percentageDiv = $j("div[style*='war_redbar.jpg']", slice);
+            if ($u.hasContent(percentageDiv)) {
+                caap.stats['rank']['conquestLevelPercent'] = $u.setContent(percentageDiv.getPercent('width'), 0);
+            } else {
+                con.warn("Unable to get conquest percentageDiv");
+                passedStats = false;
+            }
 
-        inputDiv = null;
+            tokensMaxDiv = $j("#guild_token_current_max", slice);
+            if ($u.hasContent(tokensMaxDiv)) {
+                caap.stats['guildTokens']['max'] = $u.setContent(tokensMaxDiv.val(), 0).regex(/(\d+)/);
+            } else {
+                con.warn("Unable to get conquest tokensMaxDiv");
+                passedStats = false;
+            }
+
+            tokensDiv = $j("#guild_token_current_value_amount", slice);
+            if ($u.hasContent(tokensDiv)) {
+                caap.stats['guildTokens']['num'] = $u.setContent(tokensDiv.val(), 0).regex(/(\d+)/);
+            } else {
+                con.warn("Unable to get conquest tokensDiv");
+                passedStats = false;
+            }
+
+            caap.stats['guildTokens']['dif'] = caap.stats['conquestT']['max'] - caap.stats['guildTokens']['num'];
+
+            con.log(1, "conquest.battle", caap.stats['rank'], caap.stats['guildTokens']);
+            if (passedStats) {
+                caap.saveStats();
+            }
+
+            rechargeDiv = $j("#guild_token_current_recharge_time", slice);
+            if ($u.hasContent(rechargeDiv)) {
+                rechargeSecs = $u.setContent(rechargeDiv.val(), '').regex(/(\d+)/);
+            } else {
+                con.warn("Unable to get conquest rechargeDiv");
+                passedTimes = false;
+            }
+
+            timeDiv = $j("#guild_token_time_sec", slice);
+            if ($u.hasContent(timeDiv)) {
+                timeSecs = $u.setContent(timeDiv.val(), '').regex(/(\d+)/);
+            } else {
+                con.warn("Unable to get conquest rechargeDiv");
+                passedTimes = false;
+            }
+
+            con.log(1, "conquest.battle", rechargeSecs, timeSecs);
+        } else {
+            con.warn("Unable to get conquest slice");
+        }
+
+        con.log(1, "in battle", opponentsSlice);
+        if ($u.hasContent(opponentsSlice)) {
+            con.log(1, "My rank is", conquest.conquestRankTable[caap.stats['rank']['conquest']]);
+            opponentsSlice.each(function() {
+                var opponentDiv = $j(this),
+                    boxesDiv = opponentDiv.children("div"),
+                    idDiv = $j(),
+                    playerDiv = $j(),
+                    armyDiv = $j(),
+                    tempDiv = $j(),
+                    tempText = '',
+                    duelNum = 0,
+                    invadeNum = 0,
+                    opponent = {
+                        id: 0,
+                        //name: '',
+                        level: 0,
+                        rank: 0,
+                        army: 0
+                    };
+
+                if ($u.hasContent(boxesDiv) && boxesDiv.length === 7 ) {
+                    idDiv = boxesDiv.eq(1);
+                    playerDiv = boxesDiv.eq(2);
+                    armyDiv = boxesDiv.eq(3);
+                } else {
+                    con.warn("skipping opponent, missing boxes", opponentDiv);
+                    opponentDiv = null;
+                    boxesDiv = null;
+                    idDiv = null;
+                    playerDiv = null;
+                    armyDiv = null;
+                    tempDiv = null;
+                    return;
+                }
+
+                if ($u.hasContent(idDiv)) {
+                    tempDiv = $j("a[href*='keep.php?casuser=']", idDiv);
+                    if ($u.hasContent(tempDiv)) {
+                        tempText = $u.setContent(tempDiv.attr('href'), '');
+                        if ($u.hasContent(tempText)) {
+                            opponent.id = $u.setContent(tempText.regex(/casuser=(\d+)/i), -1);
+
+                            if (opponent.id < 1) {
+                                con.warn("skipping opponent, unable to get userid", tempText);
+                                opponentDiv = null;
+                                boxesDiv = null;
+                                idDiv = null;
+                                playerDiv = null;
+                                armyDiv = null;
+                                tempDiv = null;
+                                return;
+                            }
+                        } else {
+                            con.warn("No text in idDiv");
+                            opponentDiv = null;
+                            boxesDiv = null;
+                            idDiv = null;
+                            playerDiv = null;
+                            armyDiv = null;
+                            tempDiv = null;
+                            return;
+                        }
+                    }
+                } else {
+                    con.warn("skipping opponent, missing idDiv", opponentDiv);
+                    opponentDiv = null;
+                    boxesDiv = null;
+                    idDiv = null;
+                    playerDiv = null;
+                    armyDiv = null;
+                    tempDiv = null;
+                    return;
+                }
+
+                if ($u.hasContent(playerDiv)) {
+                    tempText = $u.setContent(playerDiv.text(), '');
+                    if ($u.hasContent(tempText)) {
+                        //opponent.name = $u.setContent(tempText.regex(/(.+) \(Level/), '');
+                        opponent.level = $u.setContent(tempText.regex(/Level (\d+)/i), -1);
+                        opponent.rank = $u.setContent(tempText.regex(/Rank (\d+)/i), -1);
+
+                        /*
+                        if (opponent.name === '') {
+                            con.warn("Unable to match opponent's name", tempText);
+                        }
+                        */
+
+                        if (opponent.level === -1 || opponent.rank === -1) {
+                            con.warn("skipping opponent, unable to get level or rank", tempText);
+                            opponentDiv = null;
+                            boxesDiv = null;
+                            idDiv = null;
+                            playerDiv = null;
+                            armyDiv = null;
+                            tempDiv = null;
+                            return;
+                        }
+                    } else {
+                        con.warn("No text in playerDiv");
+                        opponentDiv = null;
+                        boxesDiv = null;
+                        idDiv = null;
+                        playerDiv = null;
+                        armyDiv = null;
+                        tempDiv = null;
+                        return;
+                    }
+                } else {
+                    con.warn("skipping opponent, missing playerDiv", opponentDiv);
+                    opponentDiv = null;
+                    boxesDiv = null;
+                    idDiv = null;
+                    playerDiv = null;
+                    armyDiv = null;
+                    tempDiv = null;
+                    return;
+                }
+
+                if ($u.hasContent(armyDiv)) {
+                    tempText = $u.setContent(armyDiv.text(), '');
+                    if ($u.hasContent(tempText)) {
+                        opponent.army = $u.setContent(tempText.regex(/(\d+)/i), -1);
+
+                        if (opponent.army === -1) {
+                            con.warn("skipping opponent, unable to get army", tempText);
+                            opponentDiv = null;
+                            boxesDiv = null;
+                            idDiv = null;
+                            playerDiv = null;
+                            armyDiv = null;
+                            tempDiv = null;
+                            return;
+                        }
+                    } else {
+                        con.warn("No text in armyDiv");
+                        opponentDiv = null;
+                        boxesDiv = null;
+                        idDiv = null;
+                        playerDiv = null;
+                        armyDiv = null;
+                        tempDiv = null;
+                        return;
+                    }
+                } else {
+                    con.warn("skipping opponent, missing armyDiv", opponentDiv);
+                    opponentDiv = null;
+                    boxesDiv = null;
+                    idDiv = null;
+                    playerDiv = null;
+                    armyDiv = null;
+                    tempDiv = null;
+                    return;
+                }
+
+                duelNum = battle.getItem(opponent.id).duelwinsNum - battle.getItem(opponent.id).duellossesNum;
+                invadeNum = battle.getItem(opponent.id).invadewinsNum - battle.getItem(opponent.id).invadelossesNum;
+
+                con.log(1, opponent.id.lpad(' ', 15) + opponent.level.lpad(' ', 4) + conquest.conquestRankTable[opponent.rank].lpad(' ', 15) + opponent.army.lpad(' ', 4) + duelNum.lpad(' ', 3) + invadeNum.lpad(' ', 3));
+            });
+        } else {
+            con.warn("missing opponentDiv");
+        }
+
+        slice = null;
+        levelDiv = null;
+        percentageDiv = null;
+        rechargeDiv = null;
+        timeDiv = null;
+        tokensMaxDiv = null;
+        tokensDiv = null;
     };
 
 }());
