@@ -50,7 +50,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		if (caap.domain.which === 3) {
 			caap.initDb();
 			caap.getSigned();
-			//con.log(2, "session", session);
+			con.log(2, "session", session);
 			caap.caapifStartup();
 			return;
 		}
@@ -59,7 +59,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		/*jslint sub: true */
 		if (caap.domain.which >= 0 && caap.domain.which < 2) {
 			FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
-			aName = $j('#pagenav').text();
+			aName = $j('#pageNav .headerTinymanName').text();
 		} else {
 			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
 			aName = $u.setContent(caap.fbData.me.name, '');
@@ -122,7 +122,12 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		//con.log(3, "schedule", schedule);
 		caap.lsUsed();
 		schedule.setItem("clickedOnSomething", 3600);
-		caap.loadStats(FBID, aName);
+
+        if (caap.domain.which === 0) {
+            caap.loadStats(FBID, aName);
+        }
+
+        caap.saveStats();
 		gifting.init();
 		gifting.loadCurrent();
 

@@ -60,6 +60,7 @@ function getFBData() {
     var inject = document.createElement('script');
 
     inject.setAttribute('type', 'text/javascript');
+    //inject.textContent = "(function () {var atoken = FB.getAccessToken(); FB.api('/me', {access_token: atoken}, function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getAuthResponse()}));});}());";
     inject.textContent = "(function () {FB.api('/me', function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getAuthResponse()}));});}());";
     (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
     (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
