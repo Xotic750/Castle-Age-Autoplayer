@@ -840,8 +840,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            generalDiv = $j("#app_body div[style*='generalbase_img.jpg']");
-            if ($u.hasContent(generalDiv)) {
+            generalDiv = $j("#app_body div[style*='generalbase_img.jpg'] div[style*='width:70px;']");
+            if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                 temptext = $u.setContent(generalDiv.text(), '');
                 if ($u.hasContent(temptext)) {
                     general.records[it]['eatk'] = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
