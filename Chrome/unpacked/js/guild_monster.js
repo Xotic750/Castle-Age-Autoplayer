@@ -1127,7 +1127,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             htmlCode += caap.makeTD("Attack Minions in this order");
             htmlCode += caap.makeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
             htmlCode += caap.endDropHide('WhenGuildMonster');
-            htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
+            //htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
+            config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
