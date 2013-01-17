@@ -124,8 +124,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             rechargeSecs = 0,
             timeDiv = $j(),
             timeSecs = 0,
-            tokensMaxDiv = $j(),
             tokensDiv = $j(),
+            temptext = '',
             passedStats = true,
             passedTimes = true,
             opponentsSlice = $j("#app_body div[style*='war_conquest_mid']");
@@ -147,19 +147,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 passedStats = false;
             }
 
-            tokensMaxDiv = $j("#guild_token_current_max", slice);
-            if ($u.hasContent(tokensMaxDiv)) {
-                caap.stats['guildTokens']['max'] = $u.setContent(tokensMaxDiv.val(), 0).regex(/(\d+)/);
+            tokensDiv = $j("#guild_token_current_value", slice).parent();
+            if ($u.hasContent(tokensDiv)) {
+                temptext = $u.setContent(tokensDiv.text(), '').stripTRN();
+                if ($u.hasContent(temptext)) {
+                    caap.stats['guildTokens']['max'] = $u.setContent(temptext.regex(/(\d+)\/\d+/), 0);
+                    caap.stats['guildTokens']['num'] = $u.setContent(temptext.regex(/\d+\/(\d+)/), 0);
+                } else {
+                    con.warn("Unable to get tokensDiv text", tokensDiv);
+                    passedStats = false;
+                }
             } else {
                 con.warn("Unable to get conquest tokensMaxDiv");
-                passedStats = false;
-            }
-
-            tokensDiv = $j("#guild_token_current_value_amount", slice);
-            if ($u.hasContent(tokensDiv)) {
-                caap.stats['guildTokens']['num'] = $u.setContent(tokensDiv.val(), 0).regex(/(\d+)/);
-            } else {
-                con.warn("Unable to get conquest tokensDiv");
                 passedStats = false;
             }
 
@@ -174,16 +173,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(rechargeDiv)) {
                 rechargeSecs = $u.setContent(rechargeDiv.val(), '').regex(/(\d+)/);
             } else {
-                con.warn("Unable to get conquest rechargeDiv");
-                passedTimes = false;
+                if (passedStats && caap.stats['conquestT']['num'] > 0 && caap.stats['guildTokens']['max'] > 0 && caap.stats['conquestT']['num'] === caap.stats['guildTokens']['max']) {
+                    con.warn("Unable to get conquest rechargeDiv");
+                    passedTimes = false;
+                }
             }
 
             timeDiv = $j("#guild_token_time_sec", slice);
             if ($u.hasContent(timeDiv)) {
                 timeSecs = $u.setContent(timeDiv.val(), '').regex(/(\d+)/);
             } else {
-                con.warn("Unable to get conquest rechargeDiv");
-                passedTimes = false;
+                if (passedStats && caap.stats['conquestT']['num'] > 0 && caap.stats['guildTokens']['max'] > 0 && caap.stats['conquestT']['num'] === caap.stats['guildTokens']['max']) {
+                    con.warn("Unable to get conquest timeDiv");
+                    passedTimes = false;
+                }
             }
 
             con.log(1, "conquest.battle", rechargeSecs, timeSecs);
@@ -346,6 +349,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
+                // kind of pointless
                 duelNum = battle.getItem(opponent.id).duelwinsNum - battle.getItem(opponent.id).duellossesNum;
                 invadeNum = battle.getItem(opponent.id).invadewinsNum - battle.getItem(opponent.id).invadelossesNum;
 
@@ -360,7 +364,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         percentageDiv = null;
         rechargeDiv = null;
         timeDiv = null;
-        tokensMaxDiv = null;
         tokensDiv = null;
     };
 
