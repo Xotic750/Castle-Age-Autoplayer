@@ -23,6 +23,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'name': '',
             'img': '',
             'lvl': 0,
+            'lvlmax': 0,
             'pct': 0,
             'last': Date.now() - (24 * 3600000),
             'special': '',
@@ -494,6 +495,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         item = 0,
                         itype = 0,
                         level = 0,
+                        levelmax = 0,
                         percent = 0,
                         atk = 0,
                         def = 0,
@@ -542,7 +544,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     tempObj = container.find('div:contains("Level"):last');
                     if ($u.hasContent(tempObj)) {
-                        level = $u.setContent(tempObj.text(), '0').match(/\d+/g, '')[0].parseInt();
+                        level = $u.setContent(tempObj.text(), '0').regex(/Level (\d+)\/\d+/i, '');
+                        levelmax = $u.setContent(tempObj.text(), '0').regex(/Level \d+\/(\d+)/i, '');
                     } else {
                         con.warn("Unable to find 'level' container", index);
                     }
@@ -584,6 +587,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         newGeneral.data['coolDown'] = coolDown;
                         newGeneral.data['charge'] = charge;
                         newGeneral.data['lvl'] = level;
+                        newGeneral.data['lvlmax'] = levelmax;
                         newGeneral.data['pct'] = percent;
                         newGeneral.data['atk'] = atk;
                         newGeneral.data['def'] = def;
@@ -757,11 +761,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(2, 'Using level up general');
             }
 
-            /*generalName = zinReady && zinFirst && coolType && whichGeneral !== "GuildMonster" ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
-            if (!generalName || /use current/i.test(generalName)) {
-                return false;
-            }*/
-
             generalName = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
             if (!generalName || /use current/i.test(generalName)) {
                 return false;
@@ -816,11 +815,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var generalName = general.GetCurrent(),
                 it = 0,
                 len = 0,
-                //generalDiv   = $j("#equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
-                //generalDiv = $j("#main_bn", caap.globalContainer),
-                generalDiv = $j('#globalContainer #main_bn'),
-                tempObj = $j();
-                //success = false;
+                generalDiv = $j(),
+                tempObj = $j(),
+                success = false,
+                temptext = '';
 
             if (generalName === 'Use Current') {
                 generalDiv = null;
@@ -842,30 +840,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            // just dummying this for now so there are no errors
-            general.records[it]['eapi'] = 10;
-            general.records[it]['edpi'] = 10;
-            general.records[it]['empi'] = 10;
-            general.records[it]['energyMax'] = caap.stats['energyT']['max'];
-            general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
-            general.records[it]['healthMax'] = caap.stats['healthT']['max'];
-            general.records[it]['last'] = Date.now();
-            general.save();
-
-            /*
-            if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
-                tempObj = generalDiv.eq(0);
-                if ($u.hasContent(tempObj)) {
-                    general.records[it]['eatk'] = $u.setContent(tempObj.text(), '0').parseInt();
-                    tempObj = generalDiv.eq(1);
-                    if ($u.hasContent(tempObj)) {
-                        general.records[it]['edef'] = $u.setContent(tempObj.text(), '0').parseInt();
+            generalDiv = $j("#app_body div[style*='generalbase_img.jpg']");
+            if ($u.hasContent(generalDiv)) {
+                temptext = $u.setContent(generalDiv.text(), '');
+                if ($u.hasContent(temptext)) {
+                    general.records[it]['eatk'] = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
+                    general.records[it]['edef'] = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
+                    if (general.records[it]['eatk'] > 0 && general.records[it]['edef'] > 0) {
                         success = true;
                     } else {
-                        con.warn("Unable to get 'General' defense object");
+                        con.warn("Unable to get 'General' attack or defense", temptext);
                     }
                 } else {
-                    con.warn("Unable to get 'General' attack object");
+                    con.warn("Unable to get 'General' equipped status");
                 }
 
                 if (success) {
@@ -877,14 +864,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     general.records[it]['healthMax'] = caap.stats['healthT']['max'];
                     general.records[it]['last'] = Date.now();
                     general.save();
-                    con.log(3, "Got 'General' stats", general.records[it]);
+                    con.log(2, "Got 'General' stats", general.records[it]);
                 } else {
                     con.warn("Unable to get 'General' stats");
                 }
             } else {
-                con.warn("Unable to get equipped 'General' divs");
+                con.warn("Unable to get equipped 'General' div");
             }
-            */
 
             generalDiv = null;
             tempObj = null;
@@ -987,10 +973,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
                 LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
-                //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                 LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                 LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
-                //LevelUpGenInstructions16 = "Use the Level Up General for Festival Guild Battles mode.",
                 dropDownItem = 0,
                 coolDown = '',
                 haveZin = general.getItem("Zin", true) === false ? false : true,
@@ -1021,8 +1005,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
             htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
             htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
-            //htmlCode += caap.makeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
-            //htmlCode += caap.makeCheckTR("Gen For Festival", 'FestivalLevelUpGeneral', true, LevelUpGenInstructions16, true, false);
             htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
             htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
             htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
