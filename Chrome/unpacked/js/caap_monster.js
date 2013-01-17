@@ -1380,10 +1380,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "GAME PAGE", page);
             if (!feed.isScan && !ajax) {
                 battle.checkResults();
-                if (config.getItem("enableTitles", true)) {
-                    spreadsheet.doTitles();
-                }
-
                 caap.chatLink(slice, "#chat_log div[style*='hidden'] div[style*='320px']");
             }
 

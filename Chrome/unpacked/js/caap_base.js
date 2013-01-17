@@ -4743,6 +4743,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             general.GetCurrent();
             general.Shrink();
 
@@ -5683,10 +5687,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            if (config.getItem("enableTitles", true)) {
-                spreadsheet.doTitles();
-            }
-
             if (config.getItem("enableKeepShrink", true)) {
                 $j("#app_body div[class*='statUnit'] img").attr("style", "height: 45px, width: 45px;").not("#app_body div[class*='statUnit'] img[alt='Stamina Potion'],img[alt='Energy Potion']").parent().parent().attr("style", "height: 45px, width: 45px;");
             }
@@ -5790,10 +5790,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_alchemy = function () {
         try {
-            if (config.getItem("enableTitles", true)) {
-                spreadsheet.doTitles();
-            }
-
             var recipeDiv = $j("#app_body .alchemyRecipeBack .recipeTitle"),
                 titleTxt = '',
                 titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
@@ -5863,10 +5859,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.commonTown = function () {
         try {
             $j("#app_body form[id*='itemBuy'] select[name='amount']").val("5");
-            if (config.getItem("enableTitles", true)) {
-                spreadsheet.doTitles();
-            }
-
             return true;
         } catch (err) {
             con.error("ERROR in commonTown: " + err);
@@ -7006,10 +6998,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     row = null;
                 });
-            }
-
-            if (config.getItem("enableTitles", true)) {
-                spreadsheet.doTitles();
             }
 
             var bestReward = 0,

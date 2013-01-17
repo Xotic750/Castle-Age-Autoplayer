@@ -107,10 +107,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             $j("#globalContainer input[src*='guild_duel_button']").off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
             guild_monster.onMonster();
-            if (config.getItem("enableTitles", true)) {
-                spreadsheet.doTitles();
-            }
-
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_guild_battle_monster: " + err);
