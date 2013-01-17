@@ -1014,11 +1014,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
             htmlCode += caap.endDropHide('LevelUpGeneral');
             htmlCode += caap.makeCheckTR("Reverse Under Level Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+            htmlCode += caap.makeCheckTR('Enable Equipped scan', 'enableCheckAllGenerals', 1, "Enable the Generals equipped scan.");
             htmlCode += caap.makeCheckTR("Modify Timers", 'generalModifyTimers', false, "Advanced timers for how often General checks are performed.");
             htmlCode += caap.startCheckHide('generalModifyTimers');
             htmlCode += caap.makeNumberFormTR("List Hours", 'checkGenerals', "Check the Generals list every X hours. Minimum 24.", 24, '', '', true);
+            htmlCode += caap.startCheckHide('enableCheckAllGenerals');
             htmlCode += caap.makeNumberFormTR("Scan Days", 'GetAllGenerals', "Scan the Generals every X days. Minimum 7.", 7, '', '', true);
             htmlCode += caap.makeNumberFormTR("Checked Hours", 'GeneralLastReviewed', "Check the General during the scan if not visited in the last X hours. Minimum 24.", 24, '', '', true);
+            htmlCode += caap.endCheckHide('enableCheckAllGenerals');
             htmlCode += caap.endCheckHide('generalModifyTimers');
             htmlCode += caap.endToggle;
             return htmlCode;

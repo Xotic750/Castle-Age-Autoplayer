@@ -8772,7 +8772,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkAllGenerals = function () {
         try {
-            if (!schedule.check("allGenerals")) {
+            if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
             }
 
