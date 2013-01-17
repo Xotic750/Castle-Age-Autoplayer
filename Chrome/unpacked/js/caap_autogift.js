@@ -31,9 +31,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.autoGift = function () {
-        return false;
-
-        /*
         try {
             if (caap.checkAutoIncome(3) || caap.inLevelUpMode() || config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false)) {
                 return false;
@@ -44,7 +41,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in autoGift: " + err);
             return false;
         }
-        */
     };
 
 }());

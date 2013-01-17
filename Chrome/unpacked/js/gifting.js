@@ -208,9 +208,6 @@
         exceedLog: true,
 
         run: function () {
-            return false;
-
-            /*
             try {
                 var tempDiv    = $j(),
                     tempText   = '',
@@ -328,7 +325,6 @@
                 con.error("ERROR in gifting.run: " + err);
                 return false;
             }
-            */
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
