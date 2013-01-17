@@ -208,6 +208,9 @@
         exceedLog: true,
 
         run: function () {
+            return false;
+
+            /*
             try {
                 var tempDiv    = $j(),
                     tempText   = '',
@@ -325,6 +328,7 @@
                 con.error("ERROR in gifting.run: " + err);
                 return false;
             }
+            */
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -803,6 +807,7 @@
                 htmlCode += caap.startCheckHide('CollectOnly');
                 htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions, true);
                 htmlCode += caap.endCheckHide('CollectOnly');
+                /*
                 htmlCode += caap.makeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
                 htmlCode += caap.makeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
                 htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Do not return gifts to a list of UserIDs");
@@ -820,12 +825,15 @@
                 htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnGift', false, "Do not queue gifts for a list of certain gifts recieved", true);
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
+                */
                 htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
                 htmlCode += caap.startCheckHide('giftModifyTimers');
+                /*
                 htmlCode += caap.makeNumberFormTR("Max Gift Hours", 'MaxGiftsExceededDelaySecs', "When Max Gifts is exceeded wait X hours before attempting to send gifts. Minimum 1.", 3, '', '', true);
                 htmlCode += caap.makeNumberFormTR("One Gift Hours", 'OneGiftPerPersonDelaySecs', "When '1 Gift Per Person Per 24hrs' is enabled this is the timer used and is normally 24. Minimum 1.", 24, '', '', true);
                 htmlCode += caap.makeNumberFormTR("Last Tried Delay", 'LastGiftUserDelaySecs', "If we tried to send a gift to a users and they were not in the gifting list then wait X hours before attempting to send a gift to this user again. Minimum 1.", 1, '', '', true);
                 htmlCode += caap.makeNumberFormTR("No Gift Delay", 'NoGiftDelaySecs', "When no return gift could be found then wait X minutes before attempting to send gift again. Minimum 30.", 30, '', '', true);
+                */
                 htmlCode += caap.makeNumberFormTR("Gift List Days", 'checkGift', "Check gift list every X days. Minimum 3.", 3, '', '', true);
                 htmlCode += caap.makeNumberFormTR("Ajax Gift Check", 'CheckGiftMins', "Check gifts waiting every X minutes. Minimum 15.", 15, '', '', true);
                 htmlCode += caap.endCheckHide('giftModifyTimers');

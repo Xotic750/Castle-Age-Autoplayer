@@ -31,17 +31,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.autoGift = function () {
+        return false;
+
+        /*
         try {
-            /*
-            var whenArena  = '',
-            arenaInfo  = {};
-
-            whenArena = config.getItem("WhenArena", 'Never');
-            if (whenArena !== 'Never') {
-            arenaInfo = arena.getItem();
-            }*/
-
-            if (caap.checkAutoIncome(3) || caap.inLevelUpMode() || config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) /*|| (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')*/ ) {
+            if (caap.checkAutoIncome(3) || caap.inLevelUpMode() || config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false)) {
                 return false;
             }
 
@@ -50,6 +44,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in autoGift: " + err);
             return false;
         }
+        */
     };
 
 }());
