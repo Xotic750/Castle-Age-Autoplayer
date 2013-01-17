@@ -4893,7 +4893,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'points': {
             'skill': 0,
             'favor': 0,
-            'guild': 0,
+            'guild': 0
         },
         'indicators': {
             'bsi': 0,
@@ -5968,6 +5968,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             schedule.setItem("battlerank", (gm ? gm.getItem("checkBattleRank", 48, hiddenVar) : 48) * 3600, 300);
+            rankDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_battlerank: " + err);
@@ -5994,6 +5995,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             schedule.setItem("warrank", (gm ? gm.getItem("checkWarRank", 48, hiddenVar) : 48) * 3600, 300);
+            rankDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_war_rank: " + err);
@@ -6021,6 +6023,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             schedule.setItem("conquestrank", (gm ? gm.getItem("checkConquestRank", 48, hiddenVar) : 48) * 3600, 300);
+            rankDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_conquest_rank: " + err);
@@ -6130,6 +6133,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             schedule.setItem("achievements", (gm ? gm.getItem("checkAchievements", 72, hiddenVar) : 72) * 3600, 300);
+
+            achDiv = null;
+            tdDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_achievements: " + err);
@@ -6156,12 +6162,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     } else {
                         con.warn("Problem character class name", name);
                     }
+
+                    monsterClass = null;
                 });
             } else {
                 con.warn("Problem with character class records", classDiv);
             }
 
             schedule.setItem("characterClasses", (gm ? gm.getItem("CheckClassProgress", 48, hiddenVar) : 48) * 3600, 300);
+            classDiv = null;
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_view_class_progress: " + err);
