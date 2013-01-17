@@ -136,7 +136,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.navigateTo = function (pathToPage, imageOnPage, webSlice) {
         try {
             //webSlice = $u.setContent(webSlice, caap.globalContainer);
-            var newwebSlice = $u.setContent(webSlice, $j('#globalContainer')),
+            var newwebSlice = $u.setContent(webSlice, $j('#globalcss')),
                 pathList,
                 s = 0,
                 jq,
@@ -152,13 +152,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(3, 'Image found on page', imageOnPage);
                 return false;
             }
-
-            /*
-            var pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
-                s = 0,
-                jq = $j(),
-                path = '';
-            */
 
             pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
             jq = $j();
