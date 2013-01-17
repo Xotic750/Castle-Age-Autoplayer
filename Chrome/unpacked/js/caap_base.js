@@ -6030,48 +6030,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_achievements = function () {
         try {
-            var achDiv = $j("#app_body #achievements_2"),
-                tdDiv = $j("td div", achDiv),
+            var achDiv = $j(),
+                tdDiv = $j(),
                 level = 0,
                 ii = 0;
 
+            achDiv = $j("#app_body #achievement_info_container_test_of_might_monster div[style*='ach_medalcontainer.jpg']");
             if ($u.hasContent(achDiv)) {
-                if ($u.hasContent(tdDiv) && tdDiv.length === 6) {
-                    caap.stats['achievements']['battle']['invasions']['won'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['won'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['lost'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['lost'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['streak'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['duels']['streak'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
-                    caap.stats['achievements']['battle']['invasions']['ratio'] =
-                        caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['invasions']['won'] / caap.stats['achievements']['battle']['invasions']['lost']).dp(2) : Infinity;
-                    caap.stats['achievements']['battle']['duels']['ratio'] =
-                        caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['duels']['won'] / caap.stats['achievements']['battle']['duels']['lost']).dp(2) : Infinity;
-                    caap.saveStats();
-                } else {
-                    con.warn('Battle Achievements problem.');
-                }
-            } else {
-                con.warn('Battle Achievements not found.');
-            }
+                caap.stats['achievements']['monster'] = {};
+                achDiv.each(function () {
+                    var text = $j(this).text().trim(),
+                        divNum = text.regex(/([0-9,]+) total/i),
+                        tdTxt = text.regex(/(.+) \([0-9,]+ of [0-9,]+, [0-9,]+ total\)/);
 
-            achDiv = $j("#app_body #achievements_3");
-            if ($u.hasContent(achDiv)) {
-                tdDiv = $j("td", achDiv);
-                if ($u.hasContent(tdDiv)) {
-                    caap.stats['achievements']['monster'] = {};
-                    tdDiv.each(function () {
-                        var td = $j(this),
-                            divNum = $j("div", td).text().parseInt(),
-                            tdTxt = td.justtext().trim();
+                    caap.stats['achievements']['monster'][tdTxt] = divNum;
+                });
 
-                        caap.stats['achievements']['monster'][tdTxt] = divNum;
-                    });
-
-                    caap.saveStats();
-                } else {
-                    con.warn('Monster Achievements problem.');
-                }
+                caap.saveStats();
             } else {
                 con.warn('Monster Achievements not found.');
             }
@@ -8744,12 +8719,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkConquestRank = function () {
         try {
+            // not sure what the level restriction is, if any
             if (!schedule.check("conquestrank") || caap.stats['level'] < 100) {
                 return false;
             }
 
-            con.log(2, 'Visiting Conquest Rank to get stats');
-            return caap.navigateTo('battle,conquest_battlerank', 'conqrank_on2.jpg');
+            con.log(2, 'Visiting Conquest duel and rank to get stats');
+
+            if (caap.navigateTo('conquest_duel', 'conqduel_on.jpg')) {
+                return true;
+            }
+
+            return caap.navigateTo('conquest_battlerank', 'conqrank_on2.jpg');
         } catch (err) {
             con.error("ERROR in checkConquestRank: " + err);
             return false;
