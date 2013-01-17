@@ -495,8 +495,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
 
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            slot = $j("input[name='slot']").eq(0).attr("value");
-            slot = slot ? slot.parseInt() : 0;
+            //slot = $j("input[name='slot']").eq(0).attr("value");
+            //slot = slot ? slot.parseInt() : 0;
+            tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+            slot = tempDiv.attr("href").regex(/slot=(\d)/i) || 0;
             bannerDiv = $j("#guild_battle_banner_section");
             myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
@@ -635,7 +637,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     caap.click(collectDiv);
                 }
             } else {
-                if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
+                //if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
+                tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+                if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(caap.stats['guild']['id'])) {
                     slot = state.getItem('guildMonsterReviewSlot', 0);
                     if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                         con.log(1, "monster expired", slot);
