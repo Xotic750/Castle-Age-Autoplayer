@@ -113,6 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             feed.dashboard();
             army.dashboard();
             battle.dashboard();
+            conquest.dashboard();
             town.dashboard();
             general.dashboard();
             gifting.queue.dashboard();

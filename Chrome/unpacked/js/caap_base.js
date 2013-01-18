@@ -269,6 +269,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
+        "conquest.records": {
+            "get": function () {
+                return conquest.records;
+            },
+
+            "set": function (value) {
+                conquest.records = value;
+            },
+
+            "save": function (src) {
+                conquest.save(src);
+            },
+
+            "loaded": false
+        },
+
         "battle.reconRecords": {
             "get": function () {
                 return battle.reconRecords;
@@ -2427,9 +2443,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'idle_mess': "",
         'quest_mess': "",
         'battle_mess': "",
+        'conquest_mess': "",
         'monster_mess': "",
         'guild_monster_mess': "",
-        //'arena_mess': "",
         'festival_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
@@ -2515,6 +2531,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.addCashHealthMenu();
             htmlCode += caap.addQuestMenu();
             htmlCode += battle.menu();
+            htmlCode += conquest.menu();
             htmlCode += monster.menu();
             htmlCode += guild_monster.menu();
             htmlCode += feed.menu();
@@ -3030,11 +3047,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
              container and position it within the main container.
              \-------------------------------------------------------------------------------------*/
             var layout = "<div id='caap_top'>",
-                displayList = [/*'Arena', */'Army', 'Battle Stats', 'Feed', 'Festival', 'Generals Stats', 'Gift Queue', 'Gifting Stats', 'Guild Monster', 'Item Stats', 'Magic Stats', 'Monster', 'Soldiers Stats', 'Target List', 'User Stats'],
+                displayList = [
+                    /*'Arena', */
+                    'Army',
+                    'Battle Stats',
+                    'Conquest Stats',
+                    'Feed', 'Festival',
+                    'Generals Stats',
+                    'Gift Queue',
+                    'Gifting Stats',
+                    'Guild Monster',
+                    'Item Stats',
+                    'Magic Stats',
+                    'Monster',
+                    'Soldiers Stats',
+                    'Target List',
+                    'User Stats'
+                ],
                 displayInst = [
                     /*'Display the Arena battle in progress.',*/
                     'Display your army members, the last time they leveled up and choose priority Elite Guard.',
                     'Display your Battle history statistics, who you fought and if you won or lost.',
+                    'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
                     'Display the Festival battle in progress.', 'Display information about your Generals.',
                     'Display your current Gift Queue', 'Display your Gifting history, how many gifts you have received and returned to a user.',
@@ -3144,9 +3178,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-            //layout += "<div id='caap_arena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_festival' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Festival' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_feed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoConquest' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
 
             /*-------------------------------------------------------------------------------------\
@@ -3804,6 +3838,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
     caap.dropBoxListener = function (e) {
         try {
             if (e.target.selectedIndex > 0) {
@@ -3817,7 +3852,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                     if (!idName.hasIndexOf('Quest')) {
-                        if (!idName.hasIndexOf('Festival')) {
+                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest')) {
                             caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
                             caap.setDisplay("caapDivObject", idName + 'DelayStayHidden_hide', value === 'Stay Hidden', false);
                         }
@@ -3831,6 +3866,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                     caap.setDivContent('battle_mess', 'Battle off');
                                 } else {
                                     caap.setDivContent('battle_mess', '');
+                                }
+
+                                break;
+                            case 'WhenConquest':
+                                if (value === 'Never') {
+                                    caap.setDivContent('conquest_mess', 'Conquest off');
+                                } else {
+                                    caap.setDivContent('conquest_mess', '');
                                 }
 
                                 break;

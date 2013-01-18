@@ -3,6 +3,7 @@ nomen: true, bitwise: true, plusplus: true, sub: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,feed,spreadsheet,ss,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,battle,profiles,town,
+conquest,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -623,6 +624,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'delete': function () {
                 battle.records = [];
                 gm.deleteItem("battle.records");
+            }
+        },
+        'Conquest': {
+            'export': function () {
+                return conquest.records;
+            },
+            'import': function (d) {
+                conquest.records = d;
+                conquest.save();
+            },
+            'delete': function () {
+                conquest.records = [];
+                gm.deleteItem("conquest.records");
             }
         },
         'Guild Monster': {
