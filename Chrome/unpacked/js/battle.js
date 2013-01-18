@@ -674,6 +674,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     battleRecord['chainTime'] = Date.now();
                     battleRecord['chainCount'] = 0;
                 }
+
             } else {
                 con.log(1, "We Were Defeated By ", result.userName);
                 battleRecord['chainCount'] = 0;
