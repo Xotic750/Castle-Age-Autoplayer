@@ -17,9 +17,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.visitUrl = function (url, loadWaitTime) {
         try {
+            /*
             if (config.getItem('bookmarkMode', false)) {
                 return true;
             }
+            */
 
             if (!$u.hasContent(url)) {
                 throw 'No url passed to visitUrl';

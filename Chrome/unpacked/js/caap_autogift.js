@@ -19,7 +19,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.ajaxGiftCheck = function () {
         try {
-            if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
+            if (/*config.getItem('bookmarkMode', false) ||*/ !config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
                 return false;
             }
 
@@ -32,7 +32,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoGift = function () {
         try {
-            if (caap.checkAutoIncome(3) || caap.inLevelUpMode() || config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false)) {
+            if (caap.checkAutoIncome(3) || caap.inLevelUpMode() || /*config.getItem('bookmarkMode', false) ||*/ !config.getItem('AutoGift', false)) {
                 return false;
             }
 

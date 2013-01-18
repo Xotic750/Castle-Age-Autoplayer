@@ -1134,6 +1134,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.updateDashboard(true);
     };
 
+    caap.clearConquestButtonListener = function () {
+        conquest.clear();
+        caap.updateDashboard(true);
+    };
+
     caap.clearGiftingButtonListener = function () {
         gifting.clear("history");
         caap.updateDashboard(true);
@@ -1180,6 +1185,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j('#caap_fastHeal', caap.caapTopObject).on('click', caap.fastHealButtonListener);
             $j('#caap_clearTargets', caap.caapTopObject).on('click', caap.clearTargetsButtonListener);
             $j('#caap_clearBattle', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
+            $j('#caap_clearConquest', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
             $j('#caap_clearGifting', caap.caapTopObject).on('click', caap.clearGiftingButtonListener);
             $j('#caap_clearGiftQueue', caap.caapTopObject).on('click', caap.clearGiftQueueButtonListener);
             $j('#caap_getArmy', caap.caapTopObject).on('click', caap.getArmyButtonListener);

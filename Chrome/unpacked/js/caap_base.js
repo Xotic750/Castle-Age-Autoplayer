@@ -1006,6 +1006,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
         },
 
+        /*
         scrollToTop : function () {
             try {
                 if (caap.domain.which === 3 && caap.messaging.connected.hasIndexOf("caapfb")) {
@@ -1025,6 +1026,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
         },
+        */
 
         styleChange : function () {
             try {
@@ -1087,9 +1089,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    /*
     caap.scrollToTop = function () {
         window.scrollTo(0, config.getItem("scrollToPosition", 0));
     };
+    */
 
     /*
     caap.showRequestForm = (function (tit, msg, track, request_params) {
@@ -1873,6 +1877,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.selectDropOption(msg.data.idName, msg.data.value);
 
                     break;
+                /*
                 case "scrollToTop":
                     caap.messaging.ok(msg);
                     con.log(4, "scrollToTop", msg);
@@ -1880,6 +1885,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 default:
+                */
             }
 
             con.log(4, "caap.messageCount", session.getItem("messageCount"));
@@ -2145,6 +2151,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 festival.load();
                 feed.load();
                 battle.load();
+                conquest.load();
                 caap.loadDemi();
                 battle.loadRecon();
                 town.load('soldiers');
@@ -2901,12 +2908,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 donateInstructions = "Uncheck if you wish to hide the CAAP donate button.",
                 itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
                 goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
-                ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
-                alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
-                keepShrinkInstructions = "Reduces the size of the item images on the Keep pages.",
-                recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
-                recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
-                bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
+                //ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
+                //alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
+                //keepShrinkInstructions = "Reduces the size of the item images on the Keep pages.",
+                //recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
+                //recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
+                //bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
                 levelupModeInstructions = "Calculates approx. how many XP points you will get from your current stamina and energy and when you have enough of each to level up it will start using them down to 0.",
                 serializeInstructions = "Setting this value allows you to define your Raids and Monsters all within either the Monster Attack Order or Raid Attack Order list boxes. " +
                     "Selection is serialized so that you only have a single selection from the list active at one time.  " +
@@ -2915,6 +2922,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Other', 'OTHER OPTIONS');
+            /*
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('FB Custom Dropdown', 'FBCustomDrop', false, "Enable FB custom request dropdown");
                 htmlCode += caap.startCheckHide('FBCustomDrop');
@@ -2923,25 +2931,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode += caap.endTR;
                 htmlCode += caap.endCheckHide('FBCustomDrop');
             }
+            */
 
             htmlCode += caap.makeCheckTR('Display Keep Stats', 'displayKStats', true, "Display user statistics on your keep.");
             htmlCode += caap.makeCheckTR('Enable Oracle Mod', 'enableOracleMod', true, "Allows you to change the monthly general and the equipment that you wish to purchase.");
             htmlCode += caap.makeCheckTR('Display ETNL', 'displayETNL', true, "Display Experience To Next Level.");
             htmlCode += caap.makeCheckTR('Display Item Titles', 'enableTitles', true, itemTitlesInstructions);
             htmlCode += caap.makeCheckTR('Do Goblin Hinting', 'goblinHinting', true, goblinHintingInstructions);
-            htmlCode += caap.makeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, ingredientsHideInstructions);
-            htmlCode += caap.makeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
-            htmlCode += caap.makeCheckTR('Keep Shrink', 'enableKeepShrink', true, keepShrinkInstructions);
+            //htmlCode += caap.makeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, ingredientsHideInstructions);
+            //htmlCode += caap.makeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
+            //htmlCode += caap.makeCheckTR('Keep Shrink', 'enableKeepShrink', true, keepShrinkInstructions);
+            /*
             htmlCode += caap.makeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
             htmlCode += caap.startCheckHide('enableRecipeClean');
             htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
             htmlCode += caap.endCheckHide('enableRecipeClean');
+            */
+            /*
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Auto Scroll To Top', 'scrollToTop', false, "Automatically scrolls the window to the very top of the view.");
                 htmlCode += caap.startCheckHide('scrollToTop');
                 htmlCode += caap.makeSlider('Offset', "scrollToPosition", '', 0, true);
                 htmlCode += caap.endCheckHide('scrollToTop');
             }
+            */
 
             htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
             htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
@@ -2974,7 +2987,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('AdvancedOptions');
             htmlCode += caap.makeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
             htmlCode += caap.makeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
-            htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
+            //htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
             htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 8 minutes.', 8, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
             htmlCode += caap.startTR();
@@ -3065,7 +3078,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'User Stats'
                 ],
                 displayInst = [
-                    /*'Display the Arena battle in progress.',*/
                     'Display your army members, the last time they leveled up and choose priority Elite Guard.',
                     'Display your Battle history statistics, who you fought and if you won or lost.',
                     'Display your Conquest history statistics, who you fought and if you won or lost.',
@@ -3113,6 +3125,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonBattle' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'>";
             layout += "<input type='button' id='caap_clearBattle' value='Clear Battle Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            /*-------------------------------------------------------------------------------------\
+            Next we put in the Clear Conquest Stats button which will only show when we have
+            selected the Conquest Stats display
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonConquest' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'>";
+            layout += "<input type='button' id='caap_clearConquest' value='Clear Conquest Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
             /*-------------------------------------------------------------------------------------\
             Next we put in the Clear Gifting Stats button which will only show when we have
@@ -4467,9 +4486,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 $j("img[src*='cross_promo.jpg']").parents("div:first").hide();
                             }
 
+                            /*
                             if (config.getItem('scrollToTop', false)) {
                                 caap.messaging.scrollToTop();
                             }
+                            */
                         }
 
                         session.setItem("delayMain", true);
@@ -5730,9 +5751,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
+            /*
             if (config.getItem("enableKeepShrink", true)) {
                 $j("#app_body div[class*='statUnit'] img").attr("style", "height: 45px, width: 45px;").not("#app_body div[class*='statUnit'] img[alt='Stamina Potion'],img[alt='Energy Potion']").parent().parent().attr("style", "height: 45px, width: 45px;");
             }
+            */
 
             return true;
         } catch (err) {
@@ -5870,9 +5893,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             row.text(row.text().trim() + ' : Summon Owned (' + town.getCount(titleTxt, image) + ')');
                         } else {
                             row.text(row.text().trim() + ' : Owned (' + town.getCount(titleTxt, image) + ')');
+                            /*
                             if (config.getItem("enableRecipeClean", true) && !special.hasIndexOf(titleTxt) && town.getCount(titleTxt, image) >= hideCount) {
                                 row.parent().parent().hide().next().hide();
                             }
+                            */
                         }
                     }
 
@@ -5880,10 +5905,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
             }
 
+            /*
             if (config.getItem("enableIngredientsHide", false)) {
                 $j("#app_body div[class='statsTTitle'],div[class='statsTMain']").hide();
             }
+            */
 
+            /*
             if (config.getItem("enableAlchemyShrink", true)) {
                 $j("#app_body div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']").css("height", "100px");
                 $j("#app_body div[class*='alchemySpace']").css("height", "4px");
@@ -5891,6 +5919,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 $j("#app_body input[name='Alchemy Submit']").css("width", "80px");
                 $j("#app_body .recipeTitle").css("margin", "0px");
             }
+            */
 
             return true;
         } catch (err) {
@@ -9070,65 +9099,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         conquest.battle();
         return true;
     };
-
-    //window['caap'] = true, // sets caap to boolean should (must?) be object // 2011-09-27 CAGE
-    /*
-    caap['checkResults_index'] = caap.checkResults_index;
-    caap['checkResults_fightList'] = caap.checkResults_fightList;
-    caap['checkResults_viewFight'] = caap.checkResults_viewFight;
-    caap['checkResults_fightList'] = caap.checkResults_fightList;
-    caap['checkResults_viewFight'] = caap.checkResults_viewFight;
-    caap['checkResults_land'] = caap.checkResults_land;
-    caap['checkResults_generals'] = caap.checkResults_generals;
-    caap['checkResults_quests'] = caap.checkResults_quests;
-    caap['checkResults_gift_accept'] = caap.checkResults_gift_accept;
-    caap['checkResults_army'] = caap.checkResults_army;
-    caap['checkResults_keep'] = caap.checkResults_keep`;
-    caap['checkResults_oracle'] = caap.checkResults_oracle;
-    caap['checkResults_alchemy'] = caap.checkResults_alchemy;
-    caap['checkResults_battlerank'] = caap.checkResults_battlerank;
-    caap['checkResults_war_rank'] = caap.checkResults_war_rank;
-    caap['checkResults_achievements'] = caap.checkResults_achievements;
-    caap['checkResults_battle'] = caap.checkResults_battle;
-    caap['checkResults_soldiers'] = caap.checkResults_soldiers;
-    caap['checkResults_item'] = caap.checkResults_item;
-    caap['checkResults_magic'] = caap.checkResults_magic;
-    caap['checkResults_gift'] = caap.checkResults_gift;
-    caap['checkResults_goblin_emp'] = caap.checkResults_goblin_emp;
-    caap['checkResults_view_class_progress'] = caap.checkResults_view_class_progress;
-    caap['checkResults_guild'] = caap.checkResults_guild;
-    caap['checkResults_guild_current_battles'] = caap.checkResults_guild_current_battles;
-    caap['checkResults_guild_current_monster_battles'] = caap.checkResults_guild_current_monster_battles;
-    caap['checkResults_guild_battle_monster'] = caap.checkResults_guild_battle_monster;
-    //caap['checkResults_arena'] = caap.checkResults_arena;
-    //caap['checkResults_arena_battle'] = caap.checkResults_arena_battle;
-    caap['autoElite'] = caap.autoElite;
-    caap['heal'] = caap.heal;
-    caap['immediateBanking'] = caap.immediateBanking;
-    caap['immediateAutoStat'] = caap.immediateAutoStat;
-    caap['maxEnergyQuest'] = caap.maxEnergyQuest;
-    caap['monsterReview'] = caap.monsterReview;
-    caap['guildMonsterReview'] = caap.guildMonsterReview;
-    caap['guildMonster'] = caap.guildMonster;
-    caap['demiPoints'] = caap.demiPoints;
-    caap['monsters'] = caap.monsters;
-    caap['battle'] = caap.battle;
-    caap['quests'] = caap.quests;
-    caap['bank'] = caap.bank;
-    caap['passiveGeneral'] = caap.passiveGeneral;
-    caap['lands'] = caap.lands;
-    caap['autoBless'] = caap.autoBless;
-    caap['autoStat'] = caap.autoStat;
-    caap['autoGift'] = caap.autoGift;
-    caap['autoPotions'] = caap.autoPotions;
-    caap['autoAlchemy'] = caap.autoAlchemy;
-    caap['idle'] = caap.idle;
-    caap['autoIncome'] = caap.autoIncome;
-    //caap['arena'] = caap.arena;
-    //caap['arenaReview'] = caap.arenaReview;
-
-    // from feed object
-    caap['opMessage'] = feed.opMessage;
-    */
 
 }());
