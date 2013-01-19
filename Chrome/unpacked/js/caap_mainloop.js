@@ -31,6 +31,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'autoElite': 'Fill Elite Guard',
         'autoPotions': 'Auto Potions',
         'autoArchives': 'Auto Archives',
+        'autoKobo': 'Auto Kobo',
         'autoAlchemy': 'Auto Alchemy',
         'autoBless': 'Auto Bless',
         'autoGift': 'Auto Gifting',
@@ -136,7 +137,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x2E: 'collectConquest',
         0x2F: 'collectConquestCrystal',
         0x30: 'autoArchives',
-        0x31: 'idle'
+        0x31: 'autoKobo',
+        0x32: 'idle'
     };
 
     caap.actionsList = [];

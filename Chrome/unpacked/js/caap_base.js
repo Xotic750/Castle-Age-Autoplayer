@@ -2012,7 +2012,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (perc.total >= 90) {
                     con.warn("Total localStorage used: " + perc.total + "%");
                     msg = "<div style='text-align: center;'>";
-                    msg += "<span style='color: red, font-size: 14px, font-weight: bold;'>WARNING!</span><br />";
+                    msg += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
                     msg += "localStorage usage for domain: " + perc.total + "%<br />";
                     msg += "CAAP is using: " + perc.total + "%";
                     msg += "</div>";
@@ -2461,6 +2461,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'feats_mess': "",
         'demibless_mess': "",
         'archive_mess': "",
+        'kobo_mess': "",
         'conquestbless_mess': "",
         'conquestcrystalbless_mess': "",
         'level_mess': "",
@@ -2818,6 +2819,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var autoArchivesInstructions = "Enable or disable the auto archive bonuses",
                 autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " + "that do not have missing ingredients. By default, it will not " + "combine Battle Hearts recipes.",
                 autoAlchemyInstructions2 = "If for some reason you do not want " + "to skip Battle Hearts",
+                autoKoboInstructions0 = "Enable or disable the auto kobo.",
+                autoKoboInstructions1 = "Number to keep of each item.",
+                autoKoboInstructions2 = "Enable to perform Ale for roll.",
                 autoPotionsInstructions0 = "Enable or disable the auto consumption " + "of energy and stamina potions.",
                 autoPotionsInstructions1 = "Number of stamina potions at which to " + "begin consuming.",
                 autoPotionsInstructions2 = "Number of stamina potions to keep.",
@@ -2850,6 +2854,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('AutoAlchemy');
             htmlCode += caap.makeCheckTR('Do Battle Hearts', 'AutoAlchemyHearts', false, autoAlchemyInstructions2, true);
             htmlCode += caap.endCheckHide('AutoAlchemy');
+            htmlCode += caap.makeCheckTR('Auto Kobo', 'AutoKobo', false, autoKoboInstructions0);
+            htmlCode += caap.startCheckHide('AutoKobo');
+            htmlCode += caap.makeNumberFormTR("Keep", 'koboKeepUnder', autoKoboInstructions1, 10, '', '', true, false);
+            htmlCode += caap.makeCheckTR('Roll Ale', 'autoKoboAle', false, autoKoboInstructions2);
+            htmlCode += caap.endCheckHide('AutoKobo');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
