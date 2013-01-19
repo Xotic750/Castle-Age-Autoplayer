@@ -820,8 +820,8 @@
                 htmlCode += caap.endTR;
                 htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnGift', false, "Do not queue gifts for a list of certain gifts recieved", true);
                 htmlCode += caap.endCheckHide('FilterReturnGift');
-                htmlCode += caap.endCheckHide('AutoGift');
                 */
+                htmlCode += caap.endCheckHide('AutoGift');
                 htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
                 htmlCode += caap.startCheckHide('giftModifyTimers');
                 /*
