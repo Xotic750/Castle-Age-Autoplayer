@@ -612,7 +612,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monsterInfo = $u.hasContent(currentMonster['type']) ? (currentMonster['type'] === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
             if (monsterInfo) {
                 if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monsterInfo.staLvl) {
-                    for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                    for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
                         if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
                             break;
                         }
@@ -631,7 +631,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 case 'Barbarus':
-                    //energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
                     energyRequire = energyRequire * (general.GetLevel('Barbarus') >= 4 ? 3 : 2);
                     con.log(3, 'Monsters Fortify:Barbarus', energyRequire);
 
@@ -790,7 +789,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 nodeNum = 0;
                 if (!caap.inLevelUpMode()) {
                     if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monsterInfo.staLvl) {
-                        for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
                             if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
                                 break;
                             }
