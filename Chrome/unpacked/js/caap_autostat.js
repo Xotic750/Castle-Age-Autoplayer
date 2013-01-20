@@ -25,11 +25,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     //                      Auto Stat
     ////////////////////////////////////////////////////////////////////
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.increaseStat = function (attribute, attrAdjust, atributeSlice) {
         function getValue(div) {
-            return $u.setContent($j("div[onmouseout*='hideItemPopup']", div.parent().parent().parent()).text(), '').regex(/(\d+)/);
+            var retVal = $u.setContent($j("div[onmouseout*='hideItemPopup']", div.parent().parent().parent()).text(), '').regex(/(\d+)/);
+
+            con.log(2, "getValue got", retVal);
+            return retVal;
         }
 
         try {
@@ -89,16 +90,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             attrAdjustNew = attrAdjust;
             logTxt = attrAdjust;
-            level = caap.stats['level'];
+            level = caap.stats.level;
 
             attrCurrent = getValue(button);
             energy = getValue(energyDiv);
             stamina = getValue(staminaDiv);
-            //if (level >= 10) {
+            if (level >= 10) {
                 attack = getValue(attackDiv);
                 defense = getValue(defenseDiv);
                 health = getValue(healthDiv);
-            //}
+            } else {
+                attack = caap.stats.attack;
+                defense = caap.stats.defense;
+                health = caap.stats.health.num;
+            }
+
+            con.log(2, "level/energy/stamina/attack/defense/health/health", level, energy, stamina, attack, defense, health, health);
 
             if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -106,9 +113,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attrAdjustNew = eval(attrAdjust);
                 /*jslint evil: false */
                 logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
+                con.log(2, "logTxt", logTxt);
             }
 
-            if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
+            if ((attribute === 'stamina') && (caap.stats.points.skill < 2)) {
                 if (attrAdjustNew <= attrCurrent) {
                     con.log(2, "Stamina at requirement: Next");
                     energyDiv = null;
@@ -154,6 +162,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return "Click";
             }
 
+            con.log(2, "We fell through: Next", attrAdjustNew, attrCurrent);
             energyDiv = null;
             staminaDiv = null;
             attackDiv = null;
@@ -184,7 +193,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 value = 0,
                 passed = false;
 
-            if (!config.getItem('AutoStat', false) || !caap.stats['points']['skill']) {
+            if (!config.getItem('AutoStat', false) || !caap.stats.points.skill) {
                 return ['', 0];
             }
 
@@ -203,7 +212,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     continue;
                 }
 
-                if (caap.stats['level'] < 10) {
+                if (caap.stats.level < 10) {
                     if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
                         con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                         continue;
@@ -213,12 +222,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 attrValue = config.getItem('AttrValue' + n, 0);
                 attrAdjust = attrValue;
-                level = caap.stats['level'];
-                energy = caap.stats['energy']['num'];
-                stamina = caap.stats['stamina']['num'];
-                attack = caap.stats['attack'];
-                defense = caap.stats['defense'];
-                health = caap.stats['health']['num'];
+                level = caap.stats.level;
+                energy = caap.stats.energy.num;
+                stamina = caap.stats.stamina.num;
+                attack = caap.stats.attack;
+                defense = caap.stats.defense;
+                health = caap.stats.health.num;
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -230,13 +239,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (attribute === "attack" || attribute === "defense") {
                     value = caap.stats[attribute];
                 } else {
-                    value = caap.stats[attribute]['num'];
+                    value = caap.stats[attribute].num;
                 }
 
                 // current thinking is that continue should not be used as it can cause reader confusion
                 // therefore when linting, it throws a warning
                 /*jslint continue: true */
-                if (attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
+                if (attribute === 'stamina' && caap.stats.points.skill < 2) {
                     if (config.getItem("StatSpendAll", false) && attrAdjust > value) {
                         continue;
                     } else {
@@ -269,7 +278,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoStat = function () {
         try {
-            if (!config.getItem('AutoStat', false) || !caap.stats['points']['skill']) {
+            if (!config.getItem('AutoStat', false) || !caap.stats.points.skill) {
                 return false;
             }
 
@@ -324,6 +333,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());
