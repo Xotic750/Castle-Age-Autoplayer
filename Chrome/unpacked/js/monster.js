@@ -2304,7 +2304,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(2, "confirmRightPage fMonstStyle", fMonstStyle);
                 if ($u.hasContent(fMonstStyle)) {
-                    tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
+                    tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                    if ($u.hasContent(tempDiv)) {
+                        tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
+                    } else {
+                        con.warn("2:Festival monster missing summoned string!");
+                    }
                 } else {
                     nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
                     nMonstStyle2 = monsterDiv.attr("style").regex(/(monster_\S+\_header.jpg)/);
@@ -2313,7 +2318,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     con.log(2, "confirmRightPage nMonstStyle2", nMonstStyle2);
                     con.log(2, "confirmRightPage nMonstStyle3", nMonstStyle3);
                     if ($u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2) || $u.hasContent(nMonstStyle3)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+                        tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+                        } else {
+                            con.warn("2:Standard monster missing summoned string!");
+                        }
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
@@ -2354,10 +2364,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 id = $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/);
                 id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                 id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
-                id = $u.setContent(id, $u.setContent($j("#app_body button[onclick*='ajaxSectionUpdate']").attr("onclick") + "", '').regex(/user=(\d+)/));
+                id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/user=(\d+)/));
                 id = $u.setContent(id, 0);
                 if (id === 0 || !$u.hasContent(id)) {
-                    con.warn("Unable to get id!");
+                    con.warn("2:Unable to get id!");
                     monsterDiv = null;
                     tempDiv = null;
                     return false;
@@ -2373,7 +2383,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 }
 
                 if (!$u.hasContent(feedMonster)) {
-                    con.warn("Unable to get monster string!!");
+                    con.warn("2:Unable to get monster string!!", tempText);
                     monsterDiv = null;
                     tempDiv = null;
                     return false;
@@ -2398,7 +2408,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 con.log(4, "monster.confirmRightPage page", page);
                 monsterDiv = null;
                 tempDiv = null;
-                return caap.navigateTo('keep,' + monster.getItem(md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5()).page);
+                md5 = (id + ' ' + feedMonster + ' ' + page).toLowerCase().MD5();
+                return caap.navigateTo('keep,' + monster.getItem(md5).page);
             }
 
             monsterDiv = null;

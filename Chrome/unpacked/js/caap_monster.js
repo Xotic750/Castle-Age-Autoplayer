@@ -1396,12 +1396,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
                     tempDiv = monsterDiv.find(":contains('summoned'):last,:contains('Summoned'):last");
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
+                        tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
+                        } else {
+                            con.warn("1:Festival monster missing summoned string!");
+                        }
                     } else {
                         if ($u.hasContent(nMonstStyle)) {
-                            tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+                            tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                            if ($u.hasContent(tempDiv)) {
+                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+                            } else {
+                                con.warn("1:Normal monster 1 missing summoned string!");
+                            }
                         } else {
-                            tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle2));
+                            tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                            if ($u.hasContent(tempDiv)) {
+                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle2));
+                            } else {
+                                con.warn("1:Normal monster 2 missing summoned string!");
+                            }
                         }
                     }
                 } else {
@@ -1456,13 +1471,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if ($u.hasContent(monsterDiv)) {
-                //id = $u.setContent($j("input[name*='casuser']", $j("form[onsubmit*='newsFeed']"))[0].value, '');
                 id = $u.setContent($j("input[name*='casuser']").eq(0).attr("value"), '');
                 id = $u.setContent(id, $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/));
                 id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                 id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
-                //id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", slice).attr("onclick") + "", '').regex(/user=(\d+)/));
-                id = $u.setContent(id, $u.setContent($j("button[onclick*='ajaxSectionUpdate']", slice).attr("onclick"), '').regex(/user=(\d+)/));
+                id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/user=(\d+)/));
                 if ($j("input[name*='guild_creator_id']").length > 0) {
                     id = $u.setContent(id, $j("input[name*='guild_creator_id']")[0].value);
                 }
@@ -1470,9 +1483,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 id = $u.setContent(id, (feed.isScan || ajax) ? feed.scanRecord['id'] : 0);
                 con.log(3, "USER ID", id);
                 if (id === 0 || !$u.hasContent(id)) {
-                    con.warn("Unable to get id!");
+                    con.warn("1:Unable to get id!");
                     if (config.getItem("DebugLevel", 1) > 1) {
-                        $j().alert("Unable to get id!");
+                        $j().alert("1:Unable to get id!");
                     }
 
                     if (feed.isScan || ajax) {
@@ -1501,7 +1514,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (!$u.hasContent(feedMonster)) {
-                    con.warn("Unable to get monster string!!");
+                    con.warn("1:Unable to get monster string!!", tempText);
                 }
 
                 if (id === caap.stats['FBID']) {
