@@ -161,7 +161,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 path = $u.setContent(pathList[s], '');
                 if (!$u.hasContent(path)) {
-                    con.warn('pathList had no content!', pathList[s]);
+                    con.warn('pathList had no content!', pathToPage, imageOnPage, pathList[s]);
                 } else {
                     jq = $j("a[href*='" + path + ".php']", newwebSlice).not("a[href*='" + path + ".php?']", newwebSlice);
                     if ($u.hasContent(jq)) {
