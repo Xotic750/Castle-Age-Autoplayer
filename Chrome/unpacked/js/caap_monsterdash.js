@@ -973,6 +973,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'army', false);
         caap.setDisplay("caapTopObject", 'infoTargets1', false);
         caap.setDisplay("caapTopObject", 'infoBattle', false);
+        caap.setDisplay("caapTopObject", 'infoConquest', false);
         caap.setDisplay("caapTopObject", 'userStats', false);
         caap.setDisplay("caapTopObject", 'generalsStats', false);
         caap.setDisplay("caapTopObject", 'soldiersStats', false);
@@ -984,6 +985,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'buttonGuildMonster', false);
         caap.setDisplay("caapTopObject", 'buttonTargets', false);
         caap.setDisplay("caapTopObject", 'buttonBattle', false);
+        caap.setDisplay("caapTopObject", 'buttonConquest', false);
         caap.setDisplay("caapTopObject", 'buttonGifting', false);
         caap.setDisplay("caapTopObject", 'buttonGiftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonArmy', false);
@@ -996,6 +998,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             case "Battle Stats":
                 caap.setDisplay("caapTopObject", 'infoBattle', true);
                 caap.setDisplay("caapTopObject", 'buttonBattle', true);
+
+                break;
+            case "Conquest Stats":
+                caap.setDisplay("caapTopObject", 'infoConquest', true);
+                caap.setDisplay("caapTopObject", 'buttonConquest', true);
 
                 break;
             case "User Stats":
