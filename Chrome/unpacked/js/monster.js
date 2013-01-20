@@ -2365,8 +2365,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 id = $u.setContent(id, $u.setContent($j("img[src*='profile.ak.fbcdn.net']", monsterDiv).attr("uid"), '').regex(/(\d+)/));
                 id = $u.setContent(id, $u.setContent($j(".fb_link[href*='profile.php']", monsterDiv).attr("href"), '').regex(/id=(\d+)/));
                 id = $u.setContent(id, $u.setContent($j("img[src*='graph.facebook.com']", monsterDiv).attr("src"), '').regex(/\/(\d+)\//));
-                id = $u.setContent(id, $u.setContent($j("#chat_log button[onclick*='ajaxSectionUpdate']", monsterDiv).attr("onclick"), '').regex(/user=(\d+)/));
-                id = $u.setContent(id, $u.setContent($j("#monsterChatLogs img[src*='ldr_btn_chatoff.jpg']", monsterDiv).attr("onclick"), '').regex(/user=(\d+)/));
+                id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/user=(\d+)/));
+                id = $u.setContent(id, $u.setContent($j("#app_body #monsterChatLogs img[src*='ldr_btn_chatoff.jpg']").attr("onclick"), '').regex(/user=(\d+)/));
                 id = $u.setContent(id, 0);
                 if (id === 0 || !$u.hasContent(id)) {
                     con.warn("2:Unable to get id!");
