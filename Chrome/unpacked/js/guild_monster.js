@@ -641,9 +641,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     caap.click(collectDiv);
                 }
             } else {
-                //if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
-                tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
-                if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(caap.stats.guild.id)) {
+                if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
+                //tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+                //if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(caap.stats.guild.id)) {
                     slot = state.getItem('guildMonsterReviewSlot', 0);
                     if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                         con.log(1, "monster expired", slot);
