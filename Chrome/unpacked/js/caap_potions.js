@@ -13,8 +13,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.autoPotions = function() {
         function consumePotion(potion) {
             try {
@@ -68,17 +66,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (caap.stats['exp']['dif'] <= config.getItem("potionsExperience", 20)) {
+            if (caap.stats.exp.dif <= config.getItem("potionsExperience", 20)) {
                 con.log(2, "AutoPotions, ENL condition. Delaying 10 minutes");
                 schedule.setItem('AutoPotionTimerDelay', 600);
                 return false;
             }
 
-            if (caap.stats['energy']['num'] < caap.stats['energy']['max'] - 10 && caap.stats['potions']['energy'] >= config.getItem("energyPotionsSpendOver", 39) && caap.stats['potions']['energy'] > config.getItem("energyPotionsKeepUnder", 35)) {
+            if (caap.stats.energy.num < caap.stats.energy.max - 10 && caap.stats.potions.energy >= config.getItem("energyPotionsSpendOver", 39) && caap.stats.potions.energy > config.getItem("energyPotionsKeepUnder", 35)) {
                 return consumePotion('energy');
             }
 
-            if (caap.stats['stamina']['num'] < caap.stats['stamina']['max'] - 10 && caap.stats['potions']['stamina'] >= config.getItem("staminaPotionsSpendOver", 39) && caap.stats['potions']['stamina'] > config.getItem("staminaPotionsKeepUnder", 35)) {
+            if (caap.stats.stamina.num < caap.stats.stamina.max - 10 && caap.stats.potions.stamina >= config.getItem("staminaPotionsSpendOver", 39) && caap.stats.potions.stamina > config.getItem("staminaPotionsKeepUnder", 35)) {
                 return consumePotion('stamina');
             }
 
@@ -88,7 +86,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     /////////////////////////////////////////////////////////////////////
     //                          ARCHIVES
