@@ -75,8 +75,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 whenMonster = '',
                 targetType = '',
                 rejoinSecs = '',
-                battleRecord = {}, tempTime = 0,
-                monsterObject = {}, noSafeCountSet = 0;
+                battleRecord = {},
+                tempTime = 0,
+                monsterObject = {},
+                noSafeCountSet = 0;
 
             if (caap.stats['level'] < 8) {
                 if (caap.battleWarnLevel) {
