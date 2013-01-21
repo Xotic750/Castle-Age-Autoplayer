@@ -10,58 +10,58 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //                          POTIONS
 /////////////////////////////////////////////////////////////////////
 
-(function () {
+(function() {
     "use strict";
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
-    caap.autoPotions = function () {
-		function consumePotion(potion) {
-			try {
-				if (!caap.hasImage('keep_top.jpg')) {
-					con.log(2, "Going to keep for potions");
-					if (caap.navigateTo('keep')) {
-					return true;
-					}
-				}
+    caap.autoPotions = function() {
+        function consumePotion(potion) {
+            try {
+                if (!caap.hasImage('keep_top.jpg')) {
+                    con.log(2, "Going to keep for potions");
+                    if (caap.navigateTo('keep')) {
+                        return true;
+                    }
+                }
 
-				var formId = "consume_1",
-					potionDiv = $j(),
-					button = $j();
+                var formId = "consume_1",
+                    potionDiv = $j(),
+                    button = $j();
 
-				if (potion === 'stamina') {
-					formId = "consume_2";
-				}
+                if (potion === 'stamina') {
+                    formId = "consume_2";
+                }
 
-				con.log(1, "Consuming potion", potion);
-				potionDiv = $j("form[id='" + formId + "'] input[src*='keep_consumebtn.jpg']");
-				if (potionDiv && potionDiv.length) {
-					button = potionDiv;
-					if (button) {
-						caap.click(button);
-					} else {
-						con.warn("Could not find consume button for", potion);
+                con.log(1, "Consuming potion", potion);
+                potionDiv = $j("form[id='" + formId + "'] input[src*='keep_consumebtn.jpg']");
+                if (potionDiv && potionDiv.length) {
+                    button = potionDiv;
+                    if (button) {
+                        caap.click(button);
+                    } else {
+                        con.warn("Could not find consume button for", potion);
 
-						potionDiv = null;
-						button = null;
-						return false;
-					}
-				} else {
-					con.warn("Could not find consume form for", potion);
+                        potionDiv = null;
+                        button = null;
+                        return false;
+                    }
+                } else {
+                    con.warn("Could not find consume form for", potion);
 
-					potionDiv = null;
-					button = null;
-					return false;
-				}
+                    potionDiv = null;
+                    button = null;
+                    return false;
+                }
 
-				potionDiv = null;
-				button = null;
-				return true;
-				} catch (err) {
-				con.error("ERROR in consumePotion: " + err, potion);
-				return false;
-			}
-		}
+                potionDiv = null;
+                button = null;
+                return true;
+            } catch (err) {
+                con.error("ERROR in consumePotion: " + err, potion);
+                return false;
+            }
+        }
 
         try {
             if (!config.getItem('AutoPotions', true) || !schedule.check('AutoPotionTimerDelay')) {
@@ -90,40 +90,39 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
     /*jslint sub: false */
 
-
     /////////////////////////////////////////////////////////////////////
     //                          ARCHIVES
     /////////////////////////////////////////////////////////////////////
 
-    caap.autoArchives = function () {
+    caap.autoArchives = function() {
         try {
             var button = $j(),
-				archiveDIV = $j(),
-				hours = 24,
-				minutes = 0,
-				rClick;
+                archiveDIV = $j(),
+                hours = 24,
+                minutes = 0,
+                rClick;
 
             con.log(2, "autoArchives");
 
             if ((!config.getItem('AutoArchives', true)) || (!schedule.check('AutoArchiveTimerDelay'))) {
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
 
-				button = null;
-				archiveDIV = null;
-				return false;
+                button = null;
+                archiveDIV = null;
+                return false;
             }
 
             archiveDIV = $j("div[style*='archive_top']");
             if (!archiveDIV || archiveDIV.length === 0) {
                 con.log(2, "Going to Item archives for bonuses");
                 if (caap.navigateTo('item_archive_bonus')) {
-					button = null;
-					archiveDIV = null;
+                    button = null;
+                    archiveDIV = null;
                     return true;
                 }
 
-				button = null;
-				archiveDIV = null;
+                button = null;
+                archiveDIV = null;
                 throw "Impossible to navigate to Item archives page";
             }
 
@@ -134,9 +133,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
                 rClick = caap.click(button);
 
-				button = null;
-				archiveDIV = null;
-				return rClick;
+                button = null;
+                archiveDIV = null;
+                return rClick;
             }
 
             return false;
@@ -147,16 +146,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.timerArchives = function () {
+    caap.timerArchives = function() {
         try {
             var button = $j(),
-				hours = 24,
+                hours = 24,
                 minutes = 0,
                 delay = 100,
-				timespan = $j(),
-				timestr = '',
-				convert1 = new RegExp('([0-9]+)hrs([0-9]+)m', 'i'),
-				convert2 = new RegExp('([0-9]+)m', 'i'),
+                timespan = $j(),
+                timestr = '',
+                convert1 = new RegExp('([0-9]+)hrs([0-9]+)m', 'i'),
+                convert2 = new RegExp('([0-9]+)m', 'i'),
                 timeresult;
 
             con.log(2, "timerArchives");
@@ -203,118 +202,117 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem('AutoArchiveTimerDelay', ((hours * 60) + minutes) * 60, delay);
             caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
 
-			button = null;
-			timespan = null;
-			return false;
+            button = null;
+            timespan = null;
+            return false;
         } catch (err) {
             con.error("ERROR in timerArchives: " + err);
             return false;
         }
     };
 
-	
     /////////////////////////////////////////////////////////////////////
     //                          KOBO
     /////////////////////////////////////////////////////////////////////
 
-    caap.autoKobo = function () {
+    caap.autoKobo = function() {
         try {
             var button = $j(),
-				koboDIV = $j(),
-				ginDIV = $j(),
-				gin_left = 10,
-				hours = 24,
-				minutes = 0,
-				rClick,
-				addClick = false;
+                koboDIV = $j(),
+                ginDIV = $j(),
+                gin_left = 10,
+                hours = 24,
+                minutes = 0,
+                rClick,
+                addClick = false;
 
             con.log(3, "autoKobo");
 
             if ((!config.getItem('AutoKobo', true)) || (!schedule.check('AutoKoboTimerDelay'))) {
                 caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-				button = null;
-				koboDIV = null;
-				ginDIV = null;
-				return false;
+                button = null;
+                koboDIV = null;
+                ginDIV = null;
+                return false;
             }
 
             koboDIV = $j("div[style*='emporium_top']");
             if (!koboDIV || koboDIV.length === 0) {
                 con.log(2, "Going to emporium");
                 if (caap.navigateTo('goblin_emp')) {
-					button = null;
-					koboDIV = null;
-					ginDIV = null;
+                    button = null;
+                    koboDIV = null;
+                    ginDIV = null;
                     return true;
                 }
 
-				button = null;
-				koboDIV = null;
-				ginDIV = null;
+                button = null;
+                koboDIV = null;
+                ginDIV = null;
                 throw "Impossible to navigate to emporium page";
             }
-			
-            
+
             if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                 if (/You have exceeded the 10 emporium roll limit for the day. Come back tomorrow for another chance!/.test(caap.resultsText)) {
-					con.log(2, "You have exceeded the 10 emporium roll limit for the day.");
-					schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
-					caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-					button = null;
-					koboDIV = null;
-					ginDIV = null;
-					return false;					
-				}
-			}
-			
-            gin_left = Math.min(($j("span[id='gin_left_amt']")).text(),10);
-            con.log(4, "gin_left = ",gin_left);
-			if (gin_left> 0) {
-				var ingredientDIV = $j("div[class='ingredientUnit']"+(config.getItem('autoKoboAle',false)?"":"[id!='gout_6_261']")+">div>span[id*='gout_value']"),countClick=0;
-				con.log(4, "ingredientDIV = ",ingredientDIV);
-				ingredientDIV.each(function(_i, _e) {
-					var count = $j(_e).text(),
-						name=$j(_e).parent().parent()[0].children[0].children[0].alt;
-					con.log(3, "ingredient "+_i+" '"+name+"' :count = "+count);
-					if (count>config.getItem('koboKeepUnder', 10)&&(gin_left>countClick)) { 
-						addClick=true;
-						countClick=countClick+1;
-						$j(_e).parent().parent().click();
-					}
-				});
-				if (!addClick) {
-					schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60);
-					caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-					button = null;
-					koboDIV = null;
-					ginDIV = null;
-					return false;
-				}
-				if (gin_left>countClick) {
-					button = null;
-					koboDIV = null;
-					ginDIV = null;
-					return true;
-				}
-			}
+                    con.log(2, "You have exceeded the 10 emporium roll limit for the day.");
+                    schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
+                    caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
+                    button = null;
+                    koboDIV = null;
+                    ginDIV = null;
+                    return false;
+                }
+            }
+
+            gin_left = Math.min(($j("span[id='gin_left_amt']")).text(), 10);
+            con.log(4, "gin_left = ", gin_left);
+            if (gin_left > 0) {
+                var ingredientDIV = $j("div[class='ingredientUnit']" + (config.getItem('autoKoboAle', false) ? "" : "[id!='gout_6_261']") + ">div>span[id*='gout_value']"),
+                    countClick = 0;
+                con.log(4, "ingredientDIV = ", ingredientDIV);
+                ingredientDIV.each(function(_i, _e) {
+                    var count = $j(_e).text(),
+                        name = $j(_e).parent().parent()[0].children[0].children[0].alt;
+                    con.log(3, "ingredient " + _i + " '" + name + "' :count = " + count);
+                    if (count > config.getItem('koboKeepUnder', 10) && (gin_left > countClick)) {
+                        addClick = true;
+                        countClick = countClick + 1;
+                        $j(_e).parent().parent().click();
+                    }
+                });
+                if (!addClick) {
+                    schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60);
+                    caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
+                    button = null;
+                    koboDIV = null;
+                    ginDIV = null;
+                    return false;
+                }
+                if (gin_left > countClick) {
+                    button = null;
+                    koboDIV = null;
+                    ginDIV = null;
+                    return true;
+                }
+            }
 
             button = caap.checkForImage('emporium_button.gif');
             if (button && button.length > 0) {
                 con.log(2, "Click Roll");
-				hours=0;
-				minutes=1;
+                hours = 0;
+                minutes = 1;
                 schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
                 caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
                 rClick = caap.click(button);
 
-				button = null;
-				koboDIV = null;
-				ginDIV = null;
-				return rClick;
+                button = null;
+                koboDIV = null;
+                ginDIV = null;
+                return rClick;
             }
-			button = null;
-			koboDIV = null;
-			ginDIV = null;
+            button = null;
+            koboDIV = null;
+            ginDIV = null;
             return false;
 
         } catch (err) {
