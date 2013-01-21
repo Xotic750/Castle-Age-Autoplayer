@@ -596,7 +596,6 @@
                     }
                 }
 
-                //bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section", caap.globalContainer);
                 bannerDiv = $j("#globalContainer #arena_battle_banner_section");
                 con.log(2, "arena_battle_banner_section");
                 myStatsTxt = bannerDiv.text();
@@ -613,10 +612,8 @@
                     currentRecord['teamHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
                     if (!notStarted) {
-                        //gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']", caap.globalContainer);
                         gates = $j("#globalContainerdiv[id*='enemy_guild_member_list_']");
                         if (!$u.hasContent(gates)) {
-                            //tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']", caap.globalContainer);
                             tabs = $j("#globalContainer div[id*='your_arena_tab']");
                             if (!$u.hasContent(tabs)) {
                                 con.warn("No gates found");
@@ -738,7 +735,6 @@
                     enterDiv = $j("#globalContainer input[src*='guild_enter_battle_button.gif']");
                     if (!notStarted && !battleOver && !$u.hasContent(collectDiv) && !$u.hasContent(enterDiv)) {
                         currentRecord['state'] = 'Alive';
-                        //tStr = $j("span[id='" +  caap.domain.id[caap.domain.which] + "monsterTicker']", caap.globalContainer).text();
                         tStr = $j("#globalContainer span[id='monsterTicker']").text();
                         currentRecord['ticker'] = tStr ? tStr.trim() : '';
                         schedule.setItem("festivalTokenTicker", currentRecord['ticker'].parseTimer(), 5);
@@ -755,17 +751,14 @@
                             }
                         }
 
-                        //tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']", caap.globalContainer);
                         tokenSpan = $j("#globalContainer span[id='guild_token_current_value']");
                         tStr = $u.hasContent(tokenSpan) ? tokenSpan.text().trim() : '';
                         currentRecord['tokens'] = tStr ? tStr.parseInt() : 0;
 
-                        //timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']", caap.globalContainer);
                         timerSpan = $j("#globalContainer span[id='guild_token_time_value']");
                         tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
                         currentRecord['tokenTime'] = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
 
-                        //health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health", caap.globalContainer);
                         health = $j('#globalContainer #guild_battle_health');
                         if ($u.hasContent(health)) {
                             healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);

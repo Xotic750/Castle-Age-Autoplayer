@@ -79,7 +79,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
             caap.setDomWaiting(link);
-            window.location.href = caap.jss + ":void(" + caap.domain.ajax[caap.domain.which] + "ajaxLinkSend('globalContainer', '" + link + "'))";
+            window.location.href = caap.jss + ":void(ajaxLinkSend('globalContainer', '" + link + "'))";
             return true;
         } catch (err) {
             con.error("ERROR in caap.clickAjaxLinkSend: " + err);
@@ -94,7 +94,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             caap.setDomWaiting(link);
-            window.location.href = caap.jss + ":void(" + caap.domain.ajax[caap.domain.which] + "get_cached_ajax('" + link + "', 'get_body'))";
+            window.location.href = caap.jss + ":void(get_cached_ajax('" + link + "', 'get_body'))";
             return true;
         } catch (err) {
             con.error("ERROR in caap.clickGetCachedAjax: " + err);

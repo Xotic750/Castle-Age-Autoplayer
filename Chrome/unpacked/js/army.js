@@ -360,8 +360,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 len = 0,
                 record = {},
                 fbf = {};
-                //useAjaxArmy = config.getItem("useAjaxArmy", true),
-                //tempVar;
 
             for (it = 0, len = caap.fbFriends.length; it < len; it += 1) {
                 fbf[caap.fbFriends[it].uid] = caap.fbFriends[it].name;
@@ -793,7 +791,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             } else if (values[pp] === "userId") {
                                 str = $u.setContent(army.records[i][values[pp]], '');
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                //userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
                                 userIdLink = "keep.php?casuser=" + str;
                                 data = {
                                     text: '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
@@ -884,7 +881,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            //visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             visitUserIdLink.arlink = visitUserIdLink.rlink;
                         }
                     }
