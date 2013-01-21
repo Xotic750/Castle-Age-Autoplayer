@@ -836,6 +836,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     general.records[it].eatk = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
                     general.records[it].edef = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
                     if (general.records[it].eatk > 0 && general.records[it].edef > 0) {
+                        con.log(2, "General equipped atk/def", general.records[it].eatk, general.records[it].edef);
                         success = true;
                     } else {
                         con.warn("Unable to get 'General' attack or defense", temptext);
