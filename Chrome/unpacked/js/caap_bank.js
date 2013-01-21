@@ -22,8 +22,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         return caap.bank();
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.bank = function () {
         try {
             if (config.getItem("NoBankAfterLvl", true) && state.getItem('KeepLevelUpGeneral', false)) {
@@ -38,7 +36,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             maxInCash = config.getItem('MaxInCash', -1);
             minInCash = config.getItem('MinInCash', 0);
-            if (!maxInCash || maxInCash < 0 || caap.stats['gold']['cash'] <= minInCash || caap.stats['gold']['cash'] < maxInCash || caap.stats['gold']['cash'] < 10) {
+            if (!maxInCash || maxInCash < 0 || caap.stats.gold.cash <= minInCash || caap.stats.gold.cash < maxInCash || caap.stats.gold.cash < 10) {
 
                 depositButton = null;
                 numberInput = null;
@@ -70,7 +68,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            deposit = caap.stats['gold']['cash'] - minInCash;
+            deposit = caap.stats.gold.cash - minInCash;
             numberInput.attr("value", deposit);
             con.log(1, 'Depositing into bank:', deposit);
             caap.click(depositButton);
@@ -104,7 +102,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             minInStore = config.getItem('minInStore', 0);
-            if (!(minInStore || minInStore <= caap.stats['gold']['bank'] - num)) {
+            if (!(minInStore || minInStore <= caap.stats.gold.bank - num)) {
 				retrieveButton = null;
                 numberInput = null;
                 return false;

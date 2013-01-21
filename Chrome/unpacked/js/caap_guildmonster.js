@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true, sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 festival,feed,battle,town,spreadsheet,
@@ -27,7 +27,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (!caap.stats['guild']['id']) {
+            if (!caap.stats.guild.id) {
                 con.log(2, "Going to guild to get Guild Id");
                 if (caap.navigateTo('guild')) {
                     return true;
@@ -54,12 +54,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             record = guild_monster.getReview();
             if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
-                con.log(1, "Reviewing Slot (" + record['slot'] + ") Name: " + record['name']);
-                if (caap.stats['staminaT']['num'] > 0 && config.getItem("doGuildMonsterSiege", true)) {
+                con.log(1, "Reviewing Slot (" + record.slot + ") Name: " + record.name);
+                if (caap.stats.staminaT.num > 0 && config.getItem("doGuildMonsterSiege", true)) {
                     objective = "&action=doObjective";
                 }
-                url = "guild_battle_monster.php?twt2=" + guild_monster.info[record['name']].twt2 + "&guild_id=" + record['guildId'] + objective + "&slot=" + record['slot'] + "&ref=nf";
-                state.setItem('guildMonsterReviewSlot', record['slot']);
+                url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guidId + objective + "&slot=" + record.slot + "&ref=nf";
+                state.setItem('guildMonsterReviewSlot', record.slot);
                 caap.clickAjaxLinkSend(url);
                 return true;
             }
@@ -76,7 +76,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     caap.checkResults_guild_current_monster_battles = function() {
         try {
@@ -114,8 +113,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.guildMonster = function() {
         function doClassicFirst() {
             if (config.getItem('doClassicMonstersFirst', false) && config.getItem("WhenMonster", 'Never') !== 'Never') {
@@ -150,7 +147,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (!caap.stats['guild']['id']) {
+            if (!caap.stats.guild.id) {
                 con.log(2, "Going to guild to get Guild Id");
                 if (caap.navigateTo('guild')) {
                     form = null;
@@ -159,20 +156,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            /*
-            if (!caap.stats['guild']['id']) {
-                con.log(2, "Going to keep to get Guild Id");
-                if (caap.navigateTo('keep')) {
-                    form = null;
-                    key = null;
-                    return true;
-                }
-            }
-            */
-
             if (caap.inLevelUpMode()) {
-                if (caap.stats['staminaT']['num'] < 5) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats['staminaT']['num'] + '/' + 5);
+                if (caap.stats.staminaT.num < 5) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + 5);
                     form = null;
                     key = null;
                     return false;
@@ -185,8 +171,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             } else if (when === 'Stamina Available') {
                 stamina = state.getItem('staminaGuildMonster', 0);
-                if (caap.stats['staminaT']['num'] < stamina) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats['staminaT']['num'] + '/' + stamina);
+                if (caap.stats.staminaT.num < stamina) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + stamina);
                     form = null;
                     key = null;
                     return false;
@@ -199,8 +185,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                         stamina = guild_monster.getStaminaValue(record, minion);
                         state.setItem('staminaGuildMonster', stamina);
-                        if (caap.stats['staminaT']['num'] < stamina) {
-                            caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats['staminaT']['num'] + '/' + stamina);
+                        if (caap.stats.staminaT.num < stamina) {
+                            caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + stamina);
                             form = null;
                             key = null;
                             return false;
@@ -222,16 +208,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
             } else if (when === 'At X Stamina') {
-                if (caap.stats['staminaT']['num'] >= config.getItem("MaxStaminaToGMonster", 20)) {
+                if (caap.stats.staminaT.num >= config.getItem("MaxStaminaToGMonster", 20)) {
                     state.setItem('guildMonsterBattlesBurn', true);
                 }
 
-                if (caap.stats['staminaT']['num'] <= config.getItem("MinStaminaToGMonster", 0) || caap.stats['staminaT']['num'] < 1) {
+                if (caap.stats.staminaT.num <= config.getItem("MinStaminaToGMonster", 0) || caap.stats.staminaT.num < 1) {
                     state.setItem('guildMonsterBattlesBurn', false);
                 }
 
                 if (!state.getItem('guildMonsterBattlesBurn', false)) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats['staminaT']['num'] + '/' + config.getItem("MaxStaminaToGMonster", 20));
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + config.getItem("MaxStaminaToGMonster", 20));
                     form = null;
                     key = null;
                     return false;
@@ -243,8 +229,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
             } else if (when === 'At Max Stamina') {
-                if (caap.stats['staminaT']['num'] < caap.stats['stamina']['max'] || caap.stats['staminaT']['num'] < 1) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats['staminaT']['num'] + '/' + caap.stats['stamina']['max']);
+                if (caap.stats.staminaT.num < caap.stats.stamina.max || caap.stats.staminaT.num < 1) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + caap.stats.stamina.max);
                     form = null;
                     key = null;
                     return false;
@@ -270,9 +256,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (!guild_monster.checkPage(record)) {
-                    con.log(2, "Fighting Slot (" + record['slot'] + ") Name: " + record['name']);
-                    caap.setDivContent('guild_monster_mess', "Fighting (" + record['slot'] + ") " + record['name']);
-                    url = "guild_battle_monster.php?twt2=" + guild_monster.info[record['name']].twt2 + "&guild_id=" + record['guildId'] + "&slot=" + record['slot'];
+                    con.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
+                    caap.setDivContent('guild_monster_mess', "Fighting (" + record.slot + ") " + record.name);
+                    url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guidId + "&slot=" + record.slot;
                     caap.clickAjaxLinkSend(url);
                     form = null;
                     key = null;
@@ -281,9 +267,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 minion = guild_monster.getTargetMinion(record);
                 if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
-                    con.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
-                    caap.setDivContent('guild_monster_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
-                    key = $j("#attack_key_" + minion['target_id']);
+                    con.log(1, "Fighting target_id (" + minion.target_id + ") Name: " + minion.name);
+                    caap.setDivContent('guild_monster_mess', "Fighting (" + minion.target_id + ") " + minion.name);
+                    key = $j("#attack_key_" + minion.target_id);
                     if (key && key.length) {
                         attack = guild_monster.getAttackValue(record, minion);
                         if (!attack) {

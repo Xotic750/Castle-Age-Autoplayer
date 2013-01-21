@@ -571,10 +571,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "gamoJiMYjKSyQSMQjIGhULQhqINpaPqYHltIFoLUSdEq6sdXtEK0K9D9AqYpRAtQ2xXrn9dlrKU" +
                     "pSxlKUtZylKWwSj/HyHl/ePsagXCAAAAAElFTkSuQmCC";
 
-
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
-    image64['Ambrosia'] = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+    image64.Ambrosia = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
                     "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
                     "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
                     "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAA" +
@@ -593,7 +590,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "NnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4Pud" +
                     "M7gJG+EzWyu0QD6Y//9k=";
 
-    image64['Malekus'] = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+    image64.Malekus = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
                     "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
                     "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
                     "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAA" +
@@ -615,7 +612,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "wDH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXcqmc+" +
                     "53P5QMf/2Q==";
 
-    image64['Corvintheus'] = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+    image64.Corvintheus = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
                     "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
                     "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
                     "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAA" +
@@ -636,7 +633,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "EDjQCFHOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsj" +
                     "tBB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfHH//Z";
 
-    image64['Aurora'] = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+    image64.Aurora = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
                     "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
                     "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
                     "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAA" +
@@ -656,7 +653,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "tC8thbMrQSaln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGG" +
                     "MrTc/mc/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q==";
 
-    image64['Azeron'] = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+    image64.Azeron = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
                     "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
                     "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
                     "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAA" +
@@ -671,7 +668,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
                     "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
 
-    image64['donate'] = "R0lGODlhkwAvAOZ/AJCRh+yLNfSqnv/KeC9ss9fa3COZ1f++WuU2Mv+sLIGr0f7hqOLj5ChKbF5y" +
+    image64.donate = "R0lGODlhkwAvAOZ/AJCRh+yLNfSqnv/KeC9ss9fa3COZ1f++WuU2Mv+sLIGr0f7hqOLj5ChKbF5y" +
                     "h9Xn9La5unqHhbfS5optTfnU0f/v0/+yPEmy4//25edbNXdwY9bJqNiaN2rE743M7EhTVD9Vd/7p" +
                     "wMrd7ruwki88cmGTx+X0+206XElkfLg3QbiLPuxiX7l6RqF+SRU6Z8+HRUCDvP/syf7envKpdv7S" +
                     "h2hkUffAv42ar/Hm5a2qnuyYQrW9yf63RVKKvysgDF6k1aSstkA3J6uyuL7Bwf718vXGqPKcauLt" +
@@ -713,16 +710,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "3w57OMBqG/AMlIve1HHhxChOsYpV7OBNKO4EMBbbHSZAObKFT8MiHIQB/uDhHqfvD3yIA/uGDIYR" +
                     "sOALSE6ykpHMvzQ4+clQjnKUW6yJslnZyjfGcWj/4AEe+/jDojucmP0miP2NWcyZCAQAOw==";
 
-    image64['bg'] = "R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==";
+    image64.bg = "R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==";
 
-    image64['desc'] = "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7";
+    image64.desc = "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7";
 
-    image64['asc'] = "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7";
+    image64.asc = "R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7";
 
-    image64['heal'] = "R0lGODlhDQANAJECAOjo6L8AFP///wAAACH5BAEAAAIALAAAAAANAA0AAAIilAWZxxgP2gEvROkg" +
+    image64.heal = "R0lGODlhDQANAJECAOjo6L8AFP///wAAACH5BAEAAAIALAAAAAANAA0AAAIilAWZxxgP2gEvROkg" +
                     "U6nyXoUeJYpgOXLpMnlYZr1kjH1MAQA7";
 
-    image64['generalBox'] = "R0lGODlhfACmAOf/APzEXIjE59Po//+iKAAAAMF5G+WWJ63S/oq51//licOcVSQkJDopFNSm" +
+    image64.generalBox = "R0lGODlhfACmAOf/APzEXIjE59Po//+iKAAAAMF5G+WWJ63S/oq51//licOcVSQkJDopFNSm" +
                     "TkhISPy8USwsLP/KZJLB/Zd0OMHe/tHk/nWsyycbDTw8POTv/T8/P8SLNJrI7rXa//TOdbTU" +
                     "/4nK9rtxFrF7LMnh/i4uLkRERO2NHSdVbHdWJtuGHuSeNmubt/asOtrz/xISElBQUMzi/hkj" +
                     "KBUVFSMjI15SQzQ0NDIyMlhYWL3a/lY9G1VVVViIpP7NbYthJCM6RSdMZdfr/5nG/kFBQc7l" +
@@ -807,6 +804,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     "FG/XJg3KoOuptEw7FNh5FEmxFE3xFI0wEAVxEWa7EBBxEBmxER/RERsBEiJBEongtnRLCnZr" +
                     "txRREReRtgaxthzhth8REpswEk9xEgJBZ1noIsA2CL6mCcB2CJxwCL4maZ+gnixxtTThVIvb" +
                     "uL9WFJE7uZl4EgEBADs=";
-    /*jslint sub: false */
 
 }());

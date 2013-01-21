@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true, sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,offline,town,gm,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,spreadsheet,ss,
@@ -14,11 +14,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-    town['soldiers'] = [];
+    town.soldiers = [];
 
-    town['item'] = [];
+    town.item = [];
 
-    town['magic'] = [];
+    town.magic = [];
 
     town.record = function() {
         this.data = {
@@ -120,9 +120,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         record = {};
 
                     if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                        current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
-                        record = spreadsheet.getItem(current.data['name']);
-                        current.data['type'] = $u.setContent(record['type'], 'Unknown');
+                        current.data.name = $u.setContent(tempDiv.text(), '').trim().innerTrim();
+                        record = spreadsheet.getItem(current.data.name);
+                        current.data.type = $u.setContent(record.type, 'Unknown');
                     } else {
                         con.warn("Unable to get item name in", type);
                         passed = false;
@@ -131,42 +131,42 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (passed) {
                         tempDiv = $j("img", row).eq(0);
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                            current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
+                            current.data.image = $u.setContent(tempDiv.attr("src"), '').basename();
                         } else {
-                            con.log(3, "No image found for", type, current.data['name']);
+                            con.log(3, "No image found for", type, current.data.name);
                         }
 
                         tempDiv = $j("span[class='negative']", row);
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                            current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
+                            current.data.upkeep = $u.setContent(tempDiv.text(), '0').numberOnly();
                         } else {
                             con.log(4, "No upkeep found for", type, current.data.name);
                         }
 
                         tStr = row.children().eq(2).text().trim().innerTrim();
                         if ($u.hasContent(tStr)) {
-                            current.data['atk'] = $u.setContent(tStr.regex(/(\d+) Attack/), 0);
-                            current.data['def'] = $u.setContent(tStr.regex(/(\d+) Defense/), 0);
-                            current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
-                            current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
-                            current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
+                            current.data.atk = $u.setContent(tStr.regex(/(\d+) Attack/), 0);
+                            current.data.def = $u.setContent(tStr.regex(/(\d+) Defense/), 0);
+                            current.data.api = (current.data.atk + (current.data.def * 0.7)).dp(2);
+                            current.data.dpi = (current.data.def + (current.data.atk * 0.7)).dp(2);
+                            current.data.mpi = ((current.data.api + current.data.dpi) / 2).dp(2);
                         } else {
-                            con.warn("No atk/def found for", type, current.data['name']);
+                            con.warn("No atk/def found for", type, current.data.name);
                         }
 
                         tempDiv = $j("strong[class='gold']", row);
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                            current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
+                            current.data.cost = $u.setContent(tempDiv.text(), '0').numberOnly();
                         } else {
-                            con.log(4, "No cost found for", type, current.data['name']);
+                            con.log(4, "No cost found for", type, current.data.name);
                         }
 
                         tStr = row.children().eq(3).text().trim().innerTrim();
                         if ($u.hasContent(tStr)) {
-                            current.data['owned'] = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
-                            current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
+                            current.data.owned = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
+                            current.data.hourly = current.data.owned * current.data.upkeep;
                         } else {
-                            con.warn("No number owned found for", type, current.data['name']);
+                            con.warn("No number owned found for", type, current.data.name);
                         }
 
                         town[type].push(current.data);
@@ -203,10 +203,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 len = 0,
                 haveIt = false;
 
-            for (it = 0, len = town['magic'].length; it < len; it += 1) {
-                if (town['magic'][it]['name'] === name) {
-                    con.log(3, "town.haveOrb", town['magic'][it]);
-                    if (town['magic'][it]['owned']) {
+            for (it = 0, len = town.magic.length; it < len; it += 1) {
+                if (town.magic[it].name === name) {
+                    con.log(3, "town.haveOrb", town.magic[it]);
+                    if (town.magic[it].owned) {
                         haveIt = true;
                     }
 
@@ -236,10 +236,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 for (it2 = town[town.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
-                    if (town[town.types[it1]][it2]['name'] && town[town.types[it1]][it2]['name'] === name) {
+                    if (town[town.types[it1]][it2].name && town[town.types[it1]][it2].name === name) {
                         tempIt1 = it1;
                         tempIt2 = it2;
-                        if (image && town[town.types[it1]][it2]['image'] && town[town.types[it1]][it2]['image'] === image) {
+                        if (image && town[town.types[it1]][it2].image && town[town.types[it1]][it2].image === image) {
                             found = true;
                             break;
                         }
@@ -248,7 +248,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (tempIt1 > -1 && tempIt2 > -1) {
-                owned = town[town.types[tempIt1]][tempIt2]['owned'];
+                owned = town[town.types[tempIt1]][tempIt2].owned;
             }
 
             return owned;
@@ -276,35 +276,35 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!$u.hasContent(w)) {
                 for (it1 = town.types.length - 1; it1 >= 0; it1 -= 1) {
                     for (it2 = town[town.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
-                        record = spreadsheet.getItem(town[town.types[it1]][it2]['name'], town[town.types[it1]][it2]['image']);
-                        if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record) || town[town.types[it1]][it2]['image'] !== record['image'] ||
-                                town[town.types[it1]][it2]['atk'] !== record['attack'] || town[town.types[it1]][it2]['def'] !== record['defense']) {
+                        record = spreadsheet.getItem(town[town.types[it1]][it2].name, town[town.types[it1]][it2].image);
+                        if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record) || town[town.types[it1]][it2].image !== record.image ||
+                                town[town.types[it1]][it2].atk !== record.attack || town[town.types[it1]][it2].def !== record.defense) {
                             h = bbcode ? "[tr][td]" : "<tr>";
                             if (!$u.hasContent(record) || !$j.isPlainObject(record) || $j.isEmptyObject(record)) {
-                                h += sbbcolor + town[town.types[it1]][it2]['name'] + ebbcolor;
+                                h += sbbcolor + town[town.types[it1]][it2].name + ebbcolor;
                             } else {
-                                h += std + town[town.types[it1]][it2]['name'] + etd;
+                                h += std + town[town.types[it1]][it2].name + etd;
                             }
 
                             h += bbcode ? "[/td][td]" : "";
-                            if (town[town.types[it1]][it2]['image'] !== record['image']) {
-                                h += sbbcolor + town[town.types[it1]][it2]['image'] + ebbcolor;
+                            if (town[town.types[it1]][it2].image !== record.image) {
+                                h += sbbcolor + town[town.types[it1]][it2].image + ebbcolor;
                             } else {
-                                h += std + town[town.types[it1]][it2]['image'] + etd;
+                                h += std + town[town.types[it1]][it2].image + etd;
                             }
 
                             h += bbcode ? "[/td][td]" : "";
-                            if (town[town.types[it1]][it2]['atk'] !== record['attack']) {
-                                h += sbbcolor + town[town.types[it1]][it2]['atk'] + ebbcolor;
+                            if (town[town.types[it1]][it2].atk !== record.attack) {
+                                h += sbbcolor + town[town.types[it1]][it2].atk + ebbcolor;
                             } else {
-                                h += std + town[town.types[it1]][it2]['atk'] + etd;
+                                h += std + town[town.types[it1]][it2].atk + etd;
                             }
 
                             h += bbcode ? "[/td][td]" : "";
-                            if (town[town.types[it1]][it2]['def'] !== record['defense']) {
-                                h += sbbcolor + town[town.types[it1]][it2]['def'] + ebbcolor;
+                            if (town[town.types[it1]][it2].def !== record.defense) {
+                                h += sbbcolor + town[town.types[it1]][it2].def + ebbcolor;
                             } else {
-                                h += std + town[town.types[it1]][it2]['def'] + etd;
+                                h += std + town[town.types[it1]][it2].def + etd;
                             }
 
                             h += bbcode ? "[/td][/tr]" : "</tr>";
@@ -407,7 +407,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             reportType = $u.setContent(reportType, "Units");
             stance = stance !== "Attack" && stance !== "Defense" ? "Attack" : stance;
-            size = $u.isNaN(size) ? caap.stats['army']['capped'] : ($u.isNumber(size) ? size : size.parseInt());
+            size = $u.isNaN(size) ? caap.stats.army.capped : ($u.isNumber(size) ? size : size.parseInt());
             displayRef = $u.setContent(displayRef, false);
             con.log(2, "reportType/stance/size/displayRef", reportType, stance, size, displayRef);
             var h = "<table>\n<tr><th style='white-space: nowrap;'>Name</th><th>Used</th><th>Attack</th><th>Defense</th><th>" + (stance === "attack" ? "API" : "DPI") + "</th></tr>\n",
@@ -426,11 +426,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 // current thinking is that continue should not be used as it can cause reader confusion
                 // therefore when linting, it throws a warning
                 /*jslint continue: true */
-                if (list[it]['owned'] === 0 && list[it]['cost'] === 0) {
+                if (list[it].owned === 0 && list[it].cost === 0) {
                     continue;
                 }
 
-                if (list[it]['type'] === "Weapon") {
+                if (list[it].type === "Weapon") {
                     if (reportType === "Items") {
                         continue;
                     }
@@ -442,18 +442,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 /*jslint continue: false */
 
                 buy = false;
-                if (list[it]['cost'] !== 0) {
+                if (list[it].cost !== 0) {
                     buy = true;
                 }
 
-                if (list[it]['owned'] > cnt) {
-                    list[it]['owned'] = cnt;
+                if (list[it].owned > cnt) {
+                    list[it].owned = cnt;
                 }
 
                 best.push(list[it]);
-                cnt -= list[it]['owned'];
-                h += "<tr" + (buy ? " style='color: red;'" : "") + "><td style='white-space: nowrap;'>" + list[it]['name'] + "</td><td>" + list[it]['owned'] + "</td><td>" + list[it]['atk'] + "</td><td>" +
-                    list[it]['def'] + "</td><td>" + list[it][(stance === "Attack" ? "api" : "dpi")] + "</td></tr>\n";
+                cnt -= list[it].owned;
+                h += "<tr" + (buy ? " style='color: red;'" : "") + "><td style='white-space: nowrap;'>" + list[it].name + "</td><td>" + list[it].owned + "</td><td>" + list[it].atk + "</td><td>" +
+                    list[it].def + "</td><td>" + list[it][(stance === "Attack" ? "api" : "dpi")] + "</td></tr>\n";
             }
 
             h += "</table>\n";

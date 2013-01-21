@@ -54,17 +54,15 @@ var caapjQuery = "1.8.3",
     conquest = {},
 	retryDelay = 1000;
 
-/* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-/*jslint sub: true */
-String.prototype['stripCaap'] = function() {
+String.prototype.stripCaap = function() {
     return this.replace(/caap_/i, '');
 };
 
-String.prototype['numberOnly'] = function() {
+String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
 };
 
-String.prototype['parseTimer'] = function() {
+String.prototype.parseTimer = function() {
 	var a = [],
 		b = 0,
 		i = 0,
@@ -83,4 +81,3 @@ String.prototype['parseTimer'] = function() {
 
 	return b;
 };
-/*jslint sub: false */

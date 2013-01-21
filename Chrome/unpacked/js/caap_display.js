@@ -315,8 +315,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.setDivContent = function (idName, mess, slice, hide) {
         try {
             if (/_mess$/.test(idName)) {
@@ -333,7 +331,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             } else {
                 if (config.getItem('SetTitle', false) && idName === "activity_mess") {
                     var DocumentTitle = config.getItem('SetTitleAction', false) ? mess.replace("Activity: ", '') + " - " : '';
-                    DocumentTitle += config.getItem('SetTitleName', false) ? caap.stats['PlayerName'] + " - " : '';
+                    DocumentTitle += config.getItem('SetTitleName', false) ? caap.stats.PlayerName + " - " : '';
                     document.title = DocumentTitle + caap.documentTitle;
                 }
 

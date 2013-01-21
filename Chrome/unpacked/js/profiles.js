@@ -83,8 +83,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     profiles.backup = function (name, cb) {
         try {
             if (!$u.isString(name) || name === '') {
@@ -97,7 +95,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var copy = config.copyAll();
 
-            copy["key"] = name;
+            copy.key = name;
             db.onsuccess = function () {
                 db.onsuccess = function () {
                     con.log(1, "profiles.backup saved", name);
@@ -134,7 +132,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     profiles.restore = function (name, cb) {
         try {

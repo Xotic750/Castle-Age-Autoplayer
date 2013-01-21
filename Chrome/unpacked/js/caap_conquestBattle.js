@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true,sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 festival,feed,conquest,town,
@@ -16,25 +16,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.conquestUserId = function(record) {
         try {
-            if (conquest.hashCheck(record)) {
-                return true;
-            }
-
             var conquestButton = $j(),
                 form = $j(),
                 inp = $j();
 
-            conquestButton = caap.checkForImage(conquest.battles['Freshmeat'][config.getItem('conquestType', 'Invade')]);
+            conquestButton = caap.checkForImage(conquest.battles[config.getItem('conquestType', 'Invade')]);
             if ($u.hasContent(conquestButton)) {
                 form = conquestButton.parent().parent();
                 if ($u.hasContent(form)) {
                     inp = $j("input[name='target_id']", form);
                     if ($u.hasContent(inp)) {
                         inp.attr("value", record.userId);
-                        state.setItem("lastconquestID", record.userId);
-                        con.log(1, 'Here we click');
-                        //conquest.click(conquestButton);
-                        state.setItem("notSafeCount", 0);
+                        con.log(1, 'Attacking', record);
+                        conquest.click(conquestButton);
                         conquestButton = null;
                         form = null;
                         inp = null;
@@ -61,38 +55,110 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.conquestWarnLevel = true;
 
-    caap.conquestRefreshed = false;
+    caap.checkCoins = function() {
+        try {
+            var whenconquest = config.getItem('WhenConquest', 'Never');
+            if (whenconquest === 'Never') {
+                caap.setDivContent('conquest_mess', 'Conquest off');
+                return false;
+            }
+
+            if (schedule.check("conquest_token")) {
+                con.log(1, 'Checking coins', $u.setContent(caap.displayTime('conquest_token'), "Unknown"));
+                caap.setDivContent('conquest_mess', 'Checking coins');
+                if (caap.navigateTo('conquest_duel', 'conqduel_on.jpg')) {
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (err) {
+            con.error("ERROR in checkCoins: " + err);
+            return false;
+        }
+    };
 
     caap.conquestBattle = function() {
         try {
             var whenconquest = '',
-                target = '',
+                targetRecord = {},
                 targetId = 0,
                 conquesttype = '',
                 useGeneral = '',
                 chainImg = '',
                 button = $j(),
                 conquestChainId = 0,
-                targetType = '',
-                conquestRecord = {},
-                tempTime = 0;
+                it = 0,
+                len = 0;
 
-            if (caap.stats['level'] < 8) {
+            whenconquest = config.getItem('WhenConquest', 'Never');
+            if (whenconquest === 'Never') {
+                caap.setDivContent('conquest_mess', 'Conquest off');
+                button = null;
+                return false;
+            }
+
+            if (!schedule.check("conquest_delay")) {
+                con.log(4, 'Conquest delay attack', $u.setContent(caap.displayTime('conquest_delay'), "Unknown"));
+                caap.setDivContent('conquest_mess', 'Conquest delay (' + $u.setContent(caap.displayTime('conquest_delay'), "Unknown") + ')');
+                return false;
+            }
+
+            if (!caap.inLevelUpMode()) {
+                if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
+                    con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
+                    caap.setDivContent('conquest_mess', 'Waiting Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    button = null;
+                    return false;
+                }
+
+                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num >= config.getItem('ConquestXCoins', 1)) {
+                    state.setItem('conquest_burn', true);
+                    con.log(1, 'Burn tokens ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                }
+
+                if (whenconquest === 'At X Coins' && (caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0) || (caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)))) {
+                    state.setItem('conquest_burn', false);
+                    con.log(4, 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                    caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    button = null;
+                    return false;
+                }
+                if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
+                    con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
+                    caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    button = null;
+                    return false;
+                }
+
+                caap.setDivContent('conquest_mess', 'Conquest Ready');
+            } else {
+                con.log(1, 'Burn tokens level up' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                caap.setDivContent('conquest_mess', 'Conquest Level Up');
+            }
+
+            if (caap.stats.level < 8) {
                 if (caap.conquestWarnLevel) {
                     con.log(1, "conquest: Unlock at level 8");
                     caap.conquestWarnLevel = false;
                 }
 
+                button = null;
                 return false;
             }
 
-            whenconquest = config.getItem('WhenConquest', 'Never');
-            switch (whenconquest) {
-            case 'Never':
-                caap.setDivContent('conquest_mess', 'Conquest off');
+            if (caap.stats.health.num < 10) {
+                con.log(1, 'Health is less than 10: ', caap.stats.health.num);
                 button = null;
                 return false;
-            default:
+            }
+
+            conquesttype = config.getItem('ConquestType', 'Invade');
+            if (caap.stats.stamina < 1) {
+                con.log(1, 'Not enough stamina for ', conquesttype);
+                schedule.setItem("conquest_token", (caap.stats.stamina.ticker[0] * 60) + caap.stats.stamina.ticker[1], 300);
+                button = null;
+                return false;
             }
 
             if (caap.checkKeep()) {
@@ -100,23 +166,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            if (caap.stats['health']['num'] < 10) {
-                con.log(1, 'Health is less than 10: ', caap.stats['health']['num']);
-                button = null;
-                return false;
-            }
-
-            conquesttype = config.getItem('ConquestType', 'Invade');
-            if (caap.stats['stamina'] < 1) {
-                con.log(1, 'Not enough stamina for ', conquesttype);
-                button = null;
-                return false;
-            }
-
             switch (conquesttype) {
             case 'Invade':
                 useGeneral = 'InvadeGeneral';
-                chainImg = 'war_invadeagainbtn.gif';
+                chainImg = conquest.battles.InvadeChain;
                 if (general.LevelUpCheck(useGeneral)) {
                     useGeneral = 'LevelUpGeneral';
                     con.log(1, 'Using level up general');
@@ -125,7 +178,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case 'Duel':
                 useGeneral = 'DuelGeneral';
-                chainImg = 'war_duelagainbtn.gif';
+                chainImg = conquest.battles.DuelChain;
                 if (general.LevelUpCheck(useGeneral)) {
                     useGeneral = 'LevelUpGeneral';
                     con.log(1, 'Using level up general');
@@ -169,50 +222,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, 'targetId', targetId);
             if (!targetId) {
                 con.log(1, 'No valid conquest targetId', targetId);
+                schedule.setItem('conquest_delay', Math.floor(Math.random() * 240) + 60);
                 button = null;
                 return false;
             }
 
-            target = conquest.targets[targetId];
-            con.log(1, 'Target', target);
-            if (!target) {
-                con.log(1, 'No valid conquest target', target);
+            for (it = 0, len = conquest.targets.length; it < len; it += 1) {
+                if (conquest.targets[it].userId === targetId) {
+                    targetRecord = conquest.targets[it];
+                }
+            }
+
+            if (!$u.hasContent(targetRecord)) {
+                con.log(1, 'No valid conquest target',targetId, targetRecord, conquest.targets);
                 button = null;
                 return false;
             }
 
-            con.log(1, 'conquest Target', target);
-
-            conquestRecord = conquest.getItem(targetId);
-            con.log(1, 'conquestRecord', conquestRecord);
-
-            targetType = config.getItem('ConquestType', 'Invade');
-            switch (targetType) {
-            case 'Invade':
-                tempTime = conquestRecord.invadeLostTime || tempTime;
-
-                break;
-            case 'Duel':
-                tempTime = conquestRecord.duelLostTime || tempTime;
-
-                break;
-            default:
-                con.warn("conquest type unknown!", config.getItem("conquestType", 'Invade'));
-            }
-
-            if (conquestRecord && conquestRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                con.log(1, 'Avoiding Losing Target', targetId);
+            con.log(1, 'conquest Target', targetRecord);
+            if (caap.conquestUserId(targetRecord)) {
+                caap.setDivContent('conquest_mess', 'Conquest Target: ' + targetRecord.userId);
                 conquest.nextTarget();
                 return true;
             }
 
-            //state.setItem('conquestChainId', 0);
-            if (caap.conquestUserId(target)) {
-                conquest.nextTarget();
-                return true;
-            }
-
-            con.warn('Doing default UserID list, but no target');
+            con.warn('Doing conquest target list, but no target');
             return false;
         } catch (err) {
             con.error("ERROR in conquest: " + err);

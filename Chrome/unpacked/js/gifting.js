@@ -327,8 +327,6 @@
             }
         },
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         accept: function () {
             try {
                 //var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id=']", caap.globalContainer).eq(0),
@@ -341,13 +339,13 @@
                     tempNum = $u.setContent(giftDiv.parent().attr("uid"), '0').parseInt();
                     if ($u.hasContent(tempNum) && tempNum > 0) {
                         current = new gifting.queue.record();
-                        current.data['userId'] = tempNum;
+                        current.data.userId = tempNum;
                         tempText = $u.setContent(giftDiv.children().eq(0).attr("title"), '').trim();
                         if ($u.hasContent(tempText)) {
-                            current.data['name'] = tempText;
+                            current.data.name = tempText;
                         } else {
                             con.warn("No name found!");
-                            current.data['name'] = "Unknown";
+                            current.data.name = "Unknown";
                         }
                     } else {
                         con.warn("No uid found!");
@@ -363,7 +361,6 @@
                 return undefined;
             }
         },
-        /*jslint sub: false */
 
         loadCurrent: function () {
             try {
@@ -388,8 +385,6 @@
             }
         },
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         setCurrent: function (record, clear, src) {
             try {
                 if (clear) {
@@ -401,8 +396,8 @@
                         throw "Not passed a record";
                     }
 
-                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        con.warn("userId", record, record['userId']);
+                    if ($u.isNaN(record.userId) || record.userId < 1) {
+                        con.warn("userId", record, record.userId);
                         throw "Invalid identifying userId!";
                     }
 
@@ -426,7 +421,6 @@
                 return undefined;
             }
         },
-        /*jslint sub: false */
 
         clearCurrent: function (clearState) {
             try {
@@ -449,12 +443,10 @@
 
         checkResults: false,
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         collecting: function () {
             try {
                 var giftEntry = gifting.getCurrent();
-                if (!$j.isEmptyObject(giftEntry) && giftEntry['checked']) {
+                if (!$j.isEmptyObject(giftEntry) && giftEntry.checked) {
                     gifting.collected(true);
                 }
 
@@ -481,7 +473,7 @@
                     return true;
                 }
 
-                if (!$j.isEmptyObject(giftEntry) && !giftEntry['checked']) {
+                if (!$j.isEmptyObject(giftEntry) && !giftEntry.checked) {
                     con.log(1, "Clearing incomplete pending gift", giftEntry);
                     gifting.clearCurrent();
                 }
@@ -512,7 +504,7 @@
                     return false;
                 }
 
-                if (!giftEntry['checked'] || rfCount > 0) {
+                if (!giftEntry.checked || rfCount > 0) {
                     con.log(1, 'On FB page with gift ready to go');
                     appDiv = $j("#confirm_46755028429 .requests").children("li");
                     if ($u.hasContent(appDiv)) {
@@ -529,7 +521,7 @@
 
                                 if ($u.hasContent(inputDiv)) {
                                     userId = $j("input[name='params[from_id]']", giftRequest).val().parseInt();
-                                    if (giftEntry['userId'] !== userId) {
+                                    if (giftEntry.userId !== userId) {
                                         return true;
                                     }
 
@@ -559,7 +551,7 @@
                                             return true;
                                         }
 
-                                        giftEntry['name'] = $u.setContent(giftEntry['name'], $u.setContent(name, 'Unknown'));
+                                        giftEntry.name = $u.setContent(giftEntry.name, $u.setContent(name, 'Unknown'));
                                         if (!$u.hasContent(giftType)) {
                                             con.warn("No gift type found in ", giftText);
                                         }
@@ -576,7 +568,7 @@
 
                                     giftEntry['gift'] = giftType;
                                     giftEntry['found'] = true;
-                                    giftEntry['checked'] = true;
+                                    giftEntry.checked = true;
                                     gifting.setCurrent(giftEntry);
                                     schedule.setItem('ClickedFacebookURL', 35);
                                     if (!reload) {
@@ -610,7 +602,7 @@
                         con.warn("No gifts found for CA");
                     }
 
-                    giftEntry['checked'] = true;
+                    giftEntry.checked = true;
                     gifting.setCurrent(giftEntry);
                 }
 
@@ -657,14 +649,13 @@
                 }
 
                 state.setItem("GiftingRefresh", 0);
-                caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+                caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry.userId);
                 return true;
             } catch (err) {
                 con.error("ERROR in gifting.collect: " + err);
                 return false;
             }
         },
-        /*jslint sub: false */
 
         collected: function (force) {
             try {
@@ -685,7 +676,7 @@
                     if (force || award || caap.hasImage("gift_yes.gif")) {
                         collectOnly = config.getItem("CollectOnly", false);
                         if (!collectOnly || (collectOnly && config.getItem("CollectAndQueue", false))) {
-                            if (!noQID || (noQID && !filterIdList.hasIndexOf(giftEntry['userId']))) {
+                            if (!noQID || (noQID && !filterIdList.hasIndexOf(giftEntry.userId))) {
                                 if (!noQGift || (noQGift && !filterGiftList.hasIndexOf(giftEntry['gift']))) {
                                     gifting.queue.setItem(giftEntry);
                                 } else {
@@ -850,8 +841,6 @@
 
             records: [],
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             record: function () {
                 this.data = {
                     'name'  : '',
@@ -871,7 +860,7 @@
                     }
 
                     for (it = 0, len = gifting.gifts.records.length; it < len; it += 1) {
-                        if (gifting.gifts.records[it]['name'] === name) {
+                        if (gifting.gifts.records[it].name === name) {
                             gift = gifting.gifts.records[it];
                             break;
                         }
@@ -897,8 +886,8 @@
 
                     if (name !== 'Unknown Gift') {
                         for (it = 0, len = gifting.gifts.records.length; it < len; it += 1) {
-                            if (gifting.gifts.records[it]['name'] === name) {
-                                image = gifting.gifts.records[it]['image'];
+                            if (gifting.gifts.records[it].name === name) {
+                                image = gifting.gifts.records[it].image;
                                 break;
                             }
                         }
@@ -934,7 +923,7 @@
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.text(), '').trim().replace("!", "");
                                 if ($u.hasContent(tempText)) {
-                                    newGift.data['name'] = tempText;
+                                    newGift.data.name = tempText;
                                 } else {
                                     con.warn("Unable to get gift name! No text in ", tempDiv);
                                     return true;
@@ -948,7 +937,7 @@
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.attr("src"), '').basename();
                                 if (tempText) {
-                                    newGift.data['image'] = tempText;
+                                    newGift.data.image = tempText;
                                 } else {
                                     con.warn("Unable to get gift image! No src in ", tempDiv);
                                     return true;
@@ -958,14 +947,14 @@
                                 return true;
                             }
 
-                            if (gifting.gifts.getItem(newGift.data['name'])) {
+                            if (gifting.gifts.getItem(newGift.data.name)) {
                                 it = 2;
-                                while (gifting.gifts.getItem(newGift.data['name'] + " #" + it)) {
+                                while (gifting.gifts.getItem(newGift.data.name + " #" + it)) {
                                     it += 1;
                                 }
 
-                                newGift.data['name'] += " #" + it;
-                                con.log(2, "Gift exists, no auto return for ", newGift.data['name']);
+                                newGift.data.name += " #" + it;
+                                con.log(2, "Gift exists, no auto return for ", newGift.data.name);
                             }
 
                             gifting.gifts.records.push(newGift.data);
@@ -1001,7 +990,7 @@
                         giftOpts = gifting.gifts.options.slice();
 
                     for (it = 0, len = gifting.gifts.records.length; it < len; it += 1) {
-                        giftList.push(gifting.gifts.records[it]['name']);
+                        giftList.push(gifting.gifts.records[it].name);
                     }
 
                     return $j.merge(giftOpts, giftList);
@@ -1013,13 +1002,12 @@
 
             random: function () {
                 try {
-                    return gifting.gifts.records[Math.floor(Math.random() * (gifting.gifts.records.length))]['name'];
+                    return gifting.gifts.records[Math.floor(Math.random() * (gifting.gifts.records.length))].name;
                 } catch (err) {
                     con.error("ERROR in gifting.gifts.random: " + err);
                     return undefined;
                 }
             },
-            /*jslint sub: false */
 
             length: function () {
                 try {
@@ -1034,8 +1022,6 @@
         queue: {
             records: [],
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             record: function () {
                 this.data = {
                     'userId'  : 0,
@@ -1055,7 +1041,7 @@
                         save = false;
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
-                        if ($u.isNaN(gifting.queue.records[it]['userId']) || gifting.queue.records[it]['userId'] < 1 || gifting.queue.records[it]['sent'] === true) {
+                        if ($u.isNaN(gifting.queue.records[it].userId) || gifting.queue.records[it].userId < 1 || gifting.queue.records[it]['sent'] === true) {
                             con.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
                             gifting.queue.records.splice(it, 1);
                             save = true;
@@ -1081,8 +1067,8 @@
                         throw "Not passed a record";
                     }
 
-                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        con.warn("userId", record['userId']);
+                    if ($u.isNaN(record.userId) || record.userId < 1) {
+                        con.warn("userId", record.userId);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1093,9 +1079,9 @@
 
                     if (config.getItem("UniqueGiftQueue", true)) {
                         for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                            if (gifting.queue.records[it]['userId'] === record['userId']) {
-                                if (gifting.queue.records[it]['name'] !== record['name']) {
-                                    gifting.queue.records[it]['name'] = record['name'];
+                            if (gifting.queue.records[it].userId === record.userId) {
+                                if (gifting.queue.records[it].name !== record.name) {
+                                    gifting.queue.records[it].name = record.name;
                                     updated = true;
                                     con.log(2, "Updated users name", record, gifting.queue.records);
                                 }
@@ -1123,7 +1109,6 @@
                     return false;
                 }
             },
-            /*jslint sub: false */
 
             deleteIndex: function (index) {
                 try {
@@ -1155,8 +1140,8 @@
                         ids = [];
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
-                        if (!$u.isNaN(gifting.queue.records[it]['userId']) && gifting.queue.records[it]['userId'] > 1) {
-                            ids.push(gifting.queue.records[it]['userId']);
+                        if (!$u.isNaN(gifting.queue.records[it].userId) && gifting.queue.records[it].userId > 1) {
+                            ids.push(gifting.queue.records[it].userId);
                         }
                     }
 
@@ -1169,8 +1154,6 @@
 
             randomImg: '',
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             chooseGift: function () {
                 try {
                     var it             = 0,
@@ -1203,7 +1186,7 @@
                     time = config.getItem("LastGiftUserDelaySecs", 1);
                     time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
+                        if (!schedule.since(gifting.queue.records[it].last || 0, time)) {
                             continue;
                         }
 
@@ -1211,8 +1194,8 @@
                             continue;
                         }
 
-                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                            con.log(3, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
+                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it].userId)) {
+                            con.log(3, "chooseGift Filter Id", gifting.queue.records[it].userId);
                             continue;
                         }
 
@@ -1347,13 +1330,13 @@
 
                             con.log(2, "chosenList/pendingList", chosenList, pendingList);
                             for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                                if (chosenList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                                    con.log(2, "Chosen", gifting.queue.records[it]['userId']);
+                                if (chosenList.hasIndexOf(gifting.queue.records[it].userId)) {
+                                    con.log(2, "Chosen", gifting.queue.records[it].userId);
                                     gifting.queue.records[it]['chosen'] = true;
-                                    gifting.queue.records[it]['last'] = Date.now();
-                                } else if (pendingList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                                    con.log(2, "Pending", gifting.queue.records[it]['userId']);
-                                    gifting.queue.records[it]['last'] = Date.now();
+                                    gifting.queue.records[it].last = Date.now();
+                                } else if (pendingList.hasIndexOf(gifting.queue.records[it].userId)) {
+                                    con.log(2, "Pending", gifting.queue.records[it].userId);
+                                    gifting.queue.records[it].last = Date.now();
                                 }
                             }
 
@@ -1426,7 +1409,7 @@ con.log(1, 'chooseFriend');
                             continue;
                         }
 
-                        if (!schedule.since(gifting.queue.records[it]['last'] || 0, time)) {
+                        if (!schedule.since(gifting.queue.records[it].last || 0, time)) {
                             continue;
                         }
 
@@ -1434,8 +1417,8 @@ con.log(1, 'chooseFriend');
                             continue;
                         }
 
-                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
-                            con.log(3, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
+                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it].userId)) {
+                            con.log(3, "chooseFriend Filter Id", gifting.queue.records[it].userId);
                             continue;
                         }
 
@@ -1455,9 +1438,9 @@ con.log(1, 'chooseFriend');
                         }
 
                         if (returnOnlyOne) {
-                            if (gifting.history.checkSentOnce(gifting.queue.records[it]['userId'])) {
-                                con.log(2, "Sent Today: ", gifting.queue.records[it]['userId']);
-                                gifting.queue.records[it]['last'] = Date.now();
+                            if (gifting.history.checkSentOnce(gifting.queue.records[it].userId)) {
+                                con.log(2, "Sent Today: ", gifting.queue.records[it].userId);
+                                gifting.queue.records[it].last = Date.now();
                                 continue;
                             }
                         }
@@ -1468,7 +1451,7 @@ con.log(1, 'chooseFriend');
                         }
 
                         if (gifting.queue.records[it]['gift'] === tempGift || !same) {
-                            giftingList.push(gifting.queue.records[it]['userId']);
+                            giftingList.push(gifting.queue.records[it].userId);
                         }
                     }
 
@@ -1493,14 +1476,14 @@ con.log(1, 'chooseFriend');
                         len         = gifting.queue.records.length;
 
                     for (it = 0; it < len; it += 1) {
-                        userId = gifting.queue.records[it]['userId'];
+                        userId = gifting.queue.records[it].userId;
                         if (chosenList.hasIndexOf(userId)) {
                             con.log(2, "Chosen", userId);
                             gifting.queue.records[it]['chosen'] = true;
-                            gifting.queue.records[it]['last'] = getTime;
+                            gifting.queue.records[it].last = getTime;
                         } else if (pendingList.hasIndexOf(userId)) {
                             con.log(2, "Pending", userId);
-                            gifting.queue.records[it]['last'] = getTime;
+                            gifting.queue.records[it].last = getTime;
                         }
                     }
 
@@ -1525,7 +1508,7 @@ con.log(1, 'chooseFriend');
                         button = $j("#app_body img[src*='tab_gifts_on.gif']");
 
                     con.log(1, "gifting.queue.checkSent begin");
-                    if ($u.mutationTypes['DOMSubtreeModified']) {
+                    if ($u.mutationTypes.DOMSubtreeModified) {
                         gifting.queue.resultsContainer.off("DOMSubtreeModified", gifting.queue.checkSent);
                     } else if ($u.mutationTypes['DOMAttrModified']) {
                         gifting.queue.resultsContainer.off("DOMAttrModified", gifting.queue.checkSent);
@@ -1558,7 +1541,7 @@ con.log(1, 'chooseFriend');
                 try {
                     con.log(1, "gifting.queue.setCheckedIds");
                     gifting.queue.resultsContainer = $j("#app_body #results_container");
-                    if ($u.mutationTypes['DOMSubtreeModified']) {
+                    if ($u.mutationTypes.DOMSubtreeModified) {
                         gifting.queue.resultsContainer.on("DOMSubtreeModified", gifting.queue.checkSent);
                     } else if ($u.mutationTypes['DOMAttrModified']) {
                         gifting.queue.resultsContainer.on("DOMAttrModified", gifting.queue.checkSent);
@@ -1676,7 +1659,7 @@ con.log(1, 'chooseFriend');
                                 }
                             }
 
-                            removeLinkInstructions = "Clicking this link will remove " + gifting.queue.records[i]['name'] + "'s entry from the gift queue!";
+                            removeLinkInstructions = "Clicking this link will remove " + gifting.queue.records[i].name + "'s entry from the gift queue!";
                             data = {
                                 text  : '<span id="caap_removeq_' + i + '" title="' + removeLinkInstructions + '" mname="' +
                                         '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
@@ -1757,14 +1740,11 @@ con.log(1, 'chooseFriend');
                     return false;
                 }
             }
-            /*jslint sub: false */
         },
 
         history: {
             records: [],
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             record: function () {
                 this.data = {
                     'userId'       : 0,
@@ -1782,7 +1762,7 @@ con.log(1, 'chooseFriend');
                         save = false;
 
                     for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
-                        if ($u.isNaN(gifting.history.records[it]['userId']) || gifting.history.records[it]['userId'] < 1) {
+                        if ($u.isNaN(gifting.history.records[it].userId) || gifting.history.records[it].userId < 1) {
                             con.warn("gifting.history.fix - delete", gifting.history.records[it]);
                             gifting.history.records.splice(it, 1);
                             save = true;
@@ -1806,8 +1786,8 @@ con.log(1, 'chooseFriend');
                         ids = [];
 
                     for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
-                        if (!$u.isNaN(gifting.history.records[it]['userId']) && gifting.history.records[it]['userId'] > 1) {
-                            ids.push(gifting.history.records[it]['userId']);
+                        if (!$u.isNaN(gifting.history.records[it].userId) && gifting.history.records[it].userId > 1) {
+                            ids.push(gifting.history.records[it].userId);
                         }
                     }
 
@@ -1826,8 +1806,8 @@ con.log(1, 'chooseFriend');
                         throw "Not passed a record";
                     }
 
-                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        con.warn("userId", record['userId']);
+                    if ($u.isNaN(record.userId) || record.userId < 1) {
+                        con.warn("userId", record.userId);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1837,9 +1817,9 @@ con.log(1, 'chooseFriend');
                         newRecord = {};
 
                     for (it = 0, len = gifting.history.records.length; it < len; it += 1) {
-                        if (gifting.history.records[it]['userId'] === record['userId']) {
-                            if (gifting.history.records[it]['name'] !== record['name']) {
-                                gifting.history.records[it]['name'] = record['name'];
+                        if (gifting.history.records[it].userId === record.userId) {
+                            if (gifting.history.records[it].name !== record.name) {
+                                gifting.history.records[it].name = record.name;
                             }
 
                             gifting.history.records[it]['received'] += 1;
@@ -1853,8 +1833,8 @@ con.log(1, 'chooseFriend');
                         con.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                     } else {
                         newRecord = new gifting.history.record();
-                        newRecord.data['userId'] = record['userId'];
-                        newRecord.data['name'] = record['name'];
+                        newRecord.data.userId = record.userId;
+                        newRecord.data.name = record.name;
                         newRecord.data['received'] = 1;
                         newRecord.data['lastReceived'] = Date.now();
                         gifting.history.records.push(newRecord.data);
@@ -1875,8 +1855,8 @@ con.log(1, 'chooseFriend');
                         throw "Not passed a record";
                     }
 
-                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
-                        con.warn("userId", record['userId']);
+                    if ($u.isNaN(record.userId) || record.userId < 1) {
+                        con.warn("userId", record.userId);
                         throw "Invalid identifying userId!";
                     }
 
@@ -1886,9 +1866,9 @@ con.log(1, 'chooseFriend');
                         newRecord = {};
 
                     for (it = 0, len = gifting.history.records.length; it < len; it += 1) {
-                        if (gifting.history.records[it]['userId'] === record['userId']) {
-                            if (gifting.history.records[it]['name'] !== record['name']) {
-                                gifting.history.records[it]['name'] = record['name'];
+                        if (gifting.history.records[it].userId === record.userId) {
+                            if (gifting.history.records[it].name !== record.name) {
+                                gifting.history.records[it].name = record.name;
                             }
 
                             gifting.history.records[it]['sent'] += 1;
@@ -1902,8 +1882,8 @@ con.log(1, 'chooseFriend');
                         con.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                     } else {
                         newRecord = new gifting.history.record();
-                        newRecord.data['userId'] = record['userId'];
-                        newRecord.data['name'] = record['name'];
+                        newRecord.data.userId = record.userId;
+                        newRecord.data.name = record.name;
                         newRecord.data['sent'] = 1;
                         newRecord.data['lastSent'] = Date.now();
                         gifting.history.records.push(newRecord.data);
@@ -1932,7 +1912,7 @@ con.log(1, 'chooseFriend');
 
                     time = (time < 1 ? 1 : time) * 3600;
                     for (it = 0, len = gifting.history.records.length; it < len; it += 1) {
-                        if (gifting.history.records[it]['userId'] !== userId) {
+                        if (gifting.history.records[it].userId !== userId) {
                             continue;
                         }
 
@@ -1946,7 +1926,6 @@ con.log(1, 'chooseFriend');
                     return undefined;
                 }
             },
-            /*jslint sub: false */
 
             length: function () {
                 try {
@@ -1957,8 +1936,6 @@ con.log(1, 'chooseFriend');
                 }
             },
 
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
             dashboard: function () {
                 try {
                     /*-------------------------------------------------------------------------------------\
@@ -2054,14 +2031,10 @@ con.log(1, 'chooseFriend');
                     return false;
                 }
             }
-            /*jslint sub: false */
         }
     };
 
-    /* This section is added to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     window['gifting'] = gifting;
     gifting['gifts'] = gifting.gifts;
     gifting['queue'] = gifting.queue;
     gifting['history'] = gifting.history;
-    /*jslint sub: false */

@@ -64,10 +64,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 headersArr = [],
                                 key = '';
 
-                            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-                            /*jslint sub: true */
-                            rows = msg['query']['results']['row'];
-                            /*jslint sub: false */
+                            rows = msg.query.results.row;
+
                             headers = rows[0];
                             for (key in headers) {
                                 if (headers.hasOwnProperty(key)) {
@@ -163,8 +161,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     spreadsheet.getItem = function (name, image) {
         try {
             if (!$u.hasContent(name) || !$u.isString(name)) {
@@ -180,13 +176,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             for (it = 0, len = spreadsheet.records.length; it < len; it += 1) {
                 //con.log(1, 'spreadsheet.records', spreadsheet.records[it]);
                 if (image) {
-                    if (spreadsheet.records[it]['name'] === name && spreadsheet.records[it]['image'] === image) {
+                    if (spreadsheet.records[it].name === name && spreadsheet.records[it].image === image) {
                         record = spreadsheet.records[it];
                         found = true;
                         break;
                     }
                 } else {
-                    if (spreadsheet.records[it]['name'] === name) {
+                    if (spreadsheet.records[it].name === name) {
                         record = spreadsheet.records[it];
                         found = true;
                         break;
@@ -215,75 +211,75 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 opacity = false;
 
             for (it = spreadsheet.records.length - 1; it >= 0; it -= 1) {
-                if (spreadsheet.records[it]['name'] && spreadsheet.records[it]['name'] === title) {
+                if (spreadsheet.records[it].name && spreadsheet.records[it].name === title) {
                     tempIt = it;
-                    if (spreadsheet.records[it]['image'] && spreadsheet.records[it]['image'] === image) {
+                    if (spreadsheet.records[it].image && spreadsheet.records[it].image === image) {
                         break;
                     }
                 }
             }
 
             if (tempIt > -1) {
-                titleStr = spreadsheet.records[tempIt]['name'] + ": " + spreadsheet.records[tempIt]['type'];
-                if ($u.hasContent(spreadsheet.records[tempIt]['attack']) && $u.hasContent(spreadsheet.records[tempIt]['defense'])) {
-                    titleStr += ", " + spreadsheet.records[tempIt]['attack'] + "atk," + spreadsheet.records[tempIt]['defense'] + "def";
+                titleStr = spreadsheet.records[tempIt].name + ": " + spreadsheet.records[tempIt].type;
+                if ($u.hasContent(spreadsheet.records[tempIt].attack) && $u.hasContent(spreadsheet.records[tempIt].defense)) {
+                    titleStr += ", " + spreadsheet.records[tempIt].attack + "atk," + spreadsheet.records[tempIt].defense + "def";
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['hero'])) {
-                    titleStr += ", Hero: " + spreadsheet.records[tempIt]['hero'];
-                    owned = general.owned(spreadsheet.records[tempIt]['hero']);
+                if ($u.hasContent(spreadsheet.records[tempIt].hero)) {
+                    titleStr += ", Hero: " + spreadsheet.records[tempIt].hero;
+                    owned = general.owned(spreadsheet.records[tempIt].hero);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['recipe1'])) {
-                    titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
-                    if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
-                        owned = caap.stats['other']['atlantis'];
+                if ($u.hasContent(spreadsheet.records[tempIt].recipe1)) {
+                    titleStr += ", Recipe1: " + spreadsheet.records[tempIt].recipe1;
+                    if (spreadsheet.records[tempIt].recipe1 === "Map of Atlantis") {
+                        owned = caap.stats.other.atlantis;
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     } else {
-                        owned = town.getCount(spreadsheet.records[tempIt]['recipe1'], spreadsheet.records[tempIt]['recipe1image']);
+                        owned = town.getCount(spreadsheet.records[tempIt].recipe1, spreadsheet.records[tempIt].recipe1image);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['recipe2'])) {
-                    titleStr += ", Recipe2: " + spreadsheet.records[tempIt]['recipe2'];
-                    owned = town.getCount(spreadsheet.records[tempIt]['recipe2'], spreadsheet.records[tempIt]['recipe2image']);
+                if ($u.hasContent(spreadsheet.records[tempIt].recipe2)) {
+                    titleStr += ", Recipe2: " + spreadsheet.records[tempIt].recipe2;
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe2, spreadsheet.records[tempIt].recipe2image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['recipe3'])) {
-                    titleStr += ", Recipe3: " + spreadsheet.records[tempIt]['recipe3'];
-                    owned = town.getCount(spreadsheet.records[tempIt]['recipe3'], spreadsheet.records[tempIt]['recipe3image']);
+                if ($u.hasContent(spreadsheet.records[tempIt].recipe3)) {
+                    titleStr += ", Recipe3: " + spreadsheet.records[tempIt].recipe3;
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe3, spreadsheet.records[tempIt].recipe3image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['recipe4'])) {
-                    titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
-                    owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
+                if ($u.hasContent(spreadsheet.records[tempIt].recipe4)) {
+                    titleStr += ", Recipe4: " + spreadsheet.records[tempIt].recipe4;
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe4, spreadsheet.records[tempIt].recipe4image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['recipe5'])) {
-                    titleStr += ", Recipe5: " + spreadsheet.records[tempIt]['recipe5'];
-                    owned = town.getCount(spreadsheet.records[tempIt]['recipe5'], spreadsheet.records[tempIt]['recipe5image']);
+                if ($u.hasContent(spreadsheet.records[tempIt].recipe5)) {
+                    titleStr += ", Recipe5: " + spreadsheet.records[tempIt].recipe5;
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe5, spreadsheet.records[tempIt].recipe5image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['summon'])) {
-                    titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
+                if ($u.hasContent(spreadsheet.records[tempIt].summon)) {
+                    titleStr += ", Summon: " + spreadsheet.records[tempIt].summon;
                     opacity = true;
                 }
 
-                if ($u.hasContent(spreadsheet.records[tempIt]['comment'])) {
-                    titleStr += ", Comment: " + spreadsheet.records[tempIt]['comment'];
+                if ($u.hasContent(spreadsheet.records[tempIt].comment)) {
+                    titleStr += ", Comment: " + spreadsheet.records[tempIt].comment;
                 }
             }
 
@@ -297,7 +293,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return undefined;
         }
     };
-    /*jslint sub: false */
 
     spreadsheet.doTitles = function (goblin) {
         try {
@@ -341,28 +336,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     spreadsheet.isSummon = function (title, image) {
         try {
             var it = 0,
                 tempIt = -1;
 
             for (it = spreadsheet.records.length - 1; it >= 0; it -= 1) {
-                if (spreadsheet.records[it]['name'] && spreadsheet.records[it]['name'] === title) {
+                if (spreadsheet.records[it].name && spreadsheet.records[it].name === title) {
                     tempIt = it;
-                    if (spreadsheet.records[it]['image'] && spreadsheet.records[it]['image'] === image) {
+                    if (spreadsheet.records[it].image && spreadsheet.records[it].image === image) {
                         break;
                     }
                 }
             }
 
-            return tempIt > -1 && $u.isDefined(spreadsheet.records[tempIt]['summon']) ? true : false;
+            return tempIt > -1 && $u.isDefined(spreadsheet.records[tempIt].summon) ? true : false;
         } catch (err) {
             con.error("ERROR in spreadsheet.isSummon: " + err);
             return undefined;
         }
     };
-    /*jslint sub: false */
 
 }());

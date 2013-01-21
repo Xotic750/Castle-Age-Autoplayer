@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true,sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 festival,feed,battle,town,
@@ -24,7 +24,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 form = $j(),
                 inp = $j();
 
-            battleButton = caap.checkForImage(battle.battles['Freshmeat'][config.getItem('BattleType', 'Invade')]);
+            battleButton = caap.checkForImage(battle.battles.Freshmeat[config.getItem('BattleType', 'Invade')]);
             if ($u.hasContent(battleButton)) {
                 form = battleButton.parent().parent();
                 if ($u.hasContent(form)) {
@@ -80,7 +80,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 monsterObject = {},
                 noSafeCountSet = 0;
 
-            if (caap.stats['level'] < 8) {
+            if (caap.stats.level < 8) {
                 if (caap.battleWarnLevel) {
                     con.log(1, "Battle: Unlock at level 8");
                     caap.battleWarnLevel = false;
@@ -113,7 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case 'No Monster':
                 if (mode !== 'DemiPoints') {
-                    if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject['name'])) {
+                    if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
                         button = null;
                         return false;
                     }
@@ -126,7 +126,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
 
-                if (mode !== 'DemiPoints' && whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject['name'])) {
+                if (mode !== 'DemiPoints' && whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
                     button = null;
                     return false;
                 }
@@ -145,14 +145,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            if (caap.stats['health']['num'] < 10) {
-                con.log(5, 'Health is less than 10: ', caap.stats['health']['num']);
+            if (caap.stats.health.num < 10) {
+                con.log(5, 'Health is less than 10: ', caap.stats.health.num);
                 button = null;
                 return false;
             }
 
-            if (config.getItem("waitSafeHealth", false) && caap.stats['health']['num'] < 13) {
-                con.log(5, 'Unsafe. Health is less than 13: ', caap.stats['health']['num']);
+            if (config.getItem("waitSafeHealth", false) && caap.stats.health.num < 13) {
+                con.log(5, 'Unsafe. Health is less than 13: ', caap.stats.health.num);
                 button = null;
                 return false;
             }
@@ -274,10 +274,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['md5'])) {
-                    caap.click(monster.completeButton['raid']['button']);
-                    monster.deleteItem(monster.completeButton['raid']['md5']);
-                    monster.completeButton['raid'] = {
+                if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton.raid.button) && $u.hasContent(monster.completeButton.raid.md5)) {
+                    caap.click(monster.completeButton.raid.button);
+                    monster.deleteItem(monster.completeButton.raid.md5);
+                    monster.completeButton.raid = {
                         'md5': undefined,
                         'name': undefined,
                         'button': undefined
@@ -295,19 +295,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (!$u.hasContent($j("#app_body div[style*='dragon_title_owner']"))) {
-                    button = monster.engageButtons[monsterObject['md5']];
+                    button = monster.engageButtons[monsterObject.md5];
                     if ($u.hasContent(button)) {
                         caap.click(button);
                         button = null;
                         return true;
                     }
 
-                    con.warn('Unable to engage raid', monsterObject['name']);
+                    con.warn('Unable to engage raid', monsterObject.name);
                     button = null;
                     return false;
                 }
 
-                if (monster.confirmRightPage(monsterObject['name'])) {
+                if (monster.confirmRightPage(monsterObject.name)) {
                     button = null;
                     return true;
                 }

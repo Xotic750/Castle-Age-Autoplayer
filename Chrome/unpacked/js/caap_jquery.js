@@ -15,9 +15,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.jQueryExtend = function () {
         (function (/*$*/) {
-            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
-            jQuery.fn['getPercent'] = jQuery.fn.getPercent = function (type) {
+
+            jQuery.fn.getPercent = function (type) {
                 var t = [],
 					rVal;
 
@@ -36,7 +35,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return jQuery(this).clone().children().remove().end().text();
             };
 
-            jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (farb_callback, diag_callback) {
+            jQuery.fn.colorInput = function (farb_callback, diag_callback) {
                 var t = this,
                     v = jQuery("<div id='" + t.attr("id") + "_diag'></div>").appendTo(document.body),
                     w, x;
@@ -86,7 +85,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return [v, w, x];
             };
 
-            jQuery.fn['alert'] = jQuery.fn.alert = function (html) {
+            jQuery.fn.alert = function (html) {
                 var w = jQuery('<div id="alert_' + Date.now() + '" title="Alert!">' + (html || '') + '</div>').appendTo(document.body);
 
                 w.dialog({
@@ -137,7 +136,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return aData;
             };
-            /*jslint sub: false */
 
         }(jQuery));
     };

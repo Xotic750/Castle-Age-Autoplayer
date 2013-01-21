@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true,sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 festival,feed,battle,town,
@@ -14,8 +14,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.checkResults_guild = function() {
         try {
             if (session.getItem("clickUrl").hasIndexOf("guild_battle=true")) {
@@ -38,13 +36,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guildTxt = $j("#globalContainer #guild_achievement").text().trim().innerTrim();
             if ($u.hasContent(guildTxt)) {
                 tStr = guildTxt.regex(/Monster ([\d,]+)/);
-                caap.stats['guild']['mPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                caap.stats.guild.mPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
                 tStr = guildTxt.regex(/Battle ([\d,]+)/);
-                caap.stats['guild']['bPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                caap.stats.guild.bPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
                 tStr = guildTxt.regex(/Monster [\d,]+ points \(Top (\d+\-\d+%)\)/);
-                caap.stats['guild']['mRank'] = $u.hasContent(tStr) ? tStr : '';
+                caap.stats.guild.mRank = $u.hasContent(tStr) ? tStr : '';
                 tStr = guildTxt.regex(/Battle [\d,]+ points \(Top (\d+\-\d+%)\)/);
-                caap.stats['guild']['bRank'] = $u.hasContent(tStr) ? tStr : '';
+                caap.stats.guild.bRank = $u.hasContent(tStr) ? tStr : '';
                 save = true;
             } else {
                 con.warn('Using stored guild Monster and Battle points.');
@@ -52,7 +50,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             guildTxt = $j("#globalContainer #guild_blast input[name='guild_id']").attr("value");
             if ($u.hasContent(guildTxt)) {
-                caap.stats['guild']['id'] = guildTxt;
+                caap.stats.guild.id = guildTxt;
                 save = true;
             } else {
                 con.warn('Using stored guild_id.');
@@ -60,7 +58,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             guildTxt = $j("#globalContainer #guild_banner_section").text().trim();
             if ($u.hasContent(guildTxt)) {
-                caap.stats['guild']['name'] = guildTxt;
+                caap.stats.guild.name = guildTxt;
                 save = true;
             } else {
                 con.warn('Using stored guild name.');
@@ -73,7 +71,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         uid = t.attr("href").regex(/casuser=(\d+)/),
                         name = t.text().trim();
 
-                    if (uid !== caap.stats['FBID']) {
+                    if (uid !== caap.stats.FBID) {
                         members.push({
                             'userId': uid,
                             'name': name
@@ -83,13 +81,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     t = null;
                 });
 
-                caap.stats['guild']['members'] = members.slice();
+                caap.stats.guild.members = members.slice();
                 save = true;
             } else {
                 con.warn('Using stored guild member count.');
             }
 
-            con.log(2, "checkResults_guild", caap.stats['guild']);
+            con.log(2, "checkResults_guild", caap.stats.guild);
             if (save) {
                 caap.saveStats();
             }

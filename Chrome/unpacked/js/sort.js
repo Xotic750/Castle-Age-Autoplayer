@@ -87,20 +87,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     sort.getForm = function (id, records) {
         try {
             var order = new sort.order();
 
             if ($u.hasContent(sort.dialog[id])) {
-                order.data['reverse']['a'] = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.data['reverse']['b'] = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.data['reverse']['c'] = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.data['value']['a'] = $j("#select0 option:selected", sort.dialog[id]).val();
-                order.data['value']['b'] = $j("#select1 option:selected", sort.dialog[id]).val();
-                order.data['value']['c'] = $j("#select2 option:selected", sort.dialog[id]).val();
-                records.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
+                order.data.reverse.a = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data.reverse.b = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data.reverse.c = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data.value.a = $j("#select0 option:selected", sort.dialog[id]).val();
+                order.data.value.b = $j("#select1 option:selected", sort.dialog[id]).val();
+                order.data.value.c = $j("#select2 option:selected", sort.dialog[id]).val();
+                records.sort($u.sortBy(order.data.reverse.a, order.data.value.a, $u.sortBy(order.data.reverse.b, order.data.value.b, $u.sortBy(order.data.reverse.c, order.data.value.c))));
                 state.setItem(id + "Sort", order);
                 session.setItem(id + "DashUpdate", true);
                 caap.updateDashboard(true);
@@ -121,12 +119,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if ($u.hasContent(sort.dialog[id])) {
                 $j.extend(true, order.data, state.getItem(id + "Sort", order));
-                $j("#form0 input", sort.dialog[id]).val([order.data['reverse']['a']]);
-                $j("#form1 input", sort.dialog[id]).val([order.data['reverse']['b']]);
-                $j("#form2 input", sort.dialog[id]).val([order.data['reverse']['c']]);
-                $j("#select0", sort.dialog[id]).val(order.data['value']['a']);
-                $j("#select1", sort.dialog[id]).val(order.data['value']['b']);
-                $j("#select2", sort.dialog[id]).val(order.data['value']['c']);
+                $j("#form0 input", sort.dialog[id]).val([order.data.reverse.a]);
+                $j("#form1 input", sort.dialog[id]).val([order.data.reverse.b]);
+                $j("#form2 input", sort.dialog[id]).val([order.data.reverse.c]);
+                $j("#select0", sort.dialog[id]).val(order.data.value.a);
+                $j("#select1", sort.dialog[id]).val(order.data.value.b);
+                $j("#select2", sort.dialog[id]).val(order.data.value.c);
             } else {
                 con.log(3, "Dialog for updateForm not found", id);
             }
@@ -137,6 +135,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

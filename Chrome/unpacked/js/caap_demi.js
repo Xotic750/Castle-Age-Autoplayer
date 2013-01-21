@@ -72,11 +72,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.demiPoints = function () {
         try {
-            if (caap.stats['level'] < 9) {
+            if (caap.stats.level < 9) {
                 return false;
             }
 
@@ -103,7 +101,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     caap.loadDemi = function () {
         var demis = gm.getItem('demipoint.records', 'default');

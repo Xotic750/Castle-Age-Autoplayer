@@ -13,8 +13,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.heal = function () {
         try {
             var minToHeal = 0,
@@ -30,27 +28,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 minStamToHeal = 0;
             }
 
-            if (!caap.stats['health'] || $j.isEmptyObject(caap.stats['health']) || $j.isEmptyObject(caap.stats['healthT'])) {
+            if (!caap.stats.health || $j.isEmptyObject(caap.stats.health) || $j.isEmptyObject(caap.stats.healthT)) {
                 return false;
             }
 
-            if (!caap.stats['stamina'] || $j.isEmptyObject(caap.stats['stamina']) || $j.isEmptyObject(caap.stats['staminaT'])) {
+            if (!caap.stats.stamina || $j.isEmptyObject(caap.stats.stamina) || $j.isEmptyObject(caap.stats.staminaT)) {
                 return false;
             }
 
             if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                if ((caap.inLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['staminaT']['max']) && caap.stats['health']['num'] < (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10)) {
+                if ((caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.staminaT.max) && caap.stats.health.num < (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10)) {
                     con.log(1, 'Heal');
                     return caap.navigateTo('keep,keep_healbtn.gif');
                 }
             }
 
-            if (caap.stats['health']['num'] >= caap.stats['healthT']['max'] || caap.stats['health']['num'] >= minToHeal) {
+            if (caap.stats.health.num >= caap.stats.healthT.max || caap.stats.health.num >= minToHeal) {
                 return false;
             }
 
-            if (caap.stats['stamina']['num'] < minStamToHeal) {
-                caap.setDivContent('heal_mess', 'Waiting for stamina to heal: ' + caap.stats['stamina']['num'] + '/' + minStamToHeal);
+            if (caap.stats.stamina.num < minStamToHeal) {
+                caap.setDivContent('heal_mess', 'Waiting for stamina to heal: ' + caap.stats.stamina.num + '/' + minStamToHeal);
                 return false;
             }
 
@@ -61,6 +59,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

@@ -156,38 +156,38 @@
                     throw "Unable to get userId!";
                 }
                 battleRecord = battle.getItem(result.userId);
-                battleRecord['attackTime'] = Date.now();
-                if (result.userName && result.userName !== battleRecord['nameStr'] && result.userName !== 'unknown') {
-                    con.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
-                    battleRecord['nameStr'] = result.userName;
+                battleRecord.attackTime = Date.now();
+                if (result.userName && result.userName !== battleRecord.nameStr && result.userName !== 'unknown') {
+                    con.log(1, "Updating battle record user name, from/to", battleRecord.nameStr, result.userName);
+                    battleRecord.nameStr = result.userName;
                 }
 
                 if (result.win) {
-                    battleRecord['statswinsNum'] += 1;
+                    battleRecord.statswinsNum += 1;
                 } else {
-                    battleRecord['statslossesNum'] += 1;
+                    battleRecord.statslossesNum += 1;
                 }
 
                 switch (result.battleType) {
                 case 'Invade' :
                     if (result.win) {
-                        battleRecord['invadewinsNum'] += 1;
-                        battleRecord['ibp'] += result.points;
+                        battleRecord.invadewinsNum += 1;
+                        battleRecord.ibp += result.points;
                     } else {
-                        battleRecord['invadelossesNum'] += 1;
-                        battleRecord['ibp'] -= result.points;
-                        battleRecord['invadeLostTime'] = Date.now();
+                        battleRecord.invadelossesNum += 1;
+                        battleRecord.ibp -= result.points;
+                        battleRecord.invadeLostTime = Date.now();
                     }
 
                     break;
                 case 'Duel' :
                     if (result.win) {
-                        battleRecord['duelwinsNum'] += 1;
-                        battleRecord['dbp'] += result.points;
+                        battleRecord.duelwinsNum += 1;
+                        battleRecord.dbp += result.points;
                     } else {
-                        battleRecord['duellossesNum'] += 1;
-                        battleRecord['dbp'] -= result.points;
-                        battleRecord['duelLostTime'] = Date.now();
+                        battleRecord.duellossesNum += 1;
+                        battleRecord.dbp -= result.points;
+                        battleRecord.duelLostTime = Date.now();
                     }
                     break;
                 default :
@@ -223,7 +223,7 @@
                 if (result.unknown === true) {
                     if (state.getItem("lastArenaBattleID", 0)) {
                         battleRecord = battle.getItem(arena.getItem("lastArenaBattleID", 0));
-                        battleRecord['unknownTime'] = Date.now();
+                        battleRecord.unknownTime = Date.now();
                         battle.getItem(battleRecord);
                     }
 
@@ -238,8 +238,8 @@
                     con.log(1, "Chain Attack:", result.userId, "Battle Points: " + result.points);
                 } else {
                     con.log(1, "We Were Defeated By ", result.userName);
-                    battleRecord['chainCount'] = 0;
-                    battleRecord['chainTime'] = 0;
+                    battleRecord.chainCount = 0;
+                    battleRecord.chainTime = 0;
                 }
 
                 battle.setItem(battleRecord);
@@ -282,32 +282,32 @@
                     i          = 0,
                     len        = 0,
                     tempRecord = new battle.record();
-                levelMultiplier = caap.stats['level'] / (tempRecord.data['levelNum'] > 0 ? tempRecord.data['levelNum'] : 1);
-                tempRecord.data['nameStr'] = inputDiv[index].children[1].children[0].innerHTML.trim();
-                tempRecord.data['levelNum'] = /\d+/.exec(inputDiv[index].children[1].children[1].innerHTML)[0];
-                tempRecord.data['rankStr'] = inputDiv[index].children[1].children[2].innerHTML.trim();
+                levelMultiplier = caap.stats.level / (tempRecord.data.levelNum > 0 ? tempRecord.data.levelNum : 1);
+                tempRecord.data.nameStr = inputDiv[index].children[1].children[0].innerHTML.trim();
+                tempRecord.data.levelNum = /\d+/.exec(inputDiv[index].children[1].children[1].innerHTML)[0];
+                tempRecord.data.rankStr = inputDiv[index].children[1].children[2].innerHTML.trim();
                 tempRecord.data['arenaRankNum'] = /\d+/.exec(inputDiv[index].children[1].children[2].innerHTML)[0];
-                tempRecord.data['userId'] = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
-                tempRecord.data['armyNum'] = Math.min (501, inputDiv[index].children[2].innerHTML.trim());  // arena doesn't list the army size capped at 501
+                tempRecord.data.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
+                tempRecord.data.armyNum = Math.min (501, inputDiv[index].children[2].innerHTML.trim());  // arena doesn't list the army size capped at 501
 
-                tempRecord.data['button'] = $j("input[src*='arena_invade_btn']", inputDiv[index]);
-                battleRecord = battle.getItem(tempRecord.data['userId']);
+                tempRecord.data.button = $j("input[src*='arena_invade_btn']", inputDiv[index]);
+                battleRecord = battle.getItem(tempRecord.data.userId);
                 switch (config.getItem("ArenaBattleType", 'Invade')) {
                 case 'Invade' :
                     useGeneral = 'InvadeGeneral';
-                    tempTime = $u.setContent(battleRecord['invadeLostTime'], 0);
-                    tempRecord.data['button'] = $j("input[src*='arena_invade_btn']", inputDiv[index]);
+                    tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
+                    tempRecord.data.button = $j("input[src*='arena_invade_btn']", inputDiv[index]);
                     break;
                 case 'Duel' :
                     useGeneral = 'DuelGeneral';
-                    tempTime = $u.setContent(battleRecord['duelLostTime'], 0);
-                    tempRecord.data['button'] = $j("input[src*='arena_duel_btn']", inputDiv[index]);
+                    tempTime = $u.setContent(battleRecord.duelLostTime, 0);
+                    tempRecord.data.button = $j("input[src*='arena_duel_btn']", inputDiv[index]);
                     break;
                 default :
                     con.warn("Battle type unknown!", config.getItem("ArenaBattleType", 'Invade'));
                 }
-                if (battleRecord && !battleRecord['newRecord'] && tempTime && !schedule.since(tempTime, 604800)) {
-                    con.log(1, "We lost " + config.getItem("arenaBattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
+                if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
+                    con.log(1, "We lost " + config.getItem("arenaBattleType", 'Invade') + " to this id this week: ", tempRecord.data.userId);
                     return true;
                 }
 
@@ -331,31 +331,31 @@
                     minLevel = 99999;
                 }
 
-                if (tempRecord.data['levelNum'] - caap.stats['level'] > maxLevel) {
-                    con.log(2, "Exceeds relative maxLevel", {'level': tempRecord.data['levelNum'], 'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'maxLevel': maxLevel});
+                if (tempRecord.data.levelNum - caap.stats.level > maxLevel) {
+                    con.log(2, "Exceeds relative maxLevel", {'level': tempRecord.data.levelNum, 'levelDif': tempRecord.data.levelNum - caap.stats.level, 'maxLevel': maxLevel});
                     return true;
                 }
 
-                if (caap.stats['level'] - tempRecord.data['levelNum'] > minLevel) {
-                    con.log(2, "Exceeds relative minLevel", {'level': tempRecord.data['levelNum'], 'levelDif': caap.stats['level'] - tempRecord.data['levelNum'], 'minLevel': minLevel});
+                if (caap.stats.level - tempRecord.data.levelNum > minLevel) {
+                    con.log(2, "Exceeds relative minLevel", {'level': tempRecord.data.levelNum, 'levelDif': caap.stats.level - tempRecord.data.levelNum, 'minLevel': minLevel});
                     return true;
                 }
 
-                if (config.getItem("arenaArmyMax", 501) < tempRecord.data['armyNum']) {
-                    con.log(2, "This guy's army is too big (" + tempRecord.data['armyNum'] + "): ", tempRecord.data['userId']);
+                if (config.getItem("arenaArmyMax", 501) < tempRecord.data.armyNum) {
+                    con.log(2, "This guy's army is too big (" + tempRecord.data.armyNum + "): ", tempRecord.data.userId);
                     return true;
                 }
 
                 switch (config.getItem("ArenaBattleType", 'Invade')) {
                 case 'Invade' :
-                    tempRecord.data['score'] = tempRecord.data['arenaRankNum'] - (tempRecord.data['armyNum'] / levelMultiplier / caap.stats['army']['capped']);
+                    tempRecord.data.score = tempRecord.data['arenaRankNum'] - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
                 case 'Duel' :
-                    tempRecord.data['score'] = tempRecord.data['arenaRankNum'] - (tempRecord.data['armyNum'] / levelMultiplier / caap.stats['army']['capped']);
+                    tempRecord.data.score = tempRecord.data['arenaRankNum'] - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
                 default :
-                    tempRecord.data['score'] = tempRecord.data['arenaRankNum'] - (tempRecord.data['armyNum'] / levelMultiplier / caap.stats['army']['capped']);
+                    tempRecord.data.score = tempRecord.data['arenaRankNum'] - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
                 }
 
-                tempRecord.data['targetNumber'] = index + 1;
+                tempRecord.data.targetNumber = index + 1;
                 safeTargets.push(tempRecord.data);
                 tempRecord = null;
 
@@ -370,12 +370,12 @@
                 return true;
             }
             for (it = 0, len = safeTargets.length; it < len; it += 1) {
-                if (!lastArenaBattleID && lastArenaBattleID === safeTargets[it]['id'] && !state.getItem ('arenaBattleChainId', 0) === safeTargets[it]['id']) {
+                if (!lastArenaBattleID && lastArenaBattleID === safeTargets[it].id && !state.getItem ('arenaBattleChainId', 0) === safeTargets[it].id) {
                     continue;
                 }
 
-                if ($u.isDefined(safeTargets[it]['button'])) {
-                    con.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
+                if ($u.isDefined(safeTargets[it].button)) {
+                    con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
 
                     //removing changing general since generates infinite loops
                     //con.log (1, "changing general", useGeneral);
@@ -384,19 +384,19 @@
                                         //}
                     //con.log (1, "done general");
 
-                    arena.click(safeTargets[it]['button']);
+                    arena.click(safeTargets[it].button);
 
-                    delete safeTargets[it]['score'];
-                    delete safeTargets[it]['targetNumber'];
-                    delete safeTargets[it]['button'];
-                    battleRecord = battle.getItem(safeTargets[it]['userId']);
-                    if (battleRecord['newRecord']) {
-                        state.setItem("lastArenaBattleID", safeTargets[it]['userId']);
+                    delete safeTargets[it].score;
+                    delete safeTargets[it].targetNumber;
+                    delete safeTargets[it].button;
+                    battleRecord = battle.getItem(safeTargets[it].userId);
+                    if (battleRecord.newRecord) {
+                        state.setItem("lastArenaBattleID", safeTargets[it].userId);
                         $j.extend(true, battleRecord, safeTargets[it]);
-                        battleRecord['newRecord'] = false;
-                        battleRecord['aliveTime'] = Date.now();
+                        battleRecord.newRecord = false;
+                        battleRecord.aliveTime = Date.now();
                     } else {
-                        battleRecord['aliveTime'] = Date.now();
+                        battleRecord.aliveTime = Date.now();
                         for (itx in safeTargets[it]) {
                             if (safeTargets[it].hasOwnProperty(itx)) {
                                 if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {

@@ -13,11 +13,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.checkAutoIncome = function (minutes) {
         try {
-            return $u.hasContent(caap.stats['gold']['ticker']) && caap.stats['gold']['ticker'][0] < $u.setContent(minutes, 1);
+            return $u.hasContent(caap.stats.gold.ticker) && caap.stats.gold.ticker[0] < $u.setContent(minutes, 1);
         } catch (err) {
             con.error("ERROR in checkAutoIncome: " + err);
             return false;
@@ -41,6 +39,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

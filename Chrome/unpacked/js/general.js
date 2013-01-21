@@ -16,8 +16,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.records = [];
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     general.record = function () {
         this.data = {
             'name': '',
@@ -46,7 +44,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'charge': 0
         };
     };
-    /*jslint sub: false */
 
     general.hbest = 0;
 
@@ -95,8 +92,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     general.getItem = function (generalName, quiet) {
         try {
             if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
@@ -109,7 +104,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 found = false;
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it]['name'] === generalName) {
+                if (general.records[it].name === generalName) {
                     found = true;
                     break;
                 }
@@ -136,8 +131,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "Not passed a record";
             }
 
-            if (!$u.hasContent(record['name']) || !$u.isString(record['name'])) {
-                con.warn("name", record['name']);
+            if (!$u.hasContent(record.name) || !$u.isString(record.name)) {
+                con.warn("name", record.name);
                 throw "Invalid identifying name!";
             }
 
@@ -146,7 +141,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 success = false;
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it]['name'] === record['name']) {
+                if (general.records[it].name === record.name) {
                     success = true;
                     break;
                 }
@@ -175,7 +170,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 names = [];
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                names.push(general.records[it]['name']);
+                names.push(general.records[it].name);
             }
 
             return names.sort();
@@ -193,7 +188,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' image");
                 genImg = '';
             } else {
-                genImg = genImg['img'];
+                genImg = genImg.img;
             }
 
             return genImg;
@@ -211,7 +206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' stamina");
                 genStamina = 0;
             } else {
-                genStamina = genStamina['staminaMax'];
+                genStamina = genStamina.staminaMax;
             }
 
             return genStamina;
@@ -229,7 +224,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' energy");
                 genEnergy = 0;
             } else {
-                genEnergy = genEnergy['energyMax'];
+                genEnergy = genEnergy.energyMax;
             }
 
             return genEnergy;
@@ -247,7 +242,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' health");
                 genHealth = 0;
             } else {
-                genHealth = genHealth['healthMax'];
+                genHealth = genHealth.healthMax;
             }
 
             return genHealth;
@@ -265,7 +260,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' level");
                 genLevel = 1;
             } else {
-                genLevel = genLevel['lvl'];
+                genLevel = genLevel.lvl;
             }
 
             return genLevel;
@@ -283,7 +278,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn("Unable to find 'General' level percent");
                 genPct = 0;
             } else {
-                genPct = genPct['pct'];
+                genPct = genPct.pct;
             }
 
             return genPct;
@@ -300,8 +295,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 names = [];
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it]['pct'] < 100) {
-                    names.push(general.records[it]['name']);
+                if (general.records[it].pct < 100) {
+                    names.push(general.records[it].name);
                 }
             }
 
@@ -319,8 +314,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 names = [];
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it]['coolDown']) {
-                    names.push(general.records[it]['name']);
+                if (general.records[it].coolDown) {
+                    names.push(general.records[it].name);
                 }
             }
 
@@ -330,7 +325,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     general.List = [];
 
@@ -422,8 +416,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     general.GetCurrent = function () {
         try {
             var //equipDiv = $j("#main_bn", caap.globalContainer),
@@ -447,8 +439,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //  this will always fail because the charged bar doesn't display anymore, need to find a better way
             /*record = general.getItem(generalName);
 
-            if (record['coolDown'] && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
-                record['charge'] = 0;
+            if (record.coolDown && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
+                record.charge = 0;
                 general.setItem(record);
             }*/
 
@@ -574,31 +566,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if ($u.hasContent(name) && $u.hasContent(img) && $u.hasContent(level) && $u.hasContent(percent) && !$u.isNaN(atk) && !$u.isNaN(def) && $u.hasContent(special)) {
                         for (it = 0, len = general.records.length; it < len; it += 1) {
-                            if (general.records[it]['name'] === name) {
+                            if (general.records[it].name === name) {
                                 newGeneral.data = general.records[it];
                                 break;
                             }
                         }
 
-                        newGeneral.data['name'] = name;
-                        newGeneral.data['img'] = img;
-                        newGeneral.data['item'] = item;
-                        newGeneral.data['itype'] = itype;
-                        newGeneral.data['coolDown'] = coolDown;
-                        newGeneral.data['charge'] = charge;
-                        newGeneral.data['lvl'] = level;
-                        newGeneral.data['lvlmax'] = levelmax;
-                        newGeneral.data['pct'] = percent;
-                        newGeneral.data['atk'] = atk;
-                        newGeneral.data['def'] = def;
-                        newGeneral.data['api'] = (atk + (def * 0.7)).dp(2);
-                        newGeneral.data['dpi'] = (def + (atk * 0.7)).dp(2);
-                        newGeneral.data['mpi'] = ((newGeneral.data['api'] + newGeneral.data['dpi']) / 2).dp(2);
-                        newGeneral.data['special'] = special;
+                        newGeneral.data.name = name;
+                        newGeneral.data.img = img;
+                        newGeneral.data.item = item;
+                        newGeneral.data.itype = itype;
+                        newGeneral.data.coolDown = coolDown;
+                        newGeneral.data.charge = charge;
+                        newGeneral.data.lvl = level;
+                        newGeneral.data.lvlmax = levelmax;
+                        newGeneral.data.pct = percent;
+                        newGeneral.data.atk = atk;
+                        newGeneral.data.def = def;
+                        newGeneral.data.api = (atk + (def * 0.7)).dp(2);
+                        newGeneral.data.dpi = (def + (atk * 0.7)).dp(2);
+                        newGeneral.data.mpi = ((newGeneral.data.api + newGeneral.data.dpi) / 2).dp(2);
+                        newGeneral.data.special = special;
                         if (it < len) {
                             general.records[it] = newGeneral.data;
                         } else {
-                            con.log(1, "Adding new 'General'", newGeneral.data['name']);
+                            con.log(1, "Adding new 'General'", newGeneral.data.name);
                             general.records.push(newGeneral.data);
                             update = true;
                         }
@@ -612,8 +604,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
 
                 if (save) {
-                    caap.stats['generals']['total'] = general.records.length;
-                    caap.stats['generals']['invade'] = Math.min((caap.stats['army']['actual'] / 5).dp(), general.records.length);
+                    caap.stats.generals.total = general.records.length;
+                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).dp(), general.records.length);
                     general.save();
                     caap.saveStats();
                     if (update) {
@@ -631,7 +623,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     general.UpdateDropDowns = function () {
         try {
@@ -681,8 +672,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     general.LevelUpCheck = function (whichGeneral) {
         try {
             var generalType = '',
@@ -690,7 +679,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 keepGeneral = false;
 
             generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
-            if ((caap.stats['staminaT']['num'] > caap.stats['stamina']['max'] || caap.stats['energyT']['num'] > caap.stats['energy']['max']) && state.getItem('KeepLevelUpGeneral', false)) {
+            if ((caap.stats.staminaT.num > caap.stats.stamina.max || caap.stats.energyT.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
                     con.log(2, "Keep Level Up General");
                     keepGeneral = true;
@@ -703,7 +692,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.StandardList.hasIndexOf(generalType) || generalType === 'Quest')) {
-                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats['exp']['dif'] && caap.stats['exp']['dif'] <= config.getItem('LevelUpGeneralExp', 0))) {
+                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
                     use = true;
                 }
             }
@@ -747,9 +736,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 coolName = coolType ? config.getItem(coolType, '') : '',
                 coolRecord = coolName ? general.getItem(coolName) : {},
                 zinRecord = general.getItem("Zin", true),
-                zinReady = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats['stamina']['num'] <= (caap.stats['stamina']['max'] - 15) && zinRecord['charge'] === 100 : false,
-                coolZin = coolName === "Zin" ? caap.stats['stamina']['num'] > (caap.stats['stamina']['max'] - 15) : false,
-                useCool = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord['charge'] === 100,
+                zinReady = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats.stamina.num <= (caap.stats.stamina.max - 15) && zinRecord.charge === 100 : false,
+                coolZin = coolName === "Zin" ? caap.stats.stamina.num > (caap.stats.stamina.max - 15) : false,
+                useCool = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord.charge === 100,
                 zinFirst = config.getItem("useZinFirst", true),
                 thisAction = state.getItem('ThisAction', 'idle'),
                 zinAction = ["battle"];
@@ -828,7 +817,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             con.log(2, "Equipped 'General'", generalName);
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it]['name'] === generalName) {
+                if (general.records[it].name === generalName) {
                     break;
                 }
             }
@@ -844,9 +833,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                 temptext = $u.setContent(generalDiv.text(), '');
                 if ($u.hasContent(temptext)) {
-                    general.records[it]['eatk'] = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
-                    general.records[it]['edef'] = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
-                    if (general.records[it]['eatk'] > 0 && general.records[it]['edef'] > 0) {
+                    general.records[it].eatk = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
+                    general.records[it].edef = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
+                    if (general.records[it].eatk > 0 && general.records[it].edef > 0) {
                         success = true;
                     } else {
                         con.warn("Unable to get 'General' attack or defense", temptext);
@@ -856,13 +845,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (success) {
-                    general.records[it]['eapi'] = (general.records[it]['eatk'] + (general.records[it]['edef'] * 0.7)).dp(2);
-                    general.records[it]['edpi'] = (general.records[it]['edef'] + (general.records[it]['eatk'] * 0.7)).dp(2);
-                    general.records[it]['empi'] = ((general.records[it]['eapi'] + general.records[it]['edpi']) / 2).dp(2);
-                    general.records[it]['energyMax'] = caap.stats['energyT']['max'];
-                    general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
-                    general.records[it]['healthMax'] = caap.stats['healthT']['max'];
-                    general.records[it]['last'] = Date.now();
+                    general.records[it].eapi = (general.records[it].eatk + (general.records[it].edef * 0.7)).dp(2);
+                    general.records[it].edpi = (general.records[it].edef + (general.records[it].eatk * 0.7)).dp(2);
+                    general.records[it].empi = ((general.records[it].eapi + general.records[it].edpi) / 2).dp(2);
+                    general.records[it].energyMax = caap.stats.energyT.max;
+                    general.records[it].staminaMax = caap.stats.staminaT.max;
+                    general.records[it].healthMax = caap.stats.healthT.max;
+                    general.records[it].last = Date.now();
                     general.save();
                     con.log(2, "Got 'General' stats", general.records[it]);
                 } else {
@@ -891,7 +880,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             time = (time < 24 ? 24 : time) * 3600;
             for (it = 0, len = general.records.length; it < len; it += 1) {
-                if (schedule.since(general.records[it]['last'], time)) {
+                if (schedule.since(general.records[it].last, time)) {
                     break;
                 }
             }
@@ -915,10 +904,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            generalImage = general.GetImage(general.records[it]['name']);
+            generalImage = general.GetImage(general.records[it].name);
             if (caap.hasImage(generalImage)) {
-                if (general.GetCurrent() !== general.records[it]['name']) {
-                    con.log(2, "Visiting 'General'", general.records[it]['name']);
+                if (general.GetCurrent() !== general.records[it].name) {
+                    con.log(2, "Visiting 'General'", general.records[it].name);
                     return caap.navigateTo(generalImage);
                 }
             }
@@ -936,7 +925,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 owned = false;
 
             for (it = general.records.length - 1; it >= 0; it -= 1) {
-                if (general.records[it]['name'] && general.records[it]['name'] === name) {
+                if (general.records[it].name && general.records[it].name === name) {
                     owned = true;
                     break;
                 }
@@ -1102,10 +1091,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (values[pp] === 'name') {
                             link = "generals.php";
-                            instructions = "Clicking this link will change General to " + general.records[it]['name'];
+                            instructions = "Clicking this link will change General to " + general.records[it].name;
                             data = {
-                                text: '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it]['name'] + '" rlink="' + link + '" itype="' + general.records[it]['itype'] + '" item="' + general.records[it]['item'] +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it]['name'] + '</span>',
+                                text: '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it].name + '" rlink="' + link + '" itype="' + general.records[it].itype + '" item="' + general.records[it].item +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it].name + '</span>',
                                 color: 'blue',
                                 id: '',
                                 title: ''
@@ -1187,6 +1176,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

@@ -22,8 +22,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     army.pageDone = true;
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     army.record = function () {
         return JSON.copy({
             'user': '',
@@ -36,7 +34,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'appUser': true
         });
     };
-    /*jslint sub: false */
 
     army.hbest = 3;
 
@@ -129,8 +126,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         army.eliteFriendCheck();
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     army.setItem = function (record) {
         try {
             var it = 0,
@@ -139,7 +134,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 save = true;
 
             for (it = 0, len = army.records.length; it < len; it += 1) {
-                if (army.records[it]['userId'] === record['userId']) {
+                if (army.records[it].userId === record.userId) {
                     found = true;
                     break;
                 }
@@ -175,7 +170,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 found = false;
 
             for (it = 0, len = army.records.length; it < len; it += 1) {
-                if (army.records[it]['userId'] === userId) {
+                if (army.records[it].userId === userId) {
                     found = true;
                     break;
                 }
@@ -199,7 +194,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 found = false;
 
             for (it = 0, len = army.records.length; it < len; it += 1) {
-                if (army.records[it]['userId'] === userId) {
+                if (army.records[it].userId === userId) {
                     army.records[it].splice(it, 1);
                     found = true;
                     break;
@@ -250,16 +245,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     var el = $j(this);
 
                     record = army.record();
-                    record['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
+                    record.userId = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
                     tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
                     if (!useAjaxArmy) {
-                        record['user'] = $u.setContent(tStr.regex(new RegExp('(.*?)\\s*"')), '').toString();
+                        record.user = $u.setContent(tStr.regex(new RegExp('(.*?)\\s*"')), '').toString();
                     }
 
-                    record['name'] = $u.setContent(tStr.regex(new RegExp('"(.*)"')), '').toString();
-                    record['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
-                    record['last'] = Date.now();
-                    if ($u.hasContent(record['userId']) && record['userId'] > 0) {
+                    record.name = $u.setContent(tStr.regex(new RegExp('"(.*)"')), '').toString();
+                    record.lvl = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
+                    record.last = Date.now();
+                    if ($u.hasContent(record.userId) && record.userId > 0) {
                         army.recordsTemp.push(record);
                     } else {
                         con.warn("army.page skipping record", record);
@@ -274,10 +269,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members? x(\d+)/), 0);
                         for (it = 1; it <= len; it += 1) {
                             record = army.record();
-                            record['userId'] = -1 * it;
-                            record['name'] = "Extra member " + it;
-                            record['lvl'] = 0;
-                            record['last'] = Date.now();
+                            record.userId = -1 * it;
+                            record.name = "Extra member " + it;
+                            record.lvl = 0;
+                            record.last = Date.now();
                             army.recordsTemp.push(record);
                         }
                     }
@@ -318,16 +313,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             currentPage = ss.getItem("army.currentPage", 1, true);
             expectedPageCount = state.getItem("ArmyPageCount", 0);
             if (!expectedPageCount) {
-                expectedPageCount = Math.ceil((caap.stats['army']['actual'] - 1) / army.perPage);
+                expectedPageCount = Math.ceil((caap.stats.army.actual - 1) / army.perPage);
                 expectedPageCount = expectedPageCount || 0;
             }
 
             if (currentPage > expectedPageCount) {
                 army.pageDone = false;
                 con.log(3, "army.run", expectedPageCount);
-                if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
+                if (caap.stats.army.actual - 1 !== army.recordsTemp.length) {
                     schedule.setItem("army_member", 1800, 300);
-                    con.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
+                    con.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats.army.actual - 1, army.recordsTemp.length);
                 } else {
                     schedule.setItem("army_member", scanDays * 86400, 300);
                     army.merge();
@@ -366,50 +361,50 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             for (it = 0, len = army.recordsTemp.length; it < len; it += 1) {
-                record = army.getItem(army.recordsTemp[it]['userId']);
+                record = army.getItem(army.recordsTemp[it].userId);
                 if ($u.hasContent(record)) {
-                    army.recordsTemp[it]['elite'] = $u.setContent(record['elite'], false);
-                    if (army.recordsTemp[it]['lvl'] > record['lvl']) {
-                        army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                    } else if ($u.hasContent(record['change']) && record['change'] > 0) {
-                        army.recordsTemp[it]['change'] = record['change'];
+                    army.recordsTemp[it].elite = $u.setContent(record.elite, false);
+                    if (army.recordsTemp[it].lvl > record.lvl) {
+                        army.recordsTemp[it].change = army.recordsTemp[it].last;
+                    } else if ($u.hasContent(record.change) && record.change > 0) {
+                        army.recordsTemp[it].change = record.change;
                     } else {
-                        army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
+                        army.recordsTemp[it].change = army.recordsTemp[it].last;
                     }
 
-                    if (!$u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name'])) {
-                        army.recordsTemp[it]['name'] = record['name'];
+                    if (!$u.hasContent(army.recordsTemp[it].name) && $u.hasContent(record.name)) {
+                        army.recordsTemp[it].name = record.name;
                     }
 
-                    if ($u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name']) && army.recordsTemp[it]['name'] !== record['name']) {
-                        army.recordsTemp[it]['name'] = record['name'];
+                    if ($u.hasContent(army.recordsTemp[it].name) && $u.hasContent(record.name) && army.recordsTemp[it].name !== record.name) {
+                        army.recordsTemp[it].name = record.name;
                     }
 
-                    if (!$u.hasContent(army.recordsTemp[it]['user']) && $u.hasContent(record['user'])) {
-                        army.recordsTemp[it]['user'] = record['user'];
+                    if (!$u.hasContent(army.recordsTemp[it].user) && $u.hasContent(record.user)) {
+                        army.recordsTemp[it].user = record.user;
                     }
 
-                    if ($u.hasContent(army.recordsTemp[it]['user']) && $u.hasContent(record['user']) && army.recordsTemp[it]['user'] !== record['user']) {
-                        army.recordsTemp[it]['user'] = record['user'];
+                    if ($u.hasContent(army.recordsTemp[it].user) && $u.hasContent(record.user) && army.recordsTemp[it].user !== record.user) {
+                        army.recordsTemp[it].user = record.user;
                     }
 
-                    if (!$u.hasContent(army.recordsTemp[it]['lvl']) && $u.hasContent(record['lvl'])) {
-                        army.recordsTemp[it]['lvl'] = record['lvl'];
+                    if (!$u.hasContent(army.recordsTemp[it].lvl) && $u.hasContent(record.lvl)) {
+                        army.recordsTemp[it].lvl = record.lvl;
                     }
 
-                    if (!$u.hasContent(army.recordsTemp[it]['elite']) && $u.hasContent(record['elite'])) {
-                        army.recordsTemp[it]['elite'] = record['elite'];
+                    if (!$u.hasContent(army.recordsTemp[it].elite) && $u.hasContent(record.elite)) {
+                        army.recordsTemp[it].elite = record.elite;
                     }
                 } else {
-                    army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
+                    army.recordsTemp[it].change = army.recordsTemp[it].last;
                 }
 
                 if ($u.hasContent(caap.fbFriends) && $u.hasContent(fbf)) {
-                    if ($u.hasContent(fbf[army.recordsTemp[it]['userId']]) && army.recordsTemp[it]['user'] !== fbf[army.recordsTemp[it]['userId']]) {
-                        army.recordsTemp[it]['user'] = fbf[army.recordsTemp[it]['userId']];
+                    if ($u.hasContent(fbf[army.recordsTemp[it].userId]) && army.recordsTemp[it].user !== fbf[army.recordsTemp[it].userId]) {
+                        army.recordsTemp[it].user = fbf[army.recordsTemp[it].userId];
                     }
 
-                    army.recordsTemp[it]['appUser'] = $u.hasContent(fbf[army.recordsTemp[it]['userId']]);
+                    army.recordsTemp[it].appUser = $u.hasContent(fbf[army.recordsTemp[it].userId]);
                 }
             }
 
@@ -430,8 +425,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 list = [];
 
             for (it = 0, len = army.records.length; it < len; it += 1) {
-                if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0 && army.records[it]['appUser']) {
-                    list.push(army.records[it]['userId']);
+                if ($u.hasContent(army.records[it].userId) && army.records[it].userId > 0 && army.records[it].appUser) {
+                    list.push(army.records[it].userId);
                 }
             }
 
@@ -490,8 +485,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 list = [];
 
             for (it = 0, len = army.records.length; it < len; it += 1) {
-                if ($u.hasContent(army.records[it]['userId']) && army.records[it]['userId'] > 0 && army.records[it]['elite'] && army.records[it]['appUser']) {
-                    list.push(army.records[it]['userId']);
+                if ($u.hasContent(army.records[it].userId) && army.records[it].userId > 0 && army.records[it].elite && army.records[it].appUser) {
+                    list.push(army.records[it].userId);
                 }
             }
 
@@ -501,7 +496,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return [];
         }
     };
-    /*jslint sub: false */
 
     army.eliteCheckImg = function () {
         try {
@@ -574,10 +568,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /*jslint sub: true */
     army.eliteFriendCheck = function () {
         try {
-            if (caap.stats['army']['actual'] < 11 || army.getIdList().length < 10) {
+            if (caap.stats.army.actual < 11 || army.getIdList().length < 10) {
                 con.log(1, 'Not enough friends to fill Elite Guard');
                 state.setItem('AutoEliteFew', true);
             } else {
@@ -590,7 +583,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
     army.elite = function () {
         try {
@@ -684,8 +676,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     army.dashboard = function () {
         try {
             /*-------------------------------------------------------------------------------------\
@@ -765,15 +755,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 head = caap.makeTr(head);
                 for (i = 0, len = army.records.length; i < len; i += 1) {
-                    if (army.records[i]["userId"] > 0) {
+                    if (army.records[i].userId > 0) {
                         row = "";
-                        if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                        if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
-                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays3", 21) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
-                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays2", 14) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor2", 'gold');
-                        } else if (schedule.since(army.records[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays1", 7) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
                         } else {
                             color = config.getItem("ArmyAgeDaysColor0", 'green');
@@ -801,11 +791,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                                 row += caap.makeTd(data);
                             } else if (values[pp] === "user") {
-                                tempVar = army.records[i]['appUser'] ? '' : config.getItem("ArmyAgeDaysColor4", 'red');
+                                tempVar = army.records[i].appUser ? '' : config.getItem("ArmyAgeDaysColor4", 'red');
                                 userIdLinkInstructions = "Clicking this link will take you to the Facebook page of " + army.records[i][values[pp]];
                                 row += caap.makeTd({
                                     text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? "<a href='http://www.facebook.com/profile.php?id=" +
-                                        army.records[i]['userId'] + "'>" + army.records[i][values[pp]] + "</a>" : '',
+                                        army.records[i].userId + "'>" + army.records[i][values[pp]] + "</a>" : '',
                                     bgcolor: tempVar,
                                     color: $u.hasContent(tempVar) ? $u.bestTextColor(tempVar) : '',
                                     id: '',
@@ -822,8 +812,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
 
                         data = {
-                            text: '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i]['userId'] +
-                                '" cstate="' + (army.records[i]['elite'] ? 'true' : 'false') + '" ' + (army.records[i]['elite'] ? ' checked' : '') + ' />',
+                            text: '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i].userId +
+                                '" cstate="' + (army.records[i].elite ? 'true' : 'false') + '" ' + (army.records[i].elite ? ' checked' : '') + ' />',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -831,10 +821,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                         row += caap.makeTd(data);
 
-                        tempVar = $u.setContent(army.records[i]['user'], '').escapeHTML();
+                        tempVar = $u.setContent(army.records[i].user, '').escapeHTML();
                         removeLinkInstructions = "Clicking this link will remove " + tempVar + " from your army!";
                         data = {
-                            text: '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i]['userId'] + '" mname="' + tempVar +
+                            text: '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i].userId + '" mname="' + tempVar +
                                 '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color: 'blue',
                             id: '',
@@ -908,7 +898,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if ($u.hasContent(userid) && userid > 0) {
                         record = army.getItem(userid);
-                        record['elite'] = !cstate;
+                        record.elite = !cstate;
                         army.setItem(record);
                         session.setItem("ArmyDashUpdate", true);
                         caap.updateDashboard(true);
@@ -954,6 +944,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

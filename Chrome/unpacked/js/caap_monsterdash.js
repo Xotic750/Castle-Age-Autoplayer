@@ -83,8 +83,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.updateDashboardWaitLog = true;
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.updateDashboard = function (force) {
         try {
             if (config.getItem("dashMinimised", false)) {
@@ -341,7 +339,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Facebook ID'
                     }, {
-                        text: caap.stats['FBID']
+                        text: caap.stats.FBID
                     }, {
                         text: 'Account Name'
                     }, {
@@ -358,93 +356,93 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Character Name'
                     }, {
-                        text: caap.stats['PlayerName']
+                        text: caap.stats.PlayerName
                     }, {
                         text: 'Energy',
                         title: 'Current/Max'
                     }, {
-                        text: caap.stats['energy']['num'] + '/' + caap.stats['energy']['max'],
+                        text: caap.stats.energy.num + '/' + caap.stats.energy.max,
                         color: valueCol
                     }],
                     [{
                         text: 'Level'
                     }, {
-                        text: caap.stats['level'],
+                        text: caap.stats.level,
                         color: valueCol
                     }, {
                         text: 'Stamina',
                         title: 'Current/Max'
                     }, {
-                        text: caap.stats['stamina']['num'] + '/' + caap.stats['stamina']['max'],
+                        text: caap.stats.stamina.num + '/' + caap.stats.stamina.max,
                         color: valueCol
                     }],
                     [{
                         text: 'Battle Rank'
                     }, {
-                        text: battle.battleRankTable[caap.stats['rank']['battle']] + ' (' + caap.stats['rank']['battle'] + ')',
+                        text: battle.battleRankTable[caap.stats.rank.battle] + ' (' + caap.stats.rank.battle + ')',
                         color: valueCol
                     }, {
                         text: 'Attack',
                         title: 'Current/Max'
                     }, {
-                        text: caap.stats['attack'].addCommas(),
+                        text: caap.stats.attack.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Battle Rank Points'
                     }, {
-                        text: caap.stats['rank']['battlePoints'].addCommas(),
+                        text: caap.stats.rank.battlePoints.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Defense'
                     }, {
-                        text: caap.stats['defense'].addCommas(),
+                        text: caap.stats.defense.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'War Rank'
                     }, {
-                        text: battle.warRankTable[caap.stats['rank']['war']] + ' (' + caap.stats['rank']['war'] + ')',
+                        text: battle.warRankTable[caap.stats.rank.war] + ' (' + caap.stats.rank.war + ')',
                         color: valueCol
                     }, {
                         text: 'Health',
                         title: 'Current/Max'
                     }, {
-                        text: caap.stats['health']['num'] + '/' + caap.stats['health']['max'],
+                        text: caap.stats.health.num + '/' + caap.stats.health.max,
                         color: valueCol
                     }],
                     [{
                         text: 'War Rank Points'
                     }, {
-                        text: caap.stats['rank']['warPoints'].addCommas(),
+                        text: caap.stats.rank.warPoints.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Army'
                     }, {
-                        text: caap.stats['army']['actual'].addCommas(),
+                        text: caap.stats.army.actual.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Conquest Rank'
                     }, {
-                        text: conquest.conquestRankTable[caap.stats['rank']['conquest']] + ' (' + caap.stats['rank']['conquest'] + ')',
+                        text: conquest.conquestRankTable[caap.stats.rank.conquest] + ' (' + caap.stats.rank.conquest + ')',
                         color: valueCol
                     }, {
                         text: 'Generals'
                     }, {
-                        text: caap.stats['generals']['total'],
+                        text: caap.stats.generals.total,
                         color: valueCol
                     }],
                     [{
                         text: 'Conquest Rank Points'
                     }, {
-                        text: caap.stats['rank']['conquestPoints'].addCommas(),
+                        text: caap.stats.rank.conquestPoints.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Generals When Invade',
                         title: 'For every 5 army members you have, one of your generals will also join the fight.'
                     }, {
-                        text: caap.stats['generals']['invade'],
+                        text: caap.stats.generals.invade,
                         color: valueCol
                     }],
                     [{
@@ -461,34 +459,34 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Gold In Bank'
                     }, {
-                        text: '$' + caap.stats['gold']['bank'].addCommas(),
+                        text: '$' + caap.stats.gold.bank.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Total Income Per Hour'
                     }, {
-                        text: '$' + caap.stats['gold']['income'].addCommas(),
+                        text: '$' + caap.stats.gold.income.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Gold In Cash'
                     }, {
-                        text: '$' + caap.stats['gold']['cash'].addCommas(),
+                        text: '$' + caap.stats.gold.cash.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Upkeep'
                     }, {
-                        text: '$' + caap.stats['gold']['upkeep'].addCommas(),
+                        text: '$' + caap.stats.gold.upkeep.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Total Gold'
                     }, {
-                        text: '$' + caap.stats['gold']['total'].addCommas(),
+                        text: '$' + caap.stats.gold.total.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Cash Flow Per Hour'
                     }, {
-                        text: '$' + caap.stats['gold']['flow'].addCommas(),
+                        text: '$' + caap.stats.gold.flow.addCommas(),
                         color: valueCol
                     }],
                     [{
@@ -505,23 +503,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Skill Points'
                     }, {
-                        text: caap.stats['points']['skill'],
+                        text: caap.stats.points.skill,
                         color: valueCol
                     }, {
                         text: 'Energy Potions'
                     }, {
-                        text: caap.stats['potions']['energy'],
+                        text: caap.stats.potions.energy,
                         color: valueCol
                     }],
                     [{
                         text: 'Favor Points'
                     }, {
-                        text: caap.stats['points']['favor'],
+                        text: caap.stats.points.favor,
                         color: valueCol
                     }, {
                         text: 'Stamina Potions'
                     }, {
-                        text: caap.stats['potions']['stamina'],
+                        text: caap.stats.potions.stamina,
                         color: valueCol
                     }],
                     [{
@@ -538,67 +536,67 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Experience To Next Level (ETNL)'
                     }, {
-                        text: caap.stats['exp']['dif'].addCommas(),
+                        text: caap.stats.exp.dif.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Battle Strength Index (BSI)'
                     }, {
-                        text: caap.stats['indicators']['bsi'],
+                        text: caap.stats.indicators.bsi,
                         color: valueCol
                     }],
                     [{
                         text: 'Hours To Level (HTL)'
                     }, {
-                        text: $u.minutes2hours(caap.stats['indicators']['htl']),
+                        text: $u.minutes2hours(caap.stats.indicators.htl),
                         color: valueCol
                     }, {
                         text: 'Levelling Speed Index (LSI)'
                     }, {
-                        text: caap.stats['indicators']['lsi'],
+                        text: caap.stats.indicators.lsi,
                         color: valueCol
                     }],
                     [{
                         text: 'Hours Remaining To Level (HRTL)'
                     }, {
-                        text: $u.minutes2hours(caap.stats['indicators']['hrtl']),
+                        text: $u.minutes2hours(caap.stats.indicators.hrtl),
                         color: valueCol
                     }, {
                         text: 'Skill Points Per Level (SPPL)'
                     }, {
-                        text: caap.stats['indicators']['sppl'],
+                        text: caap.stats.indicators.sppl,
                         color: valueCol
                     }],
                     [{
                         text: 'Expected Next Level (ENL)'
                     }, {
-                        text: $u.makeTime(caap.stats['indicators']['enl'], caap.timeStr()),
+                        text: $u.makeTime(caap.stats.indicators.enl, caap.timeStr()),
                         color: valueCol
                     }, {
                         text: 'Attack Power Index (API)'
                     }, {
-                        text: caap.stats['indicators']['api'],
+                        text: caap.stats.indicators.api,
                         color: valueCol
                     }],
                     [{
                         text: 'Build Type'
                     }, {
-                        text: caap.stats['indicators']['build'],
+                        text: caap.stats.indicators.build,
                         color: valueCol
                     }, {
                         text: 'Defense Power Index (DPI)'
                     }, {
-                        text: caap.stats['indicators']['dpi'],
+                        text: caap.stats.indicators.dpi,
                         color: valueCol
                     }],
                     [{
                         text: 'PvP Class'
                     }, {
-                        text: caap.stats['indicators']['pvpclass'],
+                        text: caap.stats.indicators.pvpclass,
                         color: valueCol
                     }, {
                         text: 'Mean Power Index (MPI)'
                     }, {
-                        text: caap.stats['indicators']['mpi'],
+                        text: caap.stats.indicators.mpi,
                         color: valueCol
                     }],
                     [{
@@ -609,7 +607,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }, {
                         text: 'Monster Hunting Build Effective Quotent (MHBEQ)'
                     }, {
-                        text: caap.stats['indicators']['mhbeq'],
+                        text: caap.stats.indicators.mhbeq,
                         color: valueCol
                     }],
                     [{
@@ -626,34 +624,34 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Battles/Wars Won'
                     }, {
-                        text: caap.stats['other']['bww'].addCommas(),
+                        text: caap.stats.other.bww.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Times eliminated'
                     }, {
-                        text: caap.stats['other']['te'].addCommas(),
+                        text: caap.stats.other.te.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Battles/Wars Lost'
                     }, {
-                        text: caap.stats['other']['bwl'].addCommas(),
+                        text: caap.stats.other.bwl.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Times you eliminated an enemy'
                     }, {
-                        text: caap.stats['other']['tee'].addCommas(),
+                        text: caap.stats.other.tee.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Battles/Wars Win/Loss Ratio (WLR)'
                     }, {
-                        text: caap.stats['other']['wlr'],
+                        text: caap.stats.other.wlr,
                         color: valueCol
                     }, {
                         text: 'Enemy Eliminated/Eliminated Ratio (EER)'
                     }, {
-                        text: caap.stats['other']['eer'],
+                        text: caap.stats.other.eer,
                         color: valueCol
                     }],
                     [{
@@ -670,45 +668,45 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Invasions Won'
                     }, {
-                        text: caap.stats['achievements']['battle']['invasions']['won'].addCommas(),
+                        text: caap.stats.achievements.battle.invasions.won.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Duels Won'
                     }, {
-                        text: caap.stats['achievements']['battle']['duels']['won'].addCommas(),
+                        text: caap.stats.achievements.battle.duels.won.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Invasions Lost'
                     }, {
-                        text: caap.stats['achievements']['battle']['invasions']['lost'].addCommas(),
+                        text: caap.stats.achievements.battle.invasions.lost.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Duels Lost'
                     }, {
-                        text: caap.stats['achievements']['battle']['duels']['lost'].addCommas(),
+                        text: caap.stats.achievements.battle.duels.lost.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Invasions Streak'
                     }, {
-                        text: caap.stats['achievements']['battle']['invasions']['streak'].addCommas(),
+                        text: caap.stats.achievements.battle.invasions.streak.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Duels Streak'
                     }, {
-                        text: caap.stats['achievements']['battle']['duels']['streak'].addCommas(),
+                        text: caap.stats.achievements.battle.duels.streak.addCommas(),
                         color: valueCol
                     }],
                     [{
                         text: 'Invasions Win/loss Ratio (IWLR)'
                     }, {
-                        text: caap.stats['achievements']['battle']['invasions']['ratio'],
+                        text: caap.stats.achievements.battle.invasions.ratio,
                         color: valueCol
                     }, {
                         text: 'Duels Win/loss Ratio (DWLR)'
                     }, {
-                        text: caap.stats['achievements']['battle']['duels']['ratio'],
+                        text: caap.stats.achievements.battle.duels.ratio,
                         color: valueCol
                     }],
                     [{
@@ -725,12 +723,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Quests Completed'
                     }, {
-                        text: caap.stats['other']['qc'].addCommas(),
+                        text: caap.stats.other.qc.addCommas(),
                         color: valueCol
                     }, {
                         text: 'Alchemy Performed'
                     }, {
-                        text: caap.stats['achievements']['other']['alchemy'].addCommas(),
+                        text: caap.stats.achievements.other.alchemy.addCommas(),
                         color: valueCol
                     }],
                     [{
@@ -757,15 +755,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
 
                 count = 0;
-                for (pp in caap.stats['achievements']['monster']) {
-                    if (caap.stats['achievements']['monster'].hasOwnProperty(pp)) {
+                for (pp in caap.stats.achievements.monster) {
+                    if (caap.stats.achievements.monster.hasOwnProperty(pp)) {
                         row = count % 2 === 0 ? '' : row;
                         row += caap.makeTd({
                             text: pp.escapeHTML()
                         });
 
                         row += caap.makeTd({
-                            text: caap.stats['achievements']['monster'][pp],
+                            text: caap.stats.achievements.monster[pp],
                             color: valueCol
                         });
 
@@ -802,23 +800,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Ambrosia Daily Points'
                     }, {
-                        text: caap.demi['ambrosia']['daily']['num'] + '/' + caap.demi['ambrosia']['daily']['max'],
+                        text: caap.demi.ambrosia.daily.num + '/' + caap.demi.ambrosia.daily.max,
                         color: valueCol
                     }, {
                         text: 'Malekus Daily Points'
                     }, {
-                        text: caap.demi['malekus']['daily']['num'] + '/' + caap.demi['malekus']['daily']['max'],
+                        text: caap.demi.malekus.daily.num + '/' + caap.demi.malekus.daily.max,
                         color: valueCol
                     }],
                     [{
                         text: 'Ambrosia Total Points'
                     }, {
-                        text: caap.demi['ambrosia']['power']['total'],
+                        text: caap.demi.ambrosia.power.total,
                         color: valueCol
                     }, {
                         text: 'Malekus Total Points'
                     }, {
-                        text: caap.demi['malekus']['power']['total'],
+                        text: caap.demi.malekus.power.total,
                         color: valueCol
                     }],
                     [{
@@ -835,23 +833,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Corvintheus Daily Points'
                     }, {
-                        text: caap.demi['corvintheus']['daily']['num'] + '/' + caap.demi['corvintheus']['daily']['max'],
+                        text: caap.demi.corvintheus.daily.num + '/' + caap.demi.corvintheus.daily.max,
                         color: valueCol
                     }, {
                         text: 'Aurora Daily Points'
                     }, {
-                        text: caap.demi['aurora']['daily']['num'] + '/' + caap.demi['aurora']['daily']['max'],
+                        text: caap.demi.aurora.daily.num + '/' + caap.demi.aurora.daily.max,
                         color: valueCol
                     }],
                     [{
                         text: 'Corvintheus Total Points'
                     }, {
-                        text: caap.demi['corvintheus']['power']['total'],
+                        text: caap.demi.corvintheus.power.total,
                         color: valueCol
                     }, {
                         text: 'Aurora Total Points'
                     }, {
-                        text: caap.demi['aurora']['power']['total'],
+                        text: caap.demi.aurora.power.total,
                         color: valueCol
                     }],
                     [{
@@ -868,7 +866,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Azeron Daily Points'
                     }, {
-                        text: caap.demi['azeron']['daily']['num'] + '/' + caap.demi['azeron']['daily']['max'],
+                        text: caap.demi.azeron.daily.num + '/' + caap.demi.azeron.daily.max,
                         color: valueCol
                     }, {
                         text: '&nbsp;'
@@ -879,7 +877,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Azeron Total Points'
                     }, {
-                        text: caap.demi['azeron']['power']['total'],
+                        text: caap.demi.azeron.power.total,
                         color: valueCol
                     }, {
                         text: '&nbsp;'
@@ -912,15 +910,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 body += caap.makeTr(row);
                 count = 0;
-                for (pp in caap.stats['character']) {
-                    if (caap.stats['character'].hasOwnProperty(pp)) {
+                for (pp in caap.stats.character) {
+                    if (caap.stats.character.hasOwnProperty(pp)) {
                         row = count % 2 === 0 ? '' : row;
                         row += caap.makeTd({
                             text: pp
                         });
 
                         row += caap.makeTd({
-                            text: "Level " + caap.stats['character'][pp]['level'] + " (" + caap.stats['character'][pp]['percent'] + "%)",
+                            text: "Level " + caap.stats.character[pp].level + " (" + caap.stats.character[pp].percent + "%)",
                             color: valueCol
                         });
 
@@ -953,7 +951,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /*jslint sub: false */
     /*-------------------------------------------------------------------------------------\
     addDBListener creates the listener for our dashboard controls.
     \-------------------------------------------------------------------------------------*/
@@ -1115,9 +1112,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /*jslint sub: true */
     caap.fastHealButtonListener = function () {
-        if (caap.stats['health']['dif'] && caap.stats['gold']['total'] > 0) {
+        if (caap.stats.health.dif && caap.stats.gold.total > 0) {
             caap.getBQH(function (bqh) {
                 var params = {
                     "action": "heal_avatar",
@@ -1129,7 +1125,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /*jslint sub: false */
     caap.clearTargetsButtonListener = function () {
         battle.reconRecords = [];
         battle.saveRecon();

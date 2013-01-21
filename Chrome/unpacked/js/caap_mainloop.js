@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true, sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,feed,spreadsheet,ss,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,battle,profiles,town,
@@ -111,34 +111,35 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x14: 'lands',
         0x15: 'autoBless',
         0x16: 'autoStat',
-        0x17: 'autoGift',
-        0x18: 'checkKeep',
-        0x19: 'autoPotions',
-        0x1A: 'autoAlchemy',
-        0x1B: 'checkAchievements',
-        0x1C: 'ajaxGiftCheck',
-        0x1D: 'reconPlayers',
-        0x1E: 'checkOracle',
-        0x1F: 'checkBattleRank',
-        0x20: 'checkWarRank',
-        0x21: 'checkConquestRank',
-        0x22: 'checkSymbolQuests',
-        0x23: 'checkSoldiers',
-        0x24: 'checkItem',
-        0x25: 'checkMagic',
-        0x26: 'checkCharacterClasses',
-        0x27: 'festivalBless',
-        0x28: 'ajaxCheckFeed',
-        0x29: 'ajaxCheckGuild',
-        0x2A: 'ajaxCheckPublic1',
-        0x2B: 'ajaxCheckPublic2',
-        0x2C: 'ajaxCheckPublic3',
-        0x2D: 'feedScan',
-        0x2E: 'collectConquest',
-        0x2F: 'collectConquestCrystal',
-        0x30: 'autoArchives',
-        0x31: 'autoKobo',
-        0x32: 'idle'
+        0x17: 'checkCoins',
+        0x18: 'autoGift',
+        0x19: 'checkKeep',
+        0x1A: 'autoPotions',
+        0x1B: 'autoAlchemy',
+        0x1C: 'checkAchievements',
+        0x1D: 'ajaxGiftCheck',
+        0x1E: 'reconPlayers',
+        0x1F: 'checkOracle',
+        0x20: 'checkBattleRank',
+        0x21: 'checkWarRank',
+        0x22: 'checkConquestRank',
+        0x23: 'checkSymbolQuests',
+        0x24: 'checkSoldiers',
+        0x25: 'checkItem',
+        0x26: 'checkMagic',
+        0x27: 'checkCharacterClasses',
+        0x28: 'festivalBless',
+        0x29: 'ajaxCheckFeed',
+        0x2A: 'ajaxCheckGuild',
+        0x2B: 'ajaxCheckPublic1',
+        0x2C: 'ajaxCheckPublic2',
+        0x2D: 'ajaxCheckPublic3',
+        0x2E: 'feedScan',
+        0x2F: 'collectConquest',
+        0x30: 'collectConquestCrystal',
+        0x31: 'autoArchives',
+        0x32: 'autoKobo',
+        0x33: 'idle'
     };
 
     caap.actionsList = [];
@@ -347,28 +348,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             arr = $u.setContent($u.setContent(gtv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
-                caap.stats['gold']['ticker'] = arr;
+                caap.stats.gold.ticker = arr;
                 con.log(3, "stsPoll gtv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats['energy'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
-                caap.stats['energyT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
+                caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
+                caap.stats.energyT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energyT.max), caap.stats.energy);
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats['health'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
-                caap.stats['healthT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
+                caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
+                caap.stats.healthT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.healthT.max), caap.stats.healthT);
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats['stamina'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
-                caap.stats['staminaT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
+                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);
+                caap.stats.staminaT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.staminaT.max), caap.stats.staminaT);
                 con.log(3, "stsPoll scv", num);
             }
 
@@ -416,7 +417,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			button = null;
 
-            if (!$u.mutationTypes['DOMSubtreeModified']) {
+            if (!$u.mutationTypes.DOMSubtreeModified) {
                 caap.stsPoll();
             }
 
@@ -697,40 +698,40 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         },
         'Soldiers': {
             'export': function () {
-                return town['soldiers'];
+                return town.soldiers;
             },
             'import': function (d) {
-                town['soldiers'] = d;
+                town.soldiers = d;
                 town.save('soldiers');
             },
             'delete': function () {
-                town['soldiers'] = [];
+                town.soldiers = [];
                 gm.deleteItem("soldiers.records");
             }
         },
         'Item': {
             'export': function () {
-                return town['item'];
+                return town.item;
             },
             'import': function (d) {
-                town['item'] = d;
+                town.item = d;
                 town.save('item');
             },
             'delete': function () {
-                town['item'] = [];
+                town.item = [];
                 gm.deleteItem("item.records");
             }
         },
         'Magic': {
             'export': function () {
-                return town['magic'];
+                return town.magic;
             },
             'import': function (d) {
-                town['magic'] = d;
+                town.magic = d;
                 town.save('magic');
             },
             'delete': function () {
-                town['magic'] = [];
+                town.magic = [];
                 gm.deleteItem("magic.records");
             }
         },

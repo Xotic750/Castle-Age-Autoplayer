@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true,sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,feed,image64,gm,
@@ -1549,8 +1549,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 throw "Not passed a record";
             }
 
-            var monsterInfo = monster.info[record['monster']];
-            return $u.hasContent(record['type']) ? (record['type'] === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
+            var monsterInfo = monster.info[record.monster];
+            return $u.hasContent(record.type) ? (record.type === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
         } catch (err) {
             con.error("ERROR in monster.getInfo: " + err);
             return undefined;
@@ -1603,8 +1603,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 list = [];
 
             for (it = 0; it < monster.records.length; it += 1) {
-                if (!monster.records[it]['joined']) {
-                    list.push(monster.records[it]['md5']);
+                if (!monster.records[it].joined) {
+                    list.push(monster.records[it].md5);
                 }
             }
 
@@ -1697,7 +1697,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             if ($u.hasContent(md5)) {
                 for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['md5'] === md5) {
+                    if (monster.records[it].md5 === md5) {
                         success = true;
                         break;
                     }
@@ -1709,7 +1709,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 con.log(3, "Got monster record", md5, record);
             } else {
                 newRecord = new monster.record();
-                newRecord.data['md5'] = md5;
+                newRecord.data.md5 = md5;
                 record = newRecord.data;
                 con.log(3, "New monster record", md5, record);
             }
@@ -1727,8 +1727,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 throw "Not passed a record";
             }
 
-            if (!$u.isString(record['md5']) || !$u.hasContent(record['md5'])) {
-                con.warn("md5", record['md5']);
+            if (!$u.isString(record.md5) || !$u.hasContent(record.md5)) {
+                con.warn("md5", record.md5);
                 throw "Invalid identifying md5!";
             }
 
@@ -1736,14 +1736,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 len = 0,
                 success = false;
 
-            if (config.getItem('enableMonsterFinder', false) && !record['select']) {
+            if (config.getItem('enableMonsterFinder', false) && !record.select) {
                 feed.checked(record);
             }
 
-            record['select'] = false;
-            if (record['save']) {
+            record.select = false;
+            if (record.save) {
                 for (it = 0, len = monster.records.length; it < len; it += 1) {
-                    if (monster.records[it]['md5'] === record['md5']) {
+                    if (monster.records[it].md5 === record.md5) {
                         success = true;
                         break;
                     }
@@ -1779,7 +1779,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 
             for (it = 0, len = monster.records.length; it < len; it += 1) {
-                if (monster.records[it]['md5'] === md5) {
+                if (monster.records[it].md5 === md5) {
                     success = true;
                     break;
                 }
@@ -1815,9 +1815,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.t2kCalc = function (record) {
         try {
             var boss = monster.getInfo(record),
-                siegeStage = record['phase'] - 1,
-                timeLeft = record['time'][0] + (record['time'][1] * 0.0166),
-                duration = record['page'] === 'festival_battle_monster' ? (boss ? boss.festival_dur : 192) : (boss ? boss.duration : 192),
+                siegeStage = record.phase - 1,
+                timeLeft = record.time[0] + (record.time[1] * 0.0166),
+                duration = record.page === 'festival_battle_monster' ? (boss ? boss.festival_dur : 192) : (boss ? boss.duration : 192),
                 timeUsed = duration - timeLeft,
                 T2K = 0,
                 damageDone = 0,
@@ -1833,30 +1833,30 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 siegeImpacts = 0;
 
             if (!boss.siege || !boss.hp) {
-                T2K = ((record['life'] * timeUsed) / (100 - record['life'])).dp(2);
+                T2K = ((record.life * timeUsed) / (100 - record.life)).dp(2);
                 con.log(3, 'T2K: ', $u.minutes2hours(T2K));
                 return T2K;
             }
 
-            damageDone = (100 - record['life']) / 100 * boss.hp;
+            damageDone = (100 - record.life) / 100 * boss.hp;
             hpLeft = boss.hp - damageDone;
             for (s = 0, len = boss.siegeClicks.length; s < len; s += 1) {
                 con.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
-                if (s < siegeStage || record['miss'] === 0) {
+                if (s < siegeStage || record.miss === 0) {
                     totalSiegeDamage += boss.siegeDam[s];
                     totalSiegeClicks += boss.siegeClicks[s];
                 } else if (s === siegeStage) {
                     attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
-                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record['miss']) / timeUsed;
+                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record.miss) / timeUsed;
                     con.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
                     con.log(5, 'Damage Done: ', damageDone);
                     con.log(5, 'Total Siege Damage: ', totalSiegeDamage);
                     con.log(5, 'Time Used: ', timeUsed);
                     con.log(5, 'Clicks Per Hour: ', clicksPerHour);
                 } else if (s >= siegeStage) {
-                    clicksToNextSiege = (s === siegeStage) ? record['miss'] : boss.siegeClicks[s];
+                    clicksToNextSiege = (s === siegeStage) ? record.miss : boss.siegeClicks[s];
                     nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || record['miss'] === 0) {
+                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || record.miss === 0) {
                         T2K += hpLeft / attackDamPerHour;
                         break;
                     }
@@ -1866,7 +1866,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 }
             }
 
-            siegeImpacts = (record['life'] / (100 - record['life']) * timeLeft).dp(2);
+            siegeImpacts = (record.life / (100 - record.life) * timeLeft).dp(2);
             T2K = T2K.dp(2);
             con.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
             con.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
@@ -1928,7 +1928,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.select = function (force) {
         try {
-            if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats['level'] < 7) {
+            if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
                 return false;
             }
 
@@ -1987,25 +1987,25 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             // therefore when linting, it throws a warning
             /*jslint continue: true */
             for (it = 0, len = monster.records.length; it < len; it += 1) {
-                if (!monster.records[it]['joined']) {
+                if (!monster.records[it].joined) {
                     continue;
                 }
 
                 monsterInfo = monster.getInfo(monster.records[it]);
 
                 if (monsterInfo && monsterInfo.alpha) {
-                    if (monster.records[it]['damage'] !== -1 && monster.records[it]['color'] !== 'grey' && schedule.since(monster.records[it]['stunTime'], 0)) {
-                        con.log(2, "Review monster due to class timer", monster.records[it]['name']);
-                        monster.records[it]['review'] = -1;
+                    if (monster.records[it].damage !== -1 && monster.records[it].color !== 'grey' && schedule.since(monster.records[it].stunTime, 0)) {
+                        con.log(2, "Review monster due to class timer", monster.records[it].name);
+                        monster.records[it].review = -1;
                         monster.flagReview();
                     }
                 }
 
-                monster.records[it]['conditions'] = 'none';
+                monster.records[it].conditions = 'none';
                 if (config.getItem('SerializeRaidsAndMonsters', false)) {
-                    monsterList['any'].push(monster.records[it]['md5']);
-                } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'].replace('festival_battle_monster', 'battle_monster') === 'battle_monster')) {
-                    monsterList[monster.records[it]['page'].replace('festival_battle_monster', 'battle_monster')].push(monster.records[it]['md5']);
+                    monsterList.any.push(monster.records[it].md5);
+                } else if ((monster.records[it].page === 'raid') || (monster.records[it].page.replace('festival_battle_monster', 'battle_monster') === 'battle_monster')) {
+                    monsterList[monster.records[it].page.replace('festival_battle_monster', 'battle_monster')].push(monster.records[it].md5);
                 }
             }
             /*jslint continue: false */
@@ -2072,83 +2072,83 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                         monsterObj = monster.getItem(monsterList[selectTypes[s]][m]);
                         // If we set conditions on this monster already then we do not reprocess
-                        if (monsterObj['conditions'] !== 'none') {
+                        if (monsterObj.conditions !== 'none') {
                             continue;
                         }
 
                         // If this monster does not match, skip to next one
                         // Or if this monster is dead, skip to next one
                         // Or if this monster is not the correct type, skip to next one
-                        if (!monster.getItem(monsterList[selectTypes[s]][m])['name'].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) ||
-                                (selectTypes[s] !== 'any' && monsterObj['page'].replace('festival_battle_monster', 'battle_monster') !== selectTypes[s])) {
+                        if (!monster.getItem(monsterList[selectTypes[s]][m]).name.toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) ||
+                                (selectTypes[s] !== 'any' && monsterObj.page.replace('festival_battle_monster', 'battle_monster') !== selectTypes[s])) {
                             continue;
                         }
 
                         //Monster is a match so we set the conditions
-                        monsterObj['conditions'] = monsterConditions;
-                        monsterObj['select'] = true;
+                        monsterObj.conditions = monsterConditions;
+                        monsterObj.select = true;
                         monster.setItem(monsterObj);
                         // If it's complete or collect rewards, no need to process further
-                        if (monsterObj['color'] === 'grey') {
+                        if (monsterObj.color === 'grey') {
                             continue;
                         }
 
                         con.log(3, 'Current monster being checked', monsterObj);
                         // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                         // these to see if this is the monster we should select
-                        if (!firstUnderMax && monsterObj['color'] !== 'purple') {
-                            if (monsterObj['over'] === 'ach') {
+                        if (!firstUnderMax && monsterObj.color !== 'purple') {
+                            if (monsterObj.over === 'ach') {
                                 if (!firstOverAch) {
                                     firstOverAch = monsterList[selectTypes[s]][m];
-                                    con.log(3, 'firstOverAch', firstOverAch, monsterObj['name']);
+                                    con.log(3, 'firstOverAch', firstOverAch, monsterObj.name);
                                 }
-                            } else if (monsterObj['over'] !== 'max') {
+                            } else if (monsterObj.over !== 'max') {
                                 firstUnderMax = monsterList[selectTypes[s]][m];
-                                con.log(3, 'firstUnderMax', firstUnderMax, monsterObj['name']);
+                                con.log(3, 'firstUnderMax', firstUnderMax, monsterObj.name);
                             }
                         }
 
                         monsterInfo = monster.getInfo(monsterObj);
                         if (monsterInfo) {
-                            if (!monsterInfo.alpha || (monsterInfo.alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Heal'))) {
+                            if (!monsterInfo.alpha || (monsterInfo.alpha && monster.characterClass[monsterObj.charClass] && monster.characterClass[monsterObj.charClass].hasIndexOf('Heal'))) {
                                 maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                if (monsterInfo.fort && !firstFortUnderMax && monsterObj['fortify'] < maxToFortify) {
-                                    if (monsterObj['over'] === 'ach') {
+                                if (monsterInfo.fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
+                                    if (monsterObj.over === 'ach') {
                                         if (!firstFortOverAch) {
                                             firstFortOverAch = monsterList[selectTypes[s]][m];
-                                            con.log(3, 'firstFortOverAch', firstFortOverAch, monsterObj['name']);
+                                            con.log(3, 'firstFortOverAch', firstFortOverAch, monsterObj.name);
                                         }
-                                    } else if (monsterObj['over'] !== 'max') {
+                                    } else if (monsterObj.over !== 'max') {
                                         firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                        con.log(3, 'firstFortUnderMax', firstFortUnderMax, monsterObj['name']);
+                                        con.log(3, 'firstFortUnderMax', firstFortUnderMax, monsterObj.name);
                                     }
                                 }
                             }
 
                             if (monsterInfo.alpha) {
-                                if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Strengthen')) {
-                                    if (!firstStrengthUnderMax && monsterObj['strength'] < 100) {
-                                        if (monsterObj['over'] === 'ach') {
+                                if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj.charClass] && monster.characterClass[monsterObj.charClass].hasIndexOf('Strengthen')) {
+                                    if (!firstStrengthUnderMax && monsterObj.strength < 100) {
+                                        if (monsterObj.over === 'ach') {
                                             if (!firstStrengthOverAch) {
                                                 firstStrengthOverAch = monsterList[selectTypes[s]][m];
-                                                con.log(3, 'firstStrengthOverAch', firstStrengthOverAch, monsterObj['name']);
+                                                con.log(3, 'firstStrengthOverAch', firstStrengthOverAch, monsterObj.name);
                                             }
-                                        } else if (monsterObj['over'] !== 'max') {
+                                        } else if (monsterObj.over !== 'max') {
                                             firstStrengthUnderMax = monsterList[selectTypes[s]][m];
-                                            con.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax, monsterObj['name']);
+                                            con.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax, monsterObj.name);
                                         }
                                     }
                                 }
 
-                                if (!firstStunUnderMax && monsterObj['stunDo']) {
-                                    if (monsterObj['over'] === 'ach') {
+                                if (!firstStunUnderMax && monsterObj.stunDo) {
+                                    if (monsterObj.over === 'ach') {
                                         if (!firstStunOverAch) {
                                             firstStunOverAch = monsterList[selectTypes[s]][m];
-                                            con.log(3, 'firstStunOverAch', firstStunOverAch, monsterObj['name']);
+                                            con.log(3, 'firstStunOverAch', firstStunOverAch, monsterObj.name);
                                         }
-                                    } else if (monsterObj['over'] !== 'max') {
+                                    } else if (monsterObj.over !== 'max') {
                                         firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                        con.log(3, 'firstStunUnderMax', firstStunUnderMax, monsterObj['name']);
+                                        con.log(3, 'firstStunUnderMax', firstStunUnderMax, monsterObj.name);
                                     }
                                 }
                             }
@@ -2165,10 +2165,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
                     if (strengthTarget) {
-                        energyTarget['md5'] = strengthTarget;
-                        energyTarget['name'] = monster.getItem(strengthTarget)['name'];
-                        energyTarget['type'] = 'Strengthen';
-                        con.log(3, 'Strengthen target ', energyTarget['name']);
+                        energyTarget.md5 = strengthTarget;
+                        energyTarget.name = monster.getItem(strengthTarget).name;
+                        energyTarget.type = 'Strengthen';
+                        con.log(3, 'Strengthen target ', energyTarget.name);
                     }
 
                     fortifyTarget = firstFortUnderMax;
@@ -2177,10 +2177,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
                     if (fortifyTarget) {
-                        energyTarget['md5'] = fortifyTarget;
-                        energyTarget['name'] = monster.getItem(fortifyTarget)['name'];
-                        energyTarget['type'] = 'Fortify';
-                        con.log(3, 'Fortify replaces strengthen ', energyTarget['name']);
+                        energyTarget.md5 = fortifyTarget;
+                        energyTarget.name = monster.getItem(fortifyTarget).name;
+                        energyTarget.type = 'Fortify';
+                        con.log(3, 'Fortify replaces strengthen ', energyTarget.name);
                     }
 
                     stunTarget = firstStunUnderMax;
@@ -2189,15 +2189,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
                     if (stunTarget) {
-                        energyTarget['md5'] = stunTarget;
-                        energyTarget['name'] = monster.getItem(stunTarget)['name'];
-                        energyTarget['type'] = 'Stun';
-                        con.log(3, 'Stun target replaces fortify ', energyTarget['name']);
+                        energyTarget.md5 = stunTarget;
+                        energyTarget.name = monster.getItem(stunTarget).name;
+                        energyTarget.type = 'Stun';
+                        con.log(3, 'Stun target replaces fortify ', energyTarget.name);
                     }
 
                     //state.setItem('targetFromfortify', energyTarget);
-                    if (energyTarget['md5']) {
-                        target['fortify'] = JSON.copy(energyTarget);
+                    if (energyTarget.md5) {
+                        target.fortify = JSON.copy(energyTarget);
                         con.log(3, 'Energy target', energyTarget);
                     }
                 }
@@ -2212,13 +2212,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 if (monsterMD5) {
                     monsterObj = monster.getItem(monsterMD5);
                     monsterInfo = monster.getInfo(monsterObj);
-                    target[monsterObj['page'].replace('festival_battle_monster', 'battle_monster')] = monsterMD5;
-                    //state.setItem('targetFrom' + monsterObj['page'].replace('festival_battle_monster', 'battle_monster'), monsterMD5);
-                    if (monsterObj['page'].replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
+                    target[monsterObj.page.replace('festival_battle_monster', 'battle_monster')] = monsterMD5;
+                    //state.setItem('targetFrom' + monsterObj.page.replace('festival_battle_monster', 'battle_monster'), monsterMD5);
+                    if (monsterObj.page.replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
                         nodeNum = 0;
                         if (!caap.inLevelUpMode() && monsterInfo && monsterInfo.staLvl) {
                             for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats['stamina']['max'] >= monsterInfo.staLvl[nodeNum]) {
+                                if (caap.stats.stamina.max >= monsterInfo.staLvl[nodeNum]) {
                                     break;
                                 }
                             }
@@ -2232,11 +2232,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             state.setItem('MonsterStaminaReq', monsterInfo.staMax[nodeNum]);
                         } else if (monsterInfo && monsterInfo.staUse) {
                             state.setItem('MonsterStaminaReq', monsterInfo.staUse);
-                        } else if ((caap.inLevelUpMode() && caap.stats['stamina']['num'] >= 10) || /:pa/i.test(monsterObj['conditions'])) {
+                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || /:pa/i.test(monsterObj.conditions)) {
                             state.setItem('MonsterStaminaReq', 5);
-                        } else if (/:sa/i.test(monsterObj['conditions'])) {
+                        } else if (/:sa/i.test(monsterObj.conditions)) {
                             state.setItem('MonsterStaminaReq', 1);
-                        } else if ((caap.inLevelUpMode() && caap.stats['stamina']['num'] >= 10) || config.getItem('PowerAttack', true)) {
+                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
                             state.setItem('MonsterStaminaReq', 5);
                         } else {
                             state.setItem('MonsterStaminaReq', 1);
@@ -2258,7 +2258,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             default:
                         }
                     } else {
-                        if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj['conditions'])) {
+                        if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj.conditions)) {
                             state.setItem('RaidStaminaReq', 5);
                         } else if (monsterInfo && monsterInfo.staUse) {
                             state.setItem('RaidStaminaReq', monsterInfo.staUse);
@@ -2270,9 +2270,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
             /*jslint continue: false */
 
-            state.setItem('targetFrombattle_monster', target['battle_monster']);
-            state.setItem('targetFromraid', target['raid']);
-            state.setItem('targetFromfortify', target['fortify']);
+            state.setItem('targetFrombattle_monster', target.battle_monster);
+            state.setItem('targetFromraid', target.raid);
+            state.setItem('targetFromfortify', target.fortify);
 
             caap.updateDashboard(true);
             return true;
@@ -2391,7 +2391,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     return false;
                 }
 
-                if (id === caap.stats['FBID']) {
+                if (id === caap.stats.FBID) {
                     con.log(2, "Your monster found", tempText);
                     userName = 'Your';
                 }
@@ -2655,23 +2655,23 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 monster.records.forEach(function (monsterObj) {
                     row = '';
                     monsterInfo = monster.getInfo(monsterObj);
-                    color = monsterObj['color'];
-                    if (monsterObj['md5'] === state.getItem('targetFromfortify', monster.energyTarget())['md5']) {
+                    color = monsterObj.color;
+                    if (monsterObj.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
                         color = 'blue';
-                    } else if (monsterObj['md5'] === state.getItem('targetFrombattle_monster', '') || monsterObj['md5'] === state.getItem('targetFromraid', '')) {
+                    } else if (monsterObj.md5 === state.getItem('targetFrombattle_monster', '') || monsterObj.md5 === state.getItem('targetFromraid', '')) {
                         color = 'green';
                     }
 
-                    monsterConditions = monsterObj['conditions'];
+                    monsterConditions = monsterObj.conditions;
                     achLevel = monster.parseCondition('ach', monsterConditions);
                     maxDamage = monster.parseCondition('max', monsterConditions);
-                    monsterObjLink = monsterObj['link'];
+                    monsterObjLink = monsterObj.link;
                     if (monsterObjLink) {
                         visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
-                        visitMonsterInstructions = "Clicking this link will take you to " + monsterObj['name'];
+                        visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
-                            text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj['name'] +
-                                '" mmd5="' + monsterObj['md5'] + '" rlink="' + visitMonsterLink[1] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj['name'] + '</span>',
+                            text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name +
+                                '" mmd5="' + monsterObj.md5 + '" rlink="' + visitMonsterLink[1] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -2680,7 +2680,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         row += caap.makeTd(data);
                     } else {
                         row += caap.makeTd({
-                            text: monsterObj['name'],
+                            text: monsterObj.name,
                             color: color,
                             id: '',
                             title: ''
@@ -2692,7 +2692,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         title = '';
                         if (displayItem === 'phase' && color === 'grey') {
                             row += caap.makeTd({
-                                text: monsterObj['status'],
+                                text: monsterObj.status,
                                 color: color,
                                 id: '',
                                 title: ''
@@ -2710,7 +2710,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                             title = "User Set Monster Achievement: " + achLevel.addCommas();
                                         } else if (config.getItem('AchievementMode', false)) {
                                             title = $u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.ach) ? "Default Monster Achievement: " + monsterInfo.ach.addCommas() : '';
-                                            title += monsterObj['page'] === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " +
+                                            title += monsterObj.page === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " +
                                                 monsterInfo.festival_ach.addCommas() : '') : '';
                                         } else {
                                             title = "Achievement Mode Disabled";
@@ -2721,7 +2721,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     case 'time':
                                         if ($u.hasContent(value) && value.length === 3) {
                                             value = value[0] + ":" + value[1].lpad("0", 2);
-                                            duration = monsterObj['page'] === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
+                                            duration = monsterObj.page === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
                                             title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
                                         } else {
                                             value = '';
@@ -2736,7 +2736,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                         title = "Percentage of monster life remaining: " + value + "%";
                                         break;
                                     case 'phase':
-                                        value = value + "/" + monsterInfo.siege + " need " + monsterObj['miss'];
+                                        value = value + "/" + monsterInfo.siege + " need " + monsterObj.miss;
                                         title = "Siege Phase: " + value + " more clicks";
                                         break;
                                     case 'fortify':
@@ -2785,10 +2785,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     if (monsterObjLink) {
                         removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) +
-                            (monsterObj['page'] === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj['mid'].replace("&mid=", "") : '');
-                        removeLinkInstructions = "Clicking this link will remove " + monsterObj['name'] + " from both CA and CAAP!";
+                            (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
+                        removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {
-                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj['name'] + '" mmd5="' + monsterObj['md5'] + '" rlink="' + removeLink +
+                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 + '" rlink="' + removeLink +
                                 '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color: 'blue',
                             id: '',

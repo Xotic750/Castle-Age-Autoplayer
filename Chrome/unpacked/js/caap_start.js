@@ -55,8 +55,6 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 			return;
 		}
 
-		/* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-		/*jslint sub: true */
 		if (caap.domain.which >= 0 && caap.domain.which < 2) {
 			FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
 			aName = $j('#pageNav .headerTinymanName').text();
@@ -66,11 +64,10 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		}
 
 		if ($u.isNumber(FBID) && FBID > 0) {
-			caap.stats['FBID'] = FBID;
+			caap.stats.FBID = FBID;
 			idOk = true;
 		}
 
-		/*jslint sub: false */
 		if (!idOk && caap.domain.which >= 0 && caap.domain.which < 2) {
 			// Force reload without retrying
 			con.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);

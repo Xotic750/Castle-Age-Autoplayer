@@ -21,8 +21,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.waitLoadCTA = true;
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     caap.doCTAs = function () {
         function onError() {
             caap.waitAjaxCTA = false;
@@ -33,7 +31,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
-            if ((gm ? gm.getItem("ajaxCTA", false, hiddenVar) : false) || caap.waitAjaxCTA || caap.stats['stamina']['num'] < 1 || !schedule.check('ajaxCTATimer')) {
+            if ((gm ? gm.getItem("ajaxCTA", false, hiddenVar) : false) || caap.waitAjaxCTA || caap.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
                 return false;
             }
 
@@ -46,7 +44,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         caap.loadedCTA = true;
                     },
                     success: function (msg) {
-                        var rows = msg['query'] && msg['query']['results'] && msg['query']['results']['row'] ? msg['query']['results']['row'] : [],
+                        var rows = msg.query && msg.query.results && msg.query.results.row ? msg.query.results.row : [],
                             row = 0,
                             rowsLen = 0,
                             column = 0,
@@ -87,7 +85,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (count < caap.recordCTA.length) {
                 caap.waitAjaxCTA = true;
 
-                caap.ajax(caap.recordCTA[count]['code'].AESDecrypt(caap.namespace), null, onError, onSuccess);
+                caap.ajax(caap.recordCTA[count].code.AESDecrypt(caap.namespace), null, onError, onSuccess);
 
                 state.setItem('ajaxCTACount', count + 1);
             } else {
@@ -102,6 +100,5 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    /*jslint sub: false */
 
 }());

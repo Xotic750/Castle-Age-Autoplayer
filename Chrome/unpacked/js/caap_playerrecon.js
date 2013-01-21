@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
-nomen: true, bitwise: true, plusplus: true, sub: true,
+nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,gm,hiddenVar,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,battle,
@@ -23,7 +23,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
-            if (config.getItem('WhenBattle', 'Never') === 'Never' || !config.getItem('DoPlayerRecon', false) || !schedule.check('PlayerReconTimer') || caap.stats['stamina']['num'] <= 0) {
+            if (config.getItem('WhenBattle', 'Never') === 'Never' || !config.getItem('DoPlayerRecon', false) || !schedule.check('PlayerReconTimer') || caap.stats.stamina.num <= 0) {
                 return false;
             }
 
@@ -32,7 +32,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('idle_mess', 'Player Recon: Stop Limit');
                 return false;
             }
-
 
             battle.reconInProgress = true;
             caap.setDivContent('idle_mess', 'Player Recon: In Progress');
