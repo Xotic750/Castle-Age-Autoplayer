@@ -266,10 +266,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (gin_left > 0) {
                 var ingredientDIV = $j("div[class='ingredientUnit']" + (config.getItem('autoKoboAle', false) ? "" : "[id!='gout_6_261']") + ">div>span[id*='gout_value']"),
                     countClick = 0;
+
                 con.log(4, "ingredientDIV = ", ingredientDIV);
                 ingredientDIV.each(function(_i, _e) {
                     var count = $j(_e).text(),
                         name = $j(_e).parent().parent()[0].children[0].children[0].alt;
+
                     con.log(3, "ingredient " + _i + " '" + name + "' :count = " + count);
                     if (count > config.getItem('koboKeepUnder', 10) && (gin_left > countClick)) {
                         addClick = true;
@@ -277,6 +279,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         $j(_e).parent().parent().click();
                     }
                 });
+
                 if (!addClick) {
                     schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60);
                     caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
@@ -285,6 +288,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     ginDIV = null;
                     return false;
                 }
+
                 if (gin_left > countClick) {
                     button = null;
                     koboDIV = null;
@@ -299,7 +303,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 hours = 0;
                 minutes = 1;
                 schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
-                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
+                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
                 rClick = caap.click(button);
 
                 button = null;
@@ -307,6 +311,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ginDIV = null;
                 return rClick;
             }
+
             button = null;
             koboDIV = null;
             ginDIV = null;
