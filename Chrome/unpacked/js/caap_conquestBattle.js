@@ -117,13 +117,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(1, 'Burn tokens ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                 }
 
-                if (whenconquest === 'At X Coins' && (caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0) || (caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)))) {
+                con.log(4, 'Waiting X coins burn', state.getItem('conquest_burn', false));
+                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0)) {
                     state.setItem('conquest_burn', false);
-                    con.log(4, 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                    con.log(4, '1:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                     caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
                     button = null;
                     return false;
                 }
+
+                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)) {
+                    state.setItem('conquest_burn', false);
+                    con.log(4, '2:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                    caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    button = null;
+                    return false;
+                }
+
                 if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
                     con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
                     caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
