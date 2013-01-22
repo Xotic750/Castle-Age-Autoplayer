@@ -1134,10 +1134,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.level) || (caap.stats.level - battleRecord.levelNum > minLevel)) {
+                if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > battleRecord.levelNum)) {
                     logOpponent(battleRecord, "minLevel", {
                         'level': battleRecord.levelNum,
-                        'levelDif': (caap.stats.level || 0) - battleRecord.levelNum,
+                        'levelDif': caap.stats.level - battleRecord.levelNum,
                         'minLevel': minLevel
                     });
 
@@ -1150,11 +1150,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.level) || (battleRecord.levelNum - caap.stats.level > maxLevel)) {
+                if (!$u.isNumber(caap.stats.level) || (caap.stats.level + maxLevel <= battleRecord.levelNum)) {
                     logOpponent(battleRecord, "maxLevel", {
                         opponent: battleRecord,
                         'level': battleRecord.levelNum,
-                        'levelDif': battleRecord.levelNum - (caap.stats.level || 0) ,
+                        'levelDif': battleRecord.levelNum - caap.stats.level,
                         'maxLevel': maxLevel
                     });
 
@@ -1167,10 +1167,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest - battleRecord.rankNum > minRank)) {
+                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest - minRank > battleRecord.rankNum)) {
                     logOpponent(battleRecord, "minRank", {
                         opponent: battleRecord,
-                        'rankDif': (caap.stats.rank.conquest || 0) - battleRecord.rankNum,
+                        'rankDif': caap.stats.rank.conquest - battleRecord.rankNum,
                         'minRank': minRank
                     });
 
@@ -1183,10 +1183,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (battleRecord.rankNum - caap.stats.rank.conquest > maxRank)) {
+                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest + maxRank <= battleRecord.rankNum)) {
                     logOpponent(battleRecord, "maxRank", {
                         opponent: battleRecord,
-                        'rankDif': battleRecord.rankNum -(caap.stats.rank.conquest || 0),
+                        'rankDif': battleRecord.rankNum - caap.stats.rank.conquest,
                         'minRank': minRank
                     });
 
@@ -1199,7 +1199,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                levelMultiplier = (caap.stats.level || 0) / (battleRecord.levelNum || 1);
+                levelMultiplier = $u.setContent(caap.stats.level, 0) / $u.setContent(battleRecord.levelNum, 1);
                 armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
@@ -1356,6 +1356,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 name = 'unknown',
                 userId = -1,
                 points = -1,
+                army = -1,
                 it = 0,
                 len = 0,
                 targetRecord = {};
@@ -1368,6 +1369,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return;
             }
 
+            tempText = $u.setContent($j("#battleResultMore", slice), '').text();
+            if ($u.hasContent(tempText)) {
+                army = $u.setContent(tempText.regex(/Army\s+(\d+)/i), -1);
+                if (!$u.hasContent(army) || army === -1) {
+                    con.warn("conquest.battle: userId unknown");
+                }
+            } else {
+                con.warn("conquest.battle: army missing tempText");
+            }
+
             tempText = slice.attr('style');
             if ($u.hasContent(tempText)) {
                 result = $u.setContent(tempText.regex(/war_fort_battle(\S+).jpg/), 'unknown');
@@ -1375,7 +1386,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.warn("conquest.battle: result unknown");
                 }
             } else {
-                con.warn("conquest.battle: missing tempText");
+                con.warn("conquest.battle: result missing tempText");
             }
 
             bottomDiv = $j("#app_body div[style*='conqduel_battlebottom2.jpg']");
@@ -1456,6 +1467,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(name) && name !== 'unknown' && name !== targetRecord.nameStr) {
                     con.log(1, "Updating conquest record user name, from/to", targetRecord.nameStr, name);
                     targetRecord.nameStr = name;
+                }
+
+                if ($u.isNumber(army) && army !== -1 && army !== targetRecord.armyNum) {
+                    con.log(1, "Updating conquest record army, from/to", targetRecord.armyNum, army);
+                    targetRecord.armyNum = army;
                 }
 
                 if ($u.hasContent(result) && (result === 'victory' || result === 'defeat')) {

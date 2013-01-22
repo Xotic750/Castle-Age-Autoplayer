@@ -143,6 +143,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 caap.setDivContent('conquest_mess', 'Conquest Ready');
             } else {
+                if (caap.stats.guildTokens.num < 1) {
+                    con.log(4, 'Waiting Coins ' + caap.stats.guildTokens.num + '/1');
+                    caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    button = null;
+                    return false;
+                }
+
                 con.log(1, 'Burn tokens level up ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                 caap.setDivContent('conquest_mess', 'Conquest Level Up');
             }
