@@ -99,8 +99,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 minutes = 0,
                 rClick;
 
-            con.log(2, "autoArchives");
-
             if ((!config.getItem('AutoArchives', true)) || (!schedule.check('AutoArchiveTimerDelay'))) {
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
 
@@ -108,6 +106,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 archiveDIV = null;
                 return false;
             }
+
+            con.log(2, "autoArchives");
 
             archiveDIV = $j("div[style*='archive_top']");
             if (!archiveDIV || archiveDIV.length === 0) {
