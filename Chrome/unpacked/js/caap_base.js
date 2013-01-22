@@ -999,7 +999,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
         },
 
-        /*
         scrollToTop : function () {
             try {
                 if (caap.domain.which === 3 && caap.messaging.connected.hasIndexOf("caapfb")) {
@@ -1019,7 +1018,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
         },
-        */
 
         styleChange : function () {
             try {
@@ -1082,11 +1080,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    /*
     caap.scrollToTop = function () {
         window.scrollTo(0, config.getItem("scrollToPosition", 0));
     };
-    */
 
     /*
     caap.showRequestForm = (function (tit, msg, track, request_params) {
@@ -1870,7 +1866,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.selectDropOption(msg.data.idName, msg.data.value);
 
                     break;
-                /*
                 case "scrollToTop":
                     caap.messaging.ok(msg);
                     con.log(4, "scrollToTop", msg);
@@ -1878,7 +1873,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 default:
-                */
             }
 
             con.log(4, "caap.messageCount", session.getItem("messageCount"));
@@ -2949,14 +2943,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
             htmlCode += caap.endCheckHide('enableRecipeClean');
             */
-            /*
+
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Auto Scroll To Top', 'scrollToTop', false, "Automatically scrolls the window to the very top of the view.");
                 htmlCode += caap.startCheckHide('scrollToTop');
                 htmlCode += caap.makeSlider('Offset', "scrollToPosition", '', 0, true);
                 htmlCode += caap.endCheckHide('scrollToTop');
             }
-            */
+
 
             htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
             htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
@@ -4535,11 +4529,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 $j("img[src*='cross_promo.jpg']").parents("div:first").hide();
                             }
 
-                            /*
                             if (config.getItem('scrollToTop', false)) {
                                 caap.messaging.scrollToTop();
                             }
-                            */
                         }
 
                         session.setItem("delayMain", true);
