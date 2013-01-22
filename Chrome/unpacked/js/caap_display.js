@@ -121,6 +121,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.makeSliderListener = function (id, min, max, step, defaultValue, opacity, slice) {
+        function caapslide (event, ui) {
+            // no idea why but the slider fails if the following is included
+            //con.log(1, "slide event", event);
+
+            if (opacity) {
+                state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
+                caap.colorUpdate();
+            } else {
+                config.setItem(id, ui.value);
+            }
+        }
+
         try {
             $j("#caap_" + id + "_slider", $u.setContent(slice, caap.caapDivObject)).slider({
                 orientation: "horizontal",
@@ -129,16 +141,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 max: max,
                 step: step,
                 value: config.getItem(id, defaultValue),
-                slide: function (event, ui) {
-                    con.log(1, "slide event", event);
-
-                    if (opacity) {
-                        state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
-                        caap.colorUpdate();
-                    } else {
-                        config.setItem(id, ui.value);
-                    }
-                }
+                slide: caapslide
             });
 
             return true;
