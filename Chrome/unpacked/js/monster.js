@@ -183,7 +183,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 500000,
             newbg_img: ['monster_header_cronus.jpg'],
             list_img: ['hydra_head.jpg'],
-            cta_img: ['cta_hydra_catapult.gif', 'cta_hydra_arrows.gif', 'cta_hydra_cannons.gif', 'cta_hydra_blizzard.gif', 'cta_hydra_firestorm.gif']
+            cta_img: [
+                'cta_hydra_catapult.gif',
+                'cta_hydra_arrows.gif',
+                'cta_hydra_cannons.gif',
+                'cta_hydra_blizzard.gif',
+                'cta_hydra_firestorm.gif']
         },
         'Battle Of The Dark Legion': {
             duration: 168,
@@ -206,7 +211,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             mpool: 3,
             newbg_img: ['monster_header_defend.jpg'],
             list_img: ['castle_siege_list.jpg'],
-            cta_img: ['cta_castle_archers.gif', 'cta_castle_elves.gif', 'cta_castle_dwarves.gif', 'cta_castle_knights.gif']
+            cta_img: [
+                'cta_castle_archers.gif',
+                'cta_castle_elves.gif',
+                'cta_castle_dwarves.gif',
+                'cta_castle_knights.gif']
         },
         'Emerald Dragon': {
             duration: 72,
@@ -474,7 +483,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2',
+                '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -526,7 +539,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -553,7 +569,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -579,7 +598,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small', '/graphics/skaar_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small',
+                '/graphics/skaar_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -606,7 +629,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2',
+                '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -633,7 +660,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2',
+                '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -656,7 +687,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -682,7 +717,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/castle_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_2',
+                '/graphics/azriel_siege_inferno_2',
+                '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 10,
             staLvl: [0, 50, 100, 200],
@@ -708,7 +748,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small', '/graphics/war_siege_holy_smite_2'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small',
+                '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 10,
             staLvl: [0, 50, 100, 200],
@@ -734,7 +778,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -758,7 +806,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -784,7 +836,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -810,7 +866,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -836,7 +896,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -862,7 +926,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 5,
             siegeClicks: [30, 60, 90, 120, 200],
             siegeDam: [9000000, 12600000, 18000000, 23400000, 27000000, 90000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -914,7 +980,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -940,7 +1010,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 45000000, 45500000, 52000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/earth_siege_small2', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200],
@@ -966,7 +1041,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -989,7 +1068,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1012,7 +1095,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1036,7 +1123,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1059,7 +1150,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [13750000, 17500000, 20500000, 23375000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: ['/graphics/water_siege_small', '/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1082,7 +1178,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1107,7 +1207,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1130,7 +1234,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1155,7 +1263,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: ['/graphics/earth_siege_small1', '/graphics/castle_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1180,7 +1291,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1205,7 +1319,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1230,7 +1348,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 70, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -2129,8 +2251,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 tempText = '',
                 fMonstStyle = '',
                 nMonstStyle = '',
-                nMonstStyle2 = '',
-                nMonstStyle3 = '',
                 feedMonster = '',
                 userName = '',
                 mName = '',
@@ -2149,13 +2269,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         con.warn("2:Festival monster missing summoned string!");
                     }
                 } else {
-                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
-                    nMonstStyle2 = monsterDiv.attr("style").regex(/(monster_\S+\_header.jpg)/);
-                    nMonstStyle3 = monsterDiv.attr("style").regex(/(boss_\S+\_header.jpg)/);
+                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg)/);
                     con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
-                    con.log(2, "confirmRightPage nMonstStyle2", nMonstStyle2);
-                    con.log(2, "confirmRightPage nMonstStyle3", nMonstStyle3);
-                    if ($u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2) || $u.hasContent(nMonstStyle3)) {
+                    if ($u.hasContent(nMonstStyle)) {
                         tempDiv = $j("div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));

@@ -1282,7 +1282,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tBool = false,
                 fMonstStyle = '',
                 nMonstStyle = '',
-                nMonstStyle2 = '',
                 id = 0,
                 userName = '',
                 mName = '',
@@ -1390,12 +1389,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(2, "fMonstStyle", fMonstStyle);
                 if (!$u.hasContent(fMonstStyle)) {
-                    nMonstStyle = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header_\\S+\\.jpg)"));
-                    nMonstStyle2 = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header.jpg)"));
+                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg)/);
                     con.log(2, "nMonstStyle", nMonstStyle);
                 }
 
-                if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
+                if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle)) {
                     tempDiv = monsterDiv.find(":contains('summoned'):last,:contains('Summoned'):last");
                     if ($u.hasContent(fMonstStyle)) {
                         tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
@@ -1405,20 +1403,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             con.warn("1:Festival monster missing summoned string!");
                         }
                     } else {
-                        if ($u.hasContent(nMonstStyle)) {
-                            tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
-                            if ($u.hasContent(tempDiv)) {
-                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
-                            } else {
-                                con.warn("1:Normal monster 1 missing summoned string!");
-                            }
+                        tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
-                            tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
-                            if ($u.hasContent(tempDiv)) {
-                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle2));
-                            } else {
-                                con.warn("1:Normal monster 2 missing summoned string!");
-                            }
+                            con.warn("1:Normal monster 1 missing summoned string!");
                         }
                     }
                 } else {
