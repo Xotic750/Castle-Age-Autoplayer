@@ -1310,15 +1310,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var done = true,
                 it;
 
-            caap.dataRegister[msg.data.name]['set'](msg.data.value);
-            caap.dataRegister[msg.data.name]["loaded"] = true;
+            caap.dataRegister[msg.data.name].set(msg.data.value);
+            caap.dataRegister[msg.data.name].loaded = true;
             for (it in caap.dataRegister) {
                 if (caap.dataRegister.hasOwnProperty(it)) {
                     if (!done) {
                         break;
                     }
 
-                    if (!caap.dataRegister[it]["loaded"]) {
+                    if (!caap.dataRegister[it].loaded) {
                         done = false;
                     }
                 }
@@ -1372,19 +1372,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         input = $j("input[value='" + msg.data[it] + "']");
                         if ($u.hasContent(input)) {
                             caap.click(input);
-                            results['areFound'].push(msg.data[it]);
+                            results.areFound.push(msg.data[it]);
                             checkState = input.is(":checked");
                             if (checkState) {
-                                results['areChecked'].push(msg.data[it]);
+                                results.areChecked.push(msg.data[it]);
                             } else {
-                                results['notChecked'].push(msg.data[it]);
+                                results.notChecked.push(msg.data[it]);
                             }
                         } else {
-                            results['notFound'].push(msg.data[it]);
+                            results.notFound.push(msg.data[it]);
                         }
                     }
 
-                    input = $u.hasContent(results['areChecked']) ? $j("input[name='ok_clicked']") : $j("input[name='cancel_clicked']");
+                    input = $u.hasContent(results.areChecked) ? $j("input[name='ok_clicked']") : $j("input[name='cancel_clicked']");
                     if (input) {
                         caap.messaging.sentGifts(msg, results);
                         caap.click(input);
@@ -1588,7 +1588,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else {
                     con.log(3, "caapifp add listeners");
                     caap.messaging.connected.push("caapifp");
-                    caap.mTarget["caapif"].ref = window.parent;
+                    caap.mTarget.caapif.ref = window.parent;
                     $u.addEvent(window, "message", caap.caapifpPMListener);
                     caap.jWindow.on("unload", caap.messaging.disconnect);
                 }
@@ -1676,8 +1676,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 case "setItem":
                     caap.messaging.ok(msg);
                     //con.log(1, "iframe got setItem", msg);
-                    caap.dataRegister[msg.data.name]['set'](msg.data.value);
-                    caap.dataRegister[msg.data.name]["loaded"] = true;
+                    caap.dataRegister[msg.data.name].set(msg.data.value);
+                    caap.dataRegister[msg.data.name].loaded = true;
                     if (msg.data.name === "config.options") {
                         caap.setGiftCustom();
                     }
@@ -1762,7 +1762,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.jWindow.on("message", caap.caapifPMListener);
                     $u.addEvent(window, "message", caap.caapifPMListener);
                     caap.jWindow.on("unload", caap.messaging.disconnect);
-                    caap.mTarget["caapfb"].ref = window.parent;
+                    caap.mTarget.caapfb.ref = window.parent;
                 }
 
                 caap.messaging.connect();
@@ -1834,13 +1834,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.messaging.ok(msg);
                     caap.messaging.getItem(msg, {
                         name: msg.data,
-                        value: caap.dataRegister[msg.data]['get']()
+                        value: caap.dataRegister[msg.data].get()
                     });
 
                     break;
                 case "setItem":
                     caap.messaging.ok(msg);
-                    caap.dataRegister[msg.data.name]['set'](msg.data.value);
+                    caap.dataRegister[msg.data.name].set(msg.data.value);
                     if ($u.isFunction(caap.dataRegister[msg.data.name].save)) {
                         caap.dataRegister[msg.data.name].save(msg.source);
                     } else {
@@ -1999,7 +1999,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             used = gm.used();
             if (used.type !== "greaseMonkey") {
-                perc.caap = ((used['match'] * 2.048 / 5242880) * 100).dp();
+                perc.caap = ((used.match * 2.048 / 5242880) * 100).dp();
                 con.log(1, "CAAP localStorage used: " + perc.caap + "%");
                 perc.total = ((used.total * 2.048 / 5242880) * 100).dp();
                 if (perc.total >= 90) {
@@ -2016,7 +2016,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(1, "Total localStorage used: " + perc.total + "%");
                 }
             } else {
-                con.log(1, "CAAP GM storage used (chars): " + used['match']);
+                con.log(1, "CAAP GM storage used (chars): " + used.match);
                 con.log(1, "GM storage used (chars): " + used.total);
             }
 
@@ -2217,7 +2217,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var timer = schedule.getItem(name);
 
-            return $u.makeTime(($u.isPlainObject(timer) ? timer['next'] : new Date()), caap.timeStr(true));
+            return $u.makeTime(($u.isPlainObject(timer) ? timer.next : new Date()), caap.timeStr(true));
         } catch (err) {
             con.error("ERROR in displayTime: " + err);
             return false;
@@ -2301,7 +2301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.showAutoQuest = function () {
         try {
-            caap.setDivContent("stopAutoQuest", "Stop auto quest: " + state.getItem('AutoQuest', caap.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")", caap.caapDivObject, false);
+            caap.setDivContent("stopAutoQuest", "Stop auto quest: " + state.getItem('AutoQuest', caap.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest()).energy + ")", caap.caapDivObject, false);
             return true;
         } catch (err) {
             con.error("ERROR in showAutoQuest: " + err);
@@ -2520,7 +2520,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.setDivContent('Version', htmlCode, caapDiv);
 
             banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
-            banner += "<img src='data:image/png;base64," + image64['header'] + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
+            banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             caap.setDivContent('banner', banner, caapDiv);
             donate += "<div id='caap_DonateDisplay_hide' style='text-align: center, display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
             donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
@@ -2595,17 +2595,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             params = $u.hasContent(params) && $u.isPlainObject(params) && !$u.isEmptyObject(params) ? params : {};
-            params["ajax"] = 1;
+            params.ajax = 1;
 
             var signedRequest = session.getItem("signedRequest");
 
             if ($u.hasContent(signedRequest) && $u.isString(signedRequest)) {
-                params["signed_request"] = signedRequest;
+                params.signed_request = signedRequest;
             }
 
             if (!$u.hasContent(page) || !$u.isString(page)) {
                 page = "index.php";
-                params["adkx"] = 2;
+                params.adkx = 2;
             }
 
             if (!$u.hasContent(cbError) || !$u.isFunction(cbError)) {
@@ -2744,7 +2744,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Perform Excavation Quests", 'ExcavateMines', false, 'If quest is for a mine, go ahead and excavate it.');
             htmlCode += caap.makeCheckTR("Quest For Orbs", 'GetOrbs', false, 'Perform the Boss quest in the selected land for orbs you do not have.');
             htmlCode += "<a id='caap_stopAutoQuest' style='display: " + (autoQuestName ? "block" : "none") + "' href='javascript:;' title='" + stopInstructions + "'>";
-            htmlCode += (autoQuestName ? "Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")" : '');
+            htmlCode += (autoQuestName ? "Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest()).energy + ")" : '');
             htmlCode += "</a>";
             htmlCode += caap.endDropHide('WhenQuest');
             htmlCode += caap.endToggle;
@@ -4546,7 +4546,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         window.setTimeout(function () {
                             caap.checkResults();
                             session.setItem("delayMain", false);
-                        }, 800);
+                        }, 1000);
                     }
 
                     // Reposition the dashboard
@@ -4847,17 +4847,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Check page to see if we should go to a page specific check function
             // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
             if (!schedule.check('CheckResultsTimer')) {
-                con.log(1, 'caap.checkResults CheckResultsTimer');
+                con.warn('caap.checkResults CheckResultsTimer');
                 return false;
             }
 
             schedule.setItem('CheckResultsTimer', 1);
             caap.resultsText = $u.setContent($j("#app_body #results_main_wrapper").text(), '').trim().innerTrim();
 
-            caap.battlePage = caap.stats.level < 10 ? 'battle_train;battle_off' : 'battle';
             if (!session.setItem("pageLoadOK", caap.getStats())) {
                 return true;
             }
+
+            caap.battlePage = caap.stats.level < 10 ? 'battle_train;battle_off' : 'battle';
 
             if (config.getItem("enableTitles", true)) {
                 spreadsheet.doTitles();
@@ -5296,7 +5297,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
             if (caap.stats.exp) {
                 xS = gm ? gm.getItem("expStaminaRatio", 2.4, hiddenVar) : 2.4;
-                xE = state.getItem('AutoQuest', caap.newAutoQuest())['expRatio'] || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
+                xE = state.getItem('AutoQuest', caap.newAutoQuest()).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
                 caap.stats.indicators.htl = ((caap.stats.level * 12.5) - (caap.stats.stamina.max * xS) - (caap.stats.energy.max * xE)) / (12 * (xS + xE));
                 caap.stats.indicators.hrtl = (caap.stats.exp.dif - (caap.stats.stamina.num * xS) - (caap.stats.energy.num * xE)) / (12 * (xS + xE));
                 caap.stats.indicators.enl = Date.now() + Math.ceil(caap.stats.indicators.hrtl * 3600000);
@@ -6187,7 +6188,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 tdDiv = $j('div[id="achievement_type_container_test_of_might_other"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
                 for (ii = 0; ii < tdDiv[0].children[0].children.length; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii;
                     }
                 }
@@ -6203,7 +6204,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tdDiv = $j('div[id="achievement_type_container_festival_feat"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
 
                 for (ii = 1; ii < 9; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii;
                     }
                 }
@@ -6213,7 +6214,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 level = 0;
 
                 for (ii = 9; ii < 17; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii - 8;
                     }
                 }
@@ -6222,7 +6223,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.saveStats();
                 level = 0;
                 for (ii = 17; ii < 25; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii - 16;
                     }
                 }
@@ -6231,30 +6232,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.saveStats();
                 level = 0;
                 for (ii = 25; ii < 33; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii - 24;
                     }
                 }
 
-                caap.stats.achievements.feats['energy'] = level;
+                caap.stats.achievements.feats.energy = level;
                 caap.saveStats();
                 level = 0;
                 for (ii = 33; ii < 41; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii - 32;
                     }
                 }
 
-                caap.stats.achievements.feats['stamina'] = level;
+                caap.stats.achievements.feats.stamina = level;
                 caap.saveStats();
                 level = 0;
                 for (ii = 41; ii < 49; ii += 1) {
-                    if (tdDiv[0].children[0].children[ii].style['opacity'] === "") {
+                    if (tdDiv[0].children[0].children[ii].style.opacity === "") {
                         level = ii - 40;
                     }
                 }
 
-                caap.stats.achievements.feats['army'] = level;
+                caap.stats.achievements.feats.army = level;
                 caap.saveStats();
             } else {
                 con.warn('Festival Feats Achievements not found.');
@@ -6718,13 +6719,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.clearTimeout(caap.qtom);
                 con.log(1, "Searching for quest");
             } else {
-                energyCheck = caap.checkEnergy(state.getItem('AutoQuest', caap.newAutoQuest())['energy'], whenQuest, 'quest_mess');
+                energyCheck = caap.checkEnergy(state.getItem('AutoQuest', caap.newAutoQuest()).energy, whenQuest, 'quest_mess');
                 if (!energyCheck) {
                     return false;
                 }
             }
 
-            if (state.getItem('AutoQuest', caap.newAutoQuest())['general'] === 'none' || config.getItem('ForceSubGeneral', false)) {
+            if (state.getItem('AutoQuest', caap.newAutoQuest()).general === 'none' || config.getItem('ForceSubGeneral', false)) {
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
@@ -6995,7 +6996,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            questGeneral = state.getItem('AutoQuest', caap.newAutoQuest())['general'];
+            questGeneral = state.getItem('AutoQuest', caap.newAutoQuest()).general;
             if (questGeneral === 'none' || config.getItem('ForceSubGeneral', false)) {
                 if (general.Select('SubQuestGeneral')) {
                     return true;
@@ -7440,9 +7441,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempAutoQuest = caap.newAutoQuest();
 
                         tempAutoQuest.name = caap.questName;
-                        tempAutoQuest['energy'] = energy;
-                        tempAutoQuest['general'] = general;
-                        tempAutoQuest['expRatio'] = expRatio;
+                        tempAutoQuest.energy = energy;
+                        tempAutoQuest.general = general;
+                        tempAutoQuest.expRatio = expRatio;
                         state.setItem('AutoQuest', tempAutoQuest);
                         con.log(4, "checkResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
                         caap.showAutoQuest();
@@ -7934,7 +7935,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             tempAutoQuest = caap.newAutoQuest();
             tempAutoQuest.name = sps[0].innerHTML;
-            tempAutoQuest['energy'] = sps[1].innerHTML.parseInt();
+            tempAutoQuest.energy = sps[1].innerHTML.parseInt();
 
             caap.manualAutoQuest(tempAutoQuest);
             con.log(5, 'labelListener', sps, state.getItem('AutoQuest'));
@@ -8370,24 +8371,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     default_bless = default_bless === 'All' ? 'Health' : default_bless;
                 }
 
-                if (caap.stats.achievements.feats['energy'] < 8) {
-                    if (caap.stats.energy.max >= eneFeat[caap.stats.achievements.feats['energy']]) {
+                if (caap.stats.achievements.feats.energy < 8) {
+                    if (caap.stats.energy.max >= eneFeat[caap.stats.achievements.feats.energy]) {
                         autoBless = 'Energy';
                     }
 
                     default_bless = default_bless === 'All' ? 'Energy' : default_bless;
                 }
 
-                if (caap.stats.achievements.feats['stamina'] < 8) {
-                    if (caap.stats.stamina.max >= staFeat[caap.stats.achievements.feats['stamina']]) {
+                if (caap.stats.achievements.feats.stamina < 8) {
+                    if (caap.stats.stamina.max >= staFeat[caap.stats.achievements.feats.stamina]) {
                         autoBless = 'Stamina';
                     }
 
                     default_bless = default_bless === 'All' ? 'Stamina' : default_bless;
                 }
 
-                if (caap.stats.achievements.feats['army'] < 8) {
-                    if (caap.stats.army.actual >= armFeat[caap.stats.achievements.feats['army']]) {
+                if (caap.stats.achievements.feats.army < 8) {
+                    if (caap.stats.army.actual >= armFeat[caap.stats.achievements.feats.army]) {
                         autoBless = 'Army';
                     }
 
@@ -8635,18 +8636,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 land.data.row = row;
                 land.data.name = name;
-                land.data['income'] = income;
+                land.data.income = income;
                 land.data.cost = cost;
-                land.data['maxAllowed'] = maxAllowed;
+                land.data.maxAllowed = maxAllowed;
                 land.data.owned = owned;
-                land.data['buy'] = (maxAllowed - owned) > 10 ? 10 : maxAllowed - owned;
-                land.data['totalCost'] = land.data['buy'] * cost;
+                land.data.buy = (maxAllowed - owned) > 10 ? 10 : maxAllowed - owned;
+                land.data.totalCost = land.data.buy * cost;
                 roi = (((income / cost) * 240000) / 100).dp(2);
                 if (!$u.hasContent($j("input[name='Buy']", row))) {
                     roi = 0;
                     // If we own more than allowed we will set land and selection
                     for (s = 2; s >= 0; s -= 1) {
-                        if (land.data.owned - land.data['maxAllowed'] >= selection[s]) {
+                        if (land.data.owned - land.data.maxAllowed >= selection[s]) {
                             caap.sellLand = land.data;
                             selectLands(row, selection[s], 'Sell');
                             break;
@@ -8654,10 +8655,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 
-                land.data['roi'] = $u.setContent(roi, 0);
-                strongs.eq(0).text(name + " | " + land.data['roi'] + "% per day.");
+                land.data.roi = $u.setContent(roi, 0);
+                strongs.eq(0).text(name + " | " + land.data.roi + "% per day.");
                 con.log(4, "Land:", land.data.name);
-                if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
+                if (land.data.roi > 0 && land.data.roi > caap.bestLand.roi) {
                     con.log(4, "Set Land:", land.data.name, land.data);
                     caap.bestLand = $j.extend(true, {}, land.data);
                 }
@@ -8667,7 +8668,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             $j.extend(true, bestLandCost, caap.bestLand);
             delete bestLandCost.row;
-            bestLandCost['set'] = true;
+            bestLandCost.set = true;
             bestLandCost.last = Date.now();
             state.setItem('BestLandCost', bestLandCost);
             con.log(2, "Best Land Cost: ", bestLandCost.name, bestLandCost.cost, bestLandCost);
@@ -8722,7 +8723,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             bestLandCost = state.getItem('BestLandCost', new caap.landRecord().data);
-            if (!bestLandCost['set']) {
+            if (!bestLandCost.set) {
                 con.log(2, "Going to land to get Best Land Cost");
                 if (caap.navigateTo('soldiers,land', caap.hasImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
                     return true;
@@ -8747,7 +8748,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // Retrieving from Bank
             cashTotAvail = caap.stats.gold.cash + (caap.stats.gold.bank - config.getItem('minInStore', 0));
-            cashNeed = bestLandCost['buy'] * bestLandCost.cost;
+            cashNeed = bestLandCost.buy * bestLandCost.cost;
             theGeneral = config.getItem('IdleGeneral', 'Use Current');
             if ((cashTotAvail >= cashNeed) && (caap.stats.gold.cash < cashNeed)) {
                 if (theGeneral !== 'Use Current') {
@@ -8772,7 +8773,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 caap.navigateTo('soldiers,land');
                 if (caap.hasImage('tab_land_on.gif')) {
-                    if (bestLandCost['buy']) {
+                    if (bestLandCost.buy) {
                         con.log(2, "Buying land", caap.bestLand.name);
                         if (buySellLand(caap.bestLand)) {
                             return true;

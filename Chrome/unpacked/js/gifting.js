@@ -1468,8 +1468,8 @@ con.log(1, 'chooseFriend');
                     gifting.messageSent = false;
                     gifting.frameResult = msg.data;
 
-                    var chosenList  = gifting.frameResult['areChecked'],
-                        pendingList = [].concat(gifting.frameResult['notFound']).concat(gifting.frameResult['notChecked']),
+                    var chosenList  = gifting.frameResult.areChecked,
+                        pendingList = [].concat(gifting.frameResult.notFound).concat(gifting.frameResult['notChecked']),
                         getTime     = Date.now(),
                         userId      = 0,
                         it          = 0,
