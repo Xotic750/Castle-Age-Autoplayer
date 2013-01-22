@@ -11,12 +11,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 // this is the main object for dealing with Monsters
 /////////////////////////////////////////////////////////////////////
 
-(function () {
+(function() {
     "use strict";
 
     monster.records = [];
 
-    monster.record = function () {
+    monster.record = function() {
         this.data = {
             'name': '',
             'userName': '',
@@ -129,9 +129,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_img: ['festival_monsters_top_water_element.jpg'],
             festival_dur: 192,
             festival_ach: 1000000,
-            newbg_img: [
-                'monster_header_ragnorak.jpg',
-                'monster_header_ragnarok.jpg'],
+            newbg_img: ['monster_header_ragnorak.jpg', 'monster_header_ragnarok.jpg'],
             list_img: ['water_list.jpg'],
             cta_img: ['ntwitter_ragnarok1.gif']
         },
@@ -185,12 +183,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 500000,
             newbg_img: ['monster_header_cronus.jpg'],
             list_img: ['hydra_head.jpg'],
-            cta_img: [
-                'cta_hydra_catapult.gif',
-                'cta_hydra_arrows.gif',
-                'cta_hydra_cannons.gif',
-                'cta_hydra_blizzard.gif',
-                'cta_hydra_firestorm.gif']
+            cta_img: ['cta_hydra_catapult.gif', 'cta_hydra_arrows.gif', 'cta_hydra_cannons.gif', 'cta_hydra_blizzard.gif', 'cta_hydra_firestorm.gif']
         },
         'Battle Of The Dark Legion': {
             duration: 168,
@@ -213,11 +206,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             mpool: 3,
             newbg_img: ['monster_header_defend.jpg'],
             list_img: ['castle_siege_list.jpg'],
-            cta_img: [
-                'cta_castle_archers.gif',
-                'cta_castle_elves.gif',
-                'cta_castle_dwarves.gif',
-                'cta_castle_knights.gif']
+            cta_img: ['cta_castle_archers.gif', 'cta_castle_elves.gif', 'cta_castle_dwarves.gif', 'cta_castle_knights.gif']
         },
         'Emerald Dragon': {
             duration: 72,
@@ -225,9 +214,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 0,
             staUse: 5,
             staMax: [5, 10],
-            attack_img: [
-                'seamonster_power.gif',
-                'serpent_10stam_attack.gif'],
+            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             mClass: 'Epic Team',
             mpool: 2,
             newbg_img: ['monster_header_emeralddrag.jpg'],
@@ -240,9 +227,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 0,
             staUse: 5,
             staMax: [5, 10],
-            attack_img: [
-                'seamonster_power.gif',
-                'serpent_10stam_attack.gif'],
+            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             mClass: 'Epic Team',
             mpool: 2,
             festival_img: ['festival_monsters_top_dragon_blue.jpg'],
@@ -258,9 +243,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 0,
             staUse: 5,
             staMax: [5, 10],
-            attack_img: [
-                'seamonster_power.gif',
-                'serpent_10stam_attack.gif'],
+            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             mClass: 'Epic Team',
             mpool: 2,
             festival_img: ['festival_monsters_top_dragon_yellow.jpg'],
@@ -276,13 +259,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 0,
             staUse: 5,
             staMax: [5, 10],
-            attack_img: [
-                'seamonster_power.gif',
-                'serpent_10stam_attack.gif'],
+            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             mClass: 'Epic Team',
             mpool: 2,
-            festival_img: ['festival_monsters_top_dragon_red.jpg',
-                'festival_monsters_top_dragon_monster.jpg'],
+            festival_img: ['festival_monsters_top_dragon_red.jpg', 'festival_monsters_top_dragon_monster.jpg'],
             festival_dur: 96,
             festival_ach: 50000,
             newbg_img: ['monster_header_ancientreddrag.jpg'],
@@ -336,9 +316,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_img: ['festival_monsters_top_sylvanus.jpg'],
             festival_dur: 72,
             festival_ach: 30000,
-            newbg_img: [
-                'monster_header_sylvanas.jpg',
-                'monster_header_sylvana.jpg'],
+            newbg_img: ['monster_header_sylvanas.jpg', 'monster_header_sylvana.jpg'],
             list_img: ['boss_sylvanus_list.jpg'],
             cta_img: ['cta_sylvanas.gif']
         },
@@ -361,9 +339,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             //defButton    : null,
             mClass: 'Epic Boss',
             mpool: 1,
-            newbg_img: [
-                'monster_header_keira.jpg',
-                'monster_header_keira2.jpg'],
+            newbg_img: ['monster_header_keira.jpg', 'monster_header_keira2.jpg'],
             list_img: ['boss_keira_list.jpg'],
             cta_img: ['cta_keira.gif']
         },
@@ -375,9 +351,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             fort: true,
             staUse: 10,
             staMax: [10, 20],
-            attack_img: [
-                'serpent_10stam_attack.gif',
-                'serpent_20stam_attack.gif'],
+            attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
             mClass: 'Epic Team',
@@ -397,9 +371,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             fort: true,
             staUse: 10,
             staMax: [10, 20],
-            attack_img: [
-                'serpent_10stam_attack.gif',
-                'serpent_20stam_attack.gif'],
+            attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
             mClass: 'Epic Team',
@@ -419,9 +391,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             fort: true,
             staUse: 10,
             staMax: [10, 20],
-            attack_img: [
-                'serpent_10stam_attack.gif',
-                'serpent_20stam_attack.gif'],
+            attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
             mClass: 'Epic Team',
@@ -441,9 +411,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             fort: true,
             staUse: 10,
             staMax: [10, 20],
-            attack_img: [
-                'serpent_10stam_attack.gif',
-                'serpent_20stam_attack.gif'],
+            attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
             mClass: 'Epic Team',
@@ -506,11 +474,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -562,10 +526,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -592,10 +553,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -621,11 +579,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/skaar_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small', '/graphics/skaar_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -652,11 +606,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -683,11 +633,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -710,11 +656,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -740,12 +682,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/castle_siege_small', '/graphics/alpha_bahamut_siege_blizzard_2', '/graphics/azriel_siege_inferno_2', '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 10,
             staLvl: [0, 50, 100, 200],
@@ -771,11 +708,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/war_siege_holy_smite_2'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small', '/graphics/war_siege_holy_smite_2'],
             fort: true,
             staUse: 10,
             staLvl: [0, 50, 100, 200],
@@ -801,11 +734,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -829,11 +758,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -859,11 +784,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 5,
             staLvl: [0, 100, 200, 500],
@@ -889,11 +810,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -919,11 +836,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -949,9 +862,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 5,
             siegeClicks: [30, 60, 90, 120, 200],
             siegeDam: [9000000, 12600000, 18000000, 23400000, 27000000, 90000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/alpha_bahamut_siege_blizzard'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -977,11 +888,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1007,11 +914,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 8,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1037,12 +940,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 45000000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/earth_siege_small2', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200],
@@ -1068,11 +966,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1095,11 +989,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1122,11 +1012,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1150,11 +1036,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1177,11 +1059,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 7,
             siegeClicks: [30, 60, 90, 120, 200, 250, 300],
             siegeDam: [13750000, 17500000, 20500000, 23375000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/water_siege_small', '/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1204,11 +1082,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1233,11 +1107,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1260,11 +1130,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
             siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1281,8 +1147,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 3,
             partOrder: [3, 2, 1]
         },
-
-        "urmek": {
+        "Urmek": {
             alpha: true,
             duration: 168,
             hp: 775000000,
@@ -1290,12 +1155,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small1',
-                '/graphics/castle_siege_small2',
-                '/graphics/death_siege_small2'],
+            siege_img: ['/graphics/earth_siege_small1', '/graphics/castle_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1305,14 +1165,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             levels: [1, 50, 100, 150],
             join: [30, 30, 35, 60],
             mClass: 'Epic Boss',
-            mpool: 1,
+            mpool: 101,
             newbg_img: ['monster_header_urmek.jpg'],
             list_img: ['monster_urmek_list.jpg'],
             cta_img: ['cta_urmek.gif'],
             bodyparts: 4,
             partOrder: [4, 3, 2, 1]
         },
-
         "abomination": {
             alpha: true,
             duration: 168,
@@ -1321,12 +1180,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small1',
-                '/graphics/castle_siege_small2',
-                '/graphics/death_siege_small2'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1342,9 +1196,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             cta_img: ['cta_abomination.gif'],
             bodyparts: 4,
             partOrder: [4, 3, 2, 1]
-
         },
-
         "Poseidon": {
             alpha: true,
             duration: 168,
@@ -1353,11 +1205,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1374,7 +1222,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 3,
             partOrder: [3, 2, 1]
         },
-
         "Vorak": {
             alpha: true,
             duration: 168,
@@ -1383,11 +1230,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 70, 100, 150, 200, 250, 300],
             siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
+            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1412,9 +1255,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
+            siege_img: ['/graphics/earth_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1431,8 +1272,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 4,
             partOrder: [4, 3, 2, 1]
         },
-
-        "Lord of Darkness": {
+        "Lord Of Darkness": {
             alpha: true,
             duration: 168,
             hp: 850000000,
@@ -1440,9 +1280,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
+            siege_img: ['/graphics/earth_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
@@ -1461,7 +1299,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.list = function () {
+    monster.list = function() {
         try {
             var i = '',
                 list = [];
@@ -1479,23 +1317,23 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.getFestName = function (img) {
+    monster.getFestName = function(img) {
         return monster.which(img, "festival_img");
     };
 
-    monster.getNewName = function (img) {
+    monster.getNewName = function(img) {
         return monster.which(img, "newbg_img");
     };
 
-    monster.getListName = function (img) {
+    monster.getListName = function(img) {
         return monster.which(img, "list_img");
     };
 
-    monster.getCtaName = function (img) {
+    monster.getCtaName = function(img) {
         return monster.which(img, "cta_img");
     };
 
-    monster.which = function (img, entity) {
+    monster.which = function(img, entity) {
         try {
             if (!$u.hasContent(img) || !$u.isString(img)) {
                 con.warn("img", img);
@@ -1543,7 +1381,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.getInfo = function (record) {
+    monster.getInfo = function(record) {
         try {
             if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -1557,7 +1395,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.load = function () {
+    monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
             if (monster.records === 'default' || !$j.isArray(monster.records)) {
@@ -1573,7 +1411,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.save = function (src) {
+    monster.save = function(src) {
         try {
             if (caap.domain.which === 3) {
                 caap.messaging.setItem('monster.records', monster.records);
@@ -1597,7 +1435,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.clean = function () {
+    monster.clean = function() {
         try {
             var it = 0,
                 list = [];
@@ -1619,7 +1457,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.parseCondition = function (type, conditions) {
+    monster.parseCondition = function(type, conditions) {
         try {
             if (!$u.hasContent(type) || !$u.hasContent(conditions) || !conditions.toLowerCase().hasIndexOf(':' + type)) {
                 return false;
@@ -1643,7 +1481,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.type = function (name) {
+    monster.type = function(name) {
         try {
             var words = [],
                 count = 0;
@@ -1671,7 +1509,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 
             if (words[count] === 'Elemental' || words[count] === 'Dragon' || (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
-                    (words[count - 1] === "Lion's" && words[count] === 'Rebellion') || (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
+                (words[count - 1] === "Lion's" && words[count] === 'Rebellion') || (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
                 return words[count - 1] + ' ' + words[count];
             }
 
@@ -1682,7 +1520,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.getItem = function (md5) {
+    monster.getItem = function(md5) {
         try {
             var it = 0,
                 len = 0,
@@ -1721,7 +1559,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.setItem = function (record) {
+    monster.setItem = function(record) {
         try {
             if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -1767,7 +1605,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.deleteItem = function (md5) {
+    monster.deleteItem = function(md5) {
         try {
             var it = 0,
                 len = 0,
@@ -1800,7 +1638,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.clear = function () {
+    monster.clear = function() {
         try {
             monster.records = [];
             monster.save();
@@ -1812,7 +1650,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.t2kCalc = function (record) {
+    monster.t2kCalc = function(record) {
         try {
             var boss = monster.getInfo(record),
                 siegeStage = record.phase - 1,
@@ -1886,11 +1724,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ranger': ['Strengthen', 'Heal', 'Cripple']
     };
 
-    monster.flagReview = function () {
+    monster.flagReview = function() {
         try {
             schedule.setItem("monsterReview", 0);
             //state.setItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
-            state.setItem('monsterReviewCounter', -10); // set this high so we have room for more monsters
+            state.setItem('monsterReviewCounter', - 10); // set this high so we have room for more monsters
             return true;
         } catch (err) {
             con.error("ERROR in monster.flagReview: " + err);
@@ -1898,7 +1736,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.flagFullReview = function () {
+    monster.flagFullReview = function() {
         try {
             monster.clear();
             monster.flagReview();
@@ -1918,7 +1756,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.energyTarget = function () {
+    monster.energyTarget = function() {
         return JSON.copy({
             'md5': '',
             'name': '',
@@ -1926,7 +1764,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         });
     };
 
-    monster.select = function (force) {
+    monster.select = function(force) {
         try {
             if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
                 return false;
@@ -2080,7 +1918,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         // Or if this monster is dead, skip to next one
                         // Or if this monster is not the correct type, skip to next one
                         if (!monster.getItem(monsterList[selectTypes[s]][m]).name.toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) ||
-                                (selectTypes[s] !== 'any' && monsterObj.page.replace('festival_battle_monster', 'battle_monster') !== selectTypes[s])) {
+                            (selectTypes[s] !== 'any' && monsterObj.page.replace('festival_battle_monster', 'battle_monster') !== selectTypes[s])) {
                             continue;
                         }
 
@@ -2243,19 +2081,19 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
 
                         switch (theGeneral) {
-                            case 'Orc King':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (Math.min(4, general.GetLevel('Orc King')) + 1));
-                                con.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            case 'Barbarus':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') >= 4 ? 3 : 2));
-                                con.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            case 'Maalvus':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') >= 3 ? 3 : 2));
-                                con.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            default:
+                        case 'Orc King':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (Math.min(4, general.GetLevel('Orc King')) + 1));
+                            con.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        case 'Barbarus':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') >= 4 ? 3 : 2));
+                            con.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        case 'Maalvus':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') >= 3 ? 3 : 2));
+                            con.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        default:
                         }
                     } else {
                         if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj.conditions)) {
@@ -2282,7 +2120,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.confirmRightPage = function (monsterName) {
+    monster.confirmRightPage = function(monsterName) {
         try {
             // Confirm name and type of monster
             var monsterDiv = $j("#app_body div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
@@ -2304,7 +2142,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(2, "confirmRightPage fMonstStyle", fMonstStyle);
                 if ($u.hasContent(fMonstStyle)) {
-                    tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                    tempDiv = $j("div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
                     if ($u.hasContent(tempDiv)) {
                         tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
@@ -2318,7 +2156,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     con.log(2, "confirmRightPage nMonstStyle2", nMonstStyle2);
                     con.log(2, "confirmRightPage nMonstStyle3", nMonstStyle3);
                     if ($u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2) || $u.hasContent(nMonstStyle3)) {
-                        tempDiv = $j( "div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
+                        tempDiv = $j("div :contains('Summoned'),:contains('summoned')", monsterDiv).last();
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
@@ -2423,14 +2261,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.menu = function () {
+    monster.menu = function() {
         try {
             var XMonsterInstructions = "Start attacking if stamina is above this points",
                 XMinMonsterInstructions = "Don not attack if stamina is below this points",
-                attackOrderInstructions = "List of search words that decide which monster to attack first. " +
-                    "Use words in player name or in monster name. To specify max damage follow keyword with " +
-                    ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " +
-                    "To override achievement use the ach: token and specify damage values.",
+                attackOrderInstructions = "List of search words that decide which monster to attack first. " + "Use words in player name or in monster name. To specify max damage follow keyword with " +
+                    ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " + "To override achievement use the ach: token and specify damage values.",
                 fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",
                 questFortifyInstructions = "Do quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
                 stopAttackInstructions = "Do not attack if ship health is below this % (leave blank to disable)",
@@ -2446,12 +2282,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
                 strengthenTo100Instructions = "Do not wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
-                mbattleList = [
-                    'Stamina Available',
-                    'At Max Stamina',
-                    'At X Stamina',
-                    'Stay Hidden',
-                    'Never'],
+                mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Never'],
                 mbattleInst = [
                     'Stamina Available will attack whenever you have enough stamina',
                     'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
@@ -2519,7 +2350,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.dashboard = function () {
+    monster.dashboard = function() {
         try {
             if (config.getItem('DBDisplay', '') === 'Monster' && session.getItem("MonsterDashUpdate", true)) {
                 var headers = ['Name', 'Damage', 'Dmg%', 'Fort%', 'Str%', 'Time', 'T2K', 'Phase', '&nbsp;', '&nbsp;', '&nbsp;'],
@@ -2556,103 +2387,103 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     switch (headers[pp]) {
-                        case 'Name':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '30%'
-                            });
-                            break;
-                        case 'Damage':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '13%'
-                            });
-                            break;
-                        case 'Dmg%':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '8%'
-                            });
-                            break;
-                        case 'Fort%':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '8%'
-                            });
-                            break;
-                        case 'Str%':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '8%'
-                            });
-                            break;
-                        case 'Time':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '8%'
-                            });
-                            break;
-                        case 'T2K':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '8%'
-                            });
-                            break;
-                        case 'Link':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '2%'
-                            });
-                            break;
-                        case 'Phase':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '13%'
-                            });
-                            break;
-                        case '&nbsp;':
-                            head += caap.makeTh({
-                                text: headers[pp],
-                                color: '',
-                                id: '',
-                                title: '',
-                                width: '1%'
-                            });
-                            break;
-                        default:
+                    case 'Name':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '30%'
+                        });
+                        break;
+                    case 'Damage':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '13%'
+                        });
+                        break;
+                    case 'Dmg%':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '8%'
+                        });
+                        break;
+                    case 'Fort%':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '8%'
+                        });
+                        break;
+                    case 'Str%':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '8%'
+                        });
+                        break;
+                    case 'Time':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '8%'
+                        });
+                        break;
+                    case 'T2K':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '8%'
+                        });
+                        break;
+                    case 'Link':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '2%'
+                        });
+                        break;
+                    case 'Phase':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '13%'
+                        });
+                        break;
+                    case '&nbsp;':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '1%'
+                        });
+                        break;
+                    default:
                     }
                 }
 
                 head = caap.makeTr(head);
                 values.shift();
-                monster.records.forEach(function (monsterObj) {
+                monster.records.forEach(function(monsterObj) {
                     row = '';
                     monsterInfo = monster.getInfo(monsterObj);
                     color = monsterObj.color;
@@ -2670,8 +2501,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
                         visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
-                            text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name +
-                                '" mmd5="' + monsterObj.md5 + '" rlink="' + visitMonsterLink[1] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
+                            text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
+                                '" rlink="' + visitMonsterLink[1] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -2687,7 +2518,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                     }
 
-                    values.forEach(function (displayItem) {
+                    values.forEach(function(displayItem) {
                         id = "caap_" + displayItem + "_" + count;
                         title = '';
                         if (displayItem === 'phase' && color === 'grey') {
@@ -2705,47 +2536,46 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                 }
 
                                 switch (displayItem) {
-                                    case 'damage':
-                                        if (achLevel) {
-                                            title = "User Set Monster Achievement: " + achLevel.addCommas();
-                                        } else if (config.getItem('AchievementMode', false)) {
-                                            title = $u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.ach) ? "Default Monster Achievement: " + monsterInfo.ach.addCommas() : '';
-                                            title += monsterObj.page === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " +
-                                                monsterInfo.festival_ach.addCommas() : '') : '';
-                                        } else {
-                                            title = "Achievement Mode Disabled";
-                                        }
+                                case 'damage':
+                                    if (achLevel) {
+                                        title = "User Set Monster Achievement: " + achLevel.addCommas();
+                                    } else if (config.getItem('AchievementMode', false)) {
+                                        title = $u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.ach) ? "Default Monster Achievement: " + monsterInfo.ach.addCommas() : '';
+                                        title += monsterObj.page === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " + monsterInfo.festival_ach.addCommas() : '') : '';
+                                    } else {
+                                        title = "Achievement Mode Disabled";
+                                    }
 
-                                        title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
-                                        break;
-                                    case 'time':
-                                        if ($u.hasContent(value) && value.length === 3) {
-                                            value = value[0] + ":" + value[1].lpad("0", 2);
-                                            duration = monsterObj.page === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
-                                            title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
-                                        } else {
-                                            value = '';
-                                        }
+                                    title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
+                                    break;
+                                case 'time':
+                                    if ($u.hasContent(value) && value.length === 3) {
+                                        value = value[0] + ":" + value[1].lpad("0", 2);
+                                        duration = monsterObj.page === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
+                                        title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
+                                    } else {
+                                        value = '';
+                                    }
 
-                                        break;
-                                    case 't2k':
-                                        value = $u.minutes2hours(value);
-                                        title = "Estimated Time To Kill: " + value + " hours:mins";
-                                        break;
-                                    case 'life':
-                                        title = "Percentage of monster life remaining: " + value + "%";
-                                        break;
-                                    case 'phase':
-                                        value = value + "/" + monsterInfo.siege + " need " + monsterObj.miss;
-                                        title = "Siege Phase: " + value + " more clicks";
-                                        break;
-                                    case 'fortify':
-                                        title = "Percentage of party health/monster defense: " + value + "%";
-                                        break;
-                                    case 'strength':
-                                        title = "Percentage of party strength: " + value + "%";
-                                        break;
-                                    default:
+                                    break;
+                                case 't2k':
+                                    value = $u.minutes2hours(value);
+                                    title = "Estimated Time To Kill: " + value + " hours:mins";
+                                    break;
+                                case 'life':
+                                    title = "Percentage of monster life remaining: " + value + "%";
+                                    break;
+                                case 'phase':
+                                    value = value + "/" + monsterInfo.siege + " need " + monsterObj.miss;
+                                    title = "Siege Phase: " + value + " more clicks";
+                                    break;
+                                case 'fortify':
+                                    title = "Percentage of party health/monster defense: " + value + "%";
+                                    break;
+                                case 'strength':
+                                    title = "Percentage of party strength: " + value + "%";
+                                    break;
+                                default:
                                 }
 
                                 row += caap.makeTd({
@@ -2784,12 +2614,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
                     if (monsterObjLink) {
-                        removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) +
-                            (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
+                        removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) + (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
                         removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {
-                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 + '" rlink="' + removeLink +
-                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
+                                '" rlink="' + removeLink + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -2829,7 +2658,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }]
                 }));
 
-                handler = function (e) {
+                handler = function(e) {
                     var visitMonsterLink = {
                         mmd5: '',
                         mname: '',
@@ -2857,7 +2686,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 $j("span[id*='caap_monster_']", caap.caapTopObject).off('click', handler).on('click', handler);
                 handler = null;
 
-                handler = function (e) {
+                handler = function(e) {
                     var monsterRemove = {
                         mmd5: '',
                         mname: '',
