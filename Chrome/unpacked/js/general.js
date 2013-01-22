@@ -829,7 +829,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            generalDiv = $j("#app_body div[style*='generalbase_img.jpg'] div[style*='width:70px;']");
+            generalDiv = $j("#globalContainer #main_bn div[style*='hot_container.gif'] div[style*='width:25px;']");
             if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                 temptext = $u.setContent(generalDiv.text(), '');
                 if ($u.hasContent(temptext)) {
