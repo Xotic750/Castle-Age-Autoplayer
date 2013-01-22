@@ -1517,10 +1517,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                         if (result === 'victory' && points >= config.getItem('ConquestChainBP', 0) && targetRecord.chainCount <= config.getItem('ConquestMaxChains', 4)) {
                             targetRecord.chainCount += 1;
-                            state.getItem("conquestChainId", userId);
+                            state.getItem("ConquestChainId", userId);
                         } else {
                             targetRecord.chainCount = 0;
-                            state.getItem("conquestChainId", 0);
+                            state.getItem("ConquestChainId", 0);
                             if (targetRecord.chainCount > config.getItem('ConquestMaxChains', 4)) {
                                 targetRecord.chainTime = Date.now();
                             }

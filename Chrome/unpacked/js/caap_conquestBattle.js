@@ -223,17 +223,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Check if we should chain attack
             if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_fort_battlevictory.jpg']"))) {
                 button = caap.checkForImage(chainImg);
-                conquestChainId = state.getItem("conquestChainId", 0);
+                conquestChainId = state.getItem("ConquestChainId", 0);
                 if ($u.hasContent(button) && conquestChainId) {
                     caap.setDivContent('conquest_mess', 'Chain Attack In Progress');
                     con.log(1, 'Chaining Target', conquestChainId);
                     conquest.click(button);
-                    state.setItem("conquestChainId", 0);
+                    state.setItem("ConquestChainId", 0);
                     button = null;
                     return true;
                 }
 
-                state.setItem("conquestChainId", 0);
+                state.setItem("ConquestChainId", 0);
             }
 
             con.log(1, 'Get target');
