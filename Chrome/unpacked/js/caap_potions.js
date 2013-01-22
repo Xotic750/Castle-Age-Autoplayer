@@ -93,11 +93,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoArchives = function() {
         try {
-            	var button = $j(),
-  	    	archiveDIV = $j(),
-	    	hours = 24,
-	    	minutes = 0,
-	    	rClick;
+                var button = $j(),
+            archiveDIV = $j(),
+            hours = 24,
+            minutes = 0,
+            rClick;
 
 
             if ((!config.getItem('AutoArchives', true)) || (!schedule.check('AutoArchiveTimerDelay'))) {
