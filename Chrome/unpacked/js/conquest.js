@@ -307,8 +307,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    conquest.flagResult = false;
+    //conquest.flagResult = false;
 
+    /*
     conquest.getResult = function() {
         try {
             var tempDiv = $j(),
@@ -597,6 +598,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return undefined;
         }
     };
+    */
 
     conquest.checkResults = function() {
         try {
@@ -1373,7 +1375,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(tempText)) {
                 army = $u.setContent(tempText.regex(/Army\s+(\d+)/i), -1);
                 if (!$u.hasContent(army) || army === -1) {
-                    con.warn("conquest.battle: userId unknown");
+                    con.warn("conquest.battle: army unknown", tempText);
                 }
             } else {
                 con.warn("conquest.battle: army missing tempText");
@@ -1383,7 +1385,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(tempText)) {
                 result = $u.setContent(tempText.regex(/war_fort_battle(\S+).jpg/), 'unknown');
                 if (!$u.hasContent(result) || (result !== 'victory' && result !== 'defeat')) {
-                    con.warn("conquest.battle: result unknown");
+                    con.warn("conquest.battle: result unknown", tempText);
                 }
             } else {
                 con.warn("conquest.battle: result missing tempText");
@@ -1397,7 +1399,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(tempText)) {
                         userId = $u.setContent(tempText.regex(/(\d+)/i), -1);
                         if (!$u.hasContent(userId) || userId === -1) {
-                            con.warn("conquest.battle: userId unknown");
+                            con.warn("conquest.battle: userId unknown", tempText);
                         }
                     } else {
                         con.warn("conquest.battle: missing targetDiv tempText");
@@ -1412,7 +1414,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(tempText)) {
                         name = $u.setContent(tempText.regex(/\s+(.+)\s+\d+ Conquest Rank Pts/i), '').trim().innerTrim();
                         if (!$u.hasContent(name) || name === '') {
-                            con.warn("conquest.battle: name unknown");
+                            con.warn("conquest.battle: name unknown", tempText);
                         }
                     } else {
                         con.warn("conquest.battle: missing name targetDiv tempText");
@@ -1427,7 +1429,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(tempText)) {
                         type = $u.setContent(tempText.regex(/war_(\S+)againbtn.gif/), 'unknown');
                         if (!$u.hasContent(type) || (type !== 'invade' && type !== 'duel')) {
-                            con.warn("conquest.battle: type unknown", type);
+                            con.warn("conquest.battle: type unknown", tempText);
                         }
                     } else {
                         con.warn("conquest.battle: missing buttonDiv tempText");
@@ -1440,7 +1442,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(tempText)) {
                     points = $u.setContent(tempText.regex(/(\d+) Conquest Rank Pts/), -1);
                     if (!$u.hasContent(points) || points === -1) {
-                        con.warn("conquest.battle: missing Conquest Rank Pts");
+                        con.warn("conquest.battle: missing Conquest Rank Pts", tempText);
                     }
                 } else {
                     con.warn("conquest.battle: missing bottomDiv tempText");
