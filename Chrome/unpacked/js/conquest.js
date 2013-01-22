@@ -16,6 +16,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     conquest.records = [];
 
+    conquest.targetsOnPage = [];
+
     conquest.targets = [];
 
     conquest.record = function() {
@@ -908,6 +910,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             con.log(1, "conquest.targeting begins", caap.stats);
 
+            conquest.targetsOnPage = [];
             conquest.targets = [];
 
             con.log(1, "in battle", opponentsSlice);
@@ -1136,6 +1139,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
+                conquest.targetsOnPage.push(battleRecord);
+
                 if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > battleRecord.levelNum)) {
                     logOpponent(battleRecord, "minLevel", {
                         'level': battleRecord.levelNum,
@@ -1352,6 +1357,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var bottomDiv = $j(),
                 buttonDiv = $j(),
                 targetDiv = $j(),
+                resultDiv = $j(),
                 tempText = '',
                 result = 'unknown',
                 type = 'unknown',
@@ -1368,17 +1374,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 bottomDiv = null;
                 buttonDiv = null;
                 targetDiv = null;
+                resultDiv = null;
                 return;
             }
 
-            tempText = $u.setContent($j("#battleResultMore", slice), '').text();
-            if ($u.hasContent(tempText)) {
-                army = $u.setContent(tempText.regex(/Army\s+(\d+)/i), -1);
-                if (!$u.hasContent(army) || army === -1) {
-                    con.warn("conquest.battle: army unknown", tempText);
+            resultDiv = $j("#battleResultMore", slice);
+            con.log(3, 'battleResultMore', resultDiv);
+            if ($u.hasContent(resultDiv)) {
+                tempText = $u.setContent(resultDiv.text(), '');
+                if ($u.hasContent(tempText)) {
+                    army = $u.setContent(tempText.regex(/Army\s*(\d+)/i), -1);
+                    if (!$u.hasContent(army) || army === -1) {
+                        con.warn("conquest.battle: army unknown", tempText);
+                    }
+                } else {
+                    con.warn("conquest.battle: army missing tempText");
                 }
             } else {
-                con.warn("conquest.battle: army missing tempText");
+                con.warn("conquest.battle: missing bottomDiv");
             }
 
             tempText = slice.attr('style');
@@ -1388,7 +1401,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.warn("conquest.battle: result unknown", tempText);
                 }
             } else {
-                con.warn("conquest.battle: result missing tempText");
+                con.warn("conquest.battle: missing resultDiv");
             }
 
             bottomDiv = $j("#app_body div[style*='conqduel_battlebottom2.jpg']");
@@ -1454,9 +1467,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, "conquest.getResults", userId, name, type, result, points);
 
             if (userId > 0)  {
-                for (it = 0, len = conquest.targets.length; it < len; it += 1) {
-                    if (conquest.targets[it].userId === userId) {
-                        targetRecord = conquest.targets[it];
+                for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
+                    if (conquest.targetsOnPage[it].userId === userId) {
+                        targetRecord = conquest.targetsOnPage[it];
                     }
                 }
 
