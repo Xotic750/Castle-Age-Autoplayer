@@ -143,11 +143,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 caap.setDivContent('conquest_mess', 'Conquest Ready');
             } else {
-                con.log(1, 'Burn tokens level up' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+                con.log(1, 'Burn tokens level up ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                 caap.setDivContent('conquest_mess', 'Conquest Level Up');
             }
 
             if (caap.stats.level < 8) {
+                schedule.setItem("conquest_token", 86400, 300);
                 if (caap.conquestWarnLevel) {
                     con.log(1, "conquest: Unlock at level 8");
                     caap.conquestWarnLevel = false;
@@ -158,6 +159,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (caap.stats.health.num < 10) {
+                schedule.setItem("conquest_token", (10 - caap.stats.health.num) *  180, 120);
                 con.log(1, 'Health is less than 10: ', caap.stats.health.num);
                 button = null;
                 return false;

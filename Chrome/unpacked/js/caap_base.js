@@ -4853,7 +4853,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             schedule.setItem('CheckResultsTimer', 1);
             caap.resultsText = $u.setContent($j("#app_body #results_main_wrapper").text(), '').trim().innerTrim();
-            con.log(1, 'caap.checkResults caap.resultsText', caap.resultsText);
+
             caap.battlePage = caap.stats.level < 10 ? 'battle_train;battle_off' : 'battle';
             if (!session.setItem("pageLoadOK", caap.getStats())) {
                 return true;
@@ -4908,7 +4908,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             session.setItem('page', page);
             if ($u.hasContent(caap.pageList[page])) {
-                con.log(2, 'Checking results for', page);
+                con.log(1, 'Checking results for', page);
+                con.log(1, 'caap.checkResults caap.resultsText', caap.resultsText);
                 if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
                     con.log(3, 'Calling function', caap.pageList[page].CheckResultsFunction);
                     caap[caap.pageList[page].CheckResultsFunction]();
