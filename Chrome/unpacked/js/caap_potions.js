@@ -93,11 +93,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoArchives = function() {
         try {
-            var button = $j(),
-                archiveDIV = $j(),
-                hours = 24,
-                minutes = 0,
-                rClick;
+            	var button = $j(),
+  	    	archiveDIV = $j(),
+	    	hours = 24,
+	    	minutes = 0,
+	    	rClick;
+
 
             if ((!config.getItem('AutoArchives', true)) || (!schedule.check('AutoArchiveTimerDelay'))) {
                 caap.setDivContent('archive_mess', schedule.check('AutoArchiveTimerDelay') ? 'Archive = none' : 'Next Archive: ' + $u.setContent(caap.displayTime('AutoArchiveTimerDelay'), "Unknown"));
@@ -223,7 +224,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 rClick,
                 addClick = false;
 
-            con.log(3, "autoKobo");
 
             if ((!config.getItem('AutoKobo', true)) || (!schedule.check('AutoKoboTimerDelay'))) {
                 caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
@@ -232,6 +232,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ginDIV = null;
                 return false;
             }
+            con.log(2, "autoKobo");
 
             koboDIV = $j("div[style*='emporium_top']");
             if (!koboDIV || koboDIV.length === 0) {
