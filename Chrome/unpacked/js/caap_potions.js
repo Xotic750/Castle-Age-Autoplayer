@@ -249,16 +249,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "Impossible to navigate to emporium page";
             }
 
-            if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                if (/You have exceeded the 10 emporium roll limit for the day. Come back tomorrow for another chance!/.test(caap.resultsText)) {
-                    con.log(2, "You have exceeded the 10 emporium roll limit for the day.");
-                    schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
-                    caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-                    button = null;
-                    koboDIV = null;
-                    ginDIV = null;
-                    return false;
-                }
+            if ($u.hasContent(caap.resultsText) &&  /You have exceeded the 10 emporium roll limit for the day. Come back tomorrow for another chance!/.test(caap.resultsText)) {
+                con.log(1, "caap.autoKobo", caap.resultsText);
+                schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
+                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
+                button = null;
+                koboDIV = null;
+                ginDIV = null;
+                return false;
             }
 
             gin_left = Math.min(($j("span[id='gin_left_amt']")).text(), 10);
