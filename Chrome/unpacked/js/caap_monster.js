@@ -1305,6 +1305,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
                 (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice);
 
+            con.log(3, "monsterDiv", monsterDiv);
+
             if ($u.hasContent($j("div[style*='no_monster_back.jpg']", slice))) {
                 con.warn("No monster");
                 //need to add some code to this condition to remove records etc etc
@@ -1643,7 +1645,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             currentMonster.type = $u.setContent(currentMonster.type, '');
             monsterInfo = monster.getInfo(currentMonster);
             con.log(2, "monsterInfo", currentMonster.monster, monsterInfo);
-            if ($u.hasContent(monsterInfo.levels)) {
+            if ($u.hasContent(monsterInfo) && $u.hasContent(monsterInfo.levels)) {
                 for (it = 0; it < monsterInfo.levels.length; it += 1) {
                     groupMatch = false;
                     for (jt in groups) {
@@ -1867,6 +1869,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' : 'monster_health_background.jpg';
             monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
+            con.log(2, 'monster health',monsterInfo ,monstHealthImg ,monsterDiv);
             if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                 currentMonster.time = time;
                 if ($u.hasContent(monsterDiv)) {
@@ -1911,7 +1914,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                         if (tempText) {
                             con.log(4, "Character class text", tempText);
-                            tStr = tempText.regex(/Class: (\w+) /);
+                            tStr = tempText.regex(/Class: (\S+) /);
                             if ($u.hasContent(tStr)) {
                                 currentMonster.charClass = tStr;
                                 con.log(4, "character", currentMonster.charClass);
@@ -1967,7 +1970,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             }
 
                             if (currentMonster.charClass && currentMonster.tip && currentMonster.stun !== -1) {
-                                currentMonster.stunDo = new RegExp(currentMonster.charClass).test(currentMonster.tip) && currentMonster.stun < 100;
+                                currentMonster.stunDo = currentMonster.charClass === '?' ? '' : new RegExp(currentMonster.charClass).test(currentMonster.tip) && currentMonster.stun < 100;
                                 currentMonster.stunType = '';
                                 if (currentMonster.stunDo) {
                                     con.log(2, "Do character specific attack", currentMonster.stunDo);
