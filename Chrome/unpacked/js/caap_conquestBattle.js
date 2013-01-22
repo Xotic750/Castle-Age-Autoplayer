@@ -20,7 +20,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 form = $j(),
                 inp = $j();
 
-            conquestButton = caap.checkForImage(conquest.battles[config.getItem('conquestType', 'Invade')]);
+            conquestButton = caap.checkForImage(conquest.battles[config.getItem('ConquestType', 'Invade')]);
             if ($u.hasContent(conquestButton)) {
                 form = conquestButton.parent().parent();
                 if ($u.hasContent(form)) {
