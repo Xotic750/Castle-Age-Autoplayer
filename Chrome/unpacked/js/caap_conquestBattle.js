@@ -86,6 +86,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 conquesttype = '',
                 useGeneral = '',
                 chainImg = '',
+                tempDiv = $j(),
                 button = $j(),
                 conquestChainId = 0,
                 it = 0,
@@ -95,12 +96,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (whenconquest === 'Never') {
                 caap.setDivContent('conquest_mess', 'Conquest off');
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
             if (!schedule.check("conquest_delay")) {
                 con.log(4, 'Conquest delay attack', $u.setContent(caap.displayTime('conquest_delay'), "Unknown"));
                 caap.setDivContent('conquest_mess', 'Conquest delay (' + $u.setContent(caap.displayTime('conquest_delay'), "Unknown") + ')');
+                button = null;
+                tempDiv = null;
                 return false;
             }
 
@@ -108,7 +112,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
                     con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
                     caap.setDivContent('conquest_mess', 'Waiting Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return false;
                 }
 
@@ -122,7 +128,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     state.setItem('conquest_burn', false);
                     con.log(4, '1:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                     caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return false;
                 }
 
@@ -130,14 +138,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     state.setItem('conquest_burn', false);
                     con.log(4, '2:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
                     caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return false;
                 }
 
                 if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
                     con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
                     caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return false;
                 }
 
@@ -146,7 +158,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (caap.stats.guildTokens.num < 1) {
                     con.log(4, 'Waiting Coins ' + caap.stats.guildTokens.num + '/1');
                     caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+                    state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return false;
                 }
 
@@ -161,14 +175,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.conquestWarnLevel = false;
                 }
 
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
             if (caap.stats.health.num < 10) {
                 schedule.setItem("conquest_token", (10 - caap.stats.health.num) *  180, 120);
                 con.log(1, 'Health is less than 10: ', caap.stats.health.num);
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
@@ -176,12 +194,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.stats.stamina < 1) {
                 con.log(1, 'Not enough stamina for ', conquesttype);
                 schedule.setItem("conquest_token", (caap.stats.stamina.ticker[0] * 60) + caap.stats.stamina.ticker[1], 300);
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
             if (caap.checkKeep()) {
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return true;
             }
 
@@ -206,66 +228,88 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             default:
                 con.warn('Unknown conquest type ', conquesttype);
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
             con.log(1, conquesttype, useGeneral);
             if (general.Select(useGeneral)) {
+                state.setItem("ConquestChainId", 0);
+                button = null;
+                tempDiv = null;
                 return true;
             }
 
             if (caap.navigateTo('conquest_duel', 'conqduel_on.jpg')) {
+                state.setItem("ConquestChainId", 0);
+                button = null;
+                tempDiv = null;
                 return true;
             }
 
             con.log(1, 'Chain target');
             // Check if we should chain attack
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_fort_battlevictory.jpg']"))) {
-                button = caap.checkForImage(chainImg);
+            tempDiv = $j("#app_body div[style*='war_fort_battlevictory.jpg']");
+            con.log(1, 'Chain target victory check', tempDiv);
+            if ($u.hasContent(tempDiv)) {
+                con.log(1, 'Chain target victory!');
+                button = $j("#app_body input[src*='" + chainImg + "']");
+                con.log(1, 'Chain target button check', button);
                 conquestChainId = state.getItem("ConquestChainId", 0);
-                if ($u.hasContent(button) && conquestChainId) {
+                con.log(1, 'Chain target conquestChainId', conquestChainId);
+                if ($u.hasContent(button) && $u.isNumber(conquestChainId) && conquestChainId > 0) {
                     caap.setDivContent('conquest_mess', 'Chain Attack In Progress');
                     con.log(1, 'Chaining Target', conquestChainId);
                     conquest.click(button);
                     state.setItem("ConquestChainId", 0);
                     button = null;
+                    tempDiv = null;
                     return true;
                 }
 
                 state.setItem("ConquestChainId", 0);
             }
 
-            con.log(1, 'Get target');
-            targetId = conquest.getTarget();
+            con.log(1, 'Get on page target');
+            targetId = $u.hasContent(conquest.targets) ? conquest.targets[0] : 0;
             con.log(1, 'targetId', targetId);
-            if (!targetId) {
+            if (!$u.hasContent(targetId) || targetId < 1) {
                 con.log(1, 'No valid conquest targetId', targetId);
                 schedule.setItem('conquest_delay', Math.floor(Math.random() * 240) + 60);
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
-            for (it = 0, len = conquest.targets.length; it < len; it += 1) {
-                if (conquest.targets[it].userId === targetId) {
-                    targetRecord = conquest.targets[it];
+            for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
+                if (conquest.targetsOnPage[it].userId === targetId) {
+                    targetRecord = conquest.targetsOnPage[it];
                 }
             }
 
             if (!$u.hasContent(targetRecord)) {
                 con.log(1, 'No valid conquest target',targetId, targetRecord, conquest.targets);
+                state.setItem("ConquestChainId", 0);
                 button = null;
+                tempDiv = null;
                 return false;
             }
 
             con.log(1, 'conquest Target', targetRecord);
             if (caap.conquestUserId(targetRecord)) {
                 caap.setDivContent('conquest_mess', 'Conquest Target: ' + targetRecord.userId);
-                conquest.nextTarget();
+                button = null;
+                tempDiv = null;
                 return true;
             }
 
             con.warn('Doing conquest target list, but no target');
+            state.setItem("ConquestChainId", 0);
+            button = null;
+            tempDiv = null;
             return false;
         } catch (err) {
             con.error("ERROR in conquest: " + err);

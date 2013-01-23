@@ -309,289 +309,45 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    //conquest.flagResult = false;
-
     /*
-    conquest.getResult = function() {
-        try {
-            var tempDiv = $j(),
-                tempText = '',
-                tNum = 0,
-                conquestRecord = {},
-                warWinLoseImg = '',
-                result = {
-                    userId: 0,
-                    userName: '',
-                    conquestType: '',
-                    points: 0,
-                    gold: 0,
-                    win: false,
-                    hiding: false,
-                    unknown: false
-                };
-
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='conquest_victory.gif']"))) {
-                warWinLoseImg = 'war_win_left.jpg';
-                result.win = true;
-            } else if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='conquest_defeat.gif']"))) {
-                warWinLoseImg = 'war_lose_left.jpg';
-            } else {
-                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                    if (/Your opponent is hiding, please try again/.test(caap.resultsText)) {
-                        result.hiding = true;
-                        con.log(1, "Your opponent is hiding");
-                        tempDiv = null;
-                        return result;
-                    }
-
-                    result.unknown = true;
-                    con.warn("Unable to determine won, lost or hiding!", caap.resultsText);
-                    tempDiv = null;
-                    return result;
-                }
-
-                result.unknown = true;
-                con.warn("Unable to determine won or lost!");
-                tempDiv = null;
-                return result;
-            }
-
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_castle.jpg']"))) {
-                result.conquestType = 'War';
-                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                    tempDiv = $j("#app_body #results_main_wrapper img[src*='war_rank_small_icon']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.parent().text(), '').trim().innerTrim();
-                        if ($u.hasContent(tempText)) {
-                            tNum = tempText.regex(/(\d+)\s+War Points/i);
-                            if ($u.hasContent(tNum)) {
-                                result.points = tNum;
-                            } else {
-                                con.warn("Unable to match war points", tempText);
-                            }
-                        } else {
-                            con.warn("Unable to find war points text");
-                        }
-                    } else {
-                        con.log(1, "Unable to find war_rank_small_icon");
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
-                        if ($u.hasContent(tNum)) {
-                            result.gold = tNum;
-                        } else {
-                            con.warn("Unable to find gold text");
-                        }
-                    } else {
-                        con.warn("Unable to find gold element");
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper form[id*='fight_opp_'] input[name='target_id']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tNum = $u.setContent(tempDiv.attr("value"), '0').parseInt();
-                        if ($u.hasContent(tNum) && tNum > 0) {
-                            result.userId = tNum;
-                        } else {
-                            con.warn("No value in tempDiv");
-                            tempDiv = null;
-                            throw "Unable to get userId!";
-                        }
-                    } else {
-                        con.warn("Unable to find target_id in $j('#app_body #results_main_wrapper')");
-                        tempDiv = null;
-                        throw "Unable to get userId!";
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper div[style*='" + warWinLoseImg + "']");
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
-                        if ($u.hasContent(tempText)) {
-                            result.userName = tempText;
-                        } else {
-                            con.warn("Unable to match user's name in", tempText);
-                        }
-                    } else {
-                        con.warn("Unable to find ", warWinLoseImg);
-                    }
-                } else {
-                    con.warn("Unable to find result div");
-                    tempDiv = null;
-                    throw "Unable to get userId!";
-                }
-            } else {
-                if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='conquest_invade_again.gif']"))) {
-                    result.conquestType = 'Invade';
-                } else if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='conquest_duel_again.gif']"))) {
-                    result.conquestType = 'Duel';
-                } else {
-                    if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='icon_weapon.gif']"))) {
-                        result.conquestType = 'Duel';
-                    } else if ($u.hasContent($j("#app_body #results_main_wrapper div[class='full_invade_results']"))) {
-                        result.conquestType = 'Invade';
-                    }
-                }
-
-                if ($u.hasContent(result.conquestType)) {
-                    if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                        tempDiv = $j("#app_body #results_main_wrapper img[src*='conquest_rank_small_icon']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
-                            if ($u.hasContent(tempText)) {
-                                tNum = tempText.regex(/(\d+)\s+Conquest Points/i);
-                                if ($u.hasContent(tNum)) {
-                                    result.points = tNum;
-                                } else {
-                                    con.warn("Unable to match conquest points", tempText);
-                                }
-                            } else {
-                                con.warn("Unable to find conquest points text in tempDiv.parent().parent()");
-                            }
-                        } else {
-                            con.log(1, "Unable to find conquest_rank_small_icon in $j('#app_body #results_main_wrapper')");
-                        }
-
-                        tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
-                            if ($u.hasContent(tNum)) {
-                                result.gold = tNum;
-                            } else {
-                                con.warn("Unable to find gold text in tempDiv");
-                            }
-                        } else {
-                            con.warn("Unable to find gold element in $j('#app_body #results_main_wrapper')");
-                        }
-
-                        tempDiv = $j("#app_body #results_main_wrapper a[href*='keep.php?casuser=']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tempText = $u.setContent(tempDiv.attr("href"), '');
-                            if ($u.hasContent(tempText)) {
-                                tNum = tempText.regex(/user=(\d+)/i);
-                                if ($u.hasContent(tNum)) {
-                                    result.userId = tNum;
-                                } else {
-                                    con.warn("Unable to match user's id in", tempText);
-                                    tempDiv = null;
-                                    throw "Unable to get userId!";
-                                }
-
-                                tempText = $u.setContent(tempDiv.text(), '').trim();
-                                if ($u.hasContent(tempText)) {
-                                    result.userName = tempText;
-                                } else {
-                                    con.warn("Unable to match user's name in", tempText);
-                                }
-                            } else {
-                                con.warn("No href text in tempDiv");
-                                tempDiv = null;
-                                throw "Unable to get userId!";
-                            }
-                        } else {
-                            con.warn("Unable to find keep.php?casuser= $j('#app_body #results_main_wrapper')");
-                            tempDiv = null;
-                            throw "Unable to get userId!";
-                        }
-                    } else {
-                        con.warn("Unable to find result div");
-                        tempDiv = null;
-                        throw "Unable to get userId!";
-                    }
-                } else {
-                    con.warn("Unable to determine conquest type");
-                    tempDiv = null;
-                    throw "Unable to get userId!";
-                }
-            }
-
-            conquestRecord = conquest.getItem(result.userId);
-            conquestRecord.attackTime = Date.now();
-            if (result.userName && result.userName !== conquestRecord.nameStr) {
-                con.log(1, "Updating conquest record user name, from/to", conquestRecord.nameStr, result.userName);
-                conquestRecord.nameStr = result.userName;
-            }
-
-            if (result.win) {
-                conquestRecord.statswinsNum += 1;
-            } else {
-                conquestRecord.statslossesNum += 1;
-            }
-
-            switch (result.conquestType) {
-            case 'Invade':
-                if (result.win) {
-                    conquestRecord.invadewinsNum += 1;
-                    conquestRecord.ibp += result.points;
-                } else {
-                    conquestRecord.invadelossesNum += 1;
-                    conquestRecord.ibp -= result.points;
-                    conquestRecord.invadeLostTime = Date.now();
-                }
-
-                break;
-            case 'Duel':
-                if (result.win) {
-                    conquestRecord.duelwinsNum += 1;
-                    conquestRecord.dbp += result.points;
-                } else {
-                    conquestRecord.duellossesNum += 1;
-                    conquestRecord.dbp -= result.points;
-                    conquestRecord.duelLostTime = Date.now();
-                }
-
-                break;
-            default:
-                con.warn("Conquest type unknown!", result.conquestType);
-            }
-
-            conquest.setItem(conquestRecord);
-            tempDiv = null;
-            return result;
-        } catch (err) {
-            con.error("ERROR in conquest.getResult: " + err);
-            return false;
-        }
-    };
-
     conquest.deadCheck = function() {
         try {
-            var conquestRecord = {},
+            var targetRecord = {},
                 dead = false;
 
             if (state.getItem("lastConquestID", 0)) {
-                conquestRecord = conquest.getItem(state.getItem("lastConquestID", 0));
+                targetRecord = conquest.getItem(state.getItem("lastConquestID", 0));
             }
 
             if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                 if ($u.hasContent(caap.resultsText)) {
                     if (/Your opponent is dead or too weak to conquest/.test(caap.resultsText)) {
                         con.log(1, "This opponent is dead or hiding: ", state.getItem("lastConquestID", 0));
-                        if ($j.isPlainObject(conquestRecord) && !$j.isEmptyObject(conquestRecord)) {
-                            conquestRecord.deadTime = Date.now();
+                        if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
+                            targetRecord.deadTime = Date.now();
                         }
 
                         dead = true;
                     }
                 } else {
-                    if ($j.isPlainObject(conquestRecord) && !$j.isEmptyObject(conquestRecord)) {
-                        conquestRecord.unknownTime = Date.now();
+                    if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
+                        targetRecord.unknownTime = Date.now();
                     }
 
                     con.warn("Unable to determine if user is dead!");
                     dead = null;
                 }
             } else {
-                if ($j.isPlainObject(conquestRecord) && !$j.isEmptyObject(conquestRecord)) {
-                    conquestRecord.unknownTime = Date.now();
+                if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
+                    targetRecord.unknownTime = Date.now();
                 }
 
                 con.warn("Unable to find any results!");
                 dead = null;
             }
 
-            if (dead !== false && $j.isPlainObject(conquestRecord) && !$j.isEmptyObject(conquestRecord)) {
-                conquest.setItem(conquestRecord);
+            if (dead !== false && $j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
+                conquest.setItem(targetRecord);
             }
 
             return dead;
@@ -601,126 +357,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
     */
-
-    conquest.checkResults = function() {
-        try {
-            var conquestRecord = {},
-                tempTime = 0,
-                chainBP = 0,
-                maxChains = 0,
-                result = {};
-
-            if (!conquest.flagResult) {
-                return true;
-            }
-
-            con.log(1, "Checking Conquest Results");
-            conquest.flagResult = false;
-            state.setItem("ConquestChainId", 0);
-            if (conquest.deadCheck() !== false) {
-                return true;
-            }
-
-            result = conquest.getResult();
-            if (!result || result.hiding === true) {
-                return true;
-            }
-
-            if (result.unknown === true) {
-                if (state.getItem("lastConquestID", 0)) {
-                    conquestRecord = conquest.getItem(state.getItem("lastConquestID", 0));
-                    conquestRecord.unknownTime = Date.now();
-                    conquest.setItem(conquestRecord);
-                }
-
-                return true;
-            }
-
-            conquestRecord = conquest.getItem(result.userId);
-            if (result.win) {
-                con.log(1, "We Defeated ", result.userName, "Conquest Points: " + result.points + ", Gold: " + result.gold);
-                //Test if we should chain this guy
-                tempTime = $u.setContent(conquestRecord.chainTime, 0);
-                chainBP = config.getItem('ChainBP', '');
-                if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0))) {
-                    if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
-                        if (result.points >= chainBP) {
-                            state.setItem("ConquestChainId", result.userId);
-                            con.log(1, "Chain Attack:", result.userId, "Conquest Points: " + result.points);
-                        } else {
-                            conquestRecord.ignoreTime = Date.now();
-                        }
-                    }
-                }
-
-                conquestRecord.chainCount = conquestRecord.chainCount ? conquestRecord.chainCount += 1 : 1;
-                maxChains = config.getItem('ConquestMaxChains', 11);
-                if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
-                    maxChains = 11;
-                }
-
-                if (conquestRecord.chainCount >= maxChains) {
-                    con.log(1, "Lets give this guy a break. Chained", conquestRecord.chainCount);
-                    conquestRecord.chainTime = Date.now();
-                    conquestRecord.chainCount = 0;
-                }
-
-            } else {
-                con.log(1, "We Were Defeated By ", result.userName);
-                conquestRecord.chainCount = 0;
-                conquestRecord.chainTime = 0;
-            }
-
-            conquest.setItem(conquestRecord);
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.checkResults: " + err);
-            return false;
-        }
-    };
-
-    conquest.nextTarget = function() {
-        state.setItem('ConquestTargetUpto', state.getItem('ConquestTargetUpto', 0) + 1);
-    };
-
-    conquest.getTarget = function() {
-        try {
-            var target = 0,
-                targets = [],
-                conquestUpto = '',
-                it = 0,
-                len = 0;
-
-            target = state.getItem('ConquestChainId', 0);
-            if (target) {
-                return target;
-            }
-
-            for (it = 0, len = conquest.targets.length; it < len; it += 1) {
-                targets.push(conquest.targets[it].userId);
-            }
-
-            if (!targets.length) {
-                return false;
-            }
-
-            conquestUpto = state.getItem('ConquestTargetUpto', 0);
-            if (conquestUpto > targets.length - 1) {
-                conquestUpto = 0;
-                state.setItem('ConquestTargetUpto', 0);
-            }
-
-            if (!targets[conquestUpto]) {
-                conquest.nextTarget();
-                return false;
-            }
-
-            return targets[conquestUpto];
-        } catch (err) {
-            con.error("ERROR in conquest.getTarget: " + err);
-            return false;
-        }
-    };
 
     conquest.click = function(conquestButton) {
         try {
@@ -906,7 +542,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ARMax = 0,
                 it = 0,
                 len = 0,
-                conquesttype = config.getItem('ConquestType', 'Invade');
+                conquesttype = config.getItem('ConquestType', 'Invade'),
+                targets = [];
 
             con.log(1, "conquest.targeting begins", caap.stats);
 
@@ -1139,6 +776,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
+                battleRecord.score = battleRecord.rankNum - (battleRecord.armyNum / levelMultiplier / caap.stats.army.capped);
                 conquest.targetsOnPage.push(battleRecord);
 
                 if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > battleRecord.levelNum)) {
@@ -1238,8 +876,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                battleRecord.score = battleRecord.rankNum - (battleRecord.armyNum / levelMultiplier / caap.stats.army.capped);
-
                 // don't conquest people we lost to in the last week
                 if (conquesttype === 'Invade') {
                     tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
@@ -1329,7 +965,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                conquest.targets.push(battleRecord);
+                conquest.targets.push(battleRecord.userId);
                 logOpponent(battleRecord, "match", '');
 
                 opponentDiv = null;
@@ -1340,10 +976,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempDiv = null;
             });
 
-            conquest.targets.sort($u.sortBy(true, "score"));
+            targets.sort($u.sortBy(true, "score"));
 
-            for (it = 0, len = conquest.targets.length; it < len; it += 1) {
-                logOpponent(conquest.targets[it], 'sorted', '');
+            for (it = 0, len = targets.length; it < len; it += 1) {
+                logOpponent(targets[it], 'sorted', '');
+                conquest.targets.push(targets[it].userId);
             }
 
             opponentsSlice = null;
@@ -1357,41 +994,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var bottomDiv = $j(),
                 buttonDiv = $j(),
                 targetDiv = $j(),
-                resultDiv = $j(),
                 tempText = '',
                 result = 'unknown',
                 type = 'unknown',
                 name = 'unknown',
                 userId = -1,
                 points = -1,
-                army = -1,
                 it = 0,
                 len = 0,
-                targetRecord = {};
+                targetRecord = {},
+                tempTime = 0,
+                chainBP = '',
+                maxChains = 0;
 
             if (!$u.hasContent(slice)) {
                 con.warn("No slice passed to conquest.getResults");
                 bottomDiv = null;
                 buttonDiv = null;
                 targetDiv = null;
-                resultDiv = null;
                 return;
-            }
-
-            resultDiv = $j("#battleResultMore", slice);
-            con.log(3, 'battleResultMore', resultDiv);
-            if ($u.hasContent(resultDiv)) {
-                tempText = $u.setContent(resultDiv.text(), '');
-                if ($u.hasContent(tempText)) {
-                    army = $u.setContent(tempText.regex(/Army\s*(\d+)/i), -1);
-                    if (!$u.hasContent(army) || army === -1) {
-                        con.warn("conquest.battle: army unknown", tempText);
-                    }
-                } else {
-                    con.warn("conquest.battle: army missing tempText");
-                }
-            } else {
-                con.warn("conquest.battle: missing bottomDiv");
             }
 
             tempText = slice.attr('style');
@@ -1467,6 +1088,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, "conquest.getResults", userId, name, type, result, points);
 
             if (userId > 0)  {
+                con.log(1, "Searching targets on page");
                 for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
                     if (conquest.targetsOnPage[it].userId === userId) {
                         targetRecord = conquest.targetsOnPage[it];
@@ -1474,19 +1096,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (!$u.hasContent(targetRecord)) {
-                    con.log(1, "No target record found, searching/creating conquest record");
+                    con.log(1, "No target record found, searching/creating conquest records");
                     targetRecord = conquest.getItem(userId);
+                } else {
+                    con.log(1, "Target found on page", targetRecord);
                 }
 
                 targetRecord.attackTime = Date.now();
                 if ($u.hasContent(name) && name !== 'unknown' && name !== targetRecord.nameStr) {
                     con.log(1, "Updating conquest record user name, from/to", targetRecord.nameStr, name);
                     targetRecord.nameStr = name;
-                }
-
-                if ($u.isNumber(army) && army !== -1 && army !== targetRecord.armyNum) {
-                    con.log(1, "Updating conquest record army, from/to", targetRecord.armyNum, army);
-                    targetRecord.armyNum = army;
                 }
 
                 if ($u.hasContent(result) && (result === 'victory' || result === 'defeat')) {
@@ -1515,22 +1134,55 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             }
                         }
 
-                        if (result === 'victory' && points >= config.getItem('ConquestChainBP', 0) && targetRecord.chainCount <= config.getItem('ConquestMaxChains', 4)) {
-                            targetRecord.chainCount += 1;
-                            state.setItem("ConquestChainId", userId);
-                        } else {
-                            targetRecord.chainCount = 0;
-                            state.setItem("ConquestChainId", 0);
-                            if (targetRecord.chainCount > config.getItem('ConquestMaxChains', 4)) {
-                                targetRecord.chainTime = Date.now();
+                        if (result === 'victory') {
+                            con.log(1, "Chain check");
+                            //Test if we should chain this guy
+                            tempTime = $u.setContent(targetRecord.chainTime, 0);
+                            chainBP = config.getItem('ConquestChainBP', '');
+                            if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0))) {
+                                if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
+                                    if (points >= chainBP) {
+                                        state.setItem("ConquestChainId", targetRecord.userId);
+                                        con.log(1, "Chain Attack:", targetRecord.userId, "Conquest Points: " + points);
+                                    } else {
+                                        con.log(1, "Ignore Chain Attack:", targetRecord.userId, "Conquest Points: " + points);
+                                        targetRecord.ignoreTime = Date.now();
+                                    }
+                                }
                             }
+
+                            targetRecord.chainCount = targetRecord.chainCount ? targetRecord.chainCount += 1 : 1;
+                            maxChains = config.getItem('ConquestMaxChains', 4);
+                            if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
+                                maxChains = 4;
+                            }
+
+                            if (targetRecord.chainCount >= maxChains) {
+                                con.log(1, "Lets give this guy a break. Chained", targetRecord.chainCount);
+                                targetRecord.chainTime = Date.now();
+                                targetRecord.chainCount = 0;
+                                targetRecord.ignoreTime = 0;
+                                targetRecord.unknownTime = 0;
+                            }
+                        } else {
+                            con.log(1, "Do Not Chain Attack:", targetRecord.userId);
+                            targetRecord.chainCount = 0;
+                            targetRecord.chainTime = 0;
+                            targetRecord.ignoreTime = 0;
+                            targetRecord.unknownTime = 0;
                         }
                     } else {
                         con.warn("Setting unknown timer as conquest type unknown", type);
+                        targetRecord.chainCount = 0;
+                        targetRecord.chainTime = 0;
+                        targetRecord.ignoreTime = 0;
                         targetRecord.unknownTime = Date.now();
                     }
                 } else {
                     con.warn("Setting unknown timer as conquest result unknown", result);
+                    targetRecord.chainCount = 0;
+                    targetRecord.chainTime = 0;
+                    targetRecord.ignoreTime = 0;
                     targetRecord.unknownTime = Date.now();
                 }
 
@@ -1538,9 +1190,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             } else {
                 con.error("Unable to process records without valid userId", userId);
             }
+
+            bottomDiv = null;
+            buttonDiv = null;
+            targetDiv = null;
         } catch (err) {
             con.error("ERROR in conquest.getResults: " + err);
-            return;
         }
     };
 
