@@ -108,6 +108,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
+            if (caap.stats.level >= 8 && caap.stats.health.num >= 10 && caap.stats.stamina < 0) {
+                schedule.setItem("conquest_delay_stats", 0);
+            }
+
+            if (!schedule.check("conquest_delay_stats")) {
+                con.log(4, 'Conquest delay stats', $u.setContent(caap.displayTime('conquest_delay_stats'), "Unknown"));
+                caap.setDivContent('conquest_mess', 'Conquest stats (' + $u.setContent(caap.displayTime('conquest_delay_stats'), "Unknown") + ')');
+                button = null;
+                tempDiv = null;
+                return false;
+            }
+
             if (!caap.inLevelUpMode()) {
                 if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
                     con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
@@ -170,7 +182,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (caap.stats.level < 8) {
                 schedule.setItem("conquest_token", 86400, 300);
-                schedule.setItem("conquest_delay", 86400, 300);
+                schedule.setItem("conquest_delay_stats", 86400, 300);
                 if (caap.conquestWarnLevel) {
                     con.log(1, "conquest: Unlock at level 8");
                     caap.conquestWarnLevel = false;
@@ -183,7 +195,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (caap.stats.health.num < 10) {
-                schedule.setItem("conquest_delay", (10 - caap.stats.health.num) *  180, 120);
+                schedule.setItem("conquest_delay_stats", (10 - caap.stats.health.num) *  180, 120);
                 con.log(1, 'Health is less than 10: ', caap.stats.health.num);
                 state.setItem("ConquestChainId", 0);
                 button = null;
@@ -194,7 +206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             conquesttype = config.getItem('ConquestType', 'Invade');
             if (caap.stats.stamina < 1) {
                 con.log(1, 'Not enough stamina for ', conquesttype);
-                schedule.setItem("conquest_delay", (caap.stats.stamina.ticker[0] * 60) + caap.stats.stamina.ticker[1], 300);
+                schedule.setItem("conquest_delay_stats", (caap.stats.stamina.ticker[0] * 60) + caap.stats.stamina.ticker[1], 300);
                 state.setItem("ConquestChainId", 0);
                 button = null;
                 tempDiv = null;
