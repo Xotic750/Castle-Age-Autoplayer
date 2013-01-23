@@ -341,8 +341,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var mainSts = $j("#globalContainer #mainsts"),
                 gtv = $j("#gold_time_value", mainSts).text(),
                 ecv = $j("#energy_current_value", mainSts).text(),
+                etv = $j("#energy_time_value", mainSts).text(),
                 scv = $j("#stamina_current_value", mainSts).text(),
+                stv = $j("#stamina_time_value", mainSts).text(),
                 hcv = $j("#health_current_value", mainSts).text(),
+                htv = $j("#health_time_value", mainSts).text(),
                 arr = [],
                 num = 0;
 
@@ -350,6 +353,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(arr) && arr.length === 2) {
                 caap.stats.gold.ticker = arr;
                 con.log(3, "stsPoll gtv", arr[0] + ":" + arr[1].lpad("0", 2));
+            }
+
+            arr = $u.setContent($u.setContent(stv, '').regex(/(\d+):(\d+)/), []);
+            if ($u.hasContent(arr) && arr.length === 2) {
+                caap.stats.stamina.ticker = arr;
+                con.log(3, "stsPoll stv", arr[0] + ":" + arr[1].lpad("0", 2));
+            }
+
+            arr = $u.setContent($u.setContent(htv, '').regex(/(\d+):(\d+)/), []);
+            if ($u.hasContent(arr) && arr.length === 2) {
+                caap.stats.health.ticker = arr;
+                con.log(3, "stsPoll htv", arr[0] + ":" + arr[1].lpad("0", 2));
+            }
+
+            arr = $u.setContent($u.setContent(etv, '').regex(/(\d+):(\d+)/), []);
+            if ($u.hasContent(arr) && arr.length === 2) {
+                caap.stats.energy.ticker = arr;
+                con.log(3, "stsPoll etv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
@@ -376,8 +397,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             mainSts = null;
 			gtv = null;
 			ecv = null;
+            etv = null;
 			scv = null;
+            stv = null;
 			hcv = null;
+            htv = null;
 			arr = null;
             return true;
         } catch (err) {
