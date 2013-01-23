@@ -854,6 +854,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_img: ['festival_monsters_top_ambrosia.jpg'],
             festival_dur: 192,
             festival_ach: 2500000,
+            //newbg_img: ['boss_ambrosia_header.jpg'],
             newbg_img: ['boss_header_ambrosia.jpg'],
             list_img: ['boss_ambrosia_list.jpg'],
             cta_img: ['cta_ambrosia.gif']
