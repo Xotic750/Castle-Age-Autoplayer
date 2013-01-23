@@ -113,6 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!found) {
                 if (!quiet) {
                     con.warn("Unable to find 'General' record", generalName);
+                    schedule.setItem("generals", 0);
                 }
 
                 return false;
@@ -824,6 +825,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (it >= len) {
                 con.warn("Unable to find 'General' record");
+                schedule.setItem("generals", 0);
                 generalDiv = null;
                 tempObj = null;
                 return false;
