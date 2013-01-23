@@ -201,8 +201,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            schedule.setItem("conquest_delay", 0);
-
             if (caap.checkKeep()) {
                 state.setItem("ConquestChainId", 0);
                 button = null;
@@ -286,8 +284,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tempDiv = null;
                 return false;
             }
-
-            schedule.setItem("conquest_delay", 0);
 
             for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
                 if (conquest.targetsOnPage[it].userId === targetId) {
