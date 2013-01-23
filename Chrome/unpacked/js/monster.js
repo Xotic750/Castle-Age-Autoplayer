@@ -1402,7 +1402,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             siege: 10,
             siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: ['/graphics/earth_siege_small'],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small'],
             fort: true,
             staUse: 10,
             staLvl: [0, 100, 200, 500],
