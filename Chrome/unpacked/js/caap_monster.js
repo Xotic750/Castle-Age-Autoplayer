@@ -603,23 +603,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 partsTargets,
                 partsTarget,
                 partsElem,
+                partsElem1,
+                partsElem2,
                 orderPartsArray,
                 max_index = -1,
                 max_value,
                 i = 0,
                 ii = 0;
 
-            monsterInfo = $u.hasContent(currentMonster.type) ? (currentMonster.type === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
-            if (monsterInfo) {
-                if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monsterInfo.staLvl) {
-                    for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
-                        if (caap.stats.stamina.max >= monsterInfo.staLvl[nodeNum]) {
-                            break;
+            if ($u.hasContent(currentMonster)) {
+                monsterInfo = $u.hasContent(currentMonster.type) ? (currentMonster.type === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
+                if ($u.hasContent(monsterInfo)) {
+                    if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monsterInfo.staLvl) {
+                        for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
+                            if (caap.stats.stamina.max >= monsterInfo.staLvl[nodeNum]) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : monsterInfo.nrgMax ? monsterInfo.nrgMax[0] : energyRequire;
+                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monsterInfo.nrgMax ? monsterInfo.nrgMax[nodeNum] : monsterInfo.nrgMax ? monsterInfo.nrgMax[0] : energyRequire;
+                }
             }
 
             con.log(4, "Energy Required/Node", energyRequire, nodeNum);
@@ -644,14 +648,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // Check to see if we should fortify or attack monster
-            if (monsterName && caap.checkEnergy(energyRequire, (gm ? gm.getItem('WhenFortify', 'Energy Available', hiddenVar) : 'Energy Available'), 'fortify_mess')) {
+            if ($u.hasContent(monsterName) && caap.checkEnergy(energyRequire, (gm ? gm.getItem('WhenFortify', 'Energy Available', hiddenVar) : 'Energy Available'), 'fortify_mess')) {
                 fightMode = 'Fortify';
             } else {
                 targetMonster = state.getItem('targetFrombattle_monster', '');
                 currentMonster = monster.getItem(targetMonster);
                 monsterName = currentMonster.name;
                 monsterInfo = monster.getInfo(currentMonster);
-                if (monsterName && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster.page.replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
+                if ($u.hasContent(monsterName) && $u.hasContent(monsterInfo) && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster.page.replace('festival_battle_monster', 'battle_monster') === 'battle_monster') {
                     fightMode = 'Monster';
                 } else {
                     schedule.setItem('NotargetFrombattle_monster', 60);
@@ -692,11 +696,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 // if the monster has parts, run through them in reverse order until we find one with health and hit it.
                 partsTargets = $j("#app_body div[id^='monster_target_']");
-                if (partsTargets.length > 0) {
-
+                if ($u.hasContent(partsTargets)) {
                     // Define if use user or default order parts
                     orderPartsArray = [];
-                    if (currentMonster.conditions && currentMonster.conditions.match(/:po/i)) {
+                    if ($u.hasContent(currentMonster) && /:po/i.test(currentMonster.conditions)) {
                         orderPartsArray = currentMonster.conditions.substring(currentMonster.conditions.indexOf('[') + 1, currentMonster.conditions.lastIndexOf(']')).split(".");
                         if (monsterInfo.bodyparts != orderPartsArray.length) {
                             // Wrong number of parts in monster condition.
@@ -726,13 +729,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // Click first order parts which have health
                     for (ii = 0; ii < orderPartsArray.length; ii += 1) {
                         partsTarget = partsTargets[orderPartsArray[ii] - 1];
-                        partsElem = partsTarget.children[0].children[partsTarget.children[0].children.length - 1].children[1].children[0];
-                        if ($u.hasContent(partsElem) && $u.setContent($j(partsElem).getPercent("width"), 0) > 0) {
-                            caap.click(partsElem);
+                        partsElem = partsTarget.children[0].children[partsTarget.children[0].children.length - 1];
+                        partsElem1 = partsElem.children[0].children[0];
+                        partsElem2 = partsElem.children[1].children[0];
+                        if ($u.hasContent(partsElem1) && $u.setContent($j(partsElem1).getPercent("width"), 0) > 0) {
+                            caap.click(partsElem2);
                             break;
                         }
                     }
-
                 }
 
                 // Find the attack or fortify button
@@ -752,7 +756,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    if (currentMonster.conditions && currentMonster.conditions.match(/:tac/i) && caap.stats.level >= 50) {
+                    if ($u.hasContent(currentMonster) && /:tac/i.test(currentMonster.conditions) && caap.stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = monster.parseCondition("tac%", currentMonster.conditions);
                     } else if (config.getItem('UseTactics', false) && caap.stats.level >= 50) {
@@ -760,7 +764,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tacticsValue = config.getItem('TacticsThreshold', false);
                     }
 
-                    if (tacticsValue !== false && currentMonster.fortify && currentMonster.fortify < tacticsValue) {
+                    if (tacticsValue !== false && $u.hasContent(currentMonster) && currentMonster.fortify && currentMonster.fortify < tacticsValue) {
                         con.log(2, "Party health is below threshold value", currentMonster.fortify, tacticsValue);
                         useTactics = false;
                     }
@@ -804,7 +808,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 
-                if (attackButton) {
+                if ($u.hasContent(attackButton)) {
                     if (fightMode === 'Fortify') {
                         attackMess = 'Fortifying ' + monsterName;
                     } else if (useTactics) {
@@ -842,7 +846,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
-            if (currentMonster.page === 'battle_monster') {
+            if ($u.hasContent(currentMonster) && currentMonster.page === 'battle_monster') {
                 if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                     attackButton = null;
                     singleButtonList = null;
@@ -852,7 +856,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     partsElem = null;
                     return true;
                 }
-            } else if (currentMonster.page === 'festival_battle_monster' && currentMonster.feedLink.indexOf("tower=2") >= 0) {
+            } else if ($u.hasContent(currentMonster) && currentMonster.page === 'festival_battle_monster' && currentMonster.feedLink.indexOf("tower=2") >= 0) {
                 if (caap.navigateTo('soldiers,festival_home,festival_tower2', 'festival_monster2_towerlist_button.jpg')) {
                     attackButton = null;
                     singleButtonList = null;
@@ -862,7 +866,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     partsElem = null;
                     return true;
                 }
-            } else if (currentMonster.page === 'festival_battle_monster') {
+            } else if ($u.hasContent(currentMonster) && currentMonster.page === 'festival_battle_monster') {
                 if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
                     attackButton = null;
                     singleButtonList = null;
@@ -887,7 +891,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             pageUserCheck = session.getItem('pageUserCheck', 0);
             if (pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats.FBID).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
                 con.log(2, "On another player's keep.", pageUserCheck);
-                if (currentMonster.page === 'battle_monster') {
+                if ($u.hasContent(currentMonster) && currentMonster.page === 'battle_monster') {
                     attackButton = null;
                     singleButtonList = null;
                     buttonList = null;
@@ -897,7 +901,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
 
-                if (currentMonster.page === 'festival_battle_monster') {
+                if ($u.hasContent(currentMonster) && currentMonster.page === 'festival_battle_monster') {
                     attackButton = null;
                     singleButtonList = null;
                     buttonList = null;
@@ -937,7 +941,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            if ($u.hasContent(monster.engageButtons[currentMonster.md5])) {
+            if ($u.hasContent(currentMonster) && $u.hasContent(monster.engageButtons[currentMonster.md5])) {
                 caap.setDivContent('monster_mess', 'Opening ' + monsterName);
                 caap.click(monster.engageButtons[currentMonster.md5]);
                 attackButton = null;
