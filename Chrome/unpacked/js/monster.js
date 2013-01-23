@@ -2269,7 +2269,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         con.warn("2:Festival monster missing summoned string!");
                     }
                 } else {
-                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg)/);
+                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg|boss_header_\S+\.jpg)/);
                     con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
                     if ($u.hasContent(nMonstStyle)) {
                         tempDiv = $j("div :contains('Summoned'),:contains('summoned')", monsterDiv).last();

@@ -681,7 +681,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // Check if on engage monster page
-            if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='festival_monsters_top_']"))) {
+            if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header'],div[style*='festival_monsters_top_']"))) {
                 if (monster.confirmRightPage(monsterName)) {
                     attackButton = null;
                     singleButtonList = null;
@@ -1387,13 +1387,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.chatLink(slice, "#chat_log div[style*='hidden'] div[style*='320px']");
             }
 
-            con.log(4, "monsterDiv", monsterDiv);
+            con.log(2, "monsterDiv", monsterDiv);
             if ($u.hasContent(monsterDiv)) {
                 army.eliteCheckImg();
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(2, "fMonstStyle", fMonstStyle);
                 if (!$u.hasContent(fMonstStyle)) {
-                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg)/);
+                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg|boss_header_\S+\.jpg)/);
                     con.log(2, "nMonstStyle", nMonstStyle);
                 }
 
@@ -1419,7 +1419,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                 }
 
-                con.log(3, "tempText", tempText);
+                con.log(2, "summoned text", tempText);
             } else {
                 monsterDiv = $j("div[style*='nm_top']", slice);
                 if ($u.hasContent(monsterDiv)) {
