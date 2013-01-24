@@ -4218,6 +4218,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
     caap.whatClickedURLListener = function (event) {
         try {
             var obj = event.target;
@@ -4232,7 +4233,44 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDomWaiting(obj.href);
             } else {
                 if (obj && !obj.href) {
-                    con.warn('whatClickedURLListener globalContainer no href', obj);
+                    con.warn('whatClickedURLListener no href', obj);
+                }
+            }
+        } catch (err) {
+            con.error("ERROR in whatClickedURLListener: " + err, event);
+        }
+    };
+
+    caap.whatClickedimgButton = function (event) {
+        try {
+            var obj = event.target,
+                onclick = '',
+                called = '',
+                label = '',
+                page = $j(".game").attr("id");
+
+            con.log(3, 'event.target', event.target);
+            while (obj && !obj.onclick) {
+                obj = obj.parentNode;
+            }
+
+            if (obj && obj.onclick) {
+                con.log(3, 'obj.onclick', obj.onclick);
+                onclick = (obj.onclick + ' ');
+                called = onclick.regex(/\s*(\S+)\(\'/m);
+                label = onclick.regex(/\S+\(\'(\S+)\'\)/m);
+                label = $u.setContent(label, onclick.regex(/,\s*\'(\S+)\'/m));
+                if ($u.hasContent(page) && $u.hasContent(called) && $u.hasContent(label)) {
+                    con.log(2, 'page', page + '.php?' + called + '&' + label);
+                    session.setItem('clickUrl', page + '.php?' + called + '&' + label);
+                    //caap.setDomWaiting(page + '.php?' + called + '&' + label);
+                    caap.checkResults();
+                } else {
+                    con.warn('whatClickedimgButton missing page, called or label', page, called, label);
+                }
+            } else {
+                if (obj && !obj.onclick) {
+                    con.warn('whatClickedimgButton no onclick', obj);
                 }
             }
         } catch (err) {
@@ -4491,6 +4529,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 // Fires once when page loads
                 $j(document).on('click', 'body a', caap.whatClickedURLListener);
 
+                $j(document).on('click', 'body div>img.imgButton,a[href=""]>img.imgButton', caap.whatClickedimgButton);
+
                 $j(document).on('click', '#globalContainer div[id*="friend_box_"]', caap.whatFriendBox);
 
                 if ($u.mutationTypes.DOMSubtreeModified) {
@@ -4538,7 +4578,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         window.setTimeout(function () {
                             caap.checkResults();
                             session.setItem("delayMain", false);
-                        }, 1000);
+                        }, 1500);
                     }
 
                     // Reposition the dashboard
@@ -4859,15 +4899,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             general.GetCurrent();
             general.Shrink();
 
-           var pageUrl = session.getItem('clickUrl', ''),
+            var pageUrl = session.getItem('clickUrl', ''),
                 page2 = $u.setContent(pageUrl, 'none').basename(".php"),
-                page = session.getItem('page', page2),
+                page = session.getItem('page', ''),
                 demiPointsFirst = config.getItem('DemiPointsFirst', false),
                 whenMonster = config.getItem('WhenMonster', 'Never'),
                 whenBattle = config.getItem('whenBattle', 'Never'),
                 it = 0,
                 len = 0,
                 AFrecentAction = localStorage.AFrecentAction;
+
+            page = $u.setContent(page, page2);
 
             if (AFrecentAction === undefined) {
                 localStorage.AFrecentAction = true;
@@ -4885,8 +4927,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.GetEquippedStats();
             }
 
+                // why? because we need to make sure things like highlight users damage and
+                // joinability are called in both and we update % bar values correctly when
+                // we are using the new whatclickedimgButton listener
+                // Also detect when there is an actual page match that is incorrect
             if (page !== page2) {
-                con.warn("page and page2 differ", page, page2, pageUrl);
+                if ((page === 'onBattle' && page2 !== 'battle_monster') || (page === 'onRaid' && page2 === 'raid')) {
+                    con.warn("page and page2 differ", page, page2, pageUrl);
+                } else {
+                    con.log(2, "page and page2 differ", page, page2, pageUrl);
+                }
             }
 
             session.setItem('pageUserCheck', page === 'keep' ? $u.setContent(pageUrl.regex(/user=(\d+)/), 0) : 0);
