@@ -196,7 +196,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 for (it = 0, len = buttonsDiv.length; it < len; it += 1) {
                     // Make links for easy clickin'
                     url = buttonsDiv.eq(it).parent().attr("href");
-                    con.log(2, "url", url);
+                    con.log(3, "url", url);
                     /*jslint continue: true */
                     if (!(url && /user=/.test(url) && (/mpool=/.test(url) || /raid\.php/.test(url)))) {
                         continue;
