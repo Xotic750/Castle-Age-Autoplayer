@@ -160,7 +160,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     monsterReviewed.hide = true;
-                    monsterReviewed.mpool = $u.setContent($j("a[href*='battle_monster.php?mpool=']", monsterRow.eq(it)).attr("href"), 'mpool=0').regex(/mpool=(\d+)/i);
+                    monsterReviewed.mpool = $u.setContent($j("a[href*='mpool=']", monsterRow.eq(it)).attr("href"), 'mpool=0').regex(/mpool=(\d+)/i);
                     monsterInfo = monster.getInfo(monsterReviewed);
                     siege = monsterInfo && monsterInfo.siege ? "&action=doObjective" : '';
                     monsterReviewed.feedLink = "battle_monster.php?casuser=" + monsterReviewed.userId + "&mpool=" + monsterReviewed.mpool;
