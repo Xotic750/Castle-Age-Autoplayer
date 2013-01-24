@@ -433,6 +433,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             //We don't need to send out any notifications
+            button = $j("#single_popup_feedback");
+            if ($u.hasContent(button) && button.css("display") === 'block') {
+                button = $j("img[src*='quest_skip_btn']", button);
+                if ($u.hasContent(button)) {
+                    con.log(1, 'Undoing/skipping notification');
+                    caap.click(button.eq(0));
+                }
+            }
+
+            //We don't need to send out any notifications
             button = $j("a[class*='undo_link']");
             if ($u.hasContent(button)) {
                 con.log(1, 'Undoing/skipping notification');
