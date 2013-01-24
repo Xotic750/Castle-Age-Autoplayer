@@ -99,21 +99,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 for (it = 0, len = monsterRow.length; it < len; it += 1) {
                     // Make links for easy clickin'
                     /*jslint continue: true */
-                    if (!$u.hasContent($j("input", monsterRow.eq(it)))) {
-                        con.log(2, "No inputs found", it);
+                    if (!$u.hasContent($j("a[href*='battle_monster.php?casuser=']", monsterRow.eq(it)))) {
+                        con.log(2, "No anchors found", it, monsterRow.eq(it), $j("a[href*='battle_monster.php?causer=']", monsterRow.eq(it)));
                         continue;
                     }
 
-                    userId = $u.setContent($j("input[name='casuser']", monsterRow.eq(it)).val(), "0").parseInt();
+                    userId = $u.setContent($j("a[href*='battle_monster.php?casuser=']", monsterRow.eq(it)).attr("href"), 'casuser=0').regex(/casuser=(\d+)/i);
                     if (!$u.hasContent(userId) || userId === 0) {
                         con.log(2, "No userId found");
                         continue;
                     }
                     /*jslint continue: false */
 
-                    userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).text().trim();
-                    tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename();
-                    monsterText = monster.getListName(tempText);
+                    userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).children().eq(0).text().trim();
+                    con.log(3, "Monster userName", userName);
+                    tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename().trim();
+                    con.log(3, "Monster tempText", tempText);
+                    monsterText = monster.getListName(tempText).trim();
+                    con.log(3, "Monster monsterText", monsterText);
                     mName = userName + ' ' + monsterText;
                     con.log(2, "Monster Name", mName);
                     con.log(3, "checkResults_fightList page", page);
@@ -126,8 +129,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monsterReviewed.md5 = md5;
                     monsterReviewed.type = $u.setContent(monsterReviewed.type, '');
                     monsterReviewed.page = "battle_monster";
-                    newInputsDiv = $j("input[name='Attack Dragon']", monsterRow.eq(it));
-                    engageButtonName = newInputsDiv.attr("src").regex(/(collect|engage)/);
+                    newInputsDiv = $j("img[src*='monster_button_collect'],img[src*='monsterlist_button_engage']", monsterRow.eq(it));
+                    engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/(collect|engage)/);
+                    con.log(2, "engageButtonName", engageButtonName);
                     switch (engageButtonName) {
                         case 'collect':
                             monsterReviewed.status = 'Collect Reward';
@@ -139,6 +143,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                             break;
                         case 'complete':
+                            // don't think CA us this image any more :(
+                            // need to see if there is any alternative
                             if (!$u.hasContent(monster.completeButton.battle_monster.md5)) {
                                 monster.completeButton.battle_monster.md5 = $u.setContent(monsterReviewed.md5, '');
                                 monster.completeButton.battle_monster.name = $u.setContent(monsterReviewed.name, '');
@@ -150,10 +156,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                             break;
                         default:
+                            con.warn("Unknown engageButtonName status", engageButtonName);
                     }
 
                     monsterReviewed.hide = true;
-                    monsterReviewed.mpool = $j("input[name='mpool']", monsterRow.eq(it)).val().parseInt();
+                    monsterReviewed.mpool = $u.setContent($j("a[href*='battle_monster.php?mpool=']", monsterRow.eq(it)).attr("href"), 'mpool=0').regex(/mpool=(\d+)/i);
                     monsterInfo = monster.getInfo(monsterReviewed);
                     siege = monsterInfo && monsterInfo.siege ? "&action=doObjective" : '';
                     monsterReviewed.feedLink = "battle_monster.php?casuser=" + monsterReviewed.userId + "&mpool=" + monsterReviewed.mpool;
@@ -185,9 +192,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // Review monsters and find attack and fortify button
+                con.log(2, "buttonsDiv", buttonsDiv);
                 for (it = 0, len = buttonsDiv.length; it < len; it += 1) {
                     // Make links for easy clickin'
                     url = buttonsDiv.eq(it).parent().attr("href");
+                    con.log(2, "url", url);
                     /*jslint continue: true */
                     if (!(url && /user=/.test(url) && (/mpool=/.test(url) || /raid\.php/.test(url)))) {
                         continue;
