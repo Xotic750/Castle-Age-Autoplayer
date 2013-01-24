@@ -419,11 +419,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.GetCurrent = function () {
         try {
-            var //equipDiv = $j("#main_bn", caap.globalContainer),
-            //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
-            //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
-            generalName = $j('div[style*="hot_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // get current general name after CA update // 2011-09-27 CAGE
-            //record = {};
+            var generalName = $j('div[style*="hot_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // get current general name after CA update // 2011-09-27 CAGE
 
             if (!generalName) {
                 generalName = $j('div[id*="generalBox_caap"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // workaround for changing the general box
@@ -837,7 +833,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(temptext)) {
                     general.records[it].eatk = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
                     general.records[it].edef = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
-                    if (general.records[it].eatk > 0 && general.records[it].edef > 0) {
+                    if ($u.isNumber(general.records[it].eatk) && $u.isNumber(general.records[it].edef)) {
                         con.log(2, "General equipped atk/def", general.records[it].eatk, general.records[it].edef);
                         success = true;
                     } else {
