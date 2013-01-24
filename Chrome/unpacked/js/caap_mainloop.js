@@ -499,6 +499,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
+            session.setItem("delayMainCnt", 0);
+
             if (caap.autoIncome()) {
                 caap.checkLastAction('autoIncome');
                 caap.waitMainLoop();
