@@ -16,7 +16,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.heal = function () {
         try {
             var minToHeal = 0,
-                minStamToHeal = 0;
+                minStamToHeal = 0,
+                battleHealth = 0,
+                conquesthealth = 0,
+                highest = 0;
 
             caap.setDivContent('heal_mess', '');
             minToHeal = config.getItem('MinToHeal', 0);
@@ -36,8 +39,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                if ((caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.staminaT.max) && caap.stats.health.num < (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10)) {
+            if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
+                battleHealth = (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10);
+                conquesthealth = (config.getItem('WhenConquest', 'Never') !== 'Never' && config.getItem('ConquestWaitSafeHealth', false) ? 13 : 10);
+                highest = battleHealth >= conquesthealth ? battleHealth : conquesthealth;
+                if ((caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.staminaT.max) && caap.stats.health.num < highest) {
                     con.log(1, 'Heal');
                     return caap.navigateTo('keep,keep_healbtn.gif');
                 }

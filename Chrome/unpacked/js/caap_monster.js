@@ -402,12 +402,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (caap.stats.health.num < 10) {
+                if (battleOrMonster === "Conquest") {
+                    schedule.setItem("conquest_delay_stats", (10 - caap.stats.health.num) *  180, 120);
+                }
+
                 caap.setDivContent(messDiv, "Need health to fight: " + caap.stats.health.num + "/10");
                 return false;
             }
 
-            if (battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false) && caap.stats.health.num < 13) {
-                caap.setDivContent(messDiv, "Unsafe. Need spare health to fight: " + caap.stats.health.num + "/13");
+            if (((battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false)) || (battleOrMonster === "Conquest" && config.getItem("conquestWaitSafeHealth", false))) && caap.stats.health.num < 13) {
+                if (battleOrMonster === "Conquest") {
+                    schedule.setItem("conquest_delay_stats", (13 - caap.stats.health.num) *  180, 120);
+                }
+
+                caap.setDivContent(messDiv, "Unsafe. Need health to fight: " + caap.stats.health.num + "/13");
                 return false;
             }
 

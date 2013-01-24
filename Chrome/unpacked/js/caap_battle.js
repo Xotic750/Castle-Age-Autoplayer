@@ -145,6 +145,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
+            /*
             if (caap.stats.health.num < 10) {
                 con.log(5, 'Health is less than 10: ', caap.stats.health.num);
                 button = null;
@@ -156,6 +157,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 button = null;
                 return false;
             }
+            */
 
             target = battle.getTarget(mode);
             con.log(5, 'Mode/Target', mode, target);
@@ -257,7 +259,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 caap.setDivContent('battle_mess', 'Joining the Raid');
-                // This is a temporary fix for the web3 url until CA fix their HTML
+                // This is a temporary fix for the web3 url until CA fix their HTML (not so temporary :P)
                 if (caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
                     if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
                         button = null;
