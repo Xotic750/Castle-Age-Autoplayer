@@ -634,6 +634,7 @@
     //////////////////////////////////////////////////////
 
     (function (events) {
+	try {
         var f = document.createElement('div'),
             c = f['cloneNode'](true),
             n = document.createTextNode("text"),
@@ -696,6 +697,11 @@
         document.body.removeChild(d);
         removeEvent(d, e, passed);
         d = null;
+	}
+	
+	catch (err) {} 
+
+
     }());
 
     function plural(i) {

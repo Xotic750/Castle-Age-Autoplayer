@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "minimum_chrome_version": "18.0",
     "background": {
-	"page": "background.html"
+    "page": "background.html"
     },
     "browser_action": {
         "default_icon": "icon.png",
@@ -31,6 +31,7 @@
                 "http://web.castleagegame.com/castle/*",
                 "https://web.castleagegame.com/castle/*",
                 "http://www.facebook.com/dialog/apprequests*",
+		"http://apps.facebook.com/fbml/ajax/dialog/apprequests",
                 "https://www.facebook.com/dialog/apprequests*"
             ],
             "js": [
@@ -51,19 +52,18 @@
                 "js/festival.js",
                 "js/feed.js",
                 "js/battle.js",
+                "js/caap_conquestBattle.js",
                 "js/spreadsheet.js",
                 "js/gifting.js",
                 "js/town.js",
                 "js/army.js",
-                
                 "js/caap_base.js",
-                
                 "js/caap_alchemy.js",
                 "js/caap_army.js",
                 "js/caap_autogift.js",
                 "js/caap_autoincome.js",
                 "js/caap_autostat.js",
-                "js/caap_bank.js",        
+                "js/caap_bank.js",
                 "js/caap_battle.js",
                 "js/caap_cta.js",
                 "js/caap_demi.js",
@@ -81,7 +81,7 @@
                 "js/caap_mainloop.js",
                 "js/caap_monster.js",
                 "js/caap_monsterdash.js",
-                "js/caap_navigation.js", 
+                "js/caap_navigation.js",
                 "js/caap_passivegeneral.js",
                 "js/caap_playerrecon.js",
                 "js/caap_potions.js",
@@ -89,7 +89,8 @@
                 "js/caap_start.js",
                 "js/functions.js",
                 "js/begin.js",
-                "js/conquest.js"
+                "js/conquest.js",
+                "js/arena.js"
             ],
             "matches": [
                 "http://*/*",
@@ -123,8 +124,9 @@
         "https://web.castleagegame.com/castle/*",
         "http://www.facebook.com/dialog/apprequests*",
         "https://www.facebook.com/dialog/apprequests*",
-	"http://query.yahooapis.com/v1/public/yql*"
+	"http://apps.facebook.com/fbml/ajax/dialog/apprequests",
+        "http://query.yahooapis.com/v1/public/yql*"
     ],
     "update_url": "https://raw.github.com/magowiz/Castle-Age-Autoplayer/master/Chrome/packed/updates.xml",
-    "version": "141.0.0.105"
+    "version": "141.0.0.159"
 }

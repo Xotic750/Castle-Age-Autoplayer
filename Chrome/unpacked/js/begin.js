@@ -1,7 +1,21 @@
-        /////////////////////////////////////////////////////////////////////
-        //                         Begin
-        /////////////////////////////////////////////////////////////////////
-    function caap_start_all () {
+/*jslint white: true, browser: true, devel: true, undef: true,
+nomen: true, bitwise: true, plusplus: true,
+regexp: true, eqeq: true, newcap: true, forin: false */
+/*global window,escape,jQuery,$j,rison,utility,
+$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
+schedule,gifting,state,army, general,session,monster,guild_monster,
+retryDelay:true,caap_log,top,caap_timeout:true,caap_reload,caapjQuery,caap_DomTimeOut,
+injectScript,caap_WaitForjQuery,$ */
+/*jslint maxlen: 256 */
+
+/////////////////////////////////////////////////////////////////////
+//                         Begin
+/////////////////////////////////////////////////////////////////////
+
+(function () {
+    "use strict";
+
+    function caap_start_all() {
         sessionStorage.removeItem('caap_fbData');
         sessionStorage.removeItem('caap_fbEnv');
         sessionStorage.removeItem('caap_fbFriends');
@@ -21,11 +35,11 @@
             caap.domain.which = -1;
             caap_log('Unknown domain! ' + window.location.href);
         }
-        
+
         //Needclickers fix
         if (window.location.href.indexOf('needclickers=1') >= 0) {
-			return;
-		}
+            return;
+        }
 
         if (window.location.href.indexOf('http://') >= 0) {
             caap.domain.ptype = 0;
@@ -52,7 +66,7 @@
         caap_log('Domain', caap.domain.which, caap.domain.protocol[caap.domain.ptype], caap.domain.url[caap.domain.which]);
         caap.documentTitle = document.title;
         caap_log(window.navigator.userAgent);
-        if (typeof CAAP_SCOPE_RUN !== 'undefined') {
+        if (typeof CAAP_SCOPE_RUN !== "undefined") {
             caap_log('Remote version: ' + CAAP_SCOPE_RUN[0] + ' ' + CAAP_SCOPE_RUN[1] + ' d' + CAAP_SCOPE_RUN[2]);
         }
 
@@ -63,8 +77,10 @@
             injectScript(caap.libs.jQuery);
         }
 
-       $('body').removeClass('center_fixed_width_app');      
-       caap_WaitForjQuery();
+        //$('body').removeClass('center_fixed_width_app');
+        caap_WaitForjQuery();
     }
-    setTimeout(caap_start_all,5000);
 
+    setTimeout(caap_start_all, 5000);
+
+}());
