@@ -46,15 +46,21 @@ function fbLog() {
 }
 
 function getFBEnv() {
-    var inject = document.createElement('script');
+        var inject = document.createElement('script');
 
-    inject.setAttribute('type', 'text/javascript');
-    inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
-    (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
-    (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
+        inject.setAttribute('type', 'text/javascript');
+        inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
+        (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+        (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
 
-    inject = null;
+        if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
+            var kludge = $j("script:contains(envFlush):contains(user)")[0].innerHTML.match(/\({.*}\)/)[0].match(/{.*}/);
+            sessionStorage.setItem('caap_fbEnv', kludge.toString());
+        }
+
+        inject = null;
 }
+
 
 function getFBData() {
     var inject = document.createElement('script');
