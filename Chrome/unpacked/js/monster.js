@@ -1284,7 +1284,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 4,
             partOrder: [4, 3, 2, 1]
         },
-        "abomination": {
+        "Abomination": {
             alpha: true,
             duration: 168,
             hp: 800000000,
