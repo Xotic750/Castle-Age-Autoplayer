@@ -1248,9 +1248,9 @@ con.log(1, "buttonsDiv", buttonsDiv);
                         return true;
                     }
 
-                    if (caap.navigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
+                    if (caap.navigateTo(caap.battlePage + ',raid', 'battle_tab_raid_on.jpg')) {
                         state.setItem('reviewDone', false);
-                        return true;
+                        //return true;
                     }
                 } else {
                     con.log(1, "Raids: Unlock at level 8");
