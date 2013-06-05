@@ -1423,6 +1423,34 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 4,
             partOrder: [4, 3, 2, 1]
         },
+        "Svarog": {
+            alpha: true,
+            duration: 168,
+            hp: 870000000,
+            ach: 1000000,
+            siege: 10,
+            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+            siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small'],
+            fort: true,
+            staUse: 10,
+            staLvl: [0, 100, 200, 500],
+            staMax: [10, 20, 50, 100, 200],
+            nrgMax: [20, 40, 100, 200, 200],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 50, 100, 150],
+            join: [30, 30, 35, 70],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_magmapede_title.jpg'],
+            list_img: ['monster_magmapede_list.jpg'],
+            cta_img: ['cta_magmapede.gif'],
+            bodyparts: 4,
+            partOrder: [4, 3, 2, 1]
+        },
         // http://castleage.wikia.com/wiki/Alperon,_the_Corrupted
         "Alperon": {
             alpha: true,

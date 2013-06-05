@@ -39,7 +39,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (config.getItem('bgRecon', true)) {
                 caap.ajax("battle.php", null, onError, onSuccess);
             } else {
-                if (caap.navigateTo(caap.battlePage, $j("#app_body img[src*='battle_on.gif']").length ? '' : 'battle_on.gif')) {
+                if (caap.navigateTo(caap.battlePage, $j("#app_body img[src*='battle_tab_battle_on.jpg']").length ? '' : 'battle_tab_battle_on.jpg')) {
                     return true;
                 }
             }

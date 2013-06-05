@@ -4702,7 +4702,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_viewFight'
         },
         'raid': {
-            signaturePic: 'tab_raid_on.gif',
+            signaturePic: 'battle_tab_raid_on.jpg',
             CheckResultsFunction: 'checkResults_fightList',
             subpages: ['onRaid']
         },
@@ -4772,7 +4772,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_achievements'
         },
         'battle': {
-            signaturePic: 'battle_on.gif',
+            signaturePic: 'battle_tab_battle_on.jpg',
             CheckResultsFunction: 'checkResults_battle'
         },
         'soldiers': {

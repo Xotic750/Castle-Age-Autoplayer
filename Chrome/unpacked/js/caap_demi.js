@@ -83,7 +83,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (schedule.check("battle")) {
-                if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
                     return true;
                 }
             }
