@@ -193,7 +193,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // Review monsters and find attack and fortify button
-con.log(1, "buttonsDiv", buttonsDiv);
+
                 con.log(2, "buttonsDiv", buttonsDiv);
                 for (it = 0, len = buttonsDiv.length; it < len; it += 1) {
                     // Make links for easy clickin'
@@ -1240,7 +1240,7 @@ con.log(1, "buttonsDiv", buttonsDiv);
                 if (caap.stats.level > 7) {
                     // This is a temporary fix for the web3 url until CA fix their HTML
                     if (caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
-                        if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
+                        if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
                             return true;
                         }
 

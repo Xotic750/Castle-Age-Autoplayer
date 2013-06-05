@@ -51,7 +51,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
             caap.setDomWaiting();
             var evt = document.createEvent("MouseEvents"),
-				bRet;
+                bRet;
 
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
@@ -61,8 +61,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             the value is false, else the value is true.
             */
 
-			bRet = !(obj.jquery ? obj.get(0) : obj).dispatchEvent(evt);
-			evt = null;
+            bRet = !(obj.jquery ? obj.get(0) : obj).dispatchEvent(evt);
+            evt = null;
 
             return bRet;
         } catch (err) {
@@ -185,8 +185,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.warn('Unable to Navigate to', imageOnPage, pathToPage);
 
             newwebSlice = null;
-			pathList = null;
-			jq = null;
+            pathList = null;
+            jq = null;
 
             return false;
         } catch (err) {

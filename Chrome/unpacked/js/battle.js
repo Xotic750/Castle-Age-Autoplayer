@@ -784,17 +784,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'Duel5': 'raid_attack_button4.gif',
             'regex1': new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
             'refresh': 'raid',
-            'image': 'tab_raid_on.gif'
+            'image': 'battle_tab_raid_on.jpg'
         },
         'Freshmeat': {
-            'Invade': 'battle_01.gif',
-            'Duel': 'battle_02.gif',
-            'War': 'war_button_duel.gif',
+            'Invade': 'battle_btn_invade.gif',
+            'Duel': 'battle_btn_duel.gif',
+            'War': 'battle_btn_war.gif',
             'regex1': new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             'regex2': new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             'warLevel': true,
-            'refresh': 'battle_on.gif',
-            'image': 'battle_on.gif'
+            'refresh': 'battle_tab_battle_on.jpg',
+            'image': 'battle_tab_battle_on.jpg'
         }
     };
 
@@ -1462,7 +1462,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.navigateTo(caap.battlePage + ',raid');
                 }
             } else {
-                caap.navigateTo(caap.battlePage + ',battle_on.gif');
+                caap.navigateTo(caap.battlePage + ',battle_tab_battle_on.jpg');
             }
 
             inputDiv = null;

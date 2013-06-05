@@ -261,7 +261,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('battle_mess', 'Joining the Raid');
                 // This is a temporary fix for the web3 url until CA fix their HTML (not so temporary :P)
                 if (caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
-                    if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
+                    if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
                         button = null;
                         return true;
                     }
@@ -271,7 +271,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (caap.navigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
+                if (caap.navigateTo(caap.battlePage + ',raid', 'battle_tab_raid_on.jpg')) {
                     button = null;
                     return true;
                 }
@@ -354,7 +354,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
                     button = null;
                     return true;
                 }
@@ -417,7 +417,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (caap.navigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
                     return true;
                 }
 
