@@ -5322,19 +5322,20 @@ con.log (1, "healthListener", caap.stats);
 
             // gold
             if ($u.hasContent(tempDiv)) {
-                var tmpVal = $u.setContent($u.setContent(tempDiv.text(), ''), 0);
+                var tmpMultiplier = 1, tmpVal = $u.setContent($u.setContent(tempDiv.text(), ''), 0);
 
                 switch (tmpVal.replace ("$","").replace (tmpVal.numberOnly(), '')) {
                     case 'M':
-                        tmpVal = tmpVal.numberOnly() * 1000000
+                        tmpMultiplier = 1000000;
                     break
                     case 'B':
-                        tmpVal = tmpVal.numberOnly() * 1000000000
+                        tmpMultiplier = 1000000000;
                     break
                     case 'T':
-                        tmpVal = tmpVal.numberOnly() * 1000000000000
+                        tmpMultiplier = 1000000000000;
                     break
                 }
+                tmpVal = tmpVal.numberOnly() * tmpMultiplier;
 
     //disabled for now
 //                caap.stats.gold.cash = tmpVal;
