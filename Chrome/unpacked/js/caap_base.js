@@ -4383,7 +4383,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.energyListener = function (e) {
         var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
-con.log(1, "energy listener", e, $j(e.target).text(), num);
+	con.log(1, "energy listener", e, $j(e.target).text(), num);
         if (num < 0 || $u.isNaN(num)) {
             return;
         }
@@ -5435,6 +5435,7 @@ con.log(1, "healthListener", caap.stats);
                 $j().alert("<div style='text-align: center;'>" + con.warn("Paused as this account may have been disabled!", caap.stats) + "</div>");
                 caap.pauseListener();
             }
+
 con.log(1, "caap.stats", caap.stats);
             ststbDiv = null;
             bntpDiv = null;
@@ -9096,7 +9097,7 @@ con.log(1, "caap.stats", caap.stats);
             }
 
             con.log(2, "Checking Monster Class to get Character Class Stats");
-            return caap.navigateTo('monster_summon_list,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+            return caap.navigateTo('player_monster_list,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
             con.error("ERROR in checkCharacterClasses: " + err);
             return false;

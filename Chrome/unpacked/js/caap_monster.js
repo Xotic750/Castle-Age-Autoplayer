@@ -71,7 +71,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 monsterRow = $j("#app_body div[style*='monsterlist_container2.gif'], div[style*='conq2_monster_list.jpg']"),
                 monsterFull = '',
                 monsterInfo = {},
-                summonDiv = $j("#app_body img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : "")),
                 tempText = '',
                 monsterText = '',
                 userId = 0,
@@ -84,11 +83,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monster.clean();
 
             // get all buttons to check monsterObjectList
-            if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
+            if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
                 con.log(2, "No buttons found");
                 buttonsDiv = null;
                 monsterRow = null;
-                summonDiv = null;
                 newInputsDiv = null;
                 return false;
             }
@@ -129,8 +127,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monsterReviewed.userId = userId;
                     monsterReviewed.md5 = md5;
                     monsterReviewed.type = $u.setContent(monsterReviewed.type, '');
-                    monsterReviewed.page = 'player_monster_list';
-                    newInputsDiv = $j("img[src*='list_btn_collect'],img[src*='list_btn_atk']", monsterRow.eq(it));
+                    monsterReviewed.page = "battle_monster";
+                    newInputsDiv = $j("img[src*='monster_button_collect'],img[src*='monsterlist_button_engage']", monsterRow.eq(it));
                     engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/(collect|atk)/);
                     con.log(2, "engageButtonName", engageButtonName);
                     switch (engageButtonName) {
@@ -177,7 +175,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     state.setItem('reviewDone', true);
                     buttonsDiv = null;
                     monsterRow = null;
-                    summonDiv = null;
                     newInputsDiv = null;
                     return true;
                 }
@@ -188,7 +185,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "On another player's keep.", pageUserCheck);
                     buttonsDiv = null;
                     monsterRow = null;
-                    summonDiv = null;
                     newInputsDiv = null;
                     return false;
                 }
@@ -269,7 +265,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     state.setItem('reviewDone', true);
                     buttonsDiv = null;
                     monsterRow = null;
-                    summonDiv = null;
                     newInputsDiv = null;
                     return true;
                 }
@@ -280,7 +275,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "On another player's keep.", pageUserCheck);
                     buttonsDiv = null;
                     monsterRow = null;
-                    summonDiv = null;
                     newInputsDiv = null;
                     return false;
                 }
@@ -382,7 +376,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.updateDashboard(true);
             buttonsDiv = null;
             monsterRow = null;
-            summonDiv = null;
             newInputsDiv = null;
             return true;
         } catch (err) {
