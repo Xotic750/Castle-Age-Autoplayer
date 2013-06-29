@@ -4383,14 +4383,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.energyListener = function (e) {
         var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
-con.log (1, "energy listener", e, $j(e.target).text(), num);
         if (num < 0 || $u.isNaN(num)) {
             return;
         }
 
         caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
         caap.stats.energyT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energyT.max), caap.stats.energy);
-con.log (1, "done listener", caap.stats.energy, caap.stats.energyT);
         con.log(3, "energyListener", num);
     };
 
@@ -4409,14 +4407,12 @@ con.log (1, "done listener", caap.stats.energy, caap.stats.energyT);
 
     caap.healthListener = function (e) {
         var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
-con.log (1, "health e", e, $j(e.target).text(), num);
         if (num < 0 || $u.isNaN(num)) {
             return;
         }
 
         caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
         caap.stats.healthT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.healthT.max), caap.stats.healthT);
-con.log (1, "healthListener", caap.stats);
         con.log(3, "healthListener", num);
     };
 
@@ -5452,7 +5448,7 @@ caap.stats.gold.cash = 0;
                 $j().alert("<div style='text-align: center;'>" + con.warn("Paused as this account may have been disabled!", caap.stats) + "</div>");
                 caap.pauseListener();
             }
-con.log (1, "caap.stats", caap.stats);
+
             ststbDiv = null;
             bntpDiv = null;
             tempDiv = null;
