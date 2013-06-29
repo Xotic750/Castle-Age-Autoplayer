@@ -5323,7 +5323,7 @@ con.log(1, "healthListener", caap.stats);
             // gold
             tempDiv = $j('#gold_current_value_amount', ststbDiv);
             if ($u.hasContent(tempDiv)) {
-                caap.stats.gold.cash = tempDiv.val();
+                caap.stats.gold.cash = parseInt(tempDiv.val(),10);
             } else {
                 con.warn("Unable to get cashDiv");
                 passed = false;
