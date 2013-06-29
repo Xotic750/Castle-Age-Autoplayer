@@ -9109,7 +9109,7 @@ caap.stats.gold.cash = 0;
             }
 
             con.log(2, "Checking Monster Class to get Character Class Stats");
-            return caap.navigateTo('keep,battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+            return caap.navigateTo('player_monster_list,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
             con.error("ERROR in checkCharacterClasses: " + err);
             return false;
