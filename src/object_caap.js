@@ -1,4 +1,3 @@
-
     ////////////////////////////////////////////////////////////////////
     //                          caap OBJECT
     // this is the main object for the game, containing all methods, globals, etc.
@@ -1583,7 +1582,7 @@
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
                 if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                    FBID = $u.setContent(caap.fbEnv.user, 0);
+                    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
                     aName = $j('#navAccountName').text();
                 } else {
                     FBID = $u.setContent(caap.fbData.me.uid, '0').parseInt();
@@ -2437,7 +2436,8 @@
             'Water II',
             'Mist II',
             'Mist III',
-            'Fire II'
+            'Fire II',
+            'Pangaea'
         ],
 
         demiQuestList: [
@@ -7347,6 +7347,7 @@
                         pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+                        case 'tab_pangaea':
                         case 'tab_fire2':
                         case 'tab_mist3':
                         case 'tab_mist2':

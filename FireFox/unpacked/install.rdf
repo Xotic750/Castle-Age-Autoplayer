@@ -2,7 +2,7 @@
 <RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
   <Description about="urn:mozilla:install-manifest">
     <em:id>jid0-GksSWwIBBInT83120TqnPAqcb7s@jetpack</em:id>
-    <em:version>141.0.0.7</em:version>
+    <em:version>141.0.0.15</em:version>
     <em:type>2</em:type>
     <em:bootstrap>true</em:bootstrap>
     <em:unpack>true</em:unpack>
@@ -19,7 +19,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>3.5</em:minVersion>
-        <em:maxVersion>5.*</em:maxVersion>
+        <em:maxVersion>10.*</em:maxVersion>
       </Description>
     </em:targetApplication>
 
@@ -31,6 +31,6 @@
     <em:icon64URL/>
     <em:optionsURL/>
     <em:homepageURL>http://code.google.com/p/castle-age-auto-player/</em:homepageURL>
-    <em:updateURL>https://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/update.rdf</em:updateURL>
+    <em:updateURL>https://raw.github.com/magowiz/Castle-Age-Autoplayer/master/FireFox/update.rdf</em:updateURL>
   </Description>
 </RDF>
