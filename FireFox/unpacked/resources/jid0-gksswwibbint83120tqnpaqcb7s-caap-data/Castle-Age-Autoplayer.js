@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            7
+// @dev            14
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 
 (function () {
     var caapVersion   = "141.0.0",
-        devVersion    = "7",
+        devVersion    = "15",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -20366,7 +20366,7 @@
             n: "Caine",
             a: 19,
             d: 19,
-            i: "+1% Damage for 1M gold per stamina",
+            i: "+1% Damage for 400k gold per stamina",
             p: "hero_caine",
             e: [{
                 b: 168,
@@ -20393,7 +20393,185 @@
                 p: "eq_caine_shield",
                 t: 4
             }]
-        }]
+        }
+
+, 
+
+
+
+
+{
+            b: 171,
+            n: "Ephraline",
+            a: 20,
+            d: 18,
+            i: "+1% Confuse effect +2% chance",
+            p: "hero_ephraline",
+            e: [{
+                b: 172,
+                n: "Phantasmal Brooch",
+                a: 16,
+                d: 13,
+                i: "+2 Defense to Ephraline",
+                p: "eq_ephraline_amulet",
+                t: 2
+            }, {
+                b: 173,
+                n: "Mystical Illusion",
+                a: 15,
+                d: 18,
+                i: "+1 Attack to Ephraline",
+                p: "eq_ephraline_spell",
+                t: 9
+            }, {
+                b: 174,
+                n: "Conjurers Wand",
+                a: 19,
+                d: 22,
+                i: "+1 Attack to Ephraline",
+                p: "eq_ephraline_weapon",
+                t: 3
+            }]
+        },
+
+
+{
+            b: 177,
+            n: "Rafaria",
+            a: 21,
+            d: 17,
+            i: "Wound/Lacerate takes off 10 more health",
+            p: "hero_rafaria",
+            e: [{
+                b: 178,
+                n: "Terror Pendant",
+                a: 17,
+                d: 13,
+                i: "+1 Defense to Rafaria",
+                p: "eq_rafaria_amulet",
+                t: 2
+            }, {
+                b: 179,
+                n: "Shadowclasp Cloak",
+                a: 19,
+                d: 22,
+                i: "+1 Defense to Rafaria",
+                p: "eq_rafaria_armor",
+                t: 6
+            }, {
+                b: 180,
+                n: "Shadow Slicer",
+                a: 23,
+                d: 18,
+                i: "+1 Attack to Rafaria",
+                p: "eq_rafaria_weapon",
+                t: 3
+            }]
+        },
+
+{
+            b: 181,
+            n: "Joan",
+            a: 17,
+            d: 22,
+            i: "Sentinel/Guardian Protects 12 more health & Resists 2 more damage",
+            p: "hero_joan",
+            e: [{
+                b: 182,
+                n: "Breaker Lance",
+                a: 18,
+                d: 24,
+                i: "+2 Attack to Joan",
+                p: "eq_joan_weapon",
+                t: 3
+            }, {
+                b: 183,
+                n: "Commander Helm",
+                a: 14,
+                d: 21,
+                i: "+1 Defense to Joan",
+                p: "eq_joan_helm",
+                t: 5
+            }, {
+                b: 184,
+                n: "Crusader's Regalia",
+                a: 19,
+                d: 25,
+                i: "+1 Defense to Joan",
+                p: "eq_joan_armor",
+                t: 6
+            }]
+        },
+
+{
+            b: 185,
+            n: "Tefaera",
+            a: 18,
+            d: 23,
+            i: "Revive/Resurrect restores 10 more health",
+            p: "hero_tefaera",
+            e: [{
+                b: 186,
+                n: "Staff of Prayers",
+                a: 19,
+                d: 23,
+                i: "+2 Attack to Tefaera",
+                p: "eq_tefaera_weapon",
+                t: 3
+            }, {
+                b: 187,
+                n: "Circlet of Light",
+                a: 16,
+                d: 19,
+                i: "+1 Defense to Tefaera",
+                p: "eq_tefaera_helm",
+                t: 5
+            }, {
+                b: 188,
+                n: "Praetor's Seal",
+                a: 14,
+                d: 15,
+                i: "+1 Defense to Tefaera",
+                p: "eq_tefaera_amulet",
+                t: 2
+            }]
+        },
+{
+            b: 189,
+            n: "Xelia",
+            a: 22,
+            d: 18,
+            i: "Illusion/Mirror Image 2.5% less likely to be dispelled when defeated",
+            p: "hero_xelia",
+            e: [{
+                b: 190,
+                n: "Deceiver's Wand",
+                a: 23,
+                d: 19,
+                i: "+1 Defense to Xelia",
+                p: "eq_xelia_weapon",
+                t: 3
+            }, {
+                b: 191,
+                n: "Phanstasmal Armguards",
+                a: 12,
+                d: 12,
+                i: "+1 Defense to Xelia",
+                p: "eq_xelia_gauntlet",
+                t: 7
+            }, {
+                b: 192,
+                n: "Signet from Beyond",
+                a: 15,
+                d: 14,
+                i: "+2 Attack to Xelia",
+                p: "eq_xelia_ring",
+                t: 2
+            }]
+        }
+
+
+]
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -21208,16 +21386,17 @@
         /*jslint sub: true */
         GetCurrent: function () {
             try {
-                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", caap.globalContainer),
-                    nameObj     = $j(".general_name_div3", equipDiv),
-                    generalName = $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, ''),
+                var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
+                    //nameObj = $u.setContent(equipDiv.text(), '').trim().stripTRN().replace(/\s+/g, '|'),  // not needed // 2011-09-27 CAGE
+                    //generalName = nameObj.split("|")[1]; // not needed // 2011-09-27 CAGE
+										generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(), // get current general name after CA update // 2011-09-27 CAGE
                     record      = {};
 
                 if (!generalName) {
                     con.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
                 }
-
+//  this will always fail because the charged bar doesn't display anymore, need to find a better way
                 record = general.getItem(generalName);
                 if (record['coolDown'] && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
                     record['charge'] = 0;
@@ -21234,7 +21413,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -21255,10 +21434,10 @@
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
-                            tempObj    = $j(".general_name_div3", container);
+                            tempObj    = $j("div.general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
+                            name = tempObj.text().trim();  // Should fix the Generals problem
                         } else {
                             con.warn("Unable to find 'name' container", index);
                         }
@@ -21285,7 +21464,7 @@
                         }
 
                         tempObj = $j("div[style*='train_progress.jpg']", container);
-                        if ($u.hasContent(tempObj)) {
+                        if (($u.hasContent(tempObj)) || container.text().indexOf('Charged!') !== -1){
                             coolDown = true;
                             charge = $u.setContent(tempObj.getPercent("width"), 0);
                         } else {
@@ -21558,7 +21737,8 @@
                 var generalName  = general.GetCurrent(),
                     it           = 0,
                     len          = 0,
-                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
+//                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
+                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     tempObj      = $j(),
                     success      = false;
 
@@ -21578,6 +21758,17 @@
                     return false;
                 }
 
+// just dummying this for now so there are no errors
+general.records[it]['eapi'] = 10;
+general.records[it]['edpi'] = 10;
+general.records[it]['empi'] = 10;
+general.records[it]['energyMax'] = caap.stats['energyT']['max'];
+general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
+general.records[it]['healthMax'] = caap.stats['healthT']['max'];
+general.records[it]['last'] = Date.now();
+general.save();
+
+/*
                 if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                     tempObj = generalDiv.eq(0);
                     if ($u.hasContent(tempObj)) {
@@ -21609,7 +21800,7 @@
                 } else {
                     con.warn("Unable to get equipped 'General' divs");
                 }
-
+*/
                 return general.records[it];
             } catch (err) {
                 con.error("ERROR in general.GetEquippedStats: " + err);
@@ -22940,6 +23131,63 @@
                 newbg_img    : ['monster_header_chimera.jpg'],
                 list_img     : ['monster_chimera_list.jpg'],
                 cta_img      : ['cta_typhonus.gif']
+            },
+            "Malekus" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 640000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 43600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                newbg_img    : ['boss_header_malekus.jpg'],
+                list_img     : ['boss_malekus_list.jpg'],
+                cta_img      : ['cta_malekus.gif']
+		},
+
+            "Vermilion" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 350000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic World',
+                mpool        : 3,
+                newbg_img    : ['monster_vermilion_header.jpg'],
+                list_img     : ['monster_vermilion_list.jpg'],
+                cta_img      : ['cta_vermilion.gif'] 
             }
         },
 
@@ -23758,11 +24006,12 @@
         confirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
+                    var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     tempDiv     = $j(),
                     tempText    = '',
                     fMonstStyle = '',
                     nMonstStyle = '',
+		    nMonstStyle2 = '',	
                     feedMonster = '',
                     userName    = '',
                     mName       = '',
@@ -23778,8 +24027,9 @@
                         tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                     } else {
                         nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg)/);
-                        con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
-                        if ($u.hasContent(nMonstStyle)) {
+			nMonstStyle2 = monsterDiv.attr("style").regex(/(monster_\S+\_header.jpg)/);                        
+			con.log(2, "confirmRightPage nMonstStyle", nMonstStyle);
+                        if ($u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
                             tempText = $u.setContent(monsterDiv.children(":eq(1)").children(":eq(1)").text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
                         } else {
                             tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
@@ -34358,8 +34608,11 @@ con.log(1, 'chooseFriend');
                     params = $u.isArray(params) ? params[0] : params;
                     session.setItem("signedRequest", params);
                     con.log(2, "Ajax signed request available");
-                    caap.showRequestForm = "showRequestForm = " + caap.showRequestForm.replace(/SIGNED_REQUEST/gm, params);
-                    $u.injectScript(caap.showRequestForm, true);
+                    // disabled this because it causes gifts to be already collected.
+
+//                    caap.showRequestForm = "showRequestForm = " + caap.showRequestForm.replace(/SIGNED_REQUEST/gm, params);
+
+//                    $u.injectScript(caap.showRequestForm, true);
                 } else {
                     con.warn("caap.signedRequest is empty");
                 }
@@ -35047,7 +35300,7 @@ con.log(1, 'chooseFriend');
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
                 if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                    FBID = $u.setContent(caap.fbEnv.user, 0);
+                    FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
                     aName = $j('#navAccountName').text();
                 } else {
                     FBID = $u.setContent(caap.fbData.me.uid, '0').parseInt();
@@ -35901,7 +36154,9 @@ con.log(1, 'chooseFriend');
             'Water II',
             'Mist II',
             'Mist III',
-            'Fire II'
+	    'Fire II',
+            'Pangaea',
+            'Perdition'
         ],
 
         demiQuestList: [
@@ -40617,12 +40872,32 @@ con.log(1, 'chooseFriend');
             'Fire II' : {
                 clas : 'quests_stage_14',
                 base : 'tab_fire2',
-                next : 'DemiChange',
+                next : 'Pangaea',
                 area : '',
                 list : '',
                 boss : "Ambrosia",
                 orb  : 'Orb of Ambrosia'
             },
+ 	   'Pangaea' : {
+                clas : 'quests_stage_15',
+                base : 'tab_pangaea',
+                next : 'Perdition',
+                area : '',
+                list : '',
+                boss : "Malekus",
+                orb  : 'Orb of Malekus'
+            },
+
+           'Perdition' : {
+                clas : 'quests_stage_16',
+                base : 'tab_perdition',
+                next : 'DemiChange',
+                area : '',
+                list : '',
+                boss : "Azeron",
+                orb  : 'Orb of Azeron'
+            },
+
             'DemiChange' : {
                 clas : 'symbolquests_stage_1',
                 next : 'Ambrosia',
@@ -40811,6 +41086,7 @@ con.log(1, 'chooseFriend');
                         pathToPage = 'quests,jobs_tab_more.gif,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+			case 'tab_pangaea':
                         case 'tab_fire2':
                         case 'tab_mist3':
                         case 'tab_mist2':
@@ -43771,7 +44047,8 @@ con.log(1, 'chooseFriend');
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+                    //                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),
+		    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='boss_header_']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice),	
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
@@ -43781,6 +44058,7 @@ con.log(1, 'chooseFriend');
                     tBool             = false,
                     fMonstStyle       = '',
                     nMonstStyle       = '',
+		    nMonstStyle2      = '',	
                     id                = 0,
                     userName          = '',
                     mName             = '',
@@ -43857,15 +44135,22 @@ con.log(1, 'chooseFriend');
                     con.log(2, "fMonstStyle", fMonstStyle);
                     if (!$u.hasContent(fMonstStyle)) {
                         nMonstStyle = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header_\\S+\\.jpg)"));
+			nMonstStyle2 = monsterDiv.attr("style").regex(new RegExp(".+\\/(.+_header.jpg)"));
                         con.log(2, "nMonstStyle", nMonstStyle);
                     }
 
-                    if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle)) {
+                    if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle) || $u.hasContent(nMonstStyle2)) {
                         tempDiv = monsterDiv.find(":contains('summoned'):last,:contains('Summoned'):last");
                         if ($u.hasContent(fMonstStyle)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/summoned/i, monster.getFestName(fMonstStyle));
                         } else {
+			 if ($u.hasContent(nMonstStyle)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle));
+			} else {
+
++                                tempText = $u.setContent(tempDiv.text(), '').trim().innerTrim().replace(/ summoned/i, "'s " + monster.getNewName(nMonstStyle2));
+
++                            }
                         }
                     } else {
                         // old pages - shouldn't exist any more
@@ -44038,9 +44323,10 @@ con.log(1, 'chooseFriend');
                             tStr = $j("input[name='mid']", ctaDiv).attr("value");
                             currentMonster['feedLink'] += $u.hasContent(tStr) ? '&mid=' + tStr : '';
                             con.log(2, "Set monster feedLink", currentMonster['feedLink']);
-                            if (config.getItem("DebugLevel", 1) > 1) {
+                            /*if (config.getItem("DebugLevel", 1) > 1) {
                                 $j().alert("Set monster feedLink<br />" + currentMonster['feedLink']);
                             }
+				*/
                         }
                     }
                 }
@@ -44947,7 +45233,7 @@ con.log(1, 'chooseFriend');
                 }
 
                 // Check if on engage monster page
-                if ($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
+                if ($u.hasContent($j("div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_header'],div[style*='festival_monsters_top_']", caap.appBodyDiv))) {
                     if (monster.confirmRightPage(monsterName)) {
                         return true;
                     }
@@ -48070,10 +48356,10 @@ con.log(1, 'chooseFriend');
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
     }
 
-    function getFBData() {
+   function getFBData() {
         var inject = document.createElement('script');
         inject.setAttribute('type', 'text/javascript');
-        inject.textContent = "(function () {FB.api('/me', function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getSession()}));});})();";
+        inject.textContent = "(function () {FB.api('/me', function (r) {sessionStorage.setItem('caap_fbData', JSON.stringify({me: r,session: FB.getAuthResponse()}));});})();";
         (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
     }
@@ -48207,7 +48493,7 @@ con.log(1, 'chooseFriend');
                 caap_log("Inject jQueryUI.");
                 injectScript(caap.libs.jQueryUI);
             }
-
+			$j('div.fixedAux').remove(); // removes sidebar stuff from fb as it could overlap with CAAP sidebar // 2011-09-27 CAGE
             caap_WaitForjQueryUI();
         } else {
             caap_log("Waiting for jQuery ...");
@@ -48273,9 +48559,10 @@ con.log(1, 'chooseFriend');
     if (!window.jQuery || window.jQuery().jquery !== "1.6.2") {
         caap_log("Inject jQuery");
         injectScript(caap.libs.jQuery);
-    }
-
+    }	
+    
     caap_WaitForjQuery();
+
 }());
 
 // ENDOFSCRIPT

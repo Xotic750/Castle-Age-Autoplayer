@@ -1,6 +1,6 @@
-content caap resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/ appversion<4.0b7
-content caap resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/ contentaccessible=yes appversion<4.0b7
-overlay chrome://browser/content/browser.xul chrome://caap/content/original/browser.xul appversion<4.0b7
-locale caap en-GB locale/en-GB/ appversion<4.0b7
-skin caap classic/1.0 skin/ appversion<4.0b7
-style chrome://global/content/customizeToolbar.xul chrome://caap/skin/skin.css appversion<4.0b7
+content caap resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/ appversion<=7.0.1
+content caap resources/jid0-gksswwibbint83120tqnpaqcb7s-caap-data/ contentaccessible=yes appversion<=7.0.1
+overlay chrome://browser/content/browser.xul chrome://caap/content/original/browser.xul appversion<=7.0.1
+locale caap en-GB locale/en-GB/ appversion<=7.0.1
+skin caap classic/1.0 skin/ appversion<=7.0.1
+style chrome://global/content/customizeToolbar.xul chrome://caap/skin/skin.css appversion<=7.0.1
