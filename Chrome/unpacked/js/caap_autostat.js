@@ -300,7 +300,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            atributeSlice = $j("#app_body div[style*='keep_cont_top.jpg']");
+            atributeSlice = $j("#app_body div[style*='keep_bgv2.jpg']");
             if (!$u.hasContent(atributeSlice)) {
                 caap.navigateTo('keep');
                 atributeSlice = null;

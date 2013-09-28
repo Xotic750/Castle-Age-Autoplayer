@@ -5429,7 +5429,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var attrDiv = $j("#app_body #keepAltStats"),
                 statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
                 //keepTable1 = $j("#app_body .keepTable1 tr"),
-                statCont = $j("#app_body div[style*='keep_cont_top.jpg']>div>div>div"),
+                statCont = $j("#app_body div[style*='keep_bgv2.jpg']>div>div>div"),
                 backgroundDiv = $j(),
                 tempDiv = $j(),
                 temp,
