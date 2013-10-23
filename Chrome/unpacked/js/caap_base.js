@@ -6485,7 +6485,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Demon Realm',
             area: '',
             list: '',
-            boss: 'A Look into the Darkness',
+            boss: 'A Look into the Darkness',		// mission name where boss is found, not name of boss
             orb: 'Orb of Mephistopheles'
         },
         'Demon Realm': {
@@ -6494,7 +6494,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Undead Realm',
             area: '',
             list: '',
-            boss: 'The Rift',
+            boss: 'The Rift',						// mission name where boss is found, not name of boss
             orb: 'Orb of Keira'
         },
         'Undead Realm': {
@@ -6503,7 +6503,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Underworld',
             area: '',
             list: '',
-            boss: 'Undead Embrace',
+            boss: 'Undead Embrace',					// mission name where boss is found, not name of boss
             orb: 'Lotus Orb'
         },
         'Underworld': {
@@ -6512,7 +6512,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Kingdom of Heaven',
             area: '',
             list: '',
-            boss: 'Confrontation',
+            boss: 'Confrontation',					// mission name where boss is found, not name of boss
             orb: 'Orb of Skaar Deathrune'
         },
         'Kingdom of Heaven': {
@@ -6521,7 +6521,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Ivory City',
             area: '',
             list: '',
-            boss: 'Archangels Wrath',
+            boss: 'Archangels Wrath',				// mission name where boss is found, not name of boss
             orb: 'Orb of Azriel'
         },
         'Ivory City': {
@@ -6530,7 +6530,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Earth II',
             area: '',
             list: '',
-            boss: 'Entrance to the Throne',
+            boss: 'Entrance to the Throne',			// mission name where boss is found, not name of boss
             orb: 'Orb of Alpha Mephistopheles'
         },
         'Earth II': {
@@ -6539,7 +6539,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Water II',
             area: '',
             list: '',
-            boss: "Lion's Rebellion",
+            boss: 'The Rebel Leader',				// mission name where boss is found, not name of boss
             orb: 'Orb of Aurelius'
         },
         'Water II': {
@@ -6548,7 +6548,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Mist II',
             area: '',
             list: '',
-            boss: "Corvintheus",
+            boss: 'The Demi-God',					// mission name where boss is found, not name of boss
             orb: 'Orb of Corvintheus'
         },
         'Mist II': {
@@ -6557,7 +6557,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Mist III',
             area: '',
             list: '',
-            boss: "Jahanna",
+            boss: 'The Source',						// mission name where boss is found, not name of boss
             orb: 'Orb of Jahanna'
         },
         'Mist III': {
@@ -6566,7 +6566,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Fire II',
             area: '',
             list: '',
-            boss: "Aurora",
+            boss: 'Aurora, the Life Demi-Goddess',	// mission name where boss is found, not name of boss
             orb: 'Orb of Aurora'
         },
         'Fire II': {
@@ -6575,7 +6575,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Pangaea',
             area: '',
             list: '',
-            boss: "Ambrosia",
+            boss: 'A Mighty Figure',				// mission name where boss is found, not name of boss
             orb: 'Orb of Ambrosia'
         },
         'Pangaea': {
@@ -6584,7 +6584,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Perdition',
             area: '',
             list: '',
-            boss: "Malekus",
+            boss: 'Face Off',						// mission name where boss is found, not name of boss
             orb: 'Orb of Malekus'
         },
         'Perdition': {
@@ -6593,7 +6593,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Fire III',
             area: '',
             list: '',
-            boss: "Azeron",
+            boss: 'Redemption',						// mission name where boss is found, not name of boss
             orb: 'Orb of Azeron'
         },
         'Land of Fire III': {
@@ -6602,7 +6602,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Earth III',
             area: '',
             list: '',
-            boss: "Fenix",
+            boss: 'The Great Phoenix',				// mission name where boss is found, not name of boss
             orb: 'Orb of Fenix'
         },
         'Land of Earth III': {
@@ -6611,7 +6611,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Mist IV',
             area: '',
             list: '',
-            boss: "Urmek",
+            boss: 'Wrath of Urmek',					// mission name where boss is found, not name of boss
             orb: 'Orb of Urmek'
         },
         'Land of Mist IV': {
@@ -6620,7 +6620,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Water III',
             area: '',
             list: '',
-            boss: "Vorak",
+            boss: 'Devourer of the Skies',			// mission name where boss is found, not name of boss
             orb: 'Orb of Vorak'
         },
         'Land of Water III': {
@@ -6629,7 +6629,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Undead II',
             area: '',
             list: '',
-            boss: "Baal",
+            boss: 'Baal, Stealer of Souls',			// mission name where boss is found, not name of boss
             orb: 'Orb of Baal'
         },
         'Undead II': {
@@ -6638,7 +6638,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Outer Realms',
             area: '',
             list: '',
-            boss: "Death",
+            boss: 'Aspect of Death',				// mission name where boss is found, not name of boss
             orb: 'Orb of Death'
         },
         'Outer Realms': {
@@ -6647,7 +6647,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'DemiChange',
             area: '',
             list: '',
-            boss: "Cassandra",
+            boss: 'Medusas Throne',					// mission name where boss is found, not name of boss
             orb: 'Orb of Cassandra'
         },
 
@@ -6895,6 +6895,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         pathToPage = 'quests,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+                        	case 'tab_outer':
+                                pathToPage += '_small.jpg';
+                                imageOnPage += '_big.jpg';
+                                break;
+                        	case 'tab_undead2':
                             case 'tab_water3':
                             case 'tab_mist4':
                             case 'tab_earth3':
@@ -6908,20 +6913,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             case 'tab_earth2':
                             case 'tab_ivory':
                             case 'tab_underworld':
-                            case 'tab_undead2':
                                 pathToPage += '_small.gif';
                                 imageOnPage += '_big.gif';
                                 break;
                             case 'tab_heaven':
                                 pathToPage += '_small2.gif';
                                 imageOnPage += '_big2.gif';
-
                                 break;
                             case 'land_undead_realm':
                             case 'land_demon_realm':
                                 pathToPage += '.gif';
                                 imageOnPage += '_sel.gif';
-
                                 break;
                             default:
                                 pathToPage = 'quests,jobs_tab_back.gif,' + landPic + '.gif';
