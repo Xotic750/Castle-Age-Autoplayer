@@ -2256,7 +2256,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Land of Earth III',
         'Land of Mist IV',
         'Land of Water III',
-        'Undead II'
+        'Undead II',
+        'Outer Realms'
     ];
 
     caap.demiQuestList = ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'];
@@ -6634,11 +6635,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Undead II': {
             clas: 'quests_stage_21',
             base: 'tab_undead2',
+            next: 'Outer Realms',
+            area: '',
+            list: '',
+            boss: "Death",
+            orb: 'Orb of Death'
+        },
+        'Outer Realms': {
+            clas: 'quests_stage_22',
+            base: 'tab_outer',
             next: 'DemiChange',
             area: '',
             list: '',
-            boss: 'Aspect of Death',
-            orb: 'Orb of Deathl'
+            boss: "Cassandra",
+            orb: 'Orb of Cassandra'
         },
 
         'DemiChange': {
@@ -7645,6 +7655,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'quests_stage_19': 'Land of Mist IV',
         'quests_stage_20': 'Land of Water III',
         'quests_stage_21': 'Undead II',
+        'quests_stage_22': 'Outer Realms',
         'symbolquests_stage_1': 'Ambrosia',
         'symbolquests_stage_2': 'Malekus',
         'symbolquests_stage_3': 'Corvintheus',
