@@ -2946,6 +2946,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             // Other controls
             var timeInstructions = "Use 24 hour format for displayed times.",
+            	nextLevelInDaysInstructions = "Express time to next level as the number of relative days so as to remove possible" +
+            	                              " confusion when the time to next level is a week or more in the future.",
+            	nextLevelThresholdInstructions = "Time to next level is expressed as the specific day of the week and the time of day" +
+            	                                 " unless that represents more than this number of days in the future; then," +
+            	                                 " time to next level is expressed as the number of relative days.  Thus, a 3 to 6" +
+            	                                 " day value is suggested for this threshold.",
                 titleInstructions0 = "Set the title bar.",
                 titleInstructions1 = "Add the current action.",
                 titleInstructions2 = "Add the player name.",
@@ -3007,6 +3013,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
             htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
             htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
+
+            htmlCode += caap.makeCheckTR('Days to next level', 'NextLevelInDays', false, nextLevelInDaysInstructions);
+            htmlCode += caap.startCheckHide('NextLevelInDays');
+            htmlCode += caap.makeNumberFormTR('if more than n days', 'NextLevelThreshold', nextLevelThresholdInstructions, 5, '', '', true, false);
+            htmlCode += caap.endCheckHide('NextLevelInDays');
+
             htmlCode += caap.makeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
             htmlCode += caap.startCheckHide('SetTitle');
             htmlCode += caap.makeCheckTR('Display Action', 'SetTitleAction', false, titleInstructions1, true);
@@ -3434,6 +3446,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(9, "AutoStatAdv");
                     state.setItem("statsMatch", true);
                     break;
+                case "NextLevelInDays":
+                	caap.setNextLevelMessage();
+                	break;
                 case "backgroundCA":
                     if (caap.domain.which === 0) {
                         if (e.target.checked) {
@@ -5039,7 +5054,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // Information updates
             caap.updateDashboard();
-            caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats.indicators.enl, caap.timeStr(true)));
+            caap.setNextLevelMessage();
             caap.setDivContent('demipoint_mess',
                 (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never') || whenBattle === 'Demi Points Only' ?
                     (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
@@ -5059,6 +5074,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in checkResults: " + err);
             return false;
         }
+    };
+
+    caap.setNextLevelMessage = function ()
+    {
+    	if (config.getItem('NextLevelInDays', false)
+    	&& (config.getItem('NextLevelThreshold', 5) * 24) < caap.stats.indicators.hrtl)
+    	{
+    		caap.setDivContent('level_mess', 'Expected next level: +' + (Math.floor(caap.stats.indicators.hrtl / 24 * 10) / 10) + ' days');
+    	}
+    	else
+    	{
+    		caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats.indicators.enl, caap.timeStr(true)));
+    	}
+    	return;
     };
 
     caap.checkResults_generals = function () {
