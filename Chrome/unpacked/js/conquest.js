@@ -1862,7 +1862,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         switch (values[pp]) {
                         case 'name':
                             userIdLinkInstructions = "Clicking this link will take you to the guild keep of " + guilds.records[i][values[pp]];
-                            userIdLink = "guildv2_home.php?guild_id=" + guilds.records[i].guildId;
+                            userIdLink = "guild_conquest_market.php?guild_id=" + guilds.records[i].guildId;
                             data = {
                                 text: '<span id="caap_Guilds_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guilds.records[i][values[pp]] + '</span>',
