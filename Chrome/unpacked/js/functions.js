@@ -54,7 +54,7 @@ function getFBEnv() {
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
 
         if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
-            var kludge = $j("script:contains(envFlush):contains(user)")[0].innerHTML.match(/\({.*}\)/)[0].match(/{.*}/);
+            var kludge = $j("script:contains(handle):contains(id)")[0].innerHTML.match(/{"id":".*?"}/);
             sessionStorage.setItem('caap_fbEnv', kludge.toString());
         }
 
