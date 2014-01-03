@@ -54,7 +54,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.records = gm.setItem('general.records', []);
             }
 
-            general.BuildlLists();
+            general.BuildLists();
             general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
             con.log(3, "general.load Hbest", general.hbest);
             session.setItem("GeneralsDashUpdate", true);
@@ -363,7 +363,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Duel',
         'War'];
 
-    general.BuildlLists = function () {
+    general.BuildLists = function () {
         try {
             con.log(3, 'Building Generals Lists');
             general.List = [
@@ -412,7 +412,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.BuildlLists: " + err);
+            con.error("ERROR in general.BuildLists: " + err);
             return false;
         }
     };
@@ -627,7 +627,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 len = 0,
                 coolDown = '';
 
-            general.BuildlLists();
+            general.BuildLists();
             con.log(3, "Updating 'General' Drop Down Lists");
             for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                 caap.changeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
