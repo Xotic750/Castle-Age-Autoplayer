@@ -16,6 +16,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.records = [];
 
+    general.loadouts = [];
+
     general.record = function () {
         this.data = {
             'name': '',
@@ -44,6 +46,37 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'charge': 0
         };
     };
+	
+    general.loadout = function () {
+        this.data = {
+            'name': '',
+            'general': '',
+            'img': '',
+            'lvl': 0,
+            'lvlmax': 0,
+            'pct': 0,
+            'last': Date.now() - (24 * 3600000),
+            'special': '',
+            'atk': 0,
+            'def': 0,
+            'api': 0,
+            'dpi': 0,
+            'mpi': 0,
+            'eatk': 0,
+            'edef': 0,
+            'eapi': 0,
+            'edpi': 0,
+            'empi': 0,
+            'energyMax': 0,
+            'staminaMax': 0,
+            'healthMax': 0,
+            'item': 0,
+            'itype': 0,
+            'coolDown': false,
+            'charge': 0,
+			'value': 0
+        };
+    };
 
     general.hbest = 0;
 
@@ -53,12 +86,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (general.records === 'default' || !$j.isArray(general.records)) {
                 general.records = gm.setItem('general.records', []);
             }
+            general.loadouts = gm.getItem('general.loadouts', 'default');
+            if (general.loadouts === 'default' || !$j.isArray(general.loadouts)) {
+                general.loadouts = gm.setItem('general.loadouts', []);
+            }
 
             general.BuildLists();
             general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
-            con.log(3, "general.load Hbest", general.hbest);
+            con.log(2, "general.load Hbest", general.hbest);
             session.setItem("GeneralsDashUpdate", true);
-            con.log(3, "general.load", general.records);
+            con.log(2, "general.load", general.records);
             return true;
         } catch (err) {
             con.error("ERROR in general.load: " + err);
@@ -72,12 +109,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (caap.domain.which === 3) {
                 caap.messaging.setItem('general.records', general.records);
+                caap.messaging.setItem('general.loadouts', general.loadouts);
             } else {
                 gm.setItem('general.records', general.records, general.hbest, compress);
+                gm.setItem('general.loadouts', general.loadouts, general.hbest, compress);
                 con.log(3, "general.save", general.records);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
                     con.log(2, "general.save send");
                     caap.messaging.setItem('general.records', general.records);
+                    caap.messaging.setItem('general.loadouts', general.loadouts);
                 }
             }
 
@@ -160,23 +200,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return true;
         } catch (err) {
             con.error("ERROR in general.setItem: " + err);
-            return false;
-        }
-    };
-
-    general.GetNames = function () {
-        try {
-            var it = 0,
-                len = 0,
-                names = [];
-
-            for (it = 0, len = general.records.length; it < len; it += 1) {
-                names.push(general.records[it].name);
-            }
-
-            return names.sort();
-        } catch (err) {
-            con.error("ERROR in general.GetNames: " + err);
             return false;
         }
     };
@@ -329,7 +352,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.List = [];
 
+    general.GeneralsList = [];
+
+    general.LoadoutsList = [];
+
     general.AltList = [];
+
+    general.LoadoutList = [];
 
     general.BuyList = [];
 
@@ -365,18 +394,39 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.BuildLists = function () {
         try {
-            con.log(3, 'Building Generals Lists');
-            general.List = [
-                'Use Current',
-                'Under Level'].concat(general.GetNames());
-
-            general.AltList = [
-                'Use Current'].concat(general.GetNames());
-
-            var filterList = config.getItem("filterGeneral", true),
+            var it = 0,
+                len = 0,
+                loadouts = [],
+                fullList = [],
+			 	filterList = config.getItem("filterGeneral", true),
                 crossList = function (checkItem) {
                     return general.List.hasIndexOf(checkItem);
                 };
+
+			con.log(3, 'Building Generals Lists');
+
+            for (it = 0, len = general.records.length; it < len; it += 1) {
+                general.GeneralsList.push(general.records[it].name);
+            }
+			general.GeneralsList=general.GeneralsList.sort();
+
+            for (it = 0, len = general.loadouts.length; it < len; it += 1) {
+                general.LoadoutsList.push('Loadout ' + general.loadouts[it].name);
+            }
+
+			con.log(2, 'general.LoadoutsList',general.LoadoutsList);
+			
+			fullList = general.LoadoutsList.concat(general.GeneralsList);
+
+			general.List = [
+                'Use Current',
+                'Under Level'].concat(fullList);
+
+            general.AltList = [
+                'Use Current'].concat(fullList);
+            
+            general.LoadoutList = filterList ? ['Use Current'].concat(general.LoadoutsList) : general.AltList;
+			con.log(2, 'general.LoadoutList',general.LoadoutList);
 
             general.BuyList = filterList ? [
                 'Use Current',
@@ -417,35 +467,43 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    general.GetCurrent = function () {
-        try {
-            var generalName = $j('div[style*="hot_general_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // get current general name after CA update // 2011-09-27 CAGE
+	general.GetLoadouts = function() {
+	        try {
+				var update = false,
+					loadoutsList = $j('select[name="choose_loadout"] option').map(function() {
+						return this.text;
+					}).get();
+				
+	            if ($u.hasContent(loadoutsList)) {
+				for (var it = 0, len = loadoutsList.length; it < len; it += 1) {
+                    var newLoadout = new general.loadout();
+					newLoadout.data.name = loadoutsList[it];
+					newLoadout.data.value = it+1;
 
-            if (!generalName) {
-                generalName = $j('div[id*="generalBox_caap"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim(); // workaround for changing the general box
-                if (!generalName) {
-                    generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(); // web3 old layout workaround
+					if (it >= general.loadouts.length || general.loadouts[it].name !== loadoutsList[it]) {
+						con.log(1, "Adding new 'Loadout'", loadoutsList[it]);
+						general.loadouts.push(newLoadout.data);
+						update = true;
+					} else {
+						general.loadouts[it] = newLoadout.data;
+					}
                 }
+				caap.stats.loadouts.total = general.loadouts.length;
+				general.save();
+				caap.saveStats();
+				if (update) {
+					general.UpdateDropDowns();
+				}
+
+                con.log(3, "loadoutslist done", general.loadouts);
+				return true;
+            } else {
+				con.warn("Couldn't get 'loadouts'.");
+                return false;
             }
-
-            if (!generalName) {
-                con.warn("Couldn't get current 'General'. Using 'Use Current'");
-                return 'Use Current';
-            }
-
-            //  this will always fail because the charged bar doesn't display anymore, need to find a better way
-            /*record = general.getItem(generalName);
-
-            if (record.coolDown && !$u.hasContent($j(".activeCooldownGeneralSmallContainer", equipDiv))) {
-                record.charge = 0;
-                general.setItem(record);
-            }*/
-
-            con.log(4, "Current General", generalName);
-            return generalName;
         } catch (err) {
-            con.error("ERROR in general.GetCurrent: " + err);
-            return 'Use Current';
+            con.error("ERROR in general.GetLoadouts: " + err);
+            return false;
         }
     };
 
@@ -644,6 +702,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
+            caap.changeDropDownList('DefaultLoadout', general.LoadoutList, config.getItem('DefaultLoadout', 'Use Current'));
             caap.changeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
             caap.changeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
             caap.changeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
@@ -722,11 +781,47 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    general.GetCurrentGeneral = function () {
+        try {
+            var generalName = $j('div[style*="hot_general_container.gif"] > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3').text().trim();
+            con.log(2, "Current General", generalName);
+
+            if (!generalName) {
+                con.warn("Couldn't get current 'General'. Using 'Use Current'");
+                return 'Use Current';
+            }
+
+            return generalName;
+        } catch (err) {
+            con.error("ERROR in general.GetCurrentGeneral: " + err);
+            return 'Use Current';
+        }
+    };
+
+    general.GetCurrentLoadout = function () {
+        try {
+            var loadoutName = $j('select[name="choose_loadout"] option:selected').text().trim(); 
+
+            if (!loadoutName) {
+                con.warn("Couldn't get current 'loadout'. Using 'Use Current'");
+                return 'Use Current';
+            }
+
+            con.log(2, "Current loadout", loadoutName);
+            return loadoutName;
+        } catch (err) {
+            con.error("ERROR in general.GetCurrentLoadout: " + err);
+            return 'Use Current';
+        }
+    };
+
     general.Select = function (whichGeneral) {
         try {
-            var generalName = '',
-                getCurrentGeneral = '',
-                currentGeneral = '',
+            var div,
+				targetGeneral = '',
+				targetLoadout = '',
+                currentGeneral = general.GetCurrentGeneral(),
+				currentLoadout = general.GetCurrentLoadout(),
                 generalImage = '',
                 levelUp = general.LevelUpCheck(whichGeneral),
                 coolType = general.getCoolDownType(whichGeneral),
@@ -737,6 +832,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 coolZin = coolName === "Zin" ? caap.stats.stamina.num > (caap.stats.stamina.max - 15) : false,
                 useCool = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord.charge === 100,
                 zinFirst = config.getItem("useZinFirst", true),
+                defaultLoadout = config.getItem("DefaultLoadout", 'Use Current'),
                 thisAction = state.getItem('ThisAction', 'idle'),
                 zinAction = ["battle"];
 
@@ -746,42 +842,53 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 whichGeneral = 'LevelUpGeneral';
                 con.log(2, 'Using level up general');
             }
+			
+			//Check what target general should be
+            targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
 
-            generalName = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
-            if (!generalName || /use current/i.test(generalName)) {
-                return false;
-            }
-
-            if (!levelUp && /under level/i.test(generalName)) {
+            if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
                 }
 
-                generalName = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop();
+                targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : targetGeneral = general.GetLevelUpNames().pop();
             }
 
-            getCurrentGeneral = general.GetCurrent();
-            if (!getCurrentGeneral) {
-                caap.reloadCastleAge(true);
-            }
-
-            currentGeneral = getCurrentGeneral;
-            if (generalName.hasIndexOf(currentGeneral)) {
+			// See if no need for action
+			if (!targetGeneral || targetGeneral === currentLoadout) {
+				return false;
+			}
+			
+			// Confirm loadout is ok
+			targetLoadout = general.LoadoutsList.indexOf(targetGeneral) >0 ? targetGeneral : defaultLoadout;
+			if (targetLoadout !== currentLoadout && targetLoadout !== 'Use Current') {
+				for(var i=0; i<general.loadouts.length; i++) {
+					if (general.loadouts[i].name == targetLoadout.replace('Loadout ','')) {
+						break;
+					}
+				}
+				con.log(2,'Attempting loadout of ' +targetLoadout + ' value ' + general.loadouts[i].value);
+				caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + general.loadouts[i].value + ') > div:first'));
+				return true;
+			}
+			
+			// Confirm if necessary to load a different general
+			if (general.GeneralsList.indexOf(targetGeneral) <0 || targetGeneral === currentGeneral) {
                 return false;
             }
 
-            con.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
+            con.log(1, 'Changing from ' + currentGeneral + ' to ' + targetGeneral);
             if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 return true;
             }
 
-            generalImage = general.GetImage(generalName);
+            generalImage = general.GetImage(targetGeneral);
             if (caap.hasImage(generalImage)) {
                 return caap.navigateTo(generalImage);
             }
 
-            caap.setDivContent('Could not find ' + generalName);
-            con.warn('Could not find', generalName, generalImage);
+            caap.setDivContent('Could not find ' + targetGeneral);
+            con.warn('Could not find', targetGeneral, generalImage);
             if (!config.getItem('ignoreGeneralImage', true)) {
                 return general.Clear(whichGeneral);
             }
@@ -798,7 +905,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     general.GetEquippedStats = function () {
         try {
             general.quickSwitch = false;
-            var generalName = general.GetCurrent(),
+            var generalName = general.GetCurrentGeneral(),
                 it = 0,
                 len = 0,
                 generalDiv = $j(),
@@ -906,7 +1013,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             generalImage = general.GetImage(general.records[it].name);
             if (caap.hasImage(generalImage)) {
-                if (general.GetCurrent() !== general.records[it].name) {
+                if (general.GetCurrentGeneral() !== general.records[it].name) {
                     con.log(2, "Visiting 'General'", general.records[it].name);
                     return caap.navigateTo(generalImage);
                 }
@@ -918,7 +1025,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-
+/* unused function
     general.owned = function (name) {
         try {
             var it = 0,
@@ -937,7 +1044,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return undefined;
         }
     };
-
+*/
     general.menu = function () {
         try {
             // Add General Comboboxes
@@ -973,6 +1080,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
             htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
+            htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', general.LoadoutList, '', '', 'Use Current', false, false, 62);
             for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
                 htmlCode += caap.makeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
                 coolDown = general.getCoolDownType(general.StandardList[dropDownItem]);

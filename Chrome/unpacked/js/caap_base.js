@@ -4985,7 +4985,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 spreadsheet.doTitles();
             }
 
-            general.GetCurrent();
+            general.GetCurrentGeneral();
+            general.GetLoadouts();
             general.Shrink();
 
             var pageUrl = session.getItem('clickUrl', ''),
@@ -5154,6 +5155,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'generals': {
             'total': 0,
             'invade': 0
+        },
+        'loadouts': {
+            'total': 0
         },
         'attack': 0,
         'defense': 0,
@@ -7167,7 +7171,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
-            } else if (questGeneral && questGeneral !== general.GetCurrent()) {
+            } else if (questGeneral && questGeneral !== general.GetCurrentGeneral()) {
                 if (general.LevelUpCheck("QuestGeneral")) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
