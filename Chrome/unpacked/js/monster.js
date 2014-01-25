@@ -2110,7 +2110,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         continue;
                     }
                     monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
-                    // Now we try to match the users name agains our list of monsters
+                    // Now we try to match the users name against our list of monsters
                     for (m = 0, len3 = monsterList[selectTypes[s]].length; m < len3; m += 1) {
                         if (!monsterList[selectTypes[s]][m]) {
                             continue;

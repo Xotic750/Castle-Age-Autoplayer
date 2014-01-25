@@ -14,13 +14,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-    caap.checkResults_guildv2_battle = function() {
+    caap.checkResults_guild_current_battles = function() {
         try {
-            con.log(2, "Guild Battle entry screen");
-/*            var tempDiv = $j("img[src*='guild_symbol']");
+            var tempDiv = $j("img[src*='guild_symbol']");
 
             if (tempDiv && tempDiv.length) {
                 tempDiv.each(function() {
+                    con.log(5, "name", $j(this).parent().parent().next().text().trim());
                     con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='guild_battle_']"));
                 });
             } else {
@@ -30,29 +30,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             tempDiv = null;
             return true;
-*/        } catch (err) {
-            con.error("ERROR in checkResults_guild_current_battles: " + err);
-            return false;
-        }
-    };
-
-    caap.checkResults_guild_battle = function() {
-        try {
-            con.log(2, "Guild Battle battle screen");
-/*            var tempDiv = $j("img[src*='guild_symbol']");
-
-            if (tempDiv && tempDiv.length) {
-                tempDiv.each(function() {
-                    con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='guild_battle_']"));
-                });
-            } else {
-                tempDiv = null;
-                return false;
-            }
-
-            tempDiv = null;
-            return true;
-*/        } catch (err) {
+        } catch (err) {
             con.error("ERROR in checkResults_guild_current_battles: " + err);
             return false;
         }

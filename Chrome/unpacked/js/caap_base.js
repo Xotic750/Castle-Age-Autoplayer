@@ -402,6 +402,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
+        "guild_battle.records": {
+            "get": function () {
+                return guild_battle.records;
+            },
+
+            "set": function (value) {
+                guild_battle.records = value;
+            },
+
+            "save": function (src) {
+                guild_battle.save(src);
+            },
+
+            "loaded": false
+        },
+
         "monster.records": {
             "get": function () {
                 return monster.records;
@@ -526,6 +542,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.general = null;
             window.monster = null;
             window.guild_monster = null;
+            window.guild_battle = null;
             //window.arena = null;
             window.festival = null;
             window.feed = null;
@@ -2150,6 +2167,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.load();
                 monster.load();
                 guild_monster.load();
+                guild_battle.load();
                 //arena.load();
                 festival.load();
                 feed.load();
@@ -2459,6 +2477,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'conquest_mess': "",
         'monster_mess': "",
         'guild_monster_mess': "",
+        'guild_battle_mess': "",
         'festival_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
@@ -2560,6 +2579,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += conquest.menu();
             htmlCode += monster.menu();
             htmlCode += guild_monster.menu();
+            htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
             //htmlCode += arena.menu();
             //if (false) {
@@ -3268,6 +3288,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_guildBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Battle' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
@@ -3956,7 +3977,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                     if (!idName.hasIndexOf('Quest')) {
-                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest') && !idName.hasIndexOf('GuildMonster')) {
+                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest')) {
                             caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
                             caap.setDisplay("caapDivObject", idName + 'DelayStayHidden_hide', value === 'Stay Hidden', false);
                         }
@@ -3998,6 +4019,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                     caap.setDivContent('guild_monster_mess', 'Guild Monster off');
                                 } else {
                                     caap.setDivContent('guild_monster_mess', '');
+                                }
+
+                                break;
+                            case 'WhenGuildBattle':
+                                if (value === 'Never') {
+                                    caap.setDivContent('guild_battle_mess', 'Guild Battle off');
+                                } else {
+                                    caap.setDivContent('guild_battle_mess', '');
                                 }
 
                                 break;
@@ -4859,10 +4888,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guild_current_monster_battles'
         },
         /* some of these older pages can be cleaned up. */
-        'guild_current_battles': {
-            signaturePic: 'tab_guild_current_battles_on.gif',
-            CheckResultsFunction: 'checkResults_guild_current_battles'
-        },
         'guild_current_monster_battles': {
             signaturePic: 'guild_monster_tab_on.jpg',
             CheckResultsFunction: 'checkResults_guild_current_monster_battles'
@@ -4874,6 +4899,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'guild_battle_monster': {
             signatureId: 'guild_battle_banner_section',
             CheckResultsFunction: 'checkResults_guild_battle_monster'
+        },
+        'guildv2_battle': {
+            signaturePic: 'guild_battle_top.jpg',
+            CheckResultsFunction: 'checkResults_guildv2_battle'
+        },
+        'guild_battle': {
+            signaturePic: 'guild_battle_portrait.gif',
+            CheckResultsFunction: 'checkResults_guild_battle'
         },
         'item_archive_bonus': {
             signaturePic: 'archive_icon_ravager.jpg',
@@ -9057,16 +9090,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.checkGenerals = function () {
+    caap.guildBattle = function () {
         try {
-            if (!schedule.check("generals")) {
-                return false;
-            }
-
-            con.log(2, "Visiting generals to get 'General' list");
-            return caap.navigateTo('mercenary,generals', 'tab_generals_on.gif');
+			return guild_battle.checkTime();
         } catch (err) {
-            con.error("ERROR in checkGenerals: " + err);
+            con.error("ERROR in guildBattle: " + err);
             return false;
         }
     };

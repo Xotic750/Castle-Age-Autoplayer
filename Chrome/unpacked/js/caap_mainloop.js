@@ -42,7 +42,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'bank': 'Auto Banking',
         'lands': 'Land Operations',
         'quests': 'Questing',
-        'checkGenerals': 'Checking Generals',
+        'guildBattle': 'Guild Battle',
         'checkAllGenerals': 'Getting Generals Stats',
         'checkArmy': 'Checking Army',
         'checkKeep': 'Checking Keep',
@@ -107,7 +107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x0E: 'conquestBattle',
         0x0F: 'bank',
         0x10: 'passiveGeneral',
-        0x11: 'checkGenerals',
+        0x11: 'guildBattle',
         0x12: 'checkAllGenerals',
         0x13: 'checkArmy',
         0x14: 'lands',
@@ -307,6 +307,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.general = null;
                     window.monster = null;
                     window.guild_monster = null;
+                    window.guild_battle = null;
                     //window.arena = null;
                     window.festival = null;
                     window.feed = null;
@@ -709,6 +710,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'delete': function () {
                 guild_monster.records = [];
                 gm.deleteItem("guild_monster.records");
+            }
+        },
+        'Guild Battle': {
+            'export': function () {
+                return guild_battle.records;
+            },
+            'import': function (d) {
+                guild_battle.records = d;
+                guild_battle.save();
+            },
+            'delete': function () {
+                guild_battle.records = [];
+                gm.deleteItem("guild_battle.records");
             }
         },
         'Target': {

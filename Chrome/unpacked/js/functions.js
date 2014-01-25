@@ -102,6 +102,7 @@ function caap_reload() {
     window.general = null;
     window.monster = null;
     window.guild_monster = null;
+    window.guild_battle = null;
     //window.arena = null;
     window.festival = null;
     window.feed = null;
