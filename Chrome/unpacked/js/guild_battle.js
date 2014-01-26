@@ -916,6 +916,74 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
+	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+	guild_battle.startButtonCheck = 0;
+	
+ 	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
+	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
+	// other action will be taken until the time is up.
+	guild_battle.checkTime = function (force) {
+		try {
+			if (!schedule.since(guild_battle.startButtonCheck, 5 * 60)) {
+				con.log(2, 'Less than 5 minutes since last checked for Guild Battle start button');
+				return false;
+			}
+			
+			var timeBattlesList = config.getList('timed_guild_battles', ''),
+				begin = new Date(),
+				end = new Date(),
+				timeString = '',
+				button = null,
+				now = new Date();
+			con.log(2, 'checkTime start', timeBattlesList);
+			// Next we step through the users list getting the name and conditions
+			for (var p = 0; p < timeBattlesList.length; p++) {
+				if (!timeBattlesList[p].toString().trim()) {
+					continue;
+				}
+				timeString = timeBattlesList[p].toString().trim();
+				begin = 0;
+				for (var i = 0; i < guild_battle.weekdays.length; i++) {
+					if (timeString.indexOf(guild_battle.weekdays[i])>=0) {
+						begin = general.parseTime(timeString);
+						con.log(2, 'Vars now.getDay, i', now.getDay(), i);
+						begin.setDate(begin.getDate() + i - now.getDay()); // Need to check on Sunday case
+						// end = begin;
+						end.setMinutes(begin.getMinutes() + 2 * 60);
+						break;
+					}
+				}
+						
+				if (!begin) {
+					con.log(2, 'No day of week match', now.getDay(), timeString);
+					continue;
+				}
+				con.log(2,'begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now);
+				
+				if (begin < now && now < end) {
+					con.log(2, 'Valid time for',timeString);
+					if (caap.navigateTo('guildv2_battle')) {
+						return true;
+					}
+					button = caap.checkForImage('sort_btn_startbattle.gif');
+					con.log(2, 'button', button);
+					if ($u.hasContent(button)) {
+						return caap.click(button);
+					}
+					con.log(2, 'Loading keep page to force Guild Page reload to see if button appears');
+					return caap.navigateTo('keep')
+				}
+			}
+			con.log(2, 'No time match to current time', now);
+			return false;
+        } catch (err) {
+            con.error("ERROR in guild_battle.checkTime: " + err);
+            return false;
+        }
+    };
+	
+	
     guild_battle.attack2stamina = {
         1: 1,
         2: 5,

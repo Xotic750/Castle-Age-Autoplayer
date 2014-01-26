@@ -133,7 +133,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (!timedLoadoutsList[p].toString().trim()) {
 					continue;
 				}
-				// .replace(new RegExp("^[^=]+"), '')
 				timeStrings = timedLoadoutsList[p].toString().split('-');
 				con.log(4,'timeStrings',timeStrings);
 				if (timeStrings.length === 1) {
@@ -165,9 +164,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-
-
-
 	
     general.getRecord = function (generalName, quiet) {
         try {

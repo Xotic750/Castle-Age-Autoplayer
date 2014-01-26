@@ -17,6 +17,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_guildv2_battle = function() {
         try {
             con.log(2, "Guild Battle entry screen");
+			if (!$u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
+				con.log(2, "No start guild button available");
+				guild_battle.startButtonCheck = Date.now();
+			}
 /*            var tempDiv = $j("img[src*='guild_symbol']");
 
             if (tempDiv && tempDiv.length) {
