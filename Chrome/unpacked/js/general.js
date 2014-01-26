@@ -1083,7 +1083,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
             htmlCode += caap.makeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false);
             htmlCode += caap.makeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
-            htmlCode += caap.makeTD("Change the idle general to this loadout at <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
+            htmlCode += caap.makeTD("Change the idle general to this loadout at <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=828' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('timed_loadouts', timedLoadoutsList, '', '');
             htmlCode += caap.makeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
             htmlCode += caap.makeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);

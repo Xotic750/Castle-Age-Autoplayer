@@ -950,7 +950,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						con.log(2, 'Vars now.getDay, i', now.getDay(), i);
 						begin.setDate(begin.getDate() + i - now.getDay()); // Need to check on Sunday case
 						// end = begin;
-						end.setMinutes(begin.getMinutes() + 2 * 60);
+						end = end.setMinutes(begin.getMinutes() + 2 * 60);
 						break;
 					}
 				}
@@ -1124,7 +1124,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.makeTD("Start Guild Battles at these times: <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
             htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
-            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
+/*            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
             htmlCode += caap.makeCheckTR('Siege Battle', 'doGuildBattleSiege', true, 'Perform siege assists when visiting your Guild Battle.');
             htmlCode += caap.makeCheckTR('Collect Rewards', 'guildBattleCollect', false, 'Collect the rewards of your completed Guild Battles.');
             htmlCode += caap.makeCheckTR("Do not Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Battle's Clerics. Does not include the Gate minions e.g. Azriel");
@@ -1139,7 +1139,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.makeTextBox('orderGuildBattle', 'Attack your guild battles in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
             htmlCode += caap.makeTD("Attack Minions in this order");
             htmlCode += caap.makeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
-            htmlCode += caap.endDropHide('WhenGuildBattle');
+*/          htmlCode += caap.endDropHide('WhenGuildBattle');
             //htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
             config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
