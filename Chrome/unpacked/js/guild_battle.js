@@ -950,7 +950,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						con.log(2, 'Vars now.getDay, i', now.getDay(), i);
 						begin.setDate(begin.getDate() + i - now.getDay()); // Need to check on Sunday case
 						// end = begin;
-						end = end.setMinutes(begin.getMinutes() + 2 * 60);
+						end.setMinutes(begin.getMinutes() + 2 * 60);
 						break;
 					}
 				}
