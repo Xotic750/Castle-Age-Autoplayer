@@ -925,17 +925,22 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	// other action will be taken until the time is up.
 	guild_battle.checkTime = function (force) {
 		try {
-			if (!schedule.since(guild_battle.startButtonCheck, 5 * 60)) {
-				con.log(2, 'Less than 5 minutes since last checked for Guild Battle start button');
-				return false;
-			}
-			
 			var timeBattlesList = config.getList('timed_guild_battles', ''),
 				begin = new Date(),
 				end = new Date(),
 				timeString = '',
 				button = null,
+				timedSetting = config.getList('WhenGuildBattle', ''),
 				now = new Date();
+
+			if (timedSetting=='Never') {
+				con.log(2, 'Never start Guild Battles');
+				return false;
+			}
+			if (!schedule.since(guild_battle.startButtonCheck, 5 * 60)) {
+				con.log(2, 'Less than 5 minutes since last checked for Guild Battle start button or Never check');
+				return false;
+			}
 			con.log(2, 'checkTime start', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
