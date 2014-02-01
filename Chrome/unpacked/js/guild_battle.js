@@ -935,7 +935,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 //				match = true,	
 				match = (timedSetting === 'Battle available') ? true : false,
-				delay = (guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5) * 60,
+				delay = ((guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60,
 				now = new Date();
 
 			if (schedule.since(guild_battle.pageReviewTime, delay)) {
@@ -1139,14 +1139,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 htmlCode = '';
 
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
-            htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 5, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 1, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 15, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 5, '', '', true, false);
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
             htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
             htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
             htmlCode += caap.makeTD("Start Guild Battles at these times:");
             htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
-            htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
+            htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes');
 /*            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
             htmlCode += caap.makeCheckTR('Siege Battle', 'doGuildBattleSiege', true, 'Perform siege assists when visiting your Guild Battle.');
             htmlCode += caap.makeCheckTR('Collect Rewards', 'guildBattleCollect', false, 'Collect the rewards of your completed Guild Battles.');

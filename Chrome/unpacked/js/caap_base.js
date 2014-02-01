@@ -3976,7 +3976,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 e.target.title = title;
                 if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
-                    if (!idName.hasIndexOf('Quest')) {
+                    if (idName == 'WhenGuildBattle') {
+                        caap.setDisplay("caapDivObject", idName + 'FixedTimes_hide', value === 'At fixed times');
+					} else if (!idName.hasIndexOf('Quest')) {
                         if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest')) {
                             caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
                             caap.setDisplay("caapDivObject", idName + 'DelayStayHidden_hide', value === 'Stay Hidden', false);
