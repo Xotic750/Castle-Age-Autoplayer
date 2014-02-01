@@ -6492,6 +6492,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
+					return caap.navigateTo('keep', 'tab_stats_on.gif');
                 }
             }
 
