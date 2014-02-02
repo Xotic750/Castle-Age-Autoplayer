@@ -16,12 +16,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_guildv2_battle = function() {
         try {
-            con.log(2, "Guild Battle entry screen");
-			if (!$u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
-				con.log(2, "No start guild button available");
-				guild_battle.startButtonCheck = Date.now();
+			guild_battle.pageReviewTime = Date.now();
+			if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
+				general.priority = false;
+				guild_battle.GBstatus = 'Start';
+			} else if ($u.hasContent(caap.checkForImage('guild_battle_locked.gif'))) {
+				guild_battle.GBstatus = 'Locked';
+				general.priority = config.getItem('GClassGeneral','Use Current');
+			} else if ($u.hasContent(caap.checkForImage('sort_btn_joinbattle.gif'))) {
+				if ($j('#guildv2_battle_middle').text().indexOf('Time Remaining')>=0) {
+					guild_battle.GBstatus = 'Active';
+					general.priority = config.getItem('GFightGeneral','Use Current');
+				} else {
+					guild_battle.GBstatus = 'Collect';
+					general.priority = false;
+				}
 			}
-/*            var tempDiv = $j("img[src*='guild_symbol']");
+
+			con.log(2, "Guild button, Page Text", guild_battle.GBstatus,$j('#guildv2_battle_middle').text());
+			
+/*          var tempDiv = $j("img[src*='guild_symbol']");
 
             if (tempDiv && tempDiv.length) {
                 tempDiv.each(function() {
@@ -33,8 +47,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             tempDiv = null;
-            return true;
-*/        } catch (err) {
+*/            return true;
+        } catch (err) {
             con.error("ERROR in checkResults_guild_current_battles: " + err);
             return false;
         }

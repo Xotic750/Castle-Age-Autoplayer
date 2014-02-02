@@ -9094,16 +9094,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkAllGenerals = function () {
         try {
-            if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
-                return false;
-            }
-			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
-				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
-				con.log(2, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
-				return false;
-			}
-//				con.log(2, "DIDN'T Delaying general stats review while high sta/ene enT" + caap.stats.energy.max + ' en ' + caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
-				
             return general.GetAllStats();
         } catch (err) {
             con.error("ERROR in checkAllGenerals: " + err);

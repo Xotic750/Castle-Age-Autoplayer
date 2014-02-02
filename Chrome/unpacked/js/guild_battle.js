@@ -918,7 +918,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-	guild_battle.startButtonCheck = 0;
+	guild_battle.pageReviewTime = 0;
+
+	guild_battle.GBstatus = 'Start';
 	
  	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
@@ -930,18 +932,23 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				end = new Date(),
 				timeString = '',
 				button = null,
-				timedSetting = config.getList('WhenGuildBattle', ''),
+				timedSetting = config.getItem('WhenGuildBattle', ''),
+//				match = true,	
+				match = (timedSetting === 'Battle available') ? true : false,	
 				now = new Date();
 
-			if (timedSetting=='Never') {
-				con.log(2, 'Never start Guild Battles');
+			if (schedule.since(guild_battle.pageReviewTime, ((guild_battle.GBstatus == 'Locked') ? 1 : 5) * 60)) {
+				if (caap.navigateTo('guildv2_battle')) {
+					con.log(2, 'Checking Guild Battle page');
+					return true;
+				}
+				con.log(2, 'Loading keep page to force Guild Page reload');
+				return caap.navigateTo('keep')
+			}
+			if (timedSetting=='Never' || guild_battle.GBstatus !== 'Start') {
 				return false;
 			}
-			if (!schedule.since(guild_battle.startButtonCheck, 5 * 60)) {
-				con.log(2, 'Less than 5 minutes since last checked for Guild Battle start button or Never check');
-				return false;
-			}
-			con.log(2, 'checkTime start', timeBattlesList);
+			con.log(4, 'checkTime start', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
 				if (!timeBattlesList[p].toString().trim()) {
@@ -952,35 +959,40 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				for (var i = 0; i < guild_battle.weekdays.length; i++) {
 					if (timeString.indexOf(guild_battle.weekdays[i])>=0) {
 						begin = general.parseTime(timeString);
-						con.log(2, 'Vars now.getDay, i', now.getDay(), i);
+						end = general.parseTime(timeString);
+						con.log(5, 'Vars now.getDay, i', now.getDay(), i);
 						begin.setDate(begin.getDate() + i - now.getDay()); // Need to check on Sunday case
-						// end = begin;
-						end.setMinutes(begin.getMinutes() + 2 * 60);
+						end.setDate(end.getDate() + i - now.getDay()); // Need to check on Sunday case
+						end.setMinutes(end.getMinutes() + 2 * 60);
 						break;
 					}
 				}
 						
 				if (!begin) {
-					con.log(2, 'No day of week match', now.getDay(), timeString);
+					con.log(4, 'No day of week match', now.getDay(), timeString);
 					continue;
 				}
-				con.log(2,'begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now);
+				con.log(4,'begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now);
 				
 				if (begin < now && now < end) {
-					con.log(2, 'Valid time for',timeString);
-					if (caap.navigateTo('guildv2_battle')) {
-						return true;
-					}
-					button = caap.checkForImage('sort_btn_startbattle.gif');
-					con.log(2, 'button', button);
-					if ($u.hasContent(button)) {
-						return caap.click(button);
-					}
-					con.log(2, 'Loading keep page to force Guild Page reload to see if button appears');
-					return caap.navigateTo('keep')
+					match = true;
+					con.log(2, 'Valid time for begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now, timeString);
+					break;
 				}
 			}
-			con.log(2, 'No time match to current time', now);
+			if (match) {
+				general.priority = config.getItem('GClassGeneral','Use Current');
+				if (general.selectSpecific(general.priority)) {
+					return true;
+				}
+				button = caap.checkForImage('sort_btn_startbattle.gif');
+				if ($u.hasContent(button)) {
+					con.log(1, 'CLICK GUILD BATTLE START');
+					//return caap.click(button);
+					return true;
+				}
+			}
+			con.log(4, 'No time match to current time', now);
 			return false;
         } catch (err) {
             con.error("ERROR in guild_battle.checkTime: " + err);
@@ -1112,10 +1124,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
     guild_battle.menu = function() {
         try {
             // Guild Battle controls
-            var gbattleList = ['Battle available', 'Stamina available', 'At fixed times', 'Never'],
+            var gbattleList = ['Battle available', 'At fixed times', 'Never'],
                 gbattleInst = [
                     'Battle available will initiate a guild battle whenever the Start Button is available',
-                    'Stamina Available when possible if you have enough stamina',
                     'At fixed times will allow you to set a schedule of when to start battles',
                     'Never - disables starting guild battles'
                 ],

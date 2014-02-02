@@ -48,6 +48,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 	
     general.hbest = 0;
+	
+	// General priority is false if no priority.  'Use Current' if the general should not be changed.
+    general.priority = false;
 
     general.load = function () {
         try {
@@ -117,17 +120,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
-	general.timedLoadout = function (force) {
+	// Returns false if not timed set, "change" if a timed loadout was changed, and "set" if done setting a timed loadout
+	general.timedLoadout = function () {
 		try {
 			var timedLoadoutsList = config.getList('timed_loadouts', ''),
 				begin = 0,
 				end = 0,
 				match = false,
 				change = false,
+				returnValue = 'change',
 				targetGeneral = '',
 				timeStrings = '',
-				now = Date.now();
-			con.log(4, 'timedLoadoutsList', timedLoadoutsList);
+				now = new Date();
+			// Priority generals, such as Guild Battle class generals, outrank timed generals.
+			if (general.priority) {
+				timedLoadoutsList.unshift(now.getHours() + ':' + now.getMinutes() + '@' + general.priority);
+			}
+			con.log(5, 'timedLoadoutsList', timedLoadoutsList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0, len = timedLoadoutsList.length; p < len; p++) {
 				if (!timedLoadoutsList[p].toString().trim()) {
@@ -148,14 +157,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
 				if (begin < now && now < end) {
 					match = true;
-					con.log('valid time of ',timeStrings);
+					con.log(4, 'valid time of ',timeStrings);
 				}
 				// Now we check the other elements to look for a general name to load, prefixed with '@'
 				if (match && timedLoadoutsList[p].toString().split('@').length > 1) {
-					con.log('Selecting Timed General:', targetGeneral);
 					targetGeneral = timedLoadoutsList[p].toString().split('@')[1].trim();
-					change = targetGeneral === 'Use Current' || general.selectSpecific(targetGeneral);
-					return force || change;
+					con.log(2, 'Selecting Timed General:', targetGeneral);
+					return general.selectSpecific(targetGeneral) ? 'change' : 'set';
 				}
 			}
 			return false;
@@ -410,11 +418,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// general isn't equipped, such as item bonuses to general or max sta/energy .
     general.GetEquippedStats = function () {
         try {
-			if (general.timedLoadout(true)) {
-				con.log(2,'General changes frozen while equipping timed general');
-				return true;
-			}
-				
             general.quickSwitch = false;
             var generalName = general.GetCurrentGeneral(),
 				loadoutName = general.GetCurrentLoadout(),
@@ -878,6 +881,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     general.Select = function (whichGeneral) {
         try {
             var targetGeneral = '',
+				timedResult = general.timedLoadout(),
                 levelUp = general.LevelUpCheck(whichGeneral),
                 coolType = general.getCoolDownType(whichGeneral),
                 coolName = coolType ? config.getItem(coolType, '') : '',
@@ -890,9 +894,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 thisAction = state.getItem('ThisAction', 'idle'),
                 zinAction = ["battle"];
 				
-			if (general.timedLoadout(true)) {
-				con.log(2,'General changes frozen while equipping timed general');
-				return true;
+			if (timedResult) {
+				con.log(2,'General change to ' + whichGeneral + ' paused while equipping timed general');
+				return (timedResult == 'change') || config.getItem('timedFreeze', true);
 			}
 				
             con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
@@ -943,7 +947,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 			general.clickedLoadout = false;
 
-			if (!targetGeneral) {
+			if (!targetGeneral || targetGeneral == 'Use Current') {
 				return false;
 			}
 			
@@ -1008,6 +1012,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				generalName = '',
                 len = 0;
 
+			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
+                return false;
+            }
+			if (general.timedLoadout()) {
+				con.log(2,'Pausing general review while equipping timed general');
+				return false;
+			}
+				
+			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
+				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
+				con.log(2, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
+				return false;
+			}
+//				con.log(2, "DIDN'T Delaying general stats review while high sta/ene enT" + caap.stats.energy.max + ' en ' + caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
+				
+
 			for (var it = 0, len = general.records.length; it < len; it += 1) {
                 if (schedule.since(general.records[it].last || 0, (general.isLoadout(general.records[it].name) ? 1 : 7) * 24 * 3600)) {
                     break;
@@ -1021,7 +1041,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				// Go to the keep to force a page refresh to display actual max energy/stamina
 				con.log(2, "Checking keep stats for general #" + it + ' of ' + len, general.records[it].name);
-				return caap.navigateTo('keep', 'tab_stats_on.gif');
+				return caap.navigateTo('keep');
 			}
 
         } catch (err) {
@@ -1056,7 +1076,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
                 LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
                 LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
+                GuildClassInst = "Equip this general before starting Guild Battles.  No effect on Festival Battles.",
+                GuildFightInst = "Equip this general during Guild Battles.  No effect on Festival Battles.",
 				timedLoadoutsList = "List of specific loadouts and time that loadout should loaded, such as '1 PM:Guild, 7 PM:Guild, 3:LoM",
+				timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 dropDownItem = 0,
                 coolDown = '',
                 haveZin = general.getRecord("Zin", true) === false ? false : true,
@@ -1079,11 +1102,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.makeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.makeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 62);
-            htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
+			htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
             htmlCode += caap.makeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false);
             htmlCode += caap.makeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
-            htmlCode += caap.makeTD("Change the idle general to this loadout at <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=828' target='_blank' style='color: blue'>(INFO)</a>");
+            htmlCode += caap.makeTD("Use timed Loadouts at these times <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=828' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('timed_loadouts', timedLoadoutsList, '', '');
+            htmlCode += caap.makeCheckTR("Freeze for timed Loadouts or Guild Battles", 'timedFreeze', true, timedFreezeInstructions);
+			htmlCode += caap.makeDropDownTR("Guild Class", 'GClassGeneral', general.LoadoutList, '', GuildClassInst, 'Use Current', false, false, 62);
+			htmlCode += caap.makeDropDownTR("Guild Fight", 'GFightGeneral', general.LoadoutList, GuildFightInst, '', 'Use Current', false, false, 62);
             htmlCode += caap.makeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
             htmlCode += caap.makeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
             htmlCode += caap.makeCheckTR("Gen For Fortify", 'FortifyLevelUpGeneral', true, LevelUpGenInstructions3, true, false);
