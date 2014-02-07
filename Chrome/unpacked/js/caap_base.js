@@ -5349,6 +5349,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             tempDiv = $j($j("#energy_current_value", ststbDiv)[0].parentNode);
             if ($u.hasContent(tempDiv)) {
                 caap.stats.energy = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
+				con.log(2, 'energy',caap.stats.energy);
             } else {
                 con.warn("Unable to get energyDiv");
                 passed = false;
