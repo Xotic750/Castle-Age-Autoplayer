@@ -20,6 +20,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
 				general.priority = false;
 				guild_battle.GBstatus = 'Start';
+				//guild_battle.pageReviewTime = Date.now();
 			} else if ($u.hasContent(caap.checkForImage('guild_battle_locked.gif'))) {
 				guild_battle.GBstatus = 'Locked';
 				general.priority = config.getItem('GClassGeneral','Use Current');

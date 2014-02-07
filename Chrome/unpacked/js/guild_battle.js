@@ -934,16 +934,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				button = null,
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 //				match = true,	
-				match = (timedSetting === 'Battle available') ? true : false,	
+				match = (timedSetting === 'Battle available') ? true : false,
+				delay = (guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5) * 60,
 				now = new Date();
 
-			if (schedule.since(guild_battle.pageReviewTime, ((guild_battle.GBstatus == 'Locked') ? 1 : 5) * 60)) {
+			if (schedule.since(guild_battle.pageReviewTime, delay)) {
 				if (caap.navigateTo('guildv2_battle')) {
 					con.log(2, 'Checking Guild Battle page');
 					return true;
 				}
 				con.log(2, 'Loading keep page to force Guild Page reload');
-				return caap.navigateTo('keep')
+				return caap.navigateTo('keep');
 			}
 			if (timedSetting=='Never' || guild_battle.GBstatus !== 'Start') {
 				return false;
@@ -985,11 +986,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				if (general.selectSpecific(general.priority)) {
 					return true;
 				}
+				if (caap.navigateTo('guildv2_battle')) {
+					return true;
+				}
 				button = caap.checkForImage('sort_btn_startbattle.gif');
 				if ($u.hasContent(button)) {
 					con.log(1, 'CLICK GUILD BATTLE START');
-					//return caap.click(button);
-					return true;
+					return caap.click(button);
 				}
 			}
 			con.log(4, 'No time match to current time', now);
@@ -1131,9 +1134,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     'Never - disables starting guild battles'
                 ],
 				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started up to two hours after the listed time.",
+				GBCheckFreqInstructions = "How often in minutes the Guild Battle top page will be visited to see if a Guild Battle is in progress",
+				GBStartFreqInstructions = "How often in minutes the Guild Battle top page will be visited if an Auto-match is in progress",
                 htmlCode = '';
 
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
+            htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 5, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 1, '', '', true, false);
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
             htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
             htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
