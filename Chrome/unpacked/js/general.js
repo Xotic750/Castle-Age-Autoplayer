@@ -961,8 +961,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 				}
 				if (i>=general.records.length) {
+					con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
 					return false;
-					con.log(1,'Unable to find loadout ', targetLoadout);
 				}
 				con.log(2,'Loading ' +targetLoadout + ' value ' + general.records[i].value);
 
