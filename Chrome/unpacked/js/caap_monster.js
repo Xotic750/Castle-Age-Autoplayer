@@ -1382,7 +1382,7 @@ con.log (1, "after button check:", monster, currentMonster);
             }
 
             /*-------------------------------------------------------------------------------------\
-            All done.  Set timer and tell monster.select and dashboard they need to do thier thing.
+            All done.  Set timer and tell monster.select and dashboard they need to do their thing.
             We set the monsterReviewCounter to do a full refresh next time through.
             \-------------------------------------------------------------------------------------*/
             schedule.setItem("monsterReview", (gm ? gm.getItem('monsterReviewMins', 60, hiddenVar) : 60) * 60, 300);
