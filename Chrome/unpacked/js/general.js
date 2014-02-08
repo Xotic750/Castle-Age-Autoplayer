@@ -1078,7 +1078,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
                 GuildClassInst = "Equip this general before starting Guild Battles.  No effect on Festival Battles.",
                 GuildFightInst = "Equip this general during Guild Battles.  No effect on Festival Battles.",
-				timedLoadoutsList = "List of specific loadouts and time that loadout should loaded, such as '1 PM:Guild, 7 PM:Guild, 3:LoM",
+				timedLoadoutsList = "List of specific loadouts and time that loadout should loaded, such as '1 PM@Loadout Guild, 7 PM@Loadout Guild, 3@Loadout LoM, 14:30 - 18:30@Use Current",
 				timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 dropDownItem = 0,
                 coolDown = '',

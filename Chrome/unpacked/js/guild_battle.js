@@ -1133,7 +1133,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     'At fixed times will allow you to set a schedule of when to start battles',
                     'Never - disables starting guild battles'
                 ],
-				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started up to two hours after the listed time.",
+				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
 				GBCheckFreqInstructions = "How often in minutes the Guild Battle top page will be visited to see if a Guild Battle is in progress",
 				GBStartFreqInstructions = "How often in minutes the Guild Battle top page will be visited if an Auto-match is in progress",
                 htmlCode = '';
@@ -1144,7 +1144,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
             htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
             htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
-            htmlCode += caap.makeTD("Start Guild Battles at these times: <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
+            htmlCode += caap.makeTD("Start Guild Battles at these times:");
             htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
             htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
 /*            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
