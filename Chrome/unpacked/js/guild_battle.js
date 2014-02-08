@@ -935,7 +935,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 //				match = true,	
 				match = (timedSetting === 'Battle available') ? true : false,
-				delay = (guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5) * 60,
+				delay = ((guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60,
 				now = new Date();
 
 			if (schedule.since(guild_battle.pageReviewTime, delay)) {
