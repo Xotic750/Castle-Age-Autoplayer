@@ -5113,19 +5113,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // text in the format '123/234'
     caap.getStatusNumbers = function (text) {
         try {
-            text = $u.isString(text) ? text.trim() : '';
             if (text === '' || !$u.isString(text) || !/^\d+\/\d+$/.test(text)) {
                 throw "Invalid text supplied:" + text;
             }
 
-            var num = $u.setContent(text.regex(/^(\d+)\//), 0),
-                max = $u.setContent(text.regex(/\/(\d+)$/), 0),
-                dif = $u.setContent(max - num, 0);
-
             return {
-                'num': num,
-                'max': max,
-                'dif': dif
+                'num': $u.setContent(text.regex(/^(\d+)\//), 0),
+                'max': $u.setContent(text.regex(/\/(\d+)$/), 0),
+                'dif': $u.setContent($u.setContent(text.regex(/\/(\d+)$/), 0) - $u.setContent(text.regex(/^(\d+)\//), 0), 0)
             };
         } catch (err) {
             con.error("ERROR in getStatusNumbers: " + err);
@@ -5331,6 +5326,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0,
                 xS = 0,
                 xE = 0,
+				tempstats = {},
+				loop = ['energy','stamina','health'],
 //                ststbDiv = $j('#globalContainer #main_ststb'),
                 ststbDiv = $j('#globalContainer #main_sts_container'),
                 bntpDiv = $j('#globalContainer #main_bntp'),
@@ -5345,33 +5342,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 passed = false;
             }
 
-            // energy
-            tempDiv = $j($j("#energy_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.energy = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-				con.log(2, 'energy',caap.stats.energy);
-            } else {
-                con.warn("Unable to get energyDiv");
-                passed = false;
-            }
-
-            // health
-            tempDiv = $j($j("#health_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.health = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-            } else {
-                con.warn("Unable to get healthDiv");
-                passed = false;
-            }
-
-            // stamina
-            tempDiv = $j($j("#stamina_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.stamina = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-            } else {
-                con.warn("Unable to get staminaDiv");
-                passed = false;
-            }
+			loop.forEach(function(stat) {
+				tempDiv = $j($j("#" + stat + "_current_value", ststbDiv)[0].parentNode);
+				if ($u.hasContent(tempDiv)) {
+					tempstats = caap.getStatusNumbers(tempDiv.text());
+					con.log(4, stat,tempstats,tempDiv.text(),session.getItem('page', 'none'));
+					if (!tempstats.num) {
+						con.log(2, 'Current '+ stat + ' is 0',tempDiv.text(),session.getItem('page', 'none'));
+					}
+					if (!tempstats.max) {
+						con.log(1, 'Unable to read ' + stat + ' max',tempDiv.text(),session.getItem('page', 'none'));
+					}
+					caap.stats[stat].num = tempstats.num;
+					caap.stats[stat].max = tempstats.max || caap.stats[stat].max;
+					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
+				} else {
+					con.warn("Unable to get " + stat + "Div");
+					passed = false;
+				}
+			});
 
             // experience
             tempDiv = $j("#header_player_xp_totals", ststbDiv);
