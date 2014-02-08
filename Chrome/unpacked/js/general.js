@@ -400,9 +400,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			generalRecord.eapi = (generalRecord.eatk + (generalRecord.edef * 0.7)).dp(2);
 			generalRecord.edpi = (generalRecord.edef + (generalRecord.eatk * 0.7)).dp(2);
 			generalRecord.empi = ((generalRecord.eapi + generalRecord.edpi) / 2).dp(2);
-			generalRecord.energyMax = caap.stats.energyT.max;
-			generalRecord.staminaMax = caap.stats.staminaT.max;
-			generalRecord.healthMax = caap.stats.healthT.max;
+			generalRecord.energyMax = caap.stats.energy.max;
+			generalRecord.staminaMax = caap.stats.stamina.max;
+			generalRecord.healthMax = caap.stats.health.max;
 			generalRecord.last = Date.now();
             caap.updateDashboard(true);
             general.save();
@@ -797,7 +797,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 keepGeneral = false;
 
             generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
-            if ((caap.stats.staminaT.num > caap.stats.stamina.max || caap.stats.energyT.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
+            if ((caap.stats.stamina.num > caap.stats.stamina.max || caap.stats.energy.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
                     con.log(2, "Keep Level Up General");
                     keepGeneral = true;

@@ -539,7 +539,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 maxIdleStamina = caap.stats.stamina.max;
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
                 if (theGeneral !== 'Use Current') {
-                    maxIdleStamina = general.GetStaminaMax(theGeneral);
+                    maxIdleStamina = general.GetStat(theGeneral,'maxStamina');
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleStamina) {
@@ -686,7 +686,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < general.GetStaminaMax(config.getItem('IdleGeneral', 'Use Current'))) {
+                if (caap.stats.stamina.num < general.GetStat(config.getItem('IdleGeneral', 'Use Current'),'maxStamina')) {
                     caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                     return false;
                 }
@@ -1103,7 +1103,7 @@ con.log (1, "after button check:", monster, currentMonster);
     };
 
     /*-------------------------------------------------------------------------------------\
-    MonsterReview is a primary action subroutine to mange the monster and raid list
+    MonsterReview is a primary action subroutine to manage the monster and raid list
     on the dashboard
     \-------------------------------------------------------------------------------------*/
     caap.monsterReview = function () {
