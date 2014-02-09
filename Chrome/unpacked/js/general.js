@@ -135,6 +135,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			// Priority generals, such as Guild Battle class generals, outrank timed generals.
 			if (general.priority) {
 				timedLoadoutsList.unshift(now.getHours() + ':' + now.getMinutes() + '@' + general.priority);
+				con.log(2,'Priority gen set',timedLoadoutsList);
 			}
 			con.log(5, 'timedLoadoutsList', timedLoadoutsList);
 			// Next we step through the users list getting the name and conditions

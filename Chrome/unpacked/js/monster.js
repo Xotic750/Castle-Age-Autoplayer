@@ -2760,6 +2760,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'At X Stamina you can set maximum and minimum stamina to battle',
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                     'Never - disables attacking monsters'],
+                stunList = ['Immediately', '5', '4', '3', '2', '1', 'Never'],
+                stunInst = [
+                    'Cripple/Deflect will be as soon as possible',
+                    'Cripple/Deflect will be when 5 hours are left, plus or minus up to 30 min',
+                    'Cripple/Deflect will be when 4 hours are left, plus or minus up to 30 min',
+                    'Cripple/Deflect will be when 3 hours are left, plus or minus up to 30 min',
+                    'Cripple/Deflect will be when 2 hours are left, plus or minus up to 30 min',
+                    'Cripple/Deflect will be when 1 hours are left, plus or minus up to 30 min',
+                    'Cripple/Deflect is disabled'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                 monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 demiPtItem = 0,
@@ -2811,6 +2820,7 @@ config.setItem('monsterDoSiege', false);
             htmlCode += caap.makeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '');
             htmlCode += caap.makeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '');
             htmlCode += caap.makeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '');
+            htmlCode += caap.makeDropDownTR("Cripple/Deflect when", 'WhenStun', stunList, stunInst, '', 'Immediately', false, false, 62);
             htmlCode += caap.makeCheckTR("Do not Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
             htmlCode += caap.makeTD("Attack Monsters in this order <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
