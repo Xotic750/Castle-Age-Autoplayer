@@ -183,7 +183,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var found = false;
 
-            for (var it = 0, len = general.records.length; it < len; it++) {
+            for (var it = 0; it < general.records.length; it++) {
                 if (general.records[it].name === generalName) {
                     found = true;
                     break;
@@ -902,7 +902,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
             con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
             con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
-            con.log(3, 'Select General ', whichGeneral);
+            con.log(2, 'Select General ', whichGeneral);
             if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 con.log(2, 'Using level up general');
@@ -910,7 +910,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			//Check what target general should be
             targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
-
+			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
@@ -919,6 +919,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : targetGeneral = general.GetLevelUpNames().pop();
             }
 			
+			if (!general.getRecord(targetGeneral)) {
+				con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '.  Changing setting to "Use Current"');
+				general.clear(whichGeneral);
+				return false;
+			}
+
 			return general.selectSpecific(targetGeneral);
 			
         } catch (err) {
@@ -932,11 +938,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 		try {
 			var	targetLoadout = '',
 				generalImage = '',
+				lRecord = {},
                 currentGeneral = general.GetCurrentGeneral(),
 				currentLoadout = general.GetCurrentLoadout(),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 
-            con.log(3, 'Select specific general', targetGeneral);
+            con.log(2, 'Select specific general', targetGeneral,currentGeneral,currentLoadout);
 			if (general.clickedLoadout !== false) {
 				if (session.getItem('page','None') === 'player_loadouts') {
 					con.log(2,"Loadout " + general.records[general.clickedLoadout].name + " is not defined.");
@@ -956,23 +963,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
 			targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
 			if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
-				for(var i=0; i<general.records.length; i++) {
-					if (general.records[i].name === targetLoadout) {
-						break;
-					}
-				}
-				if (i>=general.records.length) {
+				lRecord = general.getRecord(targetLoadout);
+				if (lRecord === false) {
 					con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
 					return false;
 				}
-				con.log(2,'Loading ' +targetLoadout + ' value ' + general.records[i].value);
+				con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
 
 				// Although loadout fast switch possible, do loadout switch on generals page to capture stats.
 				if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
 					return true;
 				}
-				general.clickedLoadout = i;
-				caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + general.records[i].value + ') > div:first'));
+				general.clickedLoadout = lRecord.value-1;
+				caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
 				return true;
 			}
 			
