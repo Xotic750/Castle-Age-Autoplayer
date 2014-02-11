@@ -17,11 +17,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_guildv2_battle = function() {
         try {
 			guild_battle.pageReviewTime = Date.now();
-			if (true) {
-			//if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
-				general.priority = false;
+			if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
 				guild_battle.GBstatus = 'Start';
-				//guild_battle.pageReviewTime = Date.now();
 			} else if ($u.hasContent(caap.checkForImage('guild_battle_locked.gif'))) {
 				guild_battle.GBstatus = 'Locked';
 				general.priority = config.getItem('GClassGeneral','Use Current');
@@ -29,14 +26,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if ($j('#guildv2_battle_middle').text().indexOf('Remaining')>=0) {
 					guild_battle.GBstatus = 'Active';
 					general.priority = config.getItem('GFightGeneral','Use Current');
-					con.log(2, "Battle active, so priority gen set", general.priority);
+					con.log(5, "Battle active, so priority gen set", general.priority);
 				} else {
 					guild_battle.GBstatus = 'Collect';
 					general.priority = false;
 				}
 			}
 
-			con.log(2, "Guild button, Page Text", guild_battle.GBstatus,$j('#guildv2_battle_middle').text());
+			con.log(2, "Guild battle status", guild_battle.GBstatus);
 			
 /*          var tempDiv = $j("img[src*='guild_symbol']");
 
