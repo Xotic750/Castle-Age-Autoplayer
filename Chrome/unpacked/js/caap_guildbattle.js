@@ -25,16 +25,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else if ($u.hasContent(caap.checkForImage('sort_btn_joinbattle.gif'))) {
 				if ($j('#guildv2_battle_middle').text().indexOf('Remaining')>=0) {
 					guild_battle.GBstatus = 'Active';
-<<<<<<< HEAD
 					general.priority = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
-					con.log(2, "Battle active, so priority gen set", general.priority);
-=======
-					general.priority = config.getItem('GFightGeneral','Use Current');
-					con.log(5, "Battle active, so priority gen set", general.priority);
->>>>>>> GuildBattle
+					con.log(4, "Battle active, so priority gen set", general.priority);
 				} else {
 					guild_battle.GBstatus = 'Collect';
-					general.priority = false;
+					general.priority = false;s
 				}
 			}
 
