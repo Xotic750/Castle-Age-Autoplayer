@@ -992,7 +992,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				button = caap.checkForImage('sort_btn_startbattle.gif');
 				if ($u.hasContent(button)) {
 					con.log(1, 'CLICK GUILD BATTLE START');
-					return caap.click(button);
+					//return caap.click(button);
 				}
 			}
 			con.log(4, 'No time match to current time', now);

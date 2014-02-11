@@ -17,7 +17,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_guildv2_battle = function() {
         try {
 			guild_battle.pageReviewTime = Date.now();
-			if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
+			if (true) {
+			//if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
 				general.priority = false;
 				guild_battle.GBstatus = 'Start';
 				//guild_battle.pageReviewTime = Date.now();

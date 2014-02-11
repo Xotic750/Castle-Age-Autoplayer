@@ -208,8 +208,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Look up a stat for a general.
     general.GetStat = function (generalName, stat) {
         try {
-			con.log(4, 'Getting stat '+stat+' for '+generalName);
-            var generalRecord = general.getRecord(generalName);
+           var generalRecord = general.getRecord(generalName);
 
             if (generalRecord === false) {
                 con.warn("Unable to find 'General' " + generalName + " stat " + stat);
@@ -485,7 +484,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             generalDiv = null;
             tempObj = null;
-            con.log(2, "general.GetEquippedStats", general.records);
 
             return general.records[it];
         } catch (err) {
@@ -902,7 +900,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
             con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
             con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
-            con.log(2, 'Select General ', whichGeneral);
             if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 con.log(2, 'Using level up general');
@@ -910,6 +907,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			//Check what target general should be
             targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+            con.log(5, 'Select General ', whichGeneral, targetGeneral, coolName);
 			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
@@ -926,7 +924,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
 			return general.selectSpecific(targetGeneral);
-			
         } catch (err) {
             con.error("ERROR in general.Select: " + err);
             return false;
@@ -943,7 +940,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				currentLoadout = general.GetCurrentLoadout(),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 
-            con.log(2, 'Select specific general', targetGeneral,currentGeneral,currentLoadout);
 			if (general.clickedLoadout !== false) {
 				if (session.getItem('page','None') === 'player_loadouts') {
 					con.log(2,"Loadout " + general.records[general.clickedLoadout].name + " is not defined.");

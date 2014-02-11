@@ -5391,6 +5391,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					caap.stats[stat].num = tempstats.num;
 					caap.stats[stat].max = tempstats.max || caap.stats[stat].max;
 					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
+					con.log(5, 'Stat ' + stat + ' max',caap.stats[stat].max);
 				} else {
 					con.warn("Unable to get " + stat + "Div");
 					passed = false;
@@ -5497,6 +5498,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 head,
                 body;
 
+            con.log(2, "Keep checkresults");
             if ($u.hasContent(attrDiv)) {
                 con.log(8, "Getting new values from player keep");
                 // rank
@@ -5978,6 +5980,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 $j("#app_body div[class*='statUnit'] img").attr("style", "height: 45px, width: 45px;").not("#app_body div[class*='statUnit'] img[alt='Stamina Potion'],img[alt='Energy Potion']").parent().parent().attr("style", "height: 45px, width: 45px;");
             }
             */
+            con.log(2, "Keep checkresults");
 			general.GetEquippedStats();
 
             return true;
@@ -6478,13 +6481,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
 
             if (theGeneral !== 'Use Current') {
-                maxIdleEnergy = $u.setContent(general.GetStat(theGeneral,'energyMax'), 0);
+                maxIdleEnergy = general.GetStat(theGeneral,'energyMax');
                 if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
                     con.log(1, "Changing to idle general to get Max energy", theGeneral, maxIdleEnergy);
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
-					return caap.navigateTo('keep', 'tab_stats_on.gif');
+					return caap.navigateTo('keep');
                 }
             }
 

@@ -539,15 +539,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 maxIdleStamina = caap.stats.stamina.max;
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
                 if (theGeneral !== 'Use Current') {
-                    maxIdleStamina = general.GetStat(theGeneral,'maxStamina');
+                    maxIdleStamina = general.GetStat(theGeneral,'staminaMax');
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleStamina) {
-                    con.log(2, "Changing to idle general to get Max Stamina");
+                    con.log(2, "Changing to idle general to get Max Stamina", theGeneral, maxIdleStamina);
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
-					return caap.navigateTo('keep', 'tab_stats_on.gif');
+					caap.navigateTo('keep', 'tab_stats_on.gif');
+					return true;
                 }
 
                 if (caap.stats.stamina.num >= maxIdleStamina) {
@@ -663,7 +664,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('monster_mess', 'Monster off');
                 return false;
             }
+			
+			// Inserted here temporarily to prevent multiple page changes for max stamina
+			var maxIdleStamina = caap.stats.stamina.max,
+				theGeneral = config.getItem('IdleGeneral', 'Use Current');
+				
+			if (theGeneral !== 'Use Current') {
+				maxIdleStamina = general.GetStat(theGeneral,'staminaMax');
+			}
 
+			if (theGeneral !== 'Use Current' && !maxIdleStamina) {
+				con.log(2, "Changing to idle general to get Max Stamina #1", theGeneral, maxIdleStamina);
+				if (general.Select('IdleGeneral')) {
+					return true;
+				}
+				return caap.navigateTo('keep');
+			}
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
             if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && caap.needToHide() && caap.checkStamina('Monster', 1)) {
@@ -687,7 +703,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < general.GetStat(config.getItem('IdleGeneral', 'Use Current'),'maxStamina')) {
+                if (caap.stats.stamina.num < general.GetStat(config.getItem('IdleGeneral', 'Use Current'),'staminaMax')) {
                     caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                     return false;
                 }
@@ -862,7 +878,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						con.log(1, "No stun target time set");
 					}
 					
-                    if (cM && cM.stunDo && cM.stunType !== '' && Date.now() > cM.stunTarget) {
+                    if (cM && cM.stunDo && cM.stunType !== '') {
                         buttonList.unshift("button_nm_s_" + cM.stunType);
                     } else {
                         buttonList.unshift("button_nm_s_");
@@ -2147,7 +2163,8 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                             }
 
                             if (cM.charClass && cM.tip && cM.stun !== -1) {
-                                cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
+                                cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100 
+										&& Date.now() > cM.stunTarget;
                                 cM.stunType = '';
                                 if (cM.stunDo) {
                                     con.log(2, "Do character specific attack", cM.stunDo);
