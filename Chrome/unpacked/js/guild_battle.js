@@ -982,7 +982,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				general.priority = config.getItem('GClassGeneral','Use Current');
+				general.priority = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
 				if (general.selectSpecific(general.priority)) {
 					return true;
 				}
