@@ -949,7 +949,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (timedSetting=='Never' || guild_battle.GBstatus !== 'Start') {
 				return false;
 			}
-			con.log(4, 'checkTime start', timeBattlesList);
+			con.log(5, 'checkTime start', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
 				if (!timeBattlesList[p].toString().trim()) {
@@ -977,7 +977,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				
 				if (begin < now && now < end) {
 					match = true;
-					con.log(2, 'Valid time for begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now, timeString);
+					con.log(4, 'Valid time for begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now, timeString);
 					break;
 				}
 			}
@@ -992,9 +992,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				button = caap.checkForImage('sort_btn_startbattle.gif');
 				if ($u.hasContent(button)) {
 					con.log(1, 'CLICK GUILD BATTLE START');
-					//return caap.click(button);
+					return caap.click(button);
 				}
+			} else if (guild_battle.GBstatus == 'Start') {
+				general.priority = false;
 			}
+
 			con.log(4, 'No time match to current time', now);
 			return false;
         } catch (err) {
