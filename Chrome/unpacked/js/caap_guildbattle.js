@@ -29,7 +29,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(4, "Battle active, so priority gen set", general.priority);
 				} else {
 					guild_battle.GBstatus = 'Collect';
-					general.priority = false;s
+					general.priority = false;
 				}
 			}
 
