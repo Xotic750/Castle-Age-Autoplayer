@@ -150,12 +150,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
+            pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
+
+			if (!$u.hasContent(imageOnPage) && pathList[pathList.length - 1] && caap.pageList[pathList[pathList.length - 1]]) {
+                con.log(5,'Using signature pic for web image', imageOnPage);
+                imageOnPage = caap.pageList[pathList[pathList.length - 1]].signaturePic;
+            }
+
             if ($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage, newwebSlice)) {
                 con.log(3, 'Image found on page', imageOnPage);
                 return false;
             }
 
-            pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
             jq = $j();
 
             for (s = pathList.length - 1; s >= 0; s -= 1) {

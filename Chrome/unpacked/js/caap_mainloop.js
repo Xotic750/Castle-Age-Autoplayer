@@ -42,7 +42,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'bank': 'Auto Banking',
         'lands': 'Land Operations',
         'quests': 'Questing',
-        'checkGenerals': 'Checking Generals',
+        'guildBattle': 'Guild Battle',
         'checkAllGenerals': 'Getting Generals Stats',
         'checkArmy': 'Checking Army',
         'checkKeep': 'Checking Keep',
@@ -92,23 +92,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.masterActionList = {
         0x00: 'autoElite',
         0x01: 'heal',
-        0x02: 'immediateBanking',
-        0x03: 'immediateAutoStat',
-        0x04: 'maxEnergyQuest',
-        0x05: 'festivalReview',
-        0x06: 'guildMonsterReview',
-        0x07: 'monsterReview',
-        0x08: 'festival',
-        0x09: 'guildMonster',
-        0x0A: 'demiPoints',
-        0x0B: 'monsters',
-        0x0C: 'battle',
-        0x0D: 'quests',
-        0x0E: 'conquestBattle',
-        0x0F: 'bank',
-        0x10: 'passiveGeneral',
-        0x11: 'checkGenerals',
-        0x12: 'checkAllGenerals',
+        0x02: 'guildBattle',
+        0x03: 'immediateBanking',
+        0x04: 'immediateAutoStat',
+        0x05: 'maxEnergyQuest',
+        0x06: 'festivalReview',
+        0x07: 'guildMonsterReview',
+        0x08: 'monsterReview',
+        0x09: 'festival',
+        0x0A: 'guildMonster',
+        0x0B: 'demiPoints',
+        0x0C: 'monsters',
+        0x0D: 'battle',
+        0x0E: 'quests',
+        0x0F: 'conquestBattle',
+        0x10: 'bank',
+        0x11: 'checkAllGenerals',
+        0x12: 'passiveGeneral',
         0x13: 'checkArmy',
         0x14: 'lands',
         0x15: 'autoBless',
@@ -307,6 +307,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.general = null;
                     window.monster = null;
                     window.guild_monster = null;
+                    window.guild_battle = null;
                     //window.arena = null;
                     window.festival = null;
                     window.feed = null;
@@ -381,21 +382,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
                 caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
-                caap.stats.energyT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energyT.max), caap.stats.energy);
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
                 caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
-                caap.stats.healthT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.healthT.max), caap.stats.healthT);
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);
-                caap.stats.staminaT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.staminaT.max), caap.stats.staminaT);
+                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
                 con.log(3, "stsPoll scv", num);
             }
 
@@ -709,6 +707,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'delete': function () {
                 guild_monster.records = [];
                 gm.deleteItem("guild_monster.records");
+            }
+        },
+        'Guild Battle': {
+            'export': function () {
+                return guild_battle.records;
+            },
+            'import': function (d) {
+                guild_battle.records = d;
+                guild_battle.save();
+            },
+            'delete': function () {
+                guild_battle.records = [];
+                gm.deleteItem("guild_battle.records");
             }
         },
         'Target': {

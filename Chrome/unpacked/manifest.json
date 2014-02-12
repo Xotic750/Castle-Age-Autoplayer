@@ -49,6 +49,7 @@
                 "js/general.js",
                 "js/monster.js",
                 "js/guild_monster.js",
+                "js/guild_battle.js",
                 "js/festival.js",
                 "js/feed.js",
                 "js/battle.js",

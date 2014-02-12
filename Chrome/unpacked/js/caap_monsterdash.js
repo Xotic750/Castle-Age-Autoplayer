@@ -106,6 +106,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "Updating Dashboard");
             monster.dashboard();
             guild_monster.dashboard();
+            guild_battle.dashboard();
             //arena.AddArenaDashboard();
             festival.dashboard();
             feed.dashboard();
