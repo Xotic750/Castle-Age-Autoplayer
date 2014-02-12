@@ -126,6 +126,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "Monster Name", mName);
                     con.log(3, "checkResults_fightList page", page);
                     md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
+					con.log(2,'md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase());
                     monsterReviewed = monster.getItem(md5);
                     monsterReviewed.name = mName;
                     monsterReviewed.userName = userName;
@@ -1737,6 +1738,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             }
 
             md5 = (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase().MD5();
+			con.log(2,'md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase());
             if ((feed.isScan || ajax) && matches && feed.scanRecord.md5 !== md5) {
                 con.warn("MD5 mismatch!", md5, feed.scanRecord.md5);
                 if (config.getItem("DebugLevel", 1) > 1) {

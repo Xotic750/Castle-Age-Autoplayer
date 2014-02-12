@@ -1026,13 +1026,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.hasIndexOf(minion.target_id) && $u.isNaN(minion.healthNum)) {
-                if (caap.stats.staminaT.num < 5) {
+                if (caap.stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.staminaT.num < 10) {
+                } else if (caap.stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.staminaT.num < 20) {
+                } else if (caap.stats.stamina.num < 20) {
                     attack = 3;
-                } else if (caap.stats.staminaT.num < 50) {
+                } else if (caap.stats.stamina.num < 50) {
                     attack = 4;
                 } else {
                     attack = 5;
@@ -1040,37 +1040,37 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             } else if (minion.healthNum < recordInfo.health[0]) {
                 attack = 1;
             } else if (minion.healthNum < recordInfo.health[1]) {
-                if (caap.stats.staminaT.num < 5) {
+                if (caap.stats.stamina.num < 5) {
                     attack = 1;
                 } else {
                     attack = 2;
                 }
             } else if (minion.healthNum < recordInfo.health[2]) {
-                if (caap.stats.staminaT.num < 5) {
+                if (caap.stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.staminaT.num < 10) {
+                } else if (caap.stats.stamina.num < 10) {
                     attack = 2;
                 } else {
                     attack = 3;
                 }
             } else if (minion.healthNum < recordInfo.health[3]) {
-                if (caap.stats.staminaT.num < 5) {
+                if (caap.stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.staminaT.num < 10) {
+                } else if (caap.stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.staminaT.num < 20) {
+                } else if (caap.stats.stamina.num < 20) {
                     attack = 3;
                 } else {
                     attack = 4;
                 }
             } else {
-                if (caap.stats.staminaT.num < 5) {
+                if (caap.stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.staminaT.num < 10) {
+                } else if (caap.stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.staminaT.num < 20) {
+                } else if (caap.stats.stamina.num < 20) {
                     attack = 3;
-                } else if (caap.stats.staminaT.num < 50) {
+                } else if (caap.stats.stamina.num < 50) {
                     attack = 4;
                 } else {
                     attack = 5;

@@ -55,7 +55,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             record = guild_monster.getReview();
             if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
                 con.log(1, "Reviewing Slot (" + record.slot + ") Name: " + record.name);
-                if (caap.stats.staminaT.num > 0 && config.getItem("doGuildMonsterSiege", true)) {
+                if (caap.stats.stamina.num > 0 && config.getItem("doGuildMonsterSiege", true)) {
                     objective = "&action=doObjective";
                 }
             url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
@@ -157,8 +157,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (caap.inLevelUpMode()) {
-                if (caap.stats.staminaT.num < 5) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + 5);
+                if (caap.stats.stamina.num < 5) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.stamina.num + '/' + 5);
                     form = null;
                     key = null;
                     return false;
@@ -171,8 +171,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             } else if (when === 'Stamina Available') {
                 stamina = state.getItem('staminaGuildMonster', 0);
-                if (caap.stats.staminaT.num < stamina) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + stamina);
+                if (caap.stats.stamina.num < stamina) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.stamina.num + '/' + stamina);
                     form = null;
                     key = null;
                     return false;
@@ -185,8 +185,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                         stamina = guild_monster.getStaminaValue(record, minion);
                         state.setItem('staminaGuildMonster', stamina);
-                        if (caap.stats.staminaT.num < stamina) {
-                            caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + stamina);
+                        if (caap.stats.stamina.num < stamina) {
+                            caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.stamina.num + '/' + stamina);
                             form = null;
                             key = null;
                             return false;
@@ -208,16 +208,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
             } else if (when === 'At X Stamina') {
-                if (caap.stats.staminaT.num >= config.getItem("MaxStaminaToGMonster", 20)) {
+                if (caap.stats.stamina.num >= config.getItem("MaxStaminaToGMonster", 20)) {
                     state.setItem('guildMonsterBattlesBurn', true);
                 }
 
-                if (caap.stats.staminaT.num <= config.getItem("MinStaminaToGMonster", 0) || caap.stats.staminaT.num < 1) {
+                if (caap.stats.stamina.num <= config.getItem("MinStaminaToGMonster", 0) || caap.stats.stamina.num < 1) {
                     state.setItem('guildMonsterBattlesBurn', false);
                 }
 
                 if (!state.getItem('guildMonsterBattlesBurn', false)) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + config.getItem("MaxStaminaToGMonster", 20));
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.stamina.num + '/' + config.getItem("MaxStaminaToGMonster", 20));
                     form = null;
                     key = null;
                     return false;
@@ -229,8 +229,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
             } else if (when === 'At Max Stamina') {
-                if (caap.stats.staminaT.num < caap.stats.stamina.max || caap.stats.staminaT.num < 1) {
-                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.staminaT.num + '/' + caap.stats.stamina.max);
+                if (caap.stats.stamina.num < caap.stats.stamina.max || caap.stats.stamina.num < 1) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + caap.stats.stamina.num + '/' + caap.stats.stamina.max);
                     form = null;
                     key = null;
                     return false;

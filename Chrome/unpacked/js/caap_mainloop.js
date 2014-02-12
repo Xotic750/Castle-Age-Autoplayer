@@ -382,21 +382,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
                 caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
-                caap.stats.energyT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energyT.max), caap.stats.energy);
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
                 caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
-                caap.stats.healthT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.healthT.max), caap.stats.healthT);
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);
-                caap.stats.staminaT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.staminaT.max), caap.stats.staminaT);
+                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
                 con.log(3, "stsPoll scv", num);
             }
 

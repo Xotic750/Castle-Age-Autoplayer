@@ -134,8 +134,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				now = new Date();
 			// Priority generals, such as Guild Battle class generals, outrank timed generals.
 			if (general.priority) {
-				timedLoadoutsList.unshift(now.getHours() + ':' + now.getMinutes() + '@' + general.priority);
-				con.log(2,'Priority gen set',timedLoadoutsList);
+				timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + general.priority;
+				timedLoadoutsList.unshift(timeStrings);
+				con.log(2,'Priority gen set', timeStrings, timedLoadoutsList);
 			}
 			con.log(5, 'timedLoadoutsList', timedLoadoutsList);
 			// Next we step through the users list getting the name and conditions
@@ -181,24 +182,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "Invalid identifying generalName!";
             }
 
-            var found = false;
-
             for (var it = 0; it < general.records.length; it++) {
                 if (general.records[it].name === generalName) {
-                    found = true;
-                    break;
+					return general.records[it];
                 }
             }
 
-            if (!found) {
-                if (!quiet) {
-                    con.warn("Unable to find 'General' record", generalName);
-                }
+			if (!quiet) {
+				con.warn("Unable to find 'General' record", generalName);
+			}
 
-                return false;
-            }
+			return false;
 
-            return general.records[it];
         } catch (err) {
             con.error("ERROR in general.getRecord: " + err);
             return false;
@@ -406,7 +401,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			generalRecord.last = Date.now();
             caap.updateDashboard(true);
             general.save();
-			con.log(2, "Got 'General' stats", generalRecord);
+			con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
 			return true;
         } catch (err) {
             con.error("ERROR in general.assignStats: " + err);
@@ -414,16 +409,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 	}
 		
-	// Called from the keep page checkresults, this records the specific information for each general that cannot be seen if the 
-	// general isn't equipped, such as item bonuses to general or max sta/energy .
+	// Called after a page load, this records the specific information for each general that cannot be seen if the 
+	// general isn't equipped, such as item bonuses to general or max sta/energy and the max stamina/energy/health.
     general.GetEquippedStats = function () {
         try {
             general.quickSwitch = false;
             var generalName = general.GetCurrentGeneral(),
 				loadoutName = general.GetCurrentLoadout(),
 				loadoutRecord,
+				generalRecord = general.getRecord(generalName),
 				defaultLoadout = config.getItem("DefaultLoadout", 'Use Current'),
-                len = 0,
                 generalDiv = $j(),
                 tempObj = $j(),
                 success = false,
@@ -431,22 +426,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				eatk, edef,
                 temptext = '';
 
-            if (generalName === 'Use Current') {
-                generalDiv = null;
-                tempObj = null;
-                return false;
-            }
-
-            for (var it = 0, len = general.records.length; it < len; it += 1) {
-                if (general.records[it].name === generalName) {
-                    break;
-                }
-            }
-
-            if (it >= len) {
-                con.warn("Unable to find 'General' record");
-                generalDiv = null;
-                tempObj = null;
+            if (generalName === 'Use Current' || !generalRecord) {
+                con.warn("Unable to find 'General' record", generalName);
                 return false;
             }
 
@@ -468,7 +449,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if (success) {
 					if (loadoutName === defaultLoadout || defaultLoadout == 'Use Current') {
-						general.assignStats(general.records[it], eatk, edef);
+						general.assignStats(generalRecord, eatk, edef);
 					}
 					loadoutRecord = general.getRecord(loadoutName);
 					if (loadoutRecord.general === generalName) {
@@ -485,7 +466,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             generalDiv = null;
             tempObj = null;
 
-            return general.records[it];
+            return generalRecord;
         } catch (err) {
             con.error("ERROR in general.GetEquippedStats: " + err);
             return false;
@@ -944,7 +925,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (session.getItem('page','None') === 'player_loadouts') {
 					con.log(2,"Loadout " + general.records[general.clickedLoadout].name + " is not defined.");
 					general.records[general.clickedLoadout].last = Date.now();
-				} else {
+				} else if (currentLoadout == general.records[general.clickedLoadout].name) {
 					con.log(2,"Updated general for " + general.records[general.clickedLoadout].name + " is " + general.records[general.clickedLoadout].general, general.records);
 					general.records[general.clickedLoadout].general = currentGeneral;
 				}

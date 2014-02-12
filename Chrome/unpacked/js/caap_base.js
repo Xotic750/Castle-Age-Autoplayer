@@ -5081,6 +5081,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
             session.setItem('page', page);
             general.GetLoadouts();
+			general.GetEquippedStats();
 
             if ($u.hasContent(caap.pageList[page])) {
                 con.log(3, 'caap.checkResults caap.resultsText', caap.resultsText);
@@ -5226,32 +5227,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'dif': 0,
             'ticker': []
         },
-        'energyT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
-        },
         'health': {
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
         },
-        'healthT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
-        },
         'stamina': {
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
-        },
-        'staminaT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
         },
         'exp': {
             'num': 0,
@@ -5361,7 +5347,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0,
                 xS = 0,
                 xE = 0,
-				tempstats = {},
+				max = 0,
 				loop = ['energy','stamina','health'],
 //                ststbDiv = $j('#globalContainer #main_ststb'),
                 ststbDiv = $j('#globalContainer #main_sts_container'),
@@ -5380,18 +5366,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			loop.forEach(function(stat) {
 				tempDiv = $j($j("#" + stat + "_current_value", ststbDiv)[0].parentNode);
 				if ($u.hasContent(tempDiv)) {
-					tempstats = caap.getStatusNumbers(tempDiv.text());
-					con.log(4, stat,tempstats,tempDiv.text(),session.getItem('page', 'none'));
-					if (!tempstats.num) {
+					max = caap.stats[stat].max;
+					caap.stats[stat] = caap.getStatusNumbers(tempDiv.text());
+					con.log(4, stat,caap.stats[stat],tempDiv.text(),session.getItem('page', 'none'));
+					if (!caap.stats[stat].num) {
 						con.log(2, 'Current '+ stat + ' is 0',tempDiv.text(),session.getItem('page', 'none'));
 					}
-					if (!tempstats.max) {
+					if (!caap.stats[stat].max) {
 						con.log(1, 'Unable to read ' + stat + ' max',tempDiv.text(),session.getItem('page', 'none'));
 					}
-					caap.stats[stat].num = tempstats.num;
-					caap.stats[stat].max = tempstats.max || caap.stats[stat].max;
+					caap.stats[stat].max = $u.setContent(caap.stats[stat].max, max);
 					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
-					con.log(5, 'Stat ' + stat + ' max',caap.stats[stat].max);
+					con.log(2, 'Stat ' + stat + ' max',caap.stats[stat].max);
 				} else {
 					con.warn("Unable to get " + stat + "Div");
 					passed = false;
@@ -5498,7 +5484,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 head,
                 body;
 
-            con.log(2, "Keep checkresults");
+            con.log(2, "Keep check results");
             if ($u.hasContent(attrDiv)) {
                 con.log(8, "Getting new values from player keep");
                 // rank
@@ -5529,22 +5515,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if ($u.hasContent(statCont) && statCont.length >= 6) {
-                    // Energy
-                    tempDiv = statCont.eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        caap.stats.energy = caap.getStatusNumbers(caap.stats.energyT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
-                    } else {
-                        con.warn('Using stored energy value.');
-                    }
-
-                    // Stamina
-                    tempDiv = statCont.eq(1);
-                    if ($u.hasContent(tempDiv)) {
-                        caap.stats.stamina = caap.getStatusNumbers(caap.stats.staminaT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
-                    } else {
-                        con.warn('Using stored stamina value.');
-                    }
-
                     if (caap.stats.level >= 10) {
                         // Attack
                         tempDiv = statCont.eq(2);
@@ -5566,7 +5536,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // Health
                     tempDiv = statCont.eq(4);
                     if ($u.hasContent(tempDiv)) {
-                        caap.stats.health = caap.getStatusNumbers(caap.stats.healthT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
+                        caap.stats.health = caap.getStatusNumbers(caap.stats.health.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
                     } else {
                         con.warn('Using stored health value.');
                     }
@@ -5980,8 +5950,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 $j("#app_body div[class*='statUnit'] img").attr("style", "height: 45px, width: 45px;").not("#app_body div[class*='statUnit'] img[alt='Stamina Potion'],img[alt='Energy Potion']").parent().parent().attr("style", "height: 45px, width: 45px;");
             }
             */
-            con.log(2, "Keep checkresults");
-			general.GetEquippedStats();
 
             return true;
         } catch (err) {
