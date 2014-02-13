@@ -413,12 +413,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         },
 
         navigate_to_main: function() {
-            return caap.navigateTo('soldiers,tab_festival_off.jpg,festival_battle_home', 'arena3_rewardsbutton.gif');
+            return caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_battle_home', 'arena3_rewardsbutton.gif');
         },
 
         navigate_to_main_refresh: function() {
             state.setItem('FestivalRefresh', false);
-            return caap.navigateTo('soldiers,tab_festival_off.jpg,festival_battle_home');
+            return caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_battle_home');
         },
 
         checkInfo: function() {
