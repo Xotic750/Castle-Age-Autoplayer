@@ -4784,7 +4784,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_viewFight'
         },
         'land': {
-            signaturePic: 'tab_land_on.gif',
+            signaturePic: 'fb_tab_land_on.jpg',
             CheckResultsFunction: 'checkResults_land'
         },
         'generals': {
@@ -4849,15 +4849,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_battle'
         },
         'soldiers': {
-            signaturePic: 'tab_soldiers_on.gif',
+            signaturePic: 'fb_tab_soldiers_on.jpg',
             CheckResultsFunction: 'checkResults_soldiers'
         },
         'item': {
-            signaturePic: 'tab_black_smith_on.gif',
+            signaturePic: 'fb_tab_smith_on.jpg',
             CheckResultsFunction: 'checkResults_item'
         },
         'magic': {
-            signaturePic: 'tab_magic_on.gif',
+            signaturePic: 'fb_tab_magic_on.jpg',
             CheckResultsFunction: 'checkResults_magic'
         },
         'gift': {
@@ -8580,7 +8580,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             picSlice = $j();
             txt = '';
 
-            if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
+            if (caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
                 return true;
             }
 
@@ -8588,14 +8588,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (/Mastered/i.test(txt)) {
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
 
             if (!new RegExp(autoBless).test(txt)) {
                 con.warn('No match for text', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8604,7 +8604,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(picSlice)) {
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8612,7 +8612,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             picSlice = $j("#app_body input[src*='festival_feat_testbutton.jpg']");
             if (!$u.hasContent(picSlice)) {
                 con.warn('No blessing button', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8901,7 +8901,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             bestLandCost = state.getItem('BestLandCost', new caap.landRecord().data);
             if (!bestLandCost.set) {
                 con.log(2, "Going to land to get Best Land Cost");
-                if (caap.navigateTo('soldiers,land', caap.hasImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
+                if (caap.navigateTo('soldiers,land', caap.hasImage('fb_tab_land_on.jpg') ? '' : 'fb_tab_land_on.jpg')) {
                     return true;
                 }
             }
@@ -8948,7 +8948,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 caap.navigateTo('soldiers,land');
-                if (caap.hasImage('tab_land_on.gif')) {
+                if (caap.hasImage('fb_tab_land_on.jpg')) {
                     if (bestLandCost.buy) {
                         con.log(2, "Buying land", caap.bestLand.name);
                         if (buySellLand(caap.bestLand)) {
@@ -9072,7 +9072,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Soldiers");
-            return caap.navigateTo('soldiers', 'tab_soldiers_on.gif');
+            return caap.navigateTo('soldiers', 'fb_tab_soldiers_on.jpg');
         } catch (err) {
             con.error("ERROR in checkSoldiers: " + err);
             return false;
@@ -9086,7 +9086,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Item");
-            return caap.navigateTo('soldiers,item', 'tab_black_smith_on.gif');
+            return caap.navigateTo('soldiers,item', 'fb_tab_smith_on.jpg');
         } catch (err) {
             con.error("ERROR in checkItem: " + err);
             return false;
@@ -9100,7 +9100,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Magic");
-            return caap.navigateTo('soldiers,magic', 'tab_magic_on.gif');
+            return caap.navigateTo('soldiers,magic', 'fb_tab_magic_on.jpg');
         } catch (err) {
             con.error("ERROR in checkMagic: " + err);
             return false;
