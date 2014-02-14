@@ -3,20 +3,20 @@ nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,
-schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
+schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
-//                          guild_monster OBJECT
-// this is the main object for dealing with guild monsters
+//                          guild_battle OBJECT
+// this is the main object for dealing with guild battles
 /////////////////////////////////////////////////////////////////////
 
 (function() {
     "use strict";
 
-    guild_monster.records = [];
+    guild_battle.records = [];
 
-    guild_monster.record = function() {
+    guild_battle.record = function() {
         this.data = {
             'name': '',
             'guildId': '',
@@ -35,7 +35,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
         };
     };
 
-    guild_monster.minion = function() {
+    guild_battle.minion = function() {
         this.data = {
             'attacking_position': 0,
             'target_id': 0,
@@ -49,7 +49,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
         };
     };
 
-    guild_monster.me = function() {
+    guild_battle.me = function() {
         this.data = {
             'name': '',
             'level': 0,
@@ -61,72 +61,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
         };
     };
 
-    guild_monster.info = {
-        "Vincent": {
-            twt2: "vincent",
-            special1: [0],
-            special2: [1],
-            health: [100, 200, 400, 800],
-            cta_img: ['cta_vincent.gif'],
-            enemy: 100
-        },
-        "Alpha Vincent": {
-            twt2: "alpha_vincent",
-            special1: [0],
-            special2: [1],
-            health: [500, 1000, 2000, 4000],
-            cta_img: ['cta_alphavincent.gif'],
-            enemy: 100
-        },
-        "Army of the Apocalypse": {
-            twt2: "ca_girls",
-            special1: [0, 25, 50, 75],
-            special2: [1, 2, 3, 4],
-            health: [500, 1000, 2000, 4000],
-            cta_img: [],
-            enemy: 100
-        },
-        "Giant Arachnid": {
-            twt2: "giant_arachnid",
-            special1: [0],
-            special2: [1],
-            health: [100, 200, 400, 800],
-            cta_img: ['cta_spider.jpg'],
-            enemy: 24
-        }
-    };
-
-    guild_monster.enableSpider = function() {
-        try {
-            var ladies = $j("#app_body div[style*='monster_summon_ladies.jpg']").parent(),
-                cloned = ladies.clone(),
-                tempText = '',
-                tempDiv;
-
-            tempDiv = $j("div[style*='monster_summon_ladies.jpg']", cloned);
-            tempText = tempDiv.attr("style").replace("ladies", "spider");
-            tempDiv.attr("style", tempText);
-            tempDiv = $j("div[style*='guild_summon_monster_progress_bar.jpg']", cloned);
-            tempText = caap.resultsText.hasIndexOf("Giant Arachnid :") ? $u.setContent($j("#app_body img[src*='nm_class_progress.jpg']").parent().css("width"), "0px") : "0px";
-            tempDiv.css("width", tempText);
-            tempDiv = $j("input[name='b_type']", cloned);
-            tempDiv.val("spider");
-            ladies.before(cloned);
-
-            ladies = null;
-            tempDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_monster.which: " + err);
-            return false;
-        }
-    };
-
-    guild_monster.getCtaName = function(img) {
-        return guild_monster.which(img, "cta_img");
-    };
-
-    guild_monster.which = function(img, entity) {
+    guild_battle.which = function(img, entity) {
         try {
             if (!$u.hasContent(img) || !$u.isString(img)) {
                 con.warn("img", img);
@@ -143,13 +78,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 r = {},
                 name = '';
 
-            for (i in guild_monster.info) {
-                if (guild_monster.info.hasOwnProperty(i)) {
+            for (i in guild_battle.info) {
+                if (guild_battle.info.hasOwnProperty(i)) {
                     if ($u.hasContent(name)) {
                         break;
                     }
 
-                    r = guild_monster.info[i];
+                    r = guild_battle.info[i];
                     // current thinking is that continue should not be used as it can cause reader confusion
                     // therefore when linting, it throws a warning
                     /*jslint continue: true */
@@ -169,52 +104,52 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
             return name;
         } catch (err) {
-            con.error("ERROR in guild_monster.which: " + err);
+            con.error("ERROR in guild_battle.which: " + err);
             return undefined;
         }
     };
 
-    guild_monster.load = function() {
+    guild_battle.load = function() {
         try {
-            guild_monster.records = gm.getItem('guild_monster.records', 'default');
-            if (guild_monster.records === 'default' || !$j.isArray(guild_monster.records)) {
-                guild_monster.records = gm.setItem('guild_monster.records', []);
+            guild_battle.records = gm.getItem('guild_battle.records', 'default');
+            if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
+                guild_battle.records = gm.setItem('guild_battle.records', []);
             }
 
-            session.setItem("GuildMonsterDashUpdate", true);
-            con.log(3, "guild_monster.load", guild_monster.records);
+            session.setItem("GuildBattleDashUpdate", true);
+            con.log(3, "guild_battle.load", guild_battle.records);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.load: " + err);
+            con.error("ERROR in guild_battle.load: " + err);
             return false;
         }
     };
 
-    guild_monster.save = function(src) {
+    guild_battle.save = function(src) {
         try {
             if (caap.domain.which === 3) {
-                caap.messaging.setItem('guild_monster.records', guild_monster.records);
+                caap.messaging.setItem('guild_battle.records', guild_battle.records);
             } else {
-                gm.setItem('guild_monster.records', guild_monster.records);
-                con.log(3, "guild_monster.save", guild_monster.records);
+                gm.setItem('guild_battle.records', guild_battle.records);
+                con.log(3, "guild_battle.save", guild_battle.records);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
-                    con.log(2, "guild_monster.save send");
-                    caap.messaging.setItem('guild_monster.records', guild_monster.records);
+                    con.log(2, "guild_battle.save send");
+                    caap.messaging.setItem('guild_battle.records', guild_battle.records);
                 }
             }
 
             if (caap.domain.which !== 0) {
-                session.setItem("GuildMonsterDashUpdate", true);
+                session.setItem("GuildBattleDashUpdate", true);
             }
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.save: " + err);
+            con.error("ERROR in guild_battle.save: " + err);
             return false;
         }
     };
 
-    guild_monster.getItem = function(slot) {
+    guild_battle.getItem = function(slot) {
         try {
             var it = 0,
                 len = 0,
@@ -230,29 +165,29 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 return '';
             }
 
-            for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
-                if (guild_monster.records[it].slot === slot) {
+            for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
+                if (guild_battle.records[it].slot === slot) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                con.log(3, "Got guild_monster record", slot, guild_monster.records[it]);
-                return guild_monster.records[it];
+                con.log(3, "Got guild_battle record", slot, guild_battle.records[it]);
+                return guild_battle.records[it];
             }
 
-            newRecord = new guild_monster.record();
+            newRecord = new guild_battle.record();
             newRecord.data.slot = slot;
-            con.log(3, "New guild_monster record", slot, newRecord.data);
+            con.log(3, "New guild_battle record", slot, newRecord.data);
             return newRecord.data;
         } catch (err) {
-            con.error("ERROR in guild_monster.getItem: " + err);
+            con.error("ERROR in guild_battle.getItem: " + err);
             return false;
         }
     };
 
-    guild_monster.setItem = function(record) {
+    guild_battle.setItem = function(record) {
         try {
             if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -267,30 +202,30 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 len = 0,
                 success = false;
 
-            for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
-                if (guild_monster.records[it].slot === record.slot) {
+            for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
+                if (guild_battle.records[it].slot === record.slot) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                guild_monster.records[it] = record;
-                con.log(3, "Updated guild_monster record", record, guild_monster.records);
+                guild_battle.records[it] = record;
+                con.log(3, "Updated guild_battle record", record, guild_battle.records);
             } else {
-                guild_monster.records.push(record);
-                con.log(3, "Added guild_monster record", record, guild_monster.records);
+                guild_battle.records.push(record);
+                con.log(3, "Added guild_battle record", record, guild_battle.records);
             }
 
-            guild_monster.save();
+            guild_battle.save();
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.setItem: " + err);
+            con.error("ERROR in guild_battle.setItem: " + err);
             return false;
         }
     };
 
-    guild_monster.deleteItem = function(slot) {
+    guild_battle.deleteItem = function(slot) {
         try {
             var it = 0,
                 len = 0,
@@ -301,62 +236,62 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 throw "Invalid identifying slot!";
             }
 
-            for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
-                if (guild_monster.records[it].slot === slot) {
+            for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
+                if (guild_battle.records[it].slot === slot) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                guild_monster.records.splice(it, 1);
-                guild_monster.save();
-                con.log(3, "Deleted guild_monster record", slot, guild_monster.records);
+                guild_battle.records.splice(it, 1);
+                guild_battle.save();
+                con.log(3, "Deleted guild_battle record", slot, guild_battle.records);
                 return true;
             }
 
-            con.warn("Unable to delete guild_monster record", slot, guild_monster.records);
+            con.warn("Unable to delete guild_battle record", slot, guild_battle.records);
             return false;
         } catch (err) {
-            con.error("ERROR in guild_monster.deleteItem: " + err);
+            con.error("ERROR in guild_battle.deleteItem: " + err);
             return false;
         }
     };
 
-    guild_monster.clear = function() {
+    guild_battle.clear = function() {
         try {
-            con.log(1, "guild_monster.clear");
-            guild_monster.records = [];
-            guild_monster.save();
-            state.setItem('staminaGuildMonster', 0);
-            state.setItem('targetGuildMonster', {});
-            session.setItem("GuildMonsterDashUpdate", true);
+            con.log(1, "guild_battle.clear");
+            guild_battle.records = [];
+            guild_battle.save();
+            state.setItem('staminaGuildBattle', 0);
+            state.setItem('targetGuildBattle', {});
+            session.setItem("GuildBattleDashUpdate", true);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.clear: " + err);
+            con.error("ERROR in guild_battle.clear: " + err);
             return false;
         }
     };
 
-    guild_monster.navigate_to_main = function() {
+    guild_battle.navigate_to_main = function() {
         return caap.navigateTo('guild', 'tab_guild_main_on.gif');
     };
 
-    guild_monster.navigate_to_battles_refresh = function() {
-        var button = caap.checkForImage("guild_monster_tab_on.jpg");
+    guild_battle.navigate_to_battles_refresh = function() {
+        var button = caap.checkForImage("guild_battle_tab_on.jpg");
         if ($u.hasContent(button)) {
             caap.click(button);
         }
 
-        state.setItem('guildMonsterBattlesRefresh', false);
+        state.setItem('guildBattleBattlesRefresh', false);
         return $u.hasContent(button);
     };
 
-    guild_monster.navigate_to_battles = function() {
-        return caap.navigateTo('guildv2_monster_summon_list,guildv2_current_monster_battles', 'guild_monster_list_on.jpg');
+    guild_battle.navigate_to_battles = function() {
+        return caap.navigateTo('guildv2_battle_summon_list,guildv2_current_battle_battles', 'guild_battle_list_on.jpg');
     };
 
-    guild_monster.populate = function() {
+    guild_battle.populate = function() {
         try {
             var buttons = $j("input[src*='guild_battle_']"),
                 slotArr = [],
@@ -380,7 +315,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                         if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                             con.log(3, "slot", slot);
                             slotArr.push(slot);
-                            currentRecord = guild_monster.getItem(slot);
+                            currentRecord = guild_battle.getItem(slot);
                             name = button.parents().eq(4).text();
                             name = name.replace("has  been summoned!", "");
                             name = name.replace("Join Battle!", "");
@@ -445,7 +380,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
                     if (passed) {
                         con.log(2, "currentRecord/button", currentRecord, button);
-                        guild_monster.setItem(currentRecord);
+                        guild_battle.setItem(currentRecord);
                     } else {
                         con.warn("populate record failed", currentRecord, button);
                     }
@@ -454,28 +389,28 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     form = null;
                 });
 
-                for (it = guild_monster.records.length - 1; it >= 0; it -= 1) {
-                    if (!slotArr.hasIndexOf(guild_monster.records[it].slot)) {
-                        guild_monster.deleteItem(guild_monster.records[it].slot);
+                for (it = guild_battle.records.length - 1; it >= 0; it -= 1) {
+                    if (!slotArr.hasIndexOf(guild_battle.records[it].slot)) {
+                        guild_battle.deleteItem(guild_battle.records[it].slot);
                     }
                 }
 
-                guild_monster.select(true);
+                guild_battle.select(true);
                 buttons = null;
             } else {
                 con.log(1, "No buttons found");
-                guild_monster.clear();
+                guild_battle.clear();
             }
 
             caap.updateDashboard(true);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.populate: " + err);
+            con.error("ERROR in guild_battle.populate: " + err);
             return false;
         }
     };
 
-    guild_monster.onMonster = function() {
+    guild_battle.onBattle = function() {
         try {
             var gates = $j(),
                 health = $j(),
@@ -497,7 +432,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             slot = $u.setContent($j("input[name='slot']").eq(0).val(), '0').parseInt();
             if (!$u.isNumber(slot) || slot < 1 || slot > 5) {
-                tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+                tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_battle.php?guild_id=']");
                 slot = $u.setContent(tempDiv.attr("href"), 'slot=0').regex(/slot=(\d)/i);
             }
 
@@ -506,13 +441,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                 con.log(1, "slot", slot);
-                currentRecord = guild_monster.getItem(slot);
+                currentRecord = guild_battle.getItem(slot);
                 currentRecord.minions = [];
                 currentRecord.ticker = '';
                 currentRecord.guildHealth = 0;
                 currentRecord.enemyHealth = 0;
                 if (!bannerDiv.attr("style").match(/_dead/)) {
-                    currentRecord.ticker = $j("#monsterTicker").text();
+                    currentRecord.ticker = $j("#battleTicker").text();
                     currentRecord.ticker = currentRecord.ticker ? currentRecord.ticker.trim() : '';
                     if (myStatsTxt) {
                         con.log(1, "myStatsTxt", myStatsTxt);
@@ -575,7 +510,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
                             if (!memberDivs || !memberDivs.length) {
                                 con.warn("No members found");
-                            } else if (memberDivs && memberDivs.length !== guild_monster.info[currentRecord.name].enemy / 4) {
+                            } else if (memberDivs && memberDivs.length !== guild_battle.info[currentRecord.name].enemy / 4) {
                                 con.warn("Not enough members found", memberDivs);
                             } else {
                                 memberDivs.each(function() {
@@ -583,7 +518,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                                         memberText = '',
                                         memberArr = [],
                                         targetIdDiv = $j(),
-                                        memberRecord = new guild_monster.minion().data;
+                                        memberRecord = new guild_battle.minion().data;
 
                                     memberRecord.attacking_position = (gIndex + 1);
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
@@ -621,13 +556,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 } else {
                     collectDiv = $j("input[src*='collect_reward_button2.jpg']");
                     if (collectDiv && collectDiv.length) {
-                        con.log(1, "Monster is dead and ready to collect");
+                        con.log(1, "Battle is dead and ready to collect");
                         currentRecord.state = 'Collect';
-                        if (config.getItem('guildMonsterCollect', false)) {
+                        if (config.getItem('guildBattleCollect', false)) {
                             collect = true;
                         }
                     } else {
-                        con.log(1, "Monster is completed");
+                        con.log(1, "Battle is completed");
                         currentRecord.state = 'Completed';
                     }
 
@@ -636,23 +571,23 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
                 currentRecord.reviewed = Date.now();
                 con.log(2, "currentRecord", currentRecord);
-                guild_monster.setItem(currentRecord);
+                guild_battle.setItem(currentRecord);
                 if (collect) {
                     caap.click(collectDiv);
                 }
             } else {
-                if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
-                //tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+                if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild battle battle. Have your Guild initiate more!")) {
+                //tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_battle.php?guild_id=']");
                 //if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(caap.stats.guild.id)) {
-                    slot = state.getItem('guildMonsterReviewSlot', 0);
+                    slot = state.getItem('guildBattleReviewSlot', 0);
                     if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
-                        con.log(1, "monster expired", slot);
-                        guild_monster.deleteItem(slot);
+                        con.log(1, "battle expired", slot);
+                        guild_battle.deleteItem(slot);
                     } else {
-                        con.warn("monster expired slot error", slot);
+                        con.warn("battle expired slot error", slot);
                     }
                 } else {
-                    con.log(1, "On another guild's monster", myStatsTxt);
+                    con.log(1, "On another guild's battle", myStatsTxt);
                 }
             }
 
@@ -666,32 +601,32 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             tempDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.onMonster: " + err);
+            con.error("ERROR in guild_battle.onBattle: " + err);
             return false;
         }
     };
 
-    guild_monster.getReview = function() {
+    guild_battle.getReview = function() {
         try {
             var it = 0,
                 len = 0;
 
-            for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
-                if (guild_monster.records[it].state !== 'Completed') {
-                    if (schedule.since(guild_monster.records[it].reviewed, 30 * 60)) {
+            for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
+                if (guild_battle.records[it].state !== 'Completed') {
+                    if (schedule.since(guild_battle.records[it].reviewed, 30 * 60)) {
                         break;
                     }
                 }
             }
 
-            return guild_monster.records[it];
+            return guild_battle.records[it];
         } catch (err) {
-            con.error("ERROR in guild_monster.getReview: " + err);
+            con.error("ERROR in guild_battle.getReview: " + err);
             return undefined;
         }
     };
 
-    guild_monster.checkPage = function(record) {
+    guild_battle.checkPage = function(record) {
         try {
             if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -703,12 +638,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             slot = slot ? slot.parseInt() : 0;
             return (record.slot === slot);
         } catch (err) {
-            con.error("ERROR in guild_monster.checkPage: " + err);
+            con.error("ERROR in guild_battle.checkPage: " + err);
             return undefined;
         }
     };
 
-    guild_monster.getTargetMinion = function(record) {
+    guild_battle.getTargetMinion = function(record) {
         try {
             var it = 0,
                 ol = 0,
@@ -752,7 +687,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     break;
                 }
 
-                specialTargets = guild_monster.info[record.name].special1.slice();
+                specialTargets = guild_battle.info[record.name].special1.slice();
                 for (it = record.minions.length - 1; it >= 0; it -= 1) {
                     if (!attackNorth && record.minions[it].attacking_position === 1) {
                         con.log(1, "Skipping North Minion", it, record.minions[it]);
@@ -853,12 +788,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             con.log(1, "Target minion", minion);
             return minion;
         } catch (err) {
-            con.error("ERROR in guild_monster.getTargetMinion: " + err);
+            con.error("ERROR in guild_battle.getTargetMinion: " + err);
             return undefined;
         }
     };
 
-    guild_monster.select = function(force) {
+    guild_battle.select = function(force) {
         try {
             var it = 0,
                 ol = 0,
@@ -872,12 +807,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 firstOverAch = {},
                 firstUnderMax = {};
 
-            if (!(force || caap.oneMinuteUpdate('selectGuildMonster'))) {
-                return state.getItem('targetGuildMonster', {});
+            if (!(force || caap.oneMinuteUpdate('selectGuildBattle'))) {
+                return state.getItem('targetGuildBattle', {});
             }
 
-            state.setItem('targetGuildMonster', {});
-            attackOrderList = config.getList('orderGuildMonster', '');
+            state.setItem('targetGuildBattle', {});
+            attackOrderList = config.getList('orderGuildBattle', '');
             if (!attackOrderList || attackOrderList.length === 0) {
                 attackOrderList = [String.fromCharCode(0)];
                 con.log(3, "Added null character to select attackOrderList", attackOrderList);
@@ -886,16 +821,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             // current thinking is that continue should not be used as it can cause reader confusion
             // therefore when linting, it throws a warning
             /*jslint continue: true */
-            for (it = guild_monster.records.length - 1; it >= 0; it -= 1) {
-                if (guild_monster.records[it].state !== 'Alive') {
-                    guild_monster.records[it].color = "grey";
-                    guild_monster.records[it].conditions = '';
+            for (it = guild_battle.records.length - 1; it >= 0; it -= 1) {
+                if (guild_battle.records[it].state !== 'Alive') {
+                    guild_battle.records[it].color = "grey";
+                    guild_battle.records[it].conditions = '';
                     continue;
                 }
 
-                attackOrderList.push(guild_monster.records[it].slot.toString());
-                guild_monster.records[it].conditions = 'none';
-                guild_monster.records[it].color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
+                attackOrderList.push(guild_battle.records[it].slot.toString());
+                guild_battle.records[it].conditions = 'none';
+                guild_battle.records[it].color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
             }
             /*jslint continue: false */
 
@@ -904,57 +839,57 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             /*jslint continue: true */
             for (ol = 0, len1 = attackOrderList.length; ol < len1; ol += 1) {
                 conditions = attackOrderList[ol].replace(new RegExp("^[^:]+"), '').toString().trim();
-                for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
-                    if (guild_monster.records[it].state !== 'Alive') {
-                        guild_monster.records[it].color = "grey";
+                for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
+                    if (guild_battle.records[it].state !== 'Alive') {
+                        guild_battle.records[it].color = "grey";
                         continue;
                     }
 
-                    if (guild_monster.records[it].myStatus === 'Stunned') {
-                        guild_monster.records[it].color = "purple";
+                    if (guild_battle.records[it].myStatus === 'Stunned') {
+                        guild_battle.records[it].color = "purple";
                         continue;
                     }
 
-                    if (guild_monster.records[it].conditions !== 'none') {
+                    if (guild_battle.records[it].conditions !== 'none') {
                         continue;
                     }
 
                     if (attackOrderList[ol] !== String.fromCharCode(0)) {
-                        if (!(guild_monster.records[it].slot + " " + guild_monster.records[it].name.toLowerCase()).hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
+                        if (!(guild_battle.records[it].slot + " " + guild_battle.records[it].name.toLowerCase()).hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
                             continue;
                         }
                     }
 
                     if (conditions) {
-                        guild_monster.records[it].conditions = conditions;
+                        guild_battle.records[it].conditions = conditions;
                         if (conditions.hasIndexOf("ach")) {
-                            ach = monster.parseCondition('ach', conditions);
+                            ach = battle.parseCondition('ach', conditions);
                         }
 
                         if (conditions.hasIndexOf("max")) {
-                            max = monster.parseCondition('max', conditions);
+                            max = battle.parseCondition('max', conditions);
                         }
                     }
 
-                    if (guild_monster.records[it].damage >= ach) {
-                        guild_monster.records[it].color = "darkorange";
+                    if (guild_battle.records[it].damage >= ach) {
+                        guild_battle.records[it].color = "darkorange";
                         if (!firstOverAch || !$j.isPlainObject(firstOverAch) || $j.isEmptyObject(firstOverAch)) {
-                            if (guild_monster.records[it].damage >= max) {
-                                guild_monster.records[it].color = "red";
-                                con.log(2, 'OverMax', guild_monster.records[it]);
+                            if (guild_battle.records[it].damage >= max) {
+                                guild_battle.records[it].color = "red";
+                                con.log(2, 'OverMax', guild_battle.records[it]);
                             } else {
-                                firstOverAch = guild_monster.records[it];
+                                firstOverAch = guild_battle.records[it];
                                 con.log(2, 'firstOverAch', firstOverAch);
                             }
                         }
-                    } else if (guild_monster.records[it].damage < max) {
+                    } else if (guild_battle.records[it].damage < max) {
                         if (!firstUnderMax || !$j.isPlainObject(firstUnderMax) || $j.isEmptyObject(firstUnderMax)) {
-                            firstUnderMax = guild_monster.records[it];
+                            firstUnderMax = guild_battle.records[it];
                             con.log(2, 'firstUnderMax', firstUnderMax);
                         }
                     } else {
-                        guild_monster.records[it].color = "red";
-                        con.log(2, 'OverMax', guild_monster.records[it]);
+                        guild_battle.records[it].color = "red";
+                        con.log(2, 'OverMax', guild_battle.records[it]);
                     }
                 }
             }
@@ -965,23 +900,114 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 target = firstOverAch;
             }
 
-            con.log(2, 'Guild Monster Target', target);
+            con.log(2, 'Guild Battle Target', target);
             if (target && $j.isPlainObject(target) && !$j.isEmptyObject(target)) {
                 target.color = 'green';
-                guild_monster.setItem(target);
+                guild_battle.setItem(target);
             } else {
-                state.setItem('guildMonsterBattlesBurn', false);
-                guild_monster.save();
+                state.setItem('guildBattleBattlesBurn', false);
+                guild_battle.save();
             }
 
-            return state.setItem('targetGuildMonster', target);
+            return state.setItem('targetGuildBattle', target);
         } catch (err) {
-            con.error("ERROR in guild_monster.select: " + err);
+            con.error("ERROR in guild_battle.select: " + err);
             return undefined;
         }
     };
 
-    guild_monster.attack2stamina = {
+	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+	guild_battle.pageReviewTime = 0;
+
+	guild_battle.GBstatus = 'Start';
+	
+ 	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
+	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
+	// other action will be taken until the time is up.
+	guild_battle.checkTime = function (force) {
+		try {
+			var timeBattlesList = config.getList('timed_guild_battles', ''),
+				begin = new Date(),
+				end = new Date(),
+				timeString = '',
+				button = null,
+				timedSetting = config.getItem('WhenGuildBattle', ''),
+//				match = true,	
+				match = (timedSetting === 'Battle available') ? true : false,
+				delay = ((guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60,
+				now = new Date();
+
+			if (schedule.since(guild_battle.pageReviewTime, delay)) {
+				if (caap.navigateTo('guildv2_battle')) {
+					con.log(2, 'Checking Guild Battle page');
+					return true;
+				}
+				con.log(2, 'Loading keep page to force Guild Page reload');
+				return caap.navigateTo('keep');
+			}
+			if (timedSetting=='Never' || guild_battle.GBstatus !== 'Start') {
+				return false;
+			}
+			con.log(5, 'checkTime start', timeBattlesList);
+			// Next we step through the users list getting the name and conditions
+			for (var p = 0; p < timeBattlesList.length; p++) {
+				if (!timeBattlesList[p].toString().trim()) {
+					continue;
+				}
+				timeString = timeBattlesList[p].toString().trim();
+				begin = 0;
+				for (var i = 0; i < guild_battle.weekdays.length; i++) {
+					if (timeString.indexOf(guild_battle.weekdays[i])>=0) {
+						begin = general.parseTime(timeString);
+						end = general.parseTime(timeString);
+						con.log(5, 'Vars now.getDay, i', now.getDay(), i);
+						begin.setDate(begin.getDate() + i - now.getDay()); // Need to check on Sunday case
+						end.setDate(end.getDate() + i - now.getDay()); // Need to check on Sunday case
+						end.setMinutes(end.getMinutes() + 2 * 60);
+						break;
+					}
+				}
+						
+				if (!begin) {
+					con.log(4, 'No day of week match', now.getDay(), timeString);
+					continue;
+				}
+				con.log(4,'begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now);
+				
+				if (begin < now && now < end) {
+					match = true;
+					con.log(4, 'Valid time for begin ' + $u.makeTime(begin, caap.timeStr(true)) + ' end ' + $u.makeTime(end, caap.timeStr(true)) + ' time ' + $u.makeTime(now, caap.timeStr(true)), begin, end, now, timeString);
+					break;
+				}
+			}
+			if (match) {
+				general.priority = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+				if (general.selectSpecific(general.priority)) {
+					return true;
+				}
+				if (caap.navigateTo('guildv2_battle')) {
+					return true;
+				}
+				button = caap.checkForImage('sort_btn_startbattle.gif');
+				if ($u.hasContent(button)) {
+					con.log(1, 'CLICK GUILD BATTLE START');
+					return caap.click(button);
+				}
+			} else if (guild_battle.GBstatus == 'Start') {
+				general.priority = false;
+			}
+
+			con.log(4, 'No time match to current time', now);
+			return false;
+        } catch (err) {
+            con.error("ERROR in guild_battle.checkTime: " + err);
+            return false;
+        }
+    };
+	
+	
+    guild_battle.attack2stamina = {
         1: 1,
         2: 5,
         3: 10,
@@ -989,14 +1015,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
         5: 50
     };
 
-    guild_monster.getAttackValue = function(record, minion) {
+    guild_battle.getAttackValue = function(record, minion) {
         try {
             if (!minion || !$j.isPlainObject(minion)) {
                 throw "Not passed a minion";
             }
 
             var attack = 0,
-                recordInfo = guild_monster.info[record.name],
+                recordInfo = guild_battle.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.hasIndexOf(minion.target_id) && $u.isNaN(minion.healthNum)) {
@@ -1058,12 +1084,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             con.log(2, 'getAttackValue', attack);
             return attack;
         } catch (err) {
-            con.error("ERROR in guild_monster.getAttackValue: " + err);
+            con.error("ERROR in guild_battle.getAttackValue: " + err);
             return undefined;
         }
     };
 
-    guild_monster.getStaminaValue = function(record, minion) {
+    guild_battle.getStaminaValue = function(record, minion) {
         try {
             if (!minion || !$j.isPlainObject(minion)) {
                 throw "Not passed a minion";
@@ -1071,7 +1097,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
             var stamina = 0,
                 staminaCap = 0,
-                recordInfo = guild_monster.info[record.name],
+                recordInfo = guild_battle.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.hasIndexOf(minion.target_id) && $u.isNaN(minion.healthNum)) {
@@ -1088,7 +1114,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 stamina = 50;
             }
 
-            staminaCap = guild_monster.attack2stamina[record.attacks];
+            staminaCap = guild_battle.attack2stamina[record.attacks];
             if (stamina > staminaCap) {
                 stamina = staminaCap;
             }
@@ -1096,63 +1122,67 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             con.log(2, 'getStaminaValue', stamina);
             return stamina;
         } catch (err) {
-            con.error("ERROR in guild_monster.getStaminaValue: " + err);
+            con.error("ERROR in guild_battle.getStaminaValue: " + err);
             return undefined;
         }
     };
 
-    guild_monster.menu = function() {
+    guild_battle.menu = function() {
         try {
-            // Guild Monster controls
-            var mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Never'],
-                mbattleInst = [
-                    'Stamina Available will attack whenever you have enough stamina',
-                    'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
-                    'At X Stamina you can set maximum and minimum stamina to battle',
-                    'Never - disables attacking monsters'
+            // Guild Battle controls
+            var gbattleList = ['Battle available', 'At fixed times', 'Never'],
+                gbattleInst = [
+                    'Battle available will initiate a guild battle whenever the Start Button is available',
+                    'At fixed times will allow you to set a schedule of when to start battles',
+                    'Never - disables starting guild battles'
                 ],
+				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
+				GBCheckFreqInstructions = "How often in minutes the Guild Battle top page will be visited to see if a Guild Battle is in progress",
+				GBStartFreqInstructions = "How often in minutes the Guild Battle top page will be visited if an Auto-match is in progress",
                 htmlCode = '';
 
-            htmlCode += caap.startToggle('GuildMonsters', 'GUILD MONSTERS');
-            htmlCode += caap.makeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
-            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'MaxStaminaToGMonster', '', 0, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'MinStaminaToGMonster', '', 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
-            htmlCode += caap.makeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
-            htmlCode += caap.makeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
-            htmlCode += caap.makeCheckTR('Collect Rewards', 'guildMonsterCollect', false, 'Collect the rewards of your completed Guild Monsters.');
-            htmlCode += caap.makeCheckTR("Do not Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Monster's Clerics. Does not include the Gate minions e.g. Azriel");
+            htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
+            htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 15, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 5, '', '', true, false);
+            htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
+            htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
+            htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
+            htmlCode += caap.makeTD("Start Guild Battles at these times:");
+            htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
+            htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes');
+/*            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
+            htmlCode += caap.makeCheckTR('Siege Battle', 'doGuildBattleSiege', true, 'Perform siege assists when visiting your Guild Battle.');
+            htmlCode += caap.makeCheckTR('Collect Rewards', 'guildBattleCollect', false, 'Collect the rewards of your completed Guild Battles.');
+            htmlCode += caap.makeCheckTR("Do not Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Battle's Clerics. Does not include the Gate minions e.g. Azriel");
             htmlCode += caap.makeTD("Attack Gates");
             htmlCode += caap.makeTD("N" + caap.makeCheckBox('attackGateNorth', true), false, true, "display: inline-block; width: 25%;");
             htmlCode += caap.makeTD("W" + caap.makeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
             htmlCode += caap.makeTD("E" + caap.makeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
             htmlCode += caap.makeTD("S" + caap.makeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-            htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'IgnoreMinionsBelow', "Do not attack monster minions that have a health below this value.", 0, '', '');
-            htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
-            htmlCode += caap.makeTD("Attack Monsters in this order");
-            htmlCode += caap.makeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
+            htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'IgnoreMinionsBelow', "Do not attack battle minions that have a health below this value.", 0, '', '');
+            htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the battle general then go back and attack any previously ignored battle minions.');
+            htmlCode += caap.makeTD("Attack Battles in this order");
+            htmlCode += caap.makeTextBox('orderGuildBattle', 'Attack your guild battles in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
             htmlCode += caap.makeTD("Attack Minions in this order");
             htmlCode += caap.makeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
-            htmlCode += caap.endDropHide('WhenGuildMonster');
+*/          htmlCode += caap.endDropHide('WhenGuildBattle');
             //htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
             config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in guild_monster.menu: " + err);
+            con.error("ERROR in guild_battle.menu: " + err);
             return '';
         }
     };
 
-    guild_monster.dashboard = function() {
+    guild_battle.dashboard = function() {
         try {
             /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
+                Next we build the HTML to be included into the 'caap_guildBattle' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Guild Monster' && session.getItem("GuildMonsterDashUpdate", true)) {
+            if (config.getItem('DBDisplay', '') === 'Guild Battle' && session.getItem("GuildBattleDashUpdate", true)) {
                 var color = '',
                     headers = ['Slot', 'Name', 'Damage', 'Damage%', 'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'],
                     values = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus', 'ticker', 'state'],
@@ -1183,16 +1213,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 }
 
                 head = caap.makeTr(head);
-                for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
+                for (i = 0, len = guild_battle.records.length; i < len; i += 1) {
                     row = "";
                     for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         switch (values[pp]) {
                         case 'name':
                             data = {
-                                text: '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name + '" mname="' + guild_monster.records[i].slot +
-                                    '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId + '&slot=' + guild_monster.records[i].slot +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
-                                color: guild_monster.records[i].color,
+                                text: '<span id="caap_guildbattle_' + pp + '" title="Clicking this link will take you to (' + guild_battle.records[i].slot + ') ' + guild_battle.records[i].name + '" mname="' + guild_battle.records[i].slot +
+                                    '" rlink="guild_battle_battle.php?twt2=' + guild_battle.info[guild_battle.records[i].name].twt2 + '&guild_id=' + guild_battle.records[i].guildId + '&slot=' + guild_battle.records[i].slot +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_battle.records[i].name + '</span>',
+                                color: guild_battle.records[i].color,
                                 id: '',
                                 title: ''
                             };
@@ -1202,8 +1232,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                             break;
                         case 'ticker':
                             row += caap.makeTd({
-                                text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '',
-                                color: guild_monster.records[i].color,
+                                text: $u.hasContent(guild_battle.records[i][values[pp]]) ? guild_battle.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '',
+                                color: guild_battle.records[i].color,
                                 id: '',
                                 title: ''
                             });
@@ -1211,8 +1241,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                             break;
                         default:
                             row += caap.makeTd({
-                                text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '',
-                                color: guild_monster.records[i].color,
+                                text: $u.hasContent(guild_battle.records[i][values[pp]]) ? guild_battle.records[i][values[pp]] : '',
+                                color: guild_battle.records[i].color,
                                 id: '',
                                 title: ''
                             });
@@ -1220,8 +1250,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     }
 
                     data = {
-                        text: '<a href="' + caap.domain.altered + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId +
-                            '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
+                        text: '<a href="' + caap.domain.altered + '/guild_battle_battle.php?twt2=' + guild_battle.info[guild_battle.records[i].name].twt2 + '&guild_id=' + guild_battle.records[i].guildId +
+                            '&action=doObjective&slot=' + guild_battle.records[i].slot + '&ref=nf">Link</a>',
                         color: 'blue',
                         id: '',
                         title: 'This is a siege link.'
@@ -1229,10 +1259,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
                     row += caap.makeTd(data);
 
-                    if ($u.hasContent(guild_monster.records[i].conditions) && guild_monster.records[i].conditions !== 'none') {
+                    if ($u.hasContent(guild_battle.records[i].conditions) && guild_battle.records[i].conditions !== 'none') {
                         data = {
-                            text: '<span title="User Set Conditions: ' + guild_monster.records[i].conditions + '" class="ui-icon ui-icon-info">i</span>',
-                            color: guild_monster.records[i].color,
+                            text: '<span title="User Set Conditions: ' + guild_battle.records[i].conditions + '" class="ui-icon ui-icon-info">i</span>',
+                            color: guild_battle.records[i].color,
                             id: '',
                             title: ''
                         };
@@ -1250,10 +1280,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     body += caap.makeTr(row);
                 }
 
-                $j("#caap_guildMonster", caap.caapTopObject).html(caap.makeTable("guild_monster", head, body));
+                $j("#caap_guildBattle", caap.caapTopObject).html(caap.makeTable("guild_battle", head, body));
 
                 handler = function(e) {
-                    var visitMonsterLink = {
+                    var visitBattleLink = {
                         mname: '',
                         arlink: ''
                     },
@@ -1262,24 +1292,24 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            visitBattleLink.mname = e.target.attributes[i].nodeValue;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            visitBattleLink.arlink = e.target.attributes[i].nodeValue;
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.clickAjaxLinkSend(visitBattleLink.arlink);
                 };
 
-                $j("span[id*='caap_guildmonster_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                $j("span[id*='caap_guildbattle_']", caap.caapTopObject).off('click', handler).on('click', handler);
                 handler = null;
 
-                session.setItem("GuildMonsterDashUpdate", false);
+                session.setItem("GuildBattleDashUpdate", false);
             }
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_monster.dashboard: " + err);
+            con.error("ERROR in guild_battle.dashboard: " + err);
             return false;
         }
     };

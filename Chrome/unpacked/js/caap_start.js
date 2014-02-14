@@ -56,7 +56,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		}
 
 		if (caap.domain.which >= 0 && caap.domain.which < 2) {
-			FBID = $u.setContent(caap.fbEnv.user, 0).parseInt();
+			FBID = $u.setContent(caap.fbEnv.id, 0).parseInt();
 			aName = $j('#pageNav .headerTinymanName').text();
 		} else {
 			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();

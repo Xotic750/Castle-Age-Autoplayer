@@ -402,6 +402,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
+        "guild_battle.records": {
+            "get": function () {
+                return guild_battle.records;
+            },
+
+            "set": function (value) {
+                guild_battle.records = value;
+            },
+
+            "save": function (src) {
+                guild_battle.save(src);
+            },
+
+            "loaded": false
+        },
+
         "monster.records": {
             "get": function () {
                 return monster.records;
@@ -526,6 +542,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.general = null;
             window.monster = null;
             window.guild_monster = null;
+            window.guild_battle = null;
             //window.arena = null;
             window.festival = null;
             window.feed = null;
@@ -2150,6 +2167,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.load();
                 monster.load();
                 guild_monster.load();
+                guild_battle.load();
                 //arena.load();
                 festival.load();
                 feed.load();
@@ -2256,7 +2274,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Land of Earth III',
         'Land of Mist IV',
         'Land of Water III',
-        'Undead II'
+        'Undead II',
+        'Outer Realms'
     ];
 
     caap.demiQuestList = ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'];
@@ -2458,6 +2477,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'conquest_mess': "",
         'monster_mess': "",
         'guild_monster_mess': "",
+        'guild_battle_mess': "",
         'festival_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
@@ -2476,6 +2496,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'debug2_mess': "",
         'control': "",
         'donate': ""
+    };
+
+    caap.moveMenu = function () {
+        caap.caapDivObject.css({
+            top: config.getItem("udOffset", 0) + 'px',
+            left: config.getItem("lrOffset", 0) + 'px'
+        });
     };
 
     caap.addControl = function (reload) {
@@ -2501,7 +2528,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caapDiv += "</div>";
             caap.controlXY.x = state.getItem('caap_div_menuLeft', '');
             caap.controlXY.y = state.getItem('caap_div_menuTop', $j(caap.controlXY.selector).offset().top);
+            // yinzanat - added this to change the position of the menu because chrome messed it up.
+            caap.controlXY.x = parseInt (config.getItem("lrOffset", 0), 10);
+            caap.controlXY.y = parseInt(config.getItem("udOffset", 0));
             styleXY = caap.getControlXY();
+
             caapDiv = $j(caapDiv);
             caapDiv.css({
                 width: '180px',
@@ -2548,6 +2579,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += conquest.menu();
             htmlCode += monster.menu();
             htmlCode += guild_monster.menu();
+            htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
             //htmlCode += arena.menu();
             //if (false) {
@@ -2934,6 +2966,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             // Other controls
             var timeInstructions = "Use 24 hour format for displayed times.",
+            	nextLevelInDaysInstructions = "Express time to next level as the number of relative days so as to remove possible" +
+            	                              " confusion when the time to next level is a week or more in the future.",
+            	nextLevelThresholdInstructions = "Time to next level is expressed as the specific day of the week and the time of day" +
+            	                                 " unless that represents more than this number of days in the future; then," +
+            	                                 " time to next level is expressed as the number of relative days.  Thus, a 3 to 6" +
+            	                                 " day value is suggested for this threshold.",
                 titleInstructions0 = "Set the title bar.",
                 titleInstructions1 = "Add the current action.",
                 titleInstructions2 = "Add the player name.",
@@ -2995,6 +3033,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
             htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
             htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
+
+            htmlCode += caap.makeCheckTR('Days to next level', 'NextLevelInDays', false, nextLevelInDaysInstructions);
+            htmlCode += caap.startCheckHide('NextLevelInDays');
+            htmlCode += caap.makeNumberFormTR('if more than n days', 'NextLevelThreshold', nextLevelThresholdInstructions, 5, '', '', true, false);
+            htmlCode += caap.endCheckHide('NextLevelInDays');
+
             htmlCode += caap.makeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
             htmlCode += caap.startCheckHide('SetTitle');
             htmlCode += caap.makeCheckTR('Display Action', 'SetTitleAction', false, titleInstructions1, true);
@@ -3010,6 +3054,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             //htmlCode += caap.makeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
+            htmlCode += caap.makeNumberFormTR("Left - Right offset (px)", 'lrOffset', 'Changing this will move the side menu left or right.', 942, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Up - Down offset (px)", 'udOffset', 'Changing this will move the side menu up or down', 44, '', '', true, false);
+            htmlCode += caap.makeTD("<input type='button' id='caap_moveMenu' value='Set Menu Position' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
             htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
             htmlCode += caap.makeTD("Running:");
@@ -3144,6 +3191,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
             /*-------------------------------------------------------------------------------------\
+            Next we put in our Refresh Generals List button which will only show when we have
+            selected the Generals display.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonGenerals' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'>";
+            layout += "<input type='button' id='caap_refreshGenerals' value='Refresh Generals List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            /*-------------------------------------------------------------------------------------\
             Next we put in our Refresh Guild Monster List button which will only show when we have
             selected the Guild Monster display.
             \-------------------------------------------------------------------------------------*/
@@ -3234,6 +3288,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_guildBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Battle' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
@@ -3419,6 +3474,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(9, "AutoStatAdv");
                     state.setItem("statsMatch", true);
                     break;
+                case "NextLevelInDays":
+                	caap.setNextLevelMessage();
+                	break;
                 case "backgroundCA":
                     if (caap.domain.which === 0) {
                         if (e.target.checked) {
@@ -3918,8 +3976,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 e.target.title = title;
                 if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
-                    if (!idName.hasIndexOf('Quest')) {
-                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest') && !idName.hasIndexOf('GuildMonster')) {
+                    if (idName == 'WhenGuildBattle') {
+                        caap.setDisplay("caapDivObject", idName + 'FixedTimes_hide', value === 'At fixed times');
+					} else if (!idName.hasIndexOf('Quest')) {
+                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest')) {
                             caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
                             caap.setDisplay("caapDivObject", idName + 'DelayStayHidden_hide', value === 'Stay Hidden', false);
                         }
@@ -3961,6 +4021,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                     caap.setDivContent('guild_monster_mess', 'Guild Monster off');
                                 } else {
                                     caap.setDivContent('guild_monster_mess', '');
+                                }
+
+                                break;
+                            case 'WhenGuildBattle':
+                                if (value === 'Never') {
+                                    caap.setDivContent('guild_battle_mess', 'Guild Battle off');
+                                } else {
+                                    caap.setDivContent('guild_battle_mess', '');
                                 }
 
                                 break;
@@ -4389,10 +4457,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         if (num < 0 || $u.isNaN(num)) {
             return;
         }
-
         caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
-        caap.stats.energyT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energyT.max), caap.stats.energy);
-        con.log(3, "energyListener", num);
+        con.log(3, "energyListener", num, caap.stats.energy);
     };
 
     caap.energyTimeListener = function (e) {
@@ -4416,7 +4482,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
-        caap.stats.healthT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.healthT.max), caap.stats.healthT);
         con.log(3, "healthListener", num);
     };
 
@@ -4441,7 +4506,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);
-        caap.stats.staminaT = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.staminaT.max), caap.stats.staminaT);
         con.log(3, "staminaListener", num);
     };
 
@@ -4510,6 +4574,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j('#caap_TownItemReport', caap.caapDivObject).click(town.report);
 
             $j('#caap_ActionList', caap.caapDivObject).click(caap.actionDialog);
+            $j('#caap_moveMenu', caap.caapDivObject).click(function () {
+                caap.moveMenu();
+            });
 
             $j('#caap_FillArmy', caap.caapDivObject).click(function () {
                 state.setItem("FillArmy", true);
@@ -4717,7 +4784,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_viewFight'
         },
         'land': {
-            signaturePic: 'tab_land_on.gif',
+            signaturePic: 'fb_tab_land_on.jpg',
             CheckResultsFunction: 'checkResults_land'
         },
         'generals': {
@@ -4782,15 +4849,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_battle'
         },
         'soldiers': {
-            signaturePic: 'tab_soldiers_on.gif',
+            signaturePic: 'fb_tab_soldiers_on.jpg',
             CheckResultsFunction: 'checkResults_soldiers'
         },
         'item': {
-            signaturePic: 'tab_black_smith_on.gif',
+            signaturePic: 'fb_tab_smith_on.jpg',
             CheckResultsFunction: 'checkResults_item'
         },
         'magic': {
-            signaturePic: 'tab_magic_on.gif',
+            signaturePic: 'fb_tab_magic_on.jpg',
             CheckResultsFunction: 'checkResults_magic'
         },
         'gift': {
@@ -4819,10 +4886,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guild_current_monster_battles'
         },
         /* some of these older pages can be cleaned up. */
-        'guild_current_battles': {
-            signaturePic: 'tab_guild_current_battles_on.gif',
-            CheckResultsFunction: 'checkResults_guild_current_battles'
-        },
         'guild_current_monster_battles': {
             signaturePic: 'guild_monster_tab_on.jpg',
             CheckResultsFunction: 'checkResults_guild_current_monster_battles'
@@ -4834,6 +4897,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'guild_battle_monster': {
             signatureId: 'guild_battle_banner_section',
             CheckResultsFunction: 'checkResults_guild_battle_monster'
+        },
+        'guildv2_battle': {
+            signaturePic: 'guild_battle_top.jpg',
+            CheckResultsFunction: 'checkResults_guildv2_battle'
+        },
+        'guild_battle': {
+            signaturePic: 'guild_battle_portrait.gif',
+            CheckResultsFunction: 'checkResults_guild_battle'
         },
         'item_archive_bonus': {
             signaturePic: 'archive_icon_ravager.jpg',
@@ -4926,12 +4997,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'arena' : {
             signatureId : 'arena_homemid.jpg',
             CheckResultsFunction : 'checkResults_arenaBattle'
+        },
+        'player_loadouts' : {
+            signatureId : 'load_top2.jpg',
+            CheckResultsFunction : 'checkResults_loadouts'
         }
     };
 
     caap.checkResults = function () {
         try {
-            con.log(1, 'caap.checkResults');
+            con.log(4, 'caap.checkResults');
             // Check page to see if we should go to a page specific check function
             // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
             if (!schedule.check('CheckResultsTimer')) {
@@ -4952,7 +5027,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 spreadsheet.doTitles();
             }
 
-            general.GetCurrent();
             general.Shrink();
 
             var pageUrl = session.getItem('clickUrl', ''),
@@ -4980,7 +5054,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (general.quickSwitch) {
-                general.GetEquippedStats();
+//                general.GetEquippedStats();
             }
 
                 // why? because we need to make sure things like highlight users damage and
@@ -5004,11 +5078,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
             }
-
+			
             session.setItem('page', page);
+            general.GetLoadouts();
+			general.GetEquippedStats();
+
             if ($u.hasContent(caap.pageList[page])) {
-                con.log(1, 'Checking results for', page);
-                con.log(1, 'caap.checkResults caap.resultsText', caap.resultsText);
+                con.log(3, 'caap.checkResults caap.resultsText', caap.resultsText);
                 if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
                     con.log(3, 'Calling function', caap.pageList[page].CheckResultsFunction);
                     caap[caap.pageList[page].CheckResultsFunction]();
@@ -5021,7 +5097,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // Information updates
             caap.updateDashboard();
-            caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats.indicators.enl, caap.timeStr(true)));
+            caap.setNextLevelMessage();
             caap.setDivContent('demipoint_mess',
                 (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never') || whenBattle === 'Demi Points Only' ?
                     (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
@@ -5043,28 +5119,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.checkResults_generals = function () {
-        try {
-            var currentGeneral = '',
-                html = '',
-                time = config.getItem("checkGenerals", 24);
+    caap.setNextLevelMessage = function ()
+    {
+    	if (config.getItem('NextLevelInDays', false)
+    	&& (config.getItem('NextLevelThreshold', 5) * 24) < caap.stats.indicators.hrtl)
+    	{
+    		caap.setDivContent('level_mess', 'Expected next level: +' + (Math.floor(caap.stats.indicators.hrtl / 24 * 10) / 10) + ' days');
+    	}
+    	else
+    	{
+    		caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats.indicators.enl, caap.timeStr(true)));
+    	}
+    	return;
+    };
 
-            general.GetGenerals();
-            currentGeneral = general.GetEquippedStats();
-            if (currentGeneral) {
-                html = "<span title='Equipped Attack Power Index' style='font-size: 12px, font-weight: normal;'>EAPI:" +
-                    currentGeneral.eapi + "</span> <span title='Equipped Defense Power Index' style='font-size: 12px, font-weight: normal;'>EDPI:" +
-                    currentGeneral.edpi + "</span> <span title='Equipped Mean Power Index' style='font-size: 12px, font-weight: normal;'>EMPI:" +
-                    currentGeneral.empi + "</span>";
-                $j("#app_body #general_name_div_int").append(html);
-            }
-            time = time < 24 ? 24 : time;
-            schedule.setItem("generals", time * 3600, 300);
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_generals: " + err);
-            return false;
-        }
+    caap.checkResults_generals = function() {
+        general.checkResults_generals();
+    };
+
+    caap.checkResults_loadouts = function() {
+        general.checkResults_loadouts();
     };
 
     /////////////////////////////////////////////////////////////////////
@@ -5075,19 +5149,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // text in the format '123/234'
     caap.getStatusNumbers = function (text) {
         try {
-            text = $u.isString(text) ? text.trim() : '';
             if (text === '' || !$u.isString(text) || !/^\d+\/\d+$/.test(text)) {
                 throw "Invalid text supplied:" + text;
             }
 
-            var num = $u.setContent(text.regex(/^(\d+)\//), 0),
-                max = $u.setContent(text.regex(/\/(\d+)$/), 0),
-                dif = $u.setContent(max - num, 0);
-
             return {
-                'num': num,
-                'max': max,
-                'dif': dif
+                'num': $u.setContent(text.regex(/^(\d+)\//), 0),
+                'max': $u.setContent(text.regex(/\/(\d+)$/), 0),
+                'dif': $u.setContent($u.setContent(text.regex(/\/(\d+)$/), 0) - $u.setContent(text.regex(/^(\d+)\//), 0), 0)
             };
         } catch (err) {
             con.error("ERROR in getStatusNumbers: " + err);
@@ -5104,7 +5173,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'actual': 0,
             'capped': 0
         },
-        'generals': {
+        'records': {
             'total': 0,
             'invade': 0
         },
@@ -5158,32 +5227,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'dif': 0,
             'ticker': []
         },
-        'energyT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
-        },
         'health': {
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
         },
-        'healthT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
-        },
         'stamina': {
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
-        },
-        'staminaT': {
-            'num': 0,
-            'max': 0,
-            'dif': 0
         },
         'exp': {
             'num': 0,
@@ -5293,6 +5347,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0,
                 xS = 0,
                 xE = 0,
+				max = 0,
+				loop = ['energy','stamina','health'],
 //                ststbDiv = $j('#globalContainer #main_ststb'),
                 ststbDiv = $j('#globalContainer #main_sts_container'),
                 bntpDiv = $j('#globalContainer #main_bntp'),
@@ -5307,35 +5363,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 passed = false;
             }
 
-            // energy
-            tempDiv = $j($j("#energy_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.energyT = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-                caap.stats.energy = caap.getStatusNumbers(caap.stats.energyT.num + "/" + caap.stats.energy.max);
-            } else {
-                con.warn("Unable to get energyDiv");
-                passed = false;
-            }
-
-            // health
-            tempDiv = $j($j("#health_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.healthT = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-                caap.stats.health = caap.getStatusNumbers(caap.stats.healthT.num + "/" + caap.stats.health.max);
-            } else {
-                con.warn("Unable to get healthDiv");
-                passed = false;
-            }
-
-            // stamina
-            tempDiv = $j($j("#stamina_current_value", ststbDiv)[0].parentNode);
-            if ($u.hasContent(tempDiv)) {
-                caap.stats.staminaT = caap.getStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
-                caap.stats.stamina = caap.getStatusNumbers(caap.stats.staminaT.num + "/" + caap.stats.stamina.max);
-            } else {
-                con.warn("Unable to get staminaDiv");
-                passed = false;
-            }
+			loop.forEach(function(stat) {
+				tempDiv = $j($j("#" + stat + "_current_value", ststbDiv)[0].parentNode);
+				if ($u.hasContent(tempDiv)) {
+					max = caap.stats[stat].max;
+					caap.stats[stat] = caap.getStatusNumbers(tempDiv.text());
+					con.log(4, stat,caap.stats[stat],tempDiv.text(),session.getItem('page', 'none'));
+					if (!caap.stats[stat].num) {
+						con.log(2, 'Current '+ stat + ' is 0',tempDiv.text(),session.getItem('page', 'none'));
+					}
+					if (!caap.stats[stat].max) {
+						con.log(1, 'Unable to read ' + stat + ' max',tempDiv.text(),session.getItem('page', 'none'));
+					}
+					caap.stats[stat].max = $u.setContent(caap.stats[stat].max, max);
+					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
+					con.log(2, 'Stat ' + stat + ' max',caap.stats[stat].max);
+				} else {
+					con.warn("Unable to get " + stat + "Div");
+					passed = false;
+				}
+			});
 
             // experience
             tempDiv = $j("#header_player_xp_totals", ststbDiv);
@@ -5429,7 +5476,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var attrDiv = $j("#app_body #keepAltStats"),
                 statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
                 //keepTable1 = $j("#app_body .keepTable1 tr"),
-                statCont = $j("#app_body div[style*='keep_cont_top.jpg']>div>div>div"),
+                statCont = $j("#app_body div[style*='keep_bgv2.jpg']>div>div>div"),
                 backgroundDiv = $j(),
                 tempDiv = $j(),
                 temp,
@@ -5437,6 +5484,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 head,
                 body;
 
+            con.log(2, "Keep check results");
             if ($u.hasContent(attrDiv)) {
                 con.log(8, "Getting new values from player keep");
                 // rank
@@ -5467,22 +5515,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if ($u.hasContent(statCont) && statCont.length >= 6) {
-                    // Energy
-                    tempDiv = statCont.eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        caap.stats.energy = caap.getStatusNumbers(caap.stats.energyT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
-                    } else {
-                        con.warn('Using stored energy value.');
-                    }
-
-                    // Stamina
-                    tempDiv = statCont.eq(1);
-                    if ($u.hasContent(tempDiv)) {
-                        caap.stats.stamina = caap.getStatusNumbers(caap.stats.staminaT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
-                    } else {
-                        con.warn('Using stored stamina value.');
-                    }
-
                     if (caap.stats.level >= 10) {
                         // Attack
                         tempDiv = statCont.eq(2);
@@ -5504,7 +5536,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     // Health
                     tempDiv = statCont.eq(4);
                     if ($u.hasContent(tempDiv)) {
-                        caap.stats.health = caap.getStatusNumbers(caap.stats.healthT.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
+                        caap.stats.health = caap.getStatusNumbers(caap.stats.health.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
                     } else {
                         con.warn('Using stored health value.');
                     }
@@ -6417,12 +6449,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
 
             if (theGeneral !== 'Use Current') {
-                maxIdleEnergy = $u.setContent(general.GetEnergyMax(theGeneral), 0);
+                maxIdleEnergy = general.GetStat(theGeneral,'energyMax');
                 if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
-                    con.log(1, "Changing to idle general to get Max energy");
+                    con.log(1, "Changing to idle general to get Max energy", theGeneral, maxIdleEnergy);
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
+					return caap.navigateTo('keep');
                 }
             }
 
@@ -6467,7 +6500,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Demon Realm',
             area: '',
             list: '',
-            boss: 'A Look into the Darkness',
+            boss: 'A Look into the Darkness',		// mission name where boss is found, not name of boss
             orb: 'Orb of Mephistopheles'
         },
         'Demon Realm': {
@@ -6476,7 +6509,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Undead Realm',
             area: '',
             list: '',
-            boss: 'The Rift',
+            boss: 'The Rift',						// mission name where boss is found, not name of boss
             orb: 'Orb of Keira'
         },
         'Undead Realm': {
@@ -6485,7 +6518,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Underworld',
             area: '',
             list: '',
-            boss: 'Undead Embrace',
+            boss: 'Undead Embrace',					// mission name where boss is found, not name of boss
             orb: 'Lotus Orb'
         },
         'Underworld': {
@@ -6494,7 +6527,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Kingdom of Heaven',
             area: '',
             list: '',
-            boss: 'Confrontation',
+            boss: 'Confrontation',					// mission name where boss is found, not name of boss
             orb: 'Orb of Skaar Deathrune'
         },
         'Kingdom of Heaven': {
@@ -6503,7 +6536,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Ivory City',
             area: '',
             list: '',
-            boss: 'Archangels Wrath',
+            boss: 'Archangels Wrath',				// mission name where boss is found, not name of boss
             orb: 'Orb of Azriel'
         },
         'Ivory City': {
@@ -6512,7 +6545,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Earth II',
             area: '',
             list: '',
-            boss: 'Entrance to the Throne',
+            boss: 'Entrance to the Throne',			// mission name where boss is found, not name of boss
             orb: 'Orb of Alpha Mephistopheles'
         },
         'Earth II': {
@@ -6521,7 +6554,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Water II',
             area: '',
             list: '',
-            boss: "Lion's Rebellion",
+            boss: 'The Rebel Leader',				// mission name where boss is found, not name of boss
             orb: 'Orb of Aurelius'
         },
         'Water II': {
@@ -6530,7 +6563,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Mist II',
             area: '',
             list: '',
-            boss: "Corvintheus",
+            boss: 'The Demi-God',					// mission name where boss is found, not name of boss
             orb: 'Orb of Corvintheus'
         },
         'Mist II': {
@@ -6539,7 +6572,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Mist III',
             area: '',
             list: '',
-            boss: "Jahanna",
+            boss: 'The Source',						// mission name where boss is found, not name of boss
             orb: 'Orb of Jahanna'
         },
         'Mist III': {
@@ -6548,7 +6581,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Fire II',
             area: '',
             list: '',
-            boss: "Aurora",
+            boss: 'Aurora, the Life Demi-Goddess',	// mission name where boss is found, not name of boss
             orb: 'Orb of Aurora'
         },
         'Fire II': {
@@ -6557,7 +6590,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Pangaea',
             area: '',
             list: '',
-            boss: "Ambrosia",
+            boss: 'A Mighty Figure',				// mission name where boss is found, not name of boss
             orb: 'Orb of Ambrosia'
         },
         'Pangaea': {
@@ -6566,7 +6599,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Perdition',
             area: '',
             list: '',
-            boss: "Malekus",
+            boss: 'Face Off',						// mission name where boss is found, not name of boss
             orb: 'Orb of Malekus'
         },
         'Perdition': {
@@ -6575,7 +6608,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Fire III',
             area: '',
             list: '',
-            boss: "Azeron",
+            boss: 'Redemption',						// mission name where boss is found, not name of boss
             orb: 'Orb of Azeron'
         },
         'Land of Fire III': {
@@ -6584,7 +6617,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Earth III',
             area: '',
             list: '',
-            boss: "Fenix",
+            boss: 'The Great Phoenix',				// mission name where boss is found, not name of boss
             orb: 'Orb of Fenix'
         },
         'Land of Earth III': {
@@ -6593,7 +6626,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Mist IV',
             area: '',
             list: '',
-            boss: "Urmek",
+            boss: 'Wrath of Urmek',					// mission name where boss is found, not name of boss
             orb: 'Orb of Urmek'
         },
         'Land of Mist IV': {
@@ -6602,7 +6635,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Land of Water III',
             area: '',
             list: '',
-            boss: "Vorak",
+            boss: 'Devourer of the Skies',			// mission name where boss is found, not name of boss
             orb: 'Orb of Vorak'
         },
         'Land of Water III': {
@@ -6611,17 +6644,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             next: 'Undead II',
             area: '',
             list: '',
-            boss: "Baal",
+            boss: 'Baal, Stealer of Souls',			// mission name where boss is found, not name of boss
             orb: 'Orb of Baal'
         },
         'Undead II': {
             clas: 'quests_stage_21',
             base: 'tab_undead2',
+            next: 'Outer Realms',
+            area: '',
+            list: '',
+            boss: 'Aspect of Death',				// mission name where boss is found, not name of boss
+            orb: 'Orb of Death'
+        },
+        'Outer Realms': {
+            clas: 'quests_stage_22',
+            base: 'tab_outer',
             next: 'DemiChange',
             area: '',
             list: '',
-            boss: 'Aspect of Death',
-            orb: 'Orb of Deathl'
+            boss: 'Medusas Throne',					// mission name where boss is found, not name of boss
+            orb: 'Orb of Cassandra'
         },
 
         'DemiChange': {
@@ -6868,6 +6910,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         pathToPage = 'quests,' + landPic;
                         imageOnPage = landPic;
                         switch (landPic) {
+                        	case 'tab_outer':
+                                pathToPage += '_small.jpg';
+                                imageOnPage += '_big.jpg';
+                                break;
+                        	case 'tab_undead2':
                             case 'tab_water3':
                             case 'tab_mist4':
                             case 'tab_earth3':
@@ -6881,20 +6928,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             case 'tab_earth2':
                             case 'tab_ivory':
                             case 'tab_underworld':
-                            case 'tab_undead2':
                                 pathToPage += '_small.gif';
                                 imageOnPage += '_big.gif';
                                 break;
                             case 'tab_heaven':
                                 pathToPage += '_small2.gif';
                                 imageOnPage += '_big2.gif';
-
                                 break;
                             case 'land_undead_realm':
                             case 'land_demon_realm':
                                 pathToPage += '.gif';
                                 imageOnPage += '_sel.gif';
-
                                 break;
                             default:
                                 pathToPage = 'quests,jobs_tab_back.gif,' + landPic + '.gif';
@@ -6980,7 +7024,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (general.quickSwitch) {
-                general.GetEquippedStats();
+//                general.GetEquippedStats();
             }
 
             // Buy quest requires popup
@@ -7109,7 +7153,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
-            } else if (questGeneral && questGeneral !== general.GetCurrent()) {
+            } else if (questGeneral && questGeneral !== general.GetCurrentGeneral()) {
                 if (general.LevelUpCheck("QuestGeneral")) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
@@ -7628,6 +7672,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'quests_stage_19': 'Land of Mist IV',
         'quests_stage_20': 'Land of Water III',
         'quests_stage_21': 'Undead II',
+        'quests_stage_22': 'Outer Realms',
         'symbolquests_stage_1': 'Ambrosia',
         'symbolquests_stage_2': 'Malekus',
         'symbolquests_stage_3': 'Corvintheus',
@@ -7988,7 +8033,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
 
                 if (theGeneral !== 'Use Current') {
-                    maxIdleEnergy = general.GetEnergyMax(theGeneral);
+                    maxIdleEnergy = general.GetStat(theGeneral, 'energyMax');
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleEnergy) {
@@ -8535,7 +8580,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             picSlice = $j();
             txt = '';
 
-            if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
+            if (caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
                 return true;
             }
 
@@ -8543,14 +8588,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (/Mastered/i.test(txt)) {
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
 
             if (!new RegExp(autoBless).test(txt)) {
                 con.warn('No match for text', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8559,7 +8604,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(picSlice)) {
                 con.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8567,7 +8612,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             picSlice = $j("#app_body input[src*='festival_feat_testbutton.jpg']");
             if (!$u.hasContent(picSlice)) {
                 con.warn('No blessing button', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                caap.navigateTo('soldiers,fb_tab_festival.jpg,festival_feat_nav');
                 picSlice = null;
                 return false;
             }
@@ -8856,7 +8901,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             bestLandCost = state.getItem('BestLandCost', new caap.landRecord().data);
             if (!bestLandCost.set) {
                 con.log(2, "Going to land to get Best Land Cost");
-                if (caap.navigateTo('soldiers,land', caap.hasImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
+                if (caap.navigateTo('soldiers,land', caap.hasImage('fb_tab_land_on.jpg') ? '' : 'fb_tab_land_on.jpg')) {
                     return true;
                 }
             }
@@ -8903,7 +8948,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 caap.navigateTo('soldiers,land');
-                if (caap.hasImage('tab_land_on.gif')) {
+                if (caap.hasImage('fb_tab_land_on.jpg')) {
                     if (bestLandCost.buy) {
                         con.log(2, "Buying land", caap.bestLand.name);
                         if (buySellLand(caap.bestLand)) {
@@ -9002,26 +9047,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.checkGenerals = function () {
+    caap.guildBattle = function () {
         try {
-            if (!schedule.check("generals")) {
-                return false;
-            }
-
-            con.log(2, "Visiting generals to get 'General' list");
-            return caap.navigateTo('mercenary,generals', 'tab_generals_on.gif');
+			return guild_battle.checkTime();
         } catch (err) {
-            con.error("ERROR in checkGenerals: " + err);
+            con.error("ERROR in guildBattle: " + err);
             return false;
         }
     };
 
     caap.checkAllGenerals = function () {
         try {
-            if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
-                return false;
-            }
-
             return general.GetAllStats();
         } catch (err) {
             con.error("ERROR in checkAllGenerals: " + err);
@@ -9036,7 +9072,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Soldiers");
-            return caap.navigateTo('soldiers', 'tab_soldiers_on.gif');
+            return caap.navigateTo('soldiers', 'fb_tab_soldiers_on.jpg');
         } catch (err) {
             con.error("ERROR in checkSoldiers: " + err);
             return false;
@@ -9050,7 +9086,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Item");
-            return caap.navigateTo('soldiers,item', 'tab_black_smith_on.gif');
+            return caap.navigateTo('soldiers,item', 'fb_tab_smith_on.jpg');
         } catch (err) {
             con.error("ERROR in checkItem: " + err);
             return false;
@@ -9064,7 +9100,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, "Checking Magic");
-            return caap.navigateTo('soldiers,magic', 'tab_magic_on.gif');
+            return caap.navigateTo('soldiers,magic', 'fb_tab_magic_on.jpg');
         } catch (err) {
             con.error("ERROR in checkMagic: " + err);
             return false;

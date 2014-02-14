@@ -15,13 +15,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.passiveGeneral = function () {
         try {
-            if (config.getItem('IdleGeneral', 'Use Current') !== 'Use Current') {
-                if (general.Select('IdleGeneral')) {
-                    return true;
-                }
-            }
-
-            return false;
+			var timedLoadoutCheck = general.timedLoadout();
+			if (timedLoadoutCheck) {
+				con.log(5,"Idle Check paused",timedLoadoutCheck);
+				return timedLoadoutCheck === 'change';
+			}
+			con.log(5,"Idle Check equipped",timedLoadoutCheck);
+			return general.Select('IdleGeneral');
         } catch (err) {
             con.error("ERROR in passiveGeneral: " + err);
             return false;

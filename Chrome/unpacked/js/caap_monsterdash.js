@@ -106,6 +106,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "Updating Dashboard");
             monster.dashboard();
             guild_monster.dashboard();
+            guild_battle.dashboard();
             //arena.AddArenaDashboard();
             festival.dashboard();
             feed.dashboard();
@@ -1074,6 +1075,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         monster.flagFullReview();
     };
 
+    caap.refreshGeneralsListener = function () {
+		con.log(1, 'Cleared all general records');
+        general.records = [];
+		general.save();
+    };
+
     caap.refreshGuildMonstersListener = function () {
         con.log(1, "refreshGuildMonstersListener");
         session.setItem('ReleaseControl', true);
@@ -1193,6 +1200,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             $j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
             $j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
+            $j('#caap_refreshGenerals', caap.caapTopObject).on('click', caap.refreshGeneralsListener);
             $j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
             $j('#caap_liveFeed', caap.caapTopObject).on('click', caap.liveFeedButtonListener);
             $j('#caap_crusaders', caap.caapTopObject).on('click', caap.crusadersButtonListener);
