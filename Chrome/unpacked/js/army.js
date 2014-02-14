@@ -570,13 +570,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     army.eliteFriendCheck = function () {
         try {
-            if (caap.stats.army.actual < 11 || army.getIdList().length < 10) {
+ /*           if (caap.stats.army.actual < 11 || army.getIdList().length < 10) {
                 con.log(1, 'Not enough friends to fill Elite Guard');
                 state.setItem('AutoEliteFew', true);
             } else {
                 state.setItem('AutoEliteFew', false);
             }
-
+*/
             return true;
         } catch (err) {
             con.error("ERROR in army.eliteFriendCheck: " + err);
