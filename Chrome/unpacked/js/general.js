@@ -900,7 +900,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			if (!general.getRecord(targetGeneral)) {
 				con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '.  Changing setting to "Use Current"');
-				general.clear(whichGeneral);
+				general.Clear(whichGeneral);
 				return false;
 			}
 
@@ -986,13 +986,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-	//Read the visible stats from all generals on the generals select page
+	//Read the equipped stats from all generals by loading them one-by-one
     general.GetAllStats = function () {
         try {
             var generalImage = '',
 				generalName = '',
                 len = 0;
-
+				
+			session.setItem('ReleaseControl', true);
 			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
             }

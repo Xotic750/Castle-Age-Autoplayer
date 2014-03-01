@@ -1162,7 +1162,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     conquest.getLands = function() {
         var landCapsules = $j("[style*='conq2_capsule']"),
-            timeLeft;
+            timeLeft,
+			path,
+			pathList = [];
+		
+        monster.reviewPages = config.getItem('monster.reviewPages', []);
+		monster.setrPage(monster.conqLandsLink,'review',Date.now());
         landCapsules.each(function() {
             var currentCapsule = $j(this),
                 tmp = '',
@@ -1184,9 +1189,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}	
             }
             landRecord.slot = tmp[tmp.length - 1];
+			path = monster.conqMonsterListLink + caap.stats.guild.id + "&slot=" + landRecord.slot;
+			monster.togglerPage(path, landRecord.status == 'attack', 'page', 'guildv2_monster_list');
+			pathList.push(path);
 
             conquestLands.setItem(landRecord);
         });
+		
+		// Clear out monster conquest lands that no longer exist
+		for (var i = 0; i < monster.reviewPages.length; i++) {
+			if (monster.reviewPages[i].page == 'guildv2_monster_list') {
+				if (pathList.indexOf(monster.reviewPages[i].path) == -1) {
+					monster.deleterPage('path',monster.reviewPages[i].path);
+					con.log(1,'Deleted conquest monster land in slot',monster.reviewPages[i].path);
+				} else {
+					con.log(2,'Active conquest monster land in slot',monster.reviewPages[i].path);
+				}
+			}
+		}
+
+        con.log(2, "conquest monster.reviewPages", monster.reviewPages);
     };
 
     // this function appears to have some serious bugs and really needs to be reworked!

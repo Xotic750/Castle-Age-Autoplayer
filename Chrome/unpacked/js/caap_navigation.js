@@ -169,6 +169,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (!$u.hasContent(path)) {
                     con.warn('pathList had no content!', pathToPage, imageOnPage, pathList[s]);
                 } else {
+					if (path.indexOf(':')>=0) {
+						if (path.replace(/:.*/,'')=='ajax') {
+							return caap.clickAjaxLinkSend(path.replace(/.*:/,''),2000);
+						} else {
+							con.warn(1,'Unknown caap.navigateTo parameter', path, pathList);
+							return false;
+						}
+					}
                     jq = $j("a[href*='" + path + ".php']", newwebSlice).not("a[href*='" + path + ".php?']", newwebSlice);
                     if ($u.hasContent(jq)) {
                         con.log(2, 'Go to', path);

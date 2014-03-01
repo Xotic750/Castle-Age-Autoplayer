@@ -5061,6 +5061,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 // joinability are called in both and we update % bar values correctly when
                 // we are using the new whatclickedimgButton listener
                 // Also detect when there is an actual page match that is incorrect
+            con.log(2, "Page and page2", page, page2, pageUrl);
             if (page !== page2) {
                 if ((page === 'onBattle' && page2 !== 'battle_monster') || (page === 'onRaid' && page2 === 'raid')) {
                     con.warn("page and page2 differ", page, page2, pageUrl);

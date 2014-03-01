@@ -61,6 +61,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         };
     };
 
+	
     guild_battle.which = function(img, entity) {
         try {
             if (!$u.hasContent(img) || !$u.isString(img)) {
@@ -918,10 +919,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-	guild_battle.pageReviewTime = 0;
-
-	guild_battle.GBstatus = 'Start';
-	
  	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
@@ -933,12 +930,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				timeString = '',
 				button = null,
 				timedSetting = config.getItem('WhenGuildBattle', ''),
-//				match = true,	
 				match = (timedSetting === 'Battle available') ? true : false,
-				delay = ((guild_battle.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60,
 				now = new Date();
 
-			if (schedule.since(guild_battle.pageReviewTime, delay)) {
+			if (schedule.check('pageReviewTime')) {
 				if (caap.navigateTo('guildv2_battle')) {
 					con.log(2, 'Checking Guild Battle page');
 					return true;
@@ -946,7 +941,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(2, 'Loading keep page to force Guild Page reload');
 				return caap.navigateTo('keep');
 			}
-			if (timedSetting=='Never' || guild_battle.GBstatus !== 'Start') {
+			if (timedSetting=='Never' || status.GBstatus !== 'Start') {
 				return false;
 			}
 			con.log(5, 'checkTime start', timeBattlesList);
@@ -994,7 +989,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.log(1, 'CLICK GUILD BATTLE START');
 					return caap.click(button);
 				}
-			} else if (guild_battle.GBstatus == 'Start') {
+			} else if (status.GBstatus == 'Start') {
 				general.priority = false;
 			}
 

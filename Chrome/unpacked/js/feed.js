@@ -35,6 +35,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         feed.monsterList = gm.setItem('feed.monsterList', list);
                     } else if (feed.monsterList.length > list.length) {
                         con.log(2, "monsterList mismatch, more monsters than master.", feed.monsterList, list);
+						feed.monsterList = gm.setItem('feed.monsterList', list);
                     }
                 }
 
