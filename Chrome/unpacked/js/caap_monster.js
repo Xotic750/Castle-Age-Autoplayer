@@ -104,7 +104,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				monster.setrPage(page,'review',Date.now());
 			}
-            con.log(2, "list monster.reviewPages", monster.reviewPages, caap.stats.level);
+            con.log(2, "list caap.stats.reviewPages", caap.stats.reviewPages, caap.stats.level);
 			
             if (page === 'player_monster_list') {
                 // Review monsters and find attack and fortify button
@@ -1145,15 +1145,15 @@ con.log (1, "after button check:", monster, cM);
                 monsterInfo = {};
 			
 			session.setItem('ReleaseControl', true);
-			monster.reviewPages = config.getItem('monster.reviewPages', []);
+			//caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
 
-            for (i = 0; i < monster.reviewPages.length; i++) {
-                if (schedule.since(monster.reviewPages[i].review, 60 * 60)) {
-					con.log(4,'Reviewing monster list page',monster.reviewPages[i].path, monster.reviewPages);
-					return caap.navigateTo(monster.reviewPages[i].path);
+            for (i = 0; i < caap.stats.reviewPages.length; i++) {
+                if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
+					con.log(4,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
+					return caap.navigateTo(caap.stats.reviewPages[i].path);
 				}
             }
-			con.log(5,'monster review',monster.reviewPages);
+			con.log(5,'monster review',caap.stats.reviewPages);
 			monster.save();
 
             if (monster.records && monster.records.length === 0) {

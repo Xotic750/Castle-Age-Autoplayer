@@ -1166,7 +1166,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			path,
 			pathList = [];
 		
-        monster.reviewPages = config.getItem('monster.reviewPages', []);
+        //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
 		monster.setrPage(monster.conqLandsLink,'review',Date.now());
         landCapsules.each(function() {
             var currentCapsule = $j(this),
@@ -1197,18 +1197,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
 		
 		// Clear out monster conquest lands that no longer exist
-		for (var i = 0; i < monster.reviewPages.length; i++) {
-			if (monster.reviewPages[i].page == 'guildv2_monster_list') {
-				if (pathList.indexOf(monster.reviewPages[i].path) == -1) {
-					monster.deleterPage('path',monster.reviewPages[i].path);
-					con.log(1,'Deleted conquest monster land in slot',monster.reviewPages[i].path);
+		for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+			if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
+				if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
+					if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
+						con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
+						// Delete any monsters from those pages too
+						for (var ii = monster.records.length - 1; ii >= 0 ; ii--) {
+							if (monster.records[ii].link.indexOf(caap.stats.reviewPages[i].path)>=0) {
+								con.log(2,'Removed monster',monster.records[ii].name);
+								monster.records.splice(ii,1);
+							}
+						}
+
+					}
 				} else {
-					con.log(2,'Active conquest monster land in slot',monster.reviewPages[i].path);
+					con.log(2,'Active conquest monster land in slot',caap.stats.reviewPages[i].path);
 				}
 			}
 		}
 
-        con.log(2, "conquest monster.reviewPages", monster.reviewPages);
+        con.log(2, "conquest caap.stats.reviewPages", caap.stats.reviewPages);
     };
 
     // this function appears to have some serious bugs and really needs to be reworked!

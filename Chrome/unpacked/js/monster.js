@@ -16,7 +16,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.records = [];
 
-    monster.reviewPages = [];
+//    caap.stats.reviewPages = [];
 
 	monster.conqLandsLink = 'ajax:guildv2_conquest_command.php?tier=3';
 	monster.conqMonsterListLink = "ajax:guildv2_monster_list.php?guild_id=";
@@ -1888,12 +1888,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 con.warn("path", path);
                 throw "Invalid identifying path!";
             }
-            //monster.reviewPages = config.getItem('monster.reviewPages', []);
+            //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
 
-            for (var it = 0; it < monster.reviewPages.length; it++) {
-                if (monster.reviewPages[it].path === path) {
+            for (var it = 0; it < caap.stats.reviewPages.length; it++) {
+                if (caap.stats.reviewPages[it].path === path) {
 					if ($u.hasContent(entry)) {
-						monster.reviewPages[it][entry] = value;
+						caap.stats.reviewPages[it][entry] = value;
 					}
 					return true;
                 }
@@ -1902,8 +1902,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				rPage[entry] = value;
 			}
 
-			monster.reviewPages.push(rPage);
-			con.log(2,'setrPage',path, entry, value, monster.reviewPages,rPage);
+			caap.stats.reviewPages.push(rPage);
+			con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
 			return false;
         } catch (err) {
             con.error("ERROR in monster.setrPage: " + err);
@@ -1920,12 +1920,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 			var deleted = 0;
 
-            for (var i = 0; i < monster.reviewPages.length; i++) {
-                if (monster.reviewPages[i][entry] === value) {
+            for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+                if (caap.stats.reviewPages[i][entry] === value) {
 					deleted++;
-					con.log(2,'Monster review pages before',monster.reviewPages, entry, i);
-					monster.reviewPages.splice(i,1);
-					con.log(2,'Monster review pages after',monster.reviewPages, entry, i, deleted);
+					con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
+					caap.stats.reviewPages.splice(i,1);
+					con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
                 }
             }
 			return deleted;
@@ -1955,12 +1955,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             if (monster.records == 'default' || !$j.isArray(monster.records)) {
                 monster.records = gm.setItem('monster.records', []);
             }
+			caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
             for (var i = monster.records.length - 1; i >= 0 ; i--) {
                 if (monster.records[i].flag) {
 					var temp = monster.records.splice(i,1);
-					monster.reviewPages = $u.setContent(temp[0].pages, []);
-					con.log(4,'Load Monster found Reviewpages',monster.records, monster.reviewPages, i, temp);
+					con.log(4,'Load Monster found Reviewpages',monster.records, caap.stats.reviewPages, i, temp);
                 }  
             }
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
@@ -1970,7 +1970,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			monster.togglerPage('ajax:raid.php', caap.stats.level > 7);
 
             session.setItem("MonsterDashUpdate", true);
-			con.log(4,'Load Monster records after',monster.records, monster.reviewPages);
+			con.log(4,'Load Monster records after',monster.records, caap.stats.reviewPages);
             return true;
         } catch (err) {
             con.error("ERROR in monster.load: " + err);
@@ -1987,37 +1987,37 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.records.splice(i,1);
                 }
             }
-            if ($u.hasContent(monster.reviewPages)) {
+/*            if ($u.hasContent(caap.stats.reviewPages)) {
 				var mObj = {};
 				mObj.flag = true;
-				mObj.pages = monster.reviewPages;
+				mObj.pages = caap.stats.reviewPages;
 				//monster.records[0] = mObj;
 				monster.records.push(mObj);
 				con.log(4,'Save Monster records OBJ', mObj, monster.records.length);
             }
-			con.log(4,'Save Monster records after clean',monster.records, monster.reviewPages);
+*/			con.log(4,'Save Monster records after clean',monster.records, caap.stats.reviewPages);
 			if (caap.domain.which === 3) {
                 con.log(4, "monster.save FB messaging set item");
                 caap.messaging.setItem('monster.records', monster.records);
-                //caap.messaging.setItem('monster.reviewPages', monster.reviewPages);
+                //caap.messaging.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
             } else {
                 gm.setItem('monster.records', monster.records);
-                //gm.setItem('monster.reviewPages', monster.reviewPages);
+                //gm.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
                     con.log(4, "monster.save send");
                     caap.messaging.setItem('monster.records', monster.records);
-                    caap.messaging.setItem('monster.reviewPages', monster.reviewPages);
+                    //caap.messaging.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
                 }
             }
 
             if (caap.domain.which !== 0) {
                 session.setItem("MonsterDashUpdate", true);
             }
-            if ($u.hasContent(monster.reviewPages)) {
+/*            if ($u.hasContent(caap.stats.reviewPages)) {
 				monster.records.pop();
 			}
-            con.log(4, "monster.save", monster.records, monster.reviewPages);
-
+            con.log(4, "monster.save", monster.records, caap.stats.reviewPages);
+*/
             return true;
         } catch (err) {
             con.error("ERROR in monster.save: " + err);
@@ -2326,8 +2326,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             } else {
                 localStorage.AFrecentAction = true;
             }
-			for (var i = 0; i < monster.reviewPages.length; i++) {
-				monster.setrPage(monster.reviewPages[i].path, 'review', -1);
+			for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+				monster.setrPage(caap.stats.reviewPages[i].path, 'review', -1);
 			}
 
             return true;
