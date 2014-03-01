@@ -16,26 +16,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_guildv2_battle = function() {
         try {
+			caap.stats.GBstatus = 'Collect';
+			caap.stats.priorityGeneral = false;
 			if ($u.hasContent(caap.checkForImage('sort_btn_startbattle.gif'))) {
-				status.GBstatus = 'Start';
+				caap.stats.GBstatus = 'Start';
 			} else if ($u.hasContent(caap.checkForImage('guild_battle_locked.gif'))) {
-				status.GBstatus = 'Locked';
-				general.priority = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+				caap.stats.GBstatus = 'Locked';
+				caap.stats.priorityGeneral = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
 			} else if ($u.hasContent(caap.checkForImage('sort_btn_joinbattle.gif'))) {
 				if ($j('#guildv2_battle_middle').text().indexOf('Remaining')>=0) {
-					status.GBstatus = 'Active';
-					general.priority = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
-					con.log(4, "Battle active, so priority gen set", general.priority);
-				} else {
-					status.GBstatus = 'Collect';
-					general.priority = false;
+					caap.stats.GBstatus = 'Active';
+					caap.stats.priorityGeneral = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
+					con.log(4, "Battle active, so priority gen set", caap.stats.priorityGeneral);
 				}
 			}
 
-			var delay = ((status.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60;
+			var delay = ((caap.stats.GBstatus == 'Locked') ? config.getItem('GBStartFreq',1) : config.getItem('GBCheckFreq',5)) * 60;
 			schedule.setItem('pageReviewTime', delay, 60);
 			
-			con.log(2, "Guild battle status", status.GBstatus);
+			con.log(2, "Guild battle status", caap.stats.GBstatus);
 			
 /*          var tempDiv = $j("img[src*='guild_symbol']");
 

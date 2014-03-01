@@ -49,9 +49,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
     general.hbest = 0;
 	
-	// General priority is false if no priority.  'Use Current' if the general should not be changed.
-    general.priority = false;
-
     general.load = function () {
         try {
             general.records = gm.getItem('general.records', 'default');
@@ -133,8 +130,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				timeStrings = '',
 				now = new Date();
 			// Priority generals, such as Guild Battle class generals, outrank timed generals.
-			if (general.priority) {
-				timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + general.priority;
+			if (caap.stats.priorityGeneral) {
+				timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
 				timedLoadoutsList.unshift(timeStrings);
 				con.log(2,'Priority gen set', timeStrings, timedLoadoutsList);
 			}

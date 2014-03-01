@@ -941,7 +941,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(2, 'Loading keep page to force Guild Page reload');
 				return caap.navigateTo('keep');
 			}
-			if (timedSetting=='Never' || status.GBstatus !== 'Start') {
+			if (timedSetting=='Never' || caap.stats.GBstatus !== 'Start') {
 				return false;
 			}
 			con.log(5, 'checkTime start', timeBattlesList);
@@ -977,8 +977,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				general.priority = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
-				if (general.selectSpecific(general.priority)) {
+				caap.stats.priorityGeneral = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
 				if (caap.navigateTo('guildv2_battle')) {
@@ -989,8 +989,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.log(1, 'CLICK GUILD BATTLE START');
 					return caap.click(button);
 				}
-			} else if (status.GBstatus == 'Start') {
-				general.priority = false;
+			} else if (caap.stats.GBstatus == 'Start') {
+				caap.stats.priorityGeneral = false;
 			}
 
 			con.log(4, 'No time match to current time', now);
