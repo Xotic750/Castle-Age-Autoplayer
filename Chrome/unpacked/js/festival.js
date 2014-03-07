@@ -1203,7 +1203,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
         dashboard: function() {
             try {
-                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("FestivalDashUpdate", true)) {
+				return guild_battle.dashboardWork(1);
+				
+/*                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("FestivalDashUpdate", true)) {
                     var headers = ['Festival', 'Damage', 'Team%', 'Enemy%', 'My Status', 'TimeLeft', 'Status'],
                         values = ['damage', 'teamHealth', 'enemyHealth', 'myStatus', 'ticker', 'state'],
                         pp = 0,
@@ -1332,7 +1334,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 festival.onBattle();
                 return true;
-            } catch (err) {
+*/
+			} catch (err) {
                 con.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
                 return false;
             }

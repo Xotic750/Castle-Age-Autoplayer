@@ -1158,7 +1158,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			
 			var battleName = GBorFest ? 'Festival' : 'Guild Battle',
 				battleLabel = GBorFest ? 'Festival' : 'GuildBattle',
-				battleid = GBorFest ? 'festival' : 'guildBattle';
+				battleID = GBorFest ? 'festival' : 'guildBattle';
             if (config.getItem('DBDisplay', '') === battleName && session.getItem(battleLabel + "DashUpdate", true)) {
                 var color = '',
                     headers = ['Index', 'Name', 'Class', 'Level', 'Health', 'Damage%', 'Status', 'Activity', 'Points', 'Win%', 'Score', 'Link', '&nbsp;'],
