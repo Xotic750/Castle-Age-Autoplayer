@@ -58,7 +58,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_guild_battle = function() {
         try {
             con.log(2, "Guild Battle battle screen");
-			//guild_battle.populate();
+			guild_battle.onBattle(0);
 /*            var tempDiv = $j("img[src*='guild_symbol']");
 
             if (tempDiv && tempDiv.length) {

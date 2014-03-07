@@ -3154,6 +3154,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
+                    'Guild Battle',
                     'Item Stats',
                     'Magic Stats',
                     'Monster',
@@ -5378,7 +5379,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 					caap.stats[stat].max = $u.setContent(caap.stats[stat].max, max);
 					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
-					con.log(2, 'Stat ' + stat + ' max',caap.stats[stat].max);
+					con.log(5, 'Stat ' + stat + ' max',caap.stats[stat].max);
 				} else {
 					con.warn("Unable to get " + stat + "Div");
 					passed = false;

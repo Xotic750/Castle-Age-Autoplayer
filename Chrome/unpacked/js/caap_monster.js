@@ -1958,7 +1958,8 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 								
 								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
 								// or the WhenStun setting has changed, set a new stun target time.
-								tempSetting = monster.parseCondition("cd", cM.conditions) || config.getItem('WhenStun','Immediately');
+								tempSetting = monster.parseCondition("cd", cM.conditions);
+								tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
 								tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
 								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
 								con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
@@ -2091,11 +2092,13 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
             if ($u.hasContent(damageDiv) || damageDivNew) {
                 achLevel = monster.parseCondition('ach', cM.conditions);
+                achLevel = achLevel === 0 ? 1 : achLevel; // Added to prevent ach === 0 defaulting to false 
                 if (monsterInfo && achLevel === false) {
                     achLevel = monsterInfo.ach;
                 }
 
                 maxDamage = monster.parseCondition('max', cM.conditions);
+                maxDamage = maxDamage === 0 ? 1 : maxDamage;  // Added to prevent max === 0 defaulting to false 
                 maxToFortify = monster.parseCondition('f%', cM.conditions);
                 maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
                 targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);

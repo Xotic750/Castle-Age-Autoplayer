@@ -802,7 +802,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     currentRecord.reviewed = Date.now();
-                    con.log(3, "currentRecord", currentRecord);
+                    con.log(2, "currentRecord", currentRecord);
                     festival.setItem(currentRecord);
                     if (currentRecord.state === 'Collect' && $u.hasContent(collectDiv)) {
                         caap.click(collectDiv);

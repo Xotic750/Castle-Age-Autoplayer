@@ -539,7 +539,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					memberArr = memberText.match(toonStatsRegEx);
 					con.log(5, 'memberArr', memberArr);
 					memberRecord.mclass = member.children().attr('class').match(classRegEx)[1];
-					towerRecord.clerics += memberRecord.mclass == 'cleric' ? 1 : 0;
+					towerRecord.clerics =+ memberRecord.mclass == 'cleric' ? 1 : 0;
 					memberRecord.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
 					if (memberArr && memberArr.length === 8) {
 						// memberRecord.position = memberArr[1] || '';
@@ -551,13 +551,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						memberRecord.battlePoints = memberArr[7] ? memberArr[7].parseInt() : 0;
 						memberRecord.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
 						con.log(1, 'memberRecord', memberRecord);
-						memberRecord.winChance = (caap.stats.indicators.api / memberRecord.level / 10 * 100).dp(1);
-						memberRecord.score = memberRecord.winChance * (memberRecord.battlePoints /100 - 1) + 100;
-						towerRecord.players++;
-						towerRecord.actives += memberRecord.battlePoints > 0 ? 1 : 0;
-						towerRecord.AC += (memberRecord.battlePoints > 0 && memberRecord.mclass == 'cleric') ? 1 : 0;
-						stunnedClerics += (memberRecord.status == 'Stunned' && memberRecord.mclass == 'cleric') ? 1 : 0;
-						towerRecord.clericdamage += memberRecord.mclass == 'cleric' ? memberRecord.healthMax - memberRecord.healthNum : 0;
+						towerRecord.players =+ 1;
+						towerRecord.actives =+ memberRecord.battlePoints > 0 ? 1 : 0;
+						towerRecord.AC =+ (memberRecord.battlePoints > 0 && memberRecord.mclass == 'cleric') ? 1 : 0;
+						stunnedClerics =+ (memberRecord.status == 'stunned' && memberRecord.mclass == 'cleric') ? 1 : 0;
+						towerRecord.clericdamage =+ memberRecord.mclass == 'cleric' ? memberRecord.healthMax - memberRecord.healthNum : 0;
 						
 					} else {
 						con.warn("Unable to read member stats",tower, n, memberArr);
@@ -566,7 +564,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 
-			towerRecord.sealed = towerRecord.clerics ? (stunnedClerics/towerRecord.clerics * 100).dp(1) : 100.0;
+			towerRecord.sealed = towerRecord.clerics ? (stunnedClerics/towerRecord.clerics).dp(2) : 1;
 			currentRecord.towers[tower] = towerRecord;
 			currentRecord.reviewed = Date.now();
 			con.log(2, "currentRecord", currentRecord);
@@ -1154,15 +1152,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_guildBattle' div. We set our
                 table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-			
-			var battleName = GBorFest ? 'Festival' : 'Guild Battle',
-				battleLabel = GBorFest ? 'Festival' : 'GuildBattle',
-				battleid = GBorFest ? 'festival' : 'guildBattle';
-            if (config.getItem('DBDisplay', '') === battleName && session.getItem(battleLabel + "DashUpdate", true)) {
+                \-------------------------------------------------------------------------------------*/
+            if (config.getItem('DBDisplay', '') === 'Guild Battle' && session.getItem("GuildBattleDashUpdate", true)) {
                 var color = '',
-                    headers = ['Index', 'Name', 'Class', 'Level', 'Health', 'Damage%', 'Status', 'Activity', 'Points', 'Win%', 'Score', 'Link', '&nbsp;'],
-                    values = ['index', 'name', 'mclass', 'level', 'healthNum', 'percent', 'status', 'battlePoints', 'points', 'winChance', 'score', 'link'],
+                    headers = ['Index', 'Name', 'Class', 'Level', 'Health', 'Damage%', 'Status', 'Activity', 'Points', 'Hit Value', 'Link', '&nbsp;'],
+                    values = ['index', 'name', 'mclass', 'level', 'healthNum', 'percent', 'status', 'battlePoints', 'points', 'value', 'link'],
                     pp = 0,
                     i = {},
                     len = 0,
@@ -1211,7 +1205,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							switch (values[pp]) {
 							case 'namexxx':
 								data = {
-									text: '<span id="caap_' + battlelower + '_' + pp + '" title="Clicking this link will take you to (' + record.index + ') ' + record.name + '" mname="' + record.slot +
+									text: '<span id="caap_guildbattle_' + pp + '" title="Clicking this link will take you to (' + record.index + ') ' + record.name + '" mname="' + record.slot +
 										'" rlink="guild_battle_battle.php?twt2=' + guild_battle.info[record.name].twt2 + '&guild_id=' + record.guildId + '&slot=' + record.slot +
 										'" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + record.name + '</span>',
 									color: record.color,
@@ -1282,7 +1276,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					}
                 }
 
-                $j("#caap_" + battleLabel, caap.caapTopObject).html($j(caap.makeTable("guild_battle", head, body)).dataTable({
+                $j("#caap_guildBattle", caap.caapTopObject).html($j(caap.makeTable("guild_battle", head, body)).dataTable({
                     "bAutoWidth": false,
                     "bFilter": false,
                     "bJQueryUI": false,
@@ -1293,7 +1287,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     "bStateSave": true,
                     "bSortClasses": false
                 }));
-				$j("#caap_" + battleLabel, caap.caapTopObject).prepend(towerHtml);
+				$j("#caap_guildBattle", caap.caapTopObject).prepend(towerHtml);
 
                 handler = function(e) {
                     var visitBattleLink = {
@@ -1314,10 +1308,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     caap.clickAjaxLinkSend(visitBattleLink.arlink);
                 };
 
-                $j("span[id*='caap_" + battleID + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                $j("span[id*='caap_guildbattle_']", caap.caapTopObject).off('click', handler).on('click', handler);
                 handler = null;
 
-                session.setItem(battleLabel + "DashUpdate", false);
+                session.setItem("GuildBattleDashUpdate", false);
             }
 
             return true;
