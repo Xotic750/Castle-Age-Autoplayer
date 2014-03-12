@@ -2116,17 +2116,17 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
 								// or the WhenStun setting has changed, set a new stun target time.
 								tempSetting = monster.parseCondition("cd", cM.conditions) || config.getItem('WhenStun','Immediately');
-								tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat ();
+								tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
 								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-                                con.log(2, "Stun variables", cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+								con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
 								
-								if (!cM.stunTarget || cM.stunTime < stunStart || cM.stunSetting !== tempSetting) {
+								if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
 									cM.stunSetting = tempSetting;
 
 									// Add +/- 30 min so multiple CAAPs don't all stun at the same time
 									cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
 											: cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
-									con.log(2, "new stuntarget", $u.makeTime(cM.stunTarget, caap.timeStr(true)));
+									con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
 								}
 
                             } else {
@@ -2165,8 +2165,11 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                             }
 
                             if (cM.charClass && cM.tip && cM.stun !== -1) {
-                                cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100 
-										&& Date.now() > cM.stunTarget;
+                                cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
+								if (cM.stunDo) {
+									con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+								}
+								cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
                                 cM.stunType = '';
                                 if (cM.stunDo) {
                                     con.log(2, "Do character specific attack", cM.stunDo);
