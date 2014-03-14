@@ -102,7 +102,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             } else {
                 attack = caap.stats.attack;
                 defense = caap.stats.defense;
-                health = caap.stats.health.max;
+                health = caap.stats.health.norm;
             }
 
             con.log(2, "level/energy/stamina/attack/defense/health/health", level, energy, stamina, attack, defense, health, health);
@@ -223,11 +223,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attrValue = config.getItem('AttrValue' + n, 0);
                 attrAdjust = attrValue;
                 level = caap.stats.level;
-                energy = caap.stats.energy.max;
-                stamina = caap.stats.stamina.max;
+                energy = caap.stats.energy.norm;
+                stamina = caap.stats.stamina.norm;
                 attack = caap.stats.attack;
                 defense = caap.stats.defense;
-                health = caap.stats.health.max;
+                health = caap.stats.health.norm;
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -239,7 +239,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (attribute === "attack" || attribute === "defense") {
                     value = caap.stats[attribute];
                 } else {
-                    value = caap.stats[attribute].max;
+                    value = caap.stats[attribute].norm;
                 }
 
                 // current thinking is that continue should not be used as it can cause reader confusion

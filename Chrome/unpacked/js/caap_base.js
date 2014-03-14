@@ -5222,18 +5222,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'stamina': 0
         },
         'energy': {
+            'norm': 0,
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
         },
         'health': {
+            'norm': 0,
             'num': 0,
             'max': 0,
             'dif': 0,
             'ticker': []
         },
         'stamina': {
+            'norm': 0,
             'num': 0,
             'max': 0,
             'dif': 0,
@@ -5537,9 +5540,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = statCont.eq(4);
                     if ($u.hasContent(tempDiv)) {
                         caap.stats.health = caap.getStatusNumbers(caap.stats.health.num + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
+						caap.stats.health.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+						
                     } else {
                         con.warn('Using stored health value.');
                     }
+					
+					// Energy
+					tempDiv = statCont.eq(0);
+					if ($u.hasContent(tempDiv)) {
+						caap.stats.energy.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored energy value.');
+					}
+
+					// Stamina
+					tempDiv = statCont.eq(1);
+					if ($u.hasContent(tempDiv)) {
+						caap.stats.stamina.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored stamina value.');
+					}
                 } else {
                     con.warn("Can't find stats containers! Using stored stats values.");
                 }
