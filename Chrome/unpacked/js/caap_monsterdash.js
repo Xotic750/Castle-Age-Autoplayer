@@ -962,6 +962,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         e.target.title = title;
         caap.setDisplay("caapTopObject", 'infoMonster', false);
         caap.setDisplay("caapTopObject", 'guildMonster', false);
+        caap.setDisplay("caapTopObject", 'guildBattle', false);
         //caap.setDisplay("caapTopObject", 'arena', false);
         caap.setDisplay("caapTopObject", 'festival', false);
         caap.setDisplay("caapTopObject", 'feed', false);
@@ -1039,6 +1040,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case "Guild Monster":
                 caap.setDisplay("caapTopObject", 'guildMonster', true);
+                caap.setDisplay("caapTopObject", 'buttonGuildMonster', true);
+
+                break;
+            case "Guild Battle":
+                caap.setDisplay("caapTopObject", 'guildBattle', true);
                 caap.setDisplay("caapTopObject", 'buttonGuildMonster', true);
 
                 break;

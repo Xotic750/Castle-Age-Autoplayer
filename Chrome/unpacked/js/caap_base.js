@@ -4904,7 +4904,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guildv2_battle'
         },
         'guild_battle': {
-            signaturePic: 'guild_battle_portrait.gif',
+            signaturePic: 'guild_battle_banner.jpg',
             CheckResultsFunction: 'checkResults_guild_battle'
         },
         'item_archive_bonus': {
@@ -5062,14 +5062,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 // joinability are called in both and we update % bar values correctly when
                 // we are using the new whatclickedimgButton listener
                 // Also detect when there is an actual page match that is incorrect
-            con.log(2, "Page and page2", page, page2, pageUrl);
             if (page !== page2) {
                 if ((page === 'onBattle' && page2 !== 'battle_monster') || (page === 'onRaid' && page2 === 'raid')) {
                     con.warn("page and page2 differ", page, page2, pageUrl);
                 } else {
                     con.log(2, "page and page2 differ", page, page2, pageUrl);
                 }
-            }
+            } else {
+				con.log(2, "Page and page2", page, page2, pageUrl);
+			}
 
             session.setItem('pageUserCheck', page === 'keep' ? $u.setContent(pageUrl.regex(/user=(\d+)/), 0) : 0);
             if ($u.hasContent(page) && $u.hasContent(caap.pageList[page]) && $u.hasContent(caap.pageList[page].subpages)) {
@@ -9051,7 +9052,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			return guild_battle.checkTime();
+			return guild_battle.work();
         } catch (err) {
             con.error("ERROR in guildBattle: " + err);
             return false;

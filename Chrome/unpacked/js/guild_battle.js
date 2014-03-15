@@ -94,7 +94,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         };
     };
 
-	
     guild_battle.which = function(img, entity) {
         try {
             if (!$u.hasContent(img) || !$u.isString(img)) {
@@ -150,7 +149,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
 
-            session.setItem("GuildBattleDashUpdate", true);
+            session.setItem("guildBattleDashUpdate", true);
             con.log(3, "guild_battle.load", guild_battle.records);
             return true;
         } catch (err) {
@@ -173,7 +172,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             }
 
             if (caap.domain.which !== 0) {
-                session.setItem("GuildBattleDashUpdate", true);
+                session.setItem("guildBattleDashUpdate", true);
             }
 
             return true;
@@ -191,11 +190,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             }
 
 			if ($j.isPlainObject(guild_battle.records[GBorFest])) {
-                con.log(2, "Got guild_battle record", GBorFest, guild_battle.records[GBorFest]);
-                return guild_battle.records[GBorFest];
+                con.log(2, "Got guild_battle record #"+GBorFest, guild_battle.records[GBorFest].data, guild_battle.records);
+                return guild_battle.records[GBorFest].data;
 			}
             var newRecord = new guild_battle.record();
-            con.log(2, "New guild_battle record", GBorFest, newRecord.data);
+            con.log(2, "New guild_battle record #"+GBorFest, newRecord.data, guild_battle.records);
             return newRecord.data;
         } catch (err) {
             con.error("ERROR in guild_battle.getItem: " + err);
@@ -214,8 +213,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 throw "Invalid identifying GBorFest!";
             }
 
-			guild_battle.records[GBorFest] = record;
-			con.log(2, "Updated guild_battle record", record, guild_battle.records);
+			guild_battle.records[GBorFest] = {};
+			guild_battle.records[GBorFest].data = record;
+			con.log(2, "Updated guild_battle record #"+GBorFest, record, guild_battle.records);
 
             guild_battle.save();
             return true;
@@ -265,7 +265,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             guild_battle.save();
             state.setItem('staminaGuildBattle', 0);
             state.setItem('targetGuildBattle', {});
-            session.setItem("GuildBattleDashUpdate", true);
+            session.setItem("guildBattleDashUpdate", true);
             return true;
         } catch (err) {
             con.error("ERROR in guild_battle.clear: " + err);
@@ -291,7 +291,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         return caap.navigateTo('guildv2_battle_summon_list,guildv2_current_battle_battles', 'guild_battle_list_on.jpg');
     };
 
-	// Used to list up guild monsters. May be irrelevant for Guild Battles
+	// Used to list up guild members.
     guild_battle.populate = function() {
         try {
             var buttons = $j("input[src*='guild_battle_']"),
@@ -527,7 +527,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					targetIdDiv = member.find("input[name='target_id']").eq(0);
 					if (targetIdDiv && targetIdDiv.length) {
 						memberRecord.target_id = targetIdDiv.val() ? targetIdDiv.val().parseInt() : 1;
-						con.log(2,"Target_id for member", memberRecord.target_id);
+						con.log(5,"Target_id for member", memberRecord.target_id);
 					} else {
 						con.log(2, "Unable to find target_id for member", tower, n, member);
 						continue;
@@ -550,14 +550,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						memberRecord.healthMax = memberArr[6] ? memberArr[6].parseInt() : 1;
 						memberRecord.battlePoints = memberArr[7] ? memberArr[7].parseInt() : 0;
 						memberRecord.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
-						con.log(1, 'memberRecord', memberRecord);
-						memberRecord.winChance = (caap.stats.indicators.api / memberRecord.level / 10 * 100).dp(1);
-						memberRecord.score = memberRecord.winChance * (memberRecord.battlePoints /100 - 1) + 100;
+						con.log(5, 'memberRecord', memberRecord);
+						memberRecord.winChance = Math.min((caap.stats.indicators.api / memberRecord.level / 10 * 100).dp(1),100);
+						memberRecord.score = (memberRecord.winChance * (memberRecord.points /100 - 1) + 100).dp(0);
 						towerRecord.players++;
 						towerRecord.actives += memberRecord.battlePoints > 0 ? 1 : 0;
 						towerRecord.AC += (memberRecord.battlePoints > 0 && memberRecord.mclass == 'cleric') ? 1 : 0;
 						stunnedClerics += (memberRecord.status == 'Stunned' && memberRecord.mclass == 'cleric') ? 1 : 0;
-						towerRecord.clericdamage += memberRecord.mclass == 'cleric' ? memberRecord.healthMax - memberRecord.healthNum : 0;
+						towerRecord.clericDamage += memberRecord.mclass == 'cleric' ? memberRecord.healthMax - memberRecord.healthNum : 0;
 						
 					} else {
 						con.warn("Unable to read member stats",tower, n, memberArr);
@@ -893,19 +893,30 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+	guild_battle.path = 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,clickimg:enemy_guild_on.gif,jq:#enemy_guild_tab,clickjq:#enemy_new_guild_tab_4,jq:#enemy_guild_member_list_4,clickjq:#basic_4_100000206587433 input[src*="gb_btn_duel.gif"]';
+	
  	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
-	guild_battle.checkTime = function (force) {
+	guild_battle.work = function (force) {
 		try {
 			var timeBattlesList = config.getList('timed_guild_battles', ''),
 				begin = new Date(),
 				end = new Date(),
 				timeString = '',
+				result = '',
 				button = null,
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 				match = (timedSetting === 'Battle available') ? true : false,
 				now = new Date();
+				
+			if (guild_battle.path) {
+				result = caap.navigate2(guild_battle.path);
+				if (result == 'done' || result == 'failed' || !result) {
+					guild_battle.path = false;
+				}
+				return true;
+			}
 
 			if (schedule.check('pageReviewTime')) {
 				if (caap.navigateTo('guildv2_battle')) {
@@ -918,7 +929,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (timedSetting=='Never' || caap.stats.GBstatus !== 'Start') {
 				return false;
 			}
-			con.log(5, 'checkTime start', timeBattlesList);
+			con.log(5, 'guild battle work start', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
 				if (!timeBattlesList[p].toString().trim()) {
@@ -970,7 +981,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			con.log(4, 'No time match to current time', now);
 			return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.checkTime: " + err);
+            con.error("ERROR in guild_battle.work: " + err);
             return false;
         }
     };
@@ -1157,8 +1168,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             \-------------------------------------------------------------------------------------*/
 			
 			var battleName = GBorFest ? 'Festival' : 'Guild Battle',
-				battleLabel = GBorFest ? 'Festival' : 'GuildBattle',
-				battleID = GBorFest ? 'festival' : 'guildBattle';
+				battleLabel = GBorFest ? 'festival' : 'guildBattle';
             if (config.getItem('DBDisplay', '') === battleName && session.getItem(battleLabel + "DashUpdate", true)) {
                 var color = '',
                     headers = ['Index', 'Name', 'Class', 'Level', 'Health', 'Damage%', 'Status', 'Activity', 'Points', 'Win%', 'Score', 'Link', '&nbsp;'],
@@ -1184,10 +1194,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     body = '',
                     row = '',
 					towerHtml = '';
+				con.log(2, "Dash record",record);
 
                 for (pp = 1; pp <= 4; pp += 1) {
 					tower = towers[pp.toString()];
-                    towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Seal: ' + tower.sealed + '<br>';
+                    towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Seal: ' + tower.sealed + ' CDam: ' + tower.clericDamage + '<br>';
                 }
 
                 for (pp = 0; pp < headers.length; pp += 1) {
@@ -1209,11 +1220,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							member = members[i];
 							con.log(5,'i pp', i, pp, values[pp],member[values[pp]]);
 							switch (values[pp]) {
-							case 'namexxx':
+							case 'name':
 								data = {
-									text: '<span id="caap_' + battlelower + '_' + pp + '" title="Clicking this link will take you to (' + record.index + ') ' + record.name + '" mname="' + record.slot +
-										'" rlink="guild_battle_battle.php?twt2=' + guild_battle.info[record.name].twt2 + '&guild_id=' + record.guildId + '&slot=' + record.slot +
-										'" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + record.name + '</span>',
+									text: '<span id="caap_' + battleLabel + '_' + pp + '" title="Clicking this link will take you to (' +  ') ' + record.name + '" mname="1"' +
+										'" rlink="guild_battle_battle.php?twt2=' + '&guild_id=' + record.guildId + '&slot='  +
+										'" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + member[values[pp]] + '</span>',
 									color: record.color,
 									id: '',
 									title: ''
@@ -1311,10 +1322,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitBattleLink.arlink);
+                    // caap.clickAjaxLinkSend(visitBattleLink.arlink);
+					guild_battle.path = visitBattleLink.arlink;
+					con.log(2,'battle path set',guild_battle.path);
                 };
 
-                $j("span[id*='caap_" + battleID + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                $j("span[id*='caap_" + battleLabel + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
                 handler = null;
 
                 session.setItem(battleLabel + "DashUpdate", false);

@@ -1197,22 +1197,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
 		
 		// Clear out monster conquest lands that no longer exist
-		for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+		for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
 			if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
+				con.log(1,'Conquest: ',caap.stats.reviewPages[i], pathList, monster.records);
 				if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
 					if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
 						con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
 						// Delete any monsters from those pages too
-						for (var ii = monster.records.length - 1; ii >= 0 ; ii--) {
-							if (monster.records[ii].link.indexOf(caap.stats.reviewPages[i].path)>=0) {
-								con.log(2,'Removed monster',monster.records[ii].name);
-								monster.records.splice(ii,1);
-							}
-						}
 
 					}
+					// Clear out monsters in conquest lands that no longer exist
+					for (ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
+						con.log(2,'Conquest: checking monster',monster.records[ii], caap.stats.reviewPages[i].path);
+						if (monster.records[ii].link.indexOf(caap.stats.reviewPages[i].path.replace('ajax:','')) >= 0) {
+							monster.deleteItem(monster.records[ii].md5);
+						}
+					}
 				} else {
-					con.log(2,'Active conquest monster land in slot',caap.stats.reviewPages[i].path);
+					con.log(2,'Conquest monster land in slot',caap.stats.reviewPages[i].path);
 				}
 			}
 		}

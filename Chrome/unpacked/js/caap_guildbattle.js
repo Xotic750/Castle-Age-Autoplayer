@@ -36,21 +36,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			con.log(2, "Guild battle status", caap.stats.GBstatus);
 			
-/*          var tempDiv = $j("img[src*='guild_symbol']");
-
-            if (tempDiv && tempDiv.length) {
-                tempDiv.each(function() {
-                    con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='guild_battle_']"));
-                });
-            } else {
-                tempDiv = null;
-                return false;
-            }
-
-            tempDiv = null;
-*/            return true;
+            return true;
         } catch (err) {
-            con.error("ERROR in checkResults_guild_current_battles: " + err);
+            con.error("ERROR in caap.checkResults_guildv2_battle: " + err);
             return false;
         }
     };
@@ -59,21 +47,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             con.log(2, "Guild Battle battle screen");
 			guild_battle.onBattle(0);
-/*            var tempDiv = $j("img[src*='guild_symbol']");
+        } catch (err) {
+            con.error("ERROR in caap.checkResults_guild_battle: " + err);
+            return false;
+        }
+    };
 
-            if (tempDiv && tempDiv.length) {
-                tempDiv.each(function() {
-                    con.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='guild_battle_']"));
-                });
-            } else {
-                tempDiv = null;
-                return false;
-            }
-
-            tempDiv = null;
-            return true;
-*/        } catch (err) {
-            con.error("ERROR in checkResults_guild_current_battles: " + err);
+    caap.guild_battle = function() {
+        try {
+			if (guild_battle.path) {
+				con.log(2, "Guild Battle path", guild_battle.path);
+			} else {
+				con.log(2, "Guild Battle no work to do");
+			}
+        } catch (err) {
+            con.error("ERROR in caap.guild_battle: " + err);
             return false;
         }
     };

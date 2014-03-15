@@ -134,7 +134,133 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+	
+	// Enhanced Navigate function. Can navigate a full path with jquery elements and ajax and button clicks.
+	// Path elements can use page names. Page signature image will be used automatically.
+	// Other element links can only be used after last page name used.
+	// Other elements can be ajax: for an ajax link
+	// image: for a signature image name to check for before continuing to next step
+	// clickimg: for an image to click
+	
+	// Return values are 'true' for moving along the path
+	// 'done' when the last element in the path is clicked
+	//	false when the last element is an image or PageList page and already on the page or unable to find
+    caap.navigate2 = function (path) {
+        try {
+            var webslice = $j('#globalcss'),
+				steps,
+                s = 0,
+				step = '',
+				action = '',
+				text = '',
+				result = false,
+                jq = $j(),
+                step = '';
 
+            if (!$u.isString(path)) {
+                con.warn('Invalid path to navigate2', path);
+                return false;
+            }
+            steps = path.split(",");
+
+			// Start with page links to make sure on right page.
+			// At this point, the pages must be defined in the caap.pageList
+            for (s = steps.length - 1; s >= 0; s -= 1) {
+                step = $u.setContent(steps[s], '');
+                if (!$u.hasContent(step)) {
+                    con.warn('steps had no content!', step, path, s);
+                } else {
+					if ($u.hasContent(caap.pageList[step])) {
+						if ($u.hasContent(caap.pageList[step]) && session.getItem('page','none') == step) {
+							if (s == steps.length - 1) {
+								con.log(2,'Navigate2: Already on destination page', step, s, path, caap.pageList[step]);
+								return false;
+							} else {
+								con.log(2,'Navigate2: Found signature pic for page', step, s, path, caap.pageList[step]);
+								s += 1;
+								break;
+							}
+						}
+						jq = $j("a[href*='" + step + ".php']").not("a[href*='" + step + ".php?']", $j('#globalcss'));
+						if ($u.hasContent(jq)) {
+							con.log(2, 'Navigate2: Go to', jq, step, path, s);
+							caap.click(jq);
+							return true;
+						}
+						con.log(2,'Navigate2: Not on page' + step + ', so going back another step', path, s, caap.pageList[step]);
+					}
+                }
+            }
+            con.log(2, 'Navigate2: First pass search for sig pic passed', step, path, s);
+
+            for (s = s; s < steps.length; s += 1) {
+				// Look ahead to see if we have the checkpoint hit already
+				step = $u.setContent(steps[s+1], '');
+				action = step.replace(/:.*/,'');
+				text = step.replace(/.*:/,'');
+
+				// If the next step doesn't exist or isn't an image or that image is on the page, then do this step
+				if (action =='image' && caap.hasImage(text, $j('#globalcss'))) {
+					con.log(2, 'Navigate2 look ahead found image so skipping ', text, step, path, s);
+				} else if (action =='jq' && $u.hasContent($j(text))) {
+					con.log(2, 'Navigate2 look ahead found jquery so skipping ', text, step, path, s);
+				} else {
+					step = $u.setContent(steps[s], '');
+					action = step.replace(/:.*/,'');
+					text = step.replace(/.*:/,'');
+					if (action =='ajax') {
+						result = caap.clickAjaxLinkSend(text,2000);
+						return s == steps.length - 1 ? 'done' : true;
+					} else if (action =='image') {
+						jq = caap.hasImage(text, $j('#globalcss'));
+						// If the last step in the path, then we're done
+						if (jq) {
+							con.log(2,'Navigate2: already on destination page', step, s, path, caap.pageList[step]);
+							return false;
+						} else {
+							con.log(2,'Navigate2: Passing by confirmation pic', step, s, path, caap.pageList[step]);
+						}
+					} else if (action =='clickimg') {
+						jq = caap.checkForImage(text, $j('#globalcss'));
+						// If the last step in the path, then we're done
+						if ($u.hasContent(jq)) {
+							con.log(2, 'Navigate2 image click', text, step, path, s);
+							caap.click(jq);
+							return s == steps.length - 1 ? 'done' : true;
+						}
+						con.warn('Navigate2: Unable to find image to click, fail?', step, path, s, action, text);
+						return false;
+					} else if (action =='clickjq') {
+						jq = $j(text, '#globalcss');
+						// If the last step in the path, then we're done
+						if ($u.hasContent(jq)) {
+							con.log(2, 'Navigate2 jq click', text, step, path, s);
+							caap.click(jq);
+							return s == steps.length - 1 ? 'done' : true;
+						}
+						con.warn('Navigate2: Unable to find image to click, fail?', step, path, s, action, text);
+						return false;
+					} else if (action =='image' || action == 'jq') {
+						if (s == steps.length - 1) {
+							con.log(2,'Navigate2: Path done',  step, path, s, action, text);
+							return false;
+						} else {
+							con.log(2,'Navigate2: Skipping found checkpoint',  step, path, s, action, text);
+						}
+					} else {
+						con.log(2, 'Navigate2: No instructions: understood', step, path, s, action, text);
+					}
+				}
+            }
+
+            con.warn('Navigate2: Unable to Navigate2', step, path, s);
+            return false;
+        } catch (err) {
+            con.error("ERROR in caap.navigate2: " + err, path, step, s);
+            return undefined;
+        }
+    };
+	
     caap.navigateTo = function (pathToPage, imageOnPage, webSlice) {
         try {
             //webSlice = $u.setContent(webSlice, caap.globalContainer);

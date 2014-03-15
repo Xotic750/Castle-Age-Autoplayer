@@ -1920,9 +1920,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 			var deleted = 0;
 
-            for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+            for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
                 if (caap.stats.reviewPages[i][entry] === value) {
-					deleted++;
+					deleted += 1;
 					con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
 					caap.stats.reviewPages.splice(i,1);
 					con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);

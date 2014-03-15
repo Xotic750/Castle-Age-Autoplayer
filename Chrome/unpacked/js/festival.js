@@ -88,7 +88,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 festival.cleanWins();
-                session.setItem("FestivalDashUpdate", true);
+                session.setItem("festivalDashUpdate", true);
                 con.log(3, "festival.load", festival.records);
                 return true;
             } catch (err) {
@@ -111,7 +111,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (caap.domain.which !== 0) {
-                    session.setItem("FestivalDashUpdate", true);
+                    session.setItem("festivalDashUpdate", true);
                 }
 
                 return true;
@@ -186,7 +186,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 festival.save();
                 state.setItem('staminaFestival', 0);
                 state.setItem('targetFestival', {});
-                session.setItem("FestivalDashUpdate", true);
+                session.setItem("festivalDashUpdate", true);
                 return true;
             } catch (err) {
                 con.error("ERROR in festival.clear: " + err);
@@ -1205,7 +1205,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             try {
 				return guild_battle.dashboardWork(1);
 				
-/*                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("FestivalDashUpdate", true)) {
+/*                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("festivalDashUpdate", true)) {
                     var headers = ['Festival', 'Damage', 'Team%', 'Enemy%', 'My Status', 'TimeLeft', 'Status'],
                         values = ['damage', 'teamHealth', 'enemyHealth', 'myStatus', 'ticker', 'state'],
                         pp = 0,
@@ -1287,11 +1287,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     $j("span[id='caap_festival_1']", caap.caapTopObject).off('click', handler).click(handler);
 
-                    session.setItem("FestivalDashUpdate", false);
+                    session.setItem("festivalDashUpdate", false);
                 }
 
                 return true;
-            } catch (err) {
+*/
+			} catch (err) {
                 con.error("ERROR in festival.dashboard: " + err);
                 return false;
             }
@@ -1334,7 +1335,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 festival.onBattle();
                 return true;
-*/
+
 			} catch (err) {
                 con.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
                 return false;
