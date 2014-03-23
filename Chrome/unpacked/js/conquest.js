@@ -1164,7 +1164,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         var landCapsules = $j("[style*='conq2_capsule']"),
             timeLeft,
 			path,
-			pathList = [];
+			pathList = [],
+			monsterFound = false,
+			activePathlist = [];
 		
         //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
 		monster.setrPage(monster.conqLandsLink,'review',Date.now());
@@ -1203,23 +1205,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
 					if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
 						con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
-						// Delete any monsters from those pages too
-
-					}
-					// Clear out monsters in conquest lands that no longer exist
-					for (ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
-						con.log(2,'Conquest: checking monster',monster.records[ii], caap.stats.reviewPages[i].path);
-						if (monster.records[ii].link.indexOf(caap.stats.reviewPages[i].path.replace('ajax:','')) >= 0) {
-							monster.deleteItem(monster.records[ii].md5);
-						}
 					}
 				} else {
 					con.log(2,'Conquest monster land in slot',caap.stats.reviewPages[i].path);
+					activePathlist.push(caap.stats.reviewPages[i].path);
+				}
+			}
+		}
+		// Clear out monsters in conquest lands that no longer exist
+		for (var ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
+			if (monster.records[ii].page == 'guildv2_monster_list') {
+				monsterFound = false;
+				for (var i = 0; i < activePathlist.length; i += 1) {
+					con.log(2,'Conquest: checking monster',monster.records[ii], activePathlist[i]);
+					if (monster.records[ii].link.indexOf(activePathlist[i].replace('ajax:','')) >= 0) {
+						monsterFound = true;
+					}
+				}
+				if (!monsterFound) {
+					monster.deleteItem(monster.records[ii].md5);
 				}
 			}
 		}
 
-        con.log(2, "conquest caap.stats.reviewPages", caap.stats.reviewPages);
+        con.log(2, "conquest caap.stats.reviewPages", caap.stats.reviewPages, activePathlist);
     };
 
     // this function appears to have some serious bugs and really needs to be reworked!

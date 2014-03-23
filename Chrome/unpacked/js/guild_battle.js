@@ -22,36 +22,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             'guildId': '',
             'slot': 0,
             'ticker': '',
-            'members': {},
-			'towers' : {
-				'1' : {
-					'players' : 0,
-					'clerics' : 0,
-					'actives' : 0,
-					'AC' : 0,
-					'clericdamage' : 0,
-					'sealed' : 0},
-				'2' : {
-					'players' : 0,
-					'clerics' : 0,
-					'actives' : 0,
-					'AC' : 0,
-					'clericdamage' : 0,
-					'sealed' : 0},
-				'3' : {
-					'players' : 0,
-					'clerics' : 0,
-					'actives' : 0,
-					'AC' : 0,
-					'clericdamage' : 0,
-					'sealed' : 0},
-				'4' : {
-					'players' : 0,
-					'clerics' : 0,
-					'actives' : 0,
-					'AC' : 0,
-					'clericdamage' : 0,
-					'sealed' : 0}
+            'enemy': {
+				'towers' : {},
+				'members' : {}
+				},
+            'your': {
+				'towers' : {},
+				'members' : {}
 				},
             'attacks': 1,
             'damage': 0,
@@ -142,13 +119,107 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
+	// Add a review page with path, and set 'entry' key to value, if wanted
+	guild_battle.setrPage = function(path, entry, value) {
+        try {
+			var rPage = {
+				'path' : path,
+				'review' : 0,
+				'page' : false
+			};
+
+            if (!$u.hasContent(path) || !$u.isString(path)) {
+                con.warn("path", path);
+                throw "Invalid identifying path!";
+            }
+            //caap.stats.reviewPagesGB = config.getItem('caap.stats.reviewPagesGB', []);
+
+            for (var it = 0; it < caap.stats.reviewPagesGB.length; it++) {
+                if (caap.stats.reviewPagesGB[it].path === path) {
+					if ($u.hasContent(entry)) {
+						caap.stats.reviewPagesGB[it][entry] = value;
+					}
+					return true;
+                }
+            }
+			if ($u.hasContent(entry)) {
+				rPage[entry] = value;
+			}
+
+			caap.stats.reviewPagesGB.push(rPage);
+			con.log(2,'setrPage',path, entry, value, caap.stats.reviewPagesGB,rPage);
+			return false;
+        } catch (err) {
+            con.error("ERROR in guild_battle.setrPage: " + err);
+            return false;
+        }
+    };
+
+	// Delete all review pages where 'entry' = value
+	guild_battle.deleterPage = function(entry, value) {
+        try {
+            if (!$u.hasContent(entry) || !$u.isString(entry)) {
+                con.warn("Delete entry invalid", entry, value);
+                throw "Invalid identifying entry!";
+            }
+			var deleted = 0;
+
+            for (var i = caap.stats.reviewPagesGB.length - 1; i >= 0; i += -1) {
+                if (caap.stats.reviewPagesGB[i][entry] === value) {
+					deleted += 1;
+					con.log(2,'Monster review pages before',caap.stats.reviewPagesGB, entry, i);
+					caap.stats.reviewPagesGB.splice(i,1);
+					con.log(2,'Monster review pages after',caap.stats.reviewPagesGB, entry, i, deleted);
+                }
+            }
+			return deleted;
+
+        } catch (err) {
+            con.error("ERROR in guild_battle.deleterPage: " + err);
+            return false;
+        }
+    };
+
+	// Delete or add review page based on if 'tf' is true or false
+	guild_battle.togglerPage = function(path, tf, entry, value) {
+        try {
+            if (tf) {
+                return guild_battle.setrPage(path, entry, value);
+            }
+			return guild_battle.deleterPage('path', path);
+        } catch (err) {
+            con.error("ERROR in guild_battle.togglerPage: " + err);
+            return false;
+        }
+    };
+	
+	guild_battle.activateBattle = function(GBorFest) {
+        try {
+			var basePath = GBorFest ? '' :   'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,',
+				types = ['enemy','your'];
+			types.forEach(function(type) {
+				for (var i = 1; i <= 4; i++) {
+					path = basePath + 'clickimg:enemy_guild_on.gif,jq:#' + type + '_guild_tab,clickjq:#' + type + '_new_guild_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
+					guild_battle.togglerPage(path, true, 'page', GBorFest);
+					con.log(2,'Activate path', path, caap.stats.reviewPagesGB);
+				}
+			});
+        } catch (err) {
+            con.error("ERROR in guild_battle.activateBattle: " + err);
+            return false;
+        }
+    };
+			
+
+	
+
     guild_battle.load = function() {
         try {
             guild_battle.records = gm.getItem('guild_battle.records', 'default');
             if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
-
+//			caap.stats.reviewPagesGB = $u.setContent(caap.stats.reviewPagesGB, []);
             session.setItem("guildBattleDashUpdate", true);
             con.log(3, "guild_battle.load", guild_battle.records);
             return true;
@@ -414,12 +485,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
     guild_battle.onBattle = function(GBorFest) {
         try {
             var gate = $j(),
-                health = $j(),
-                healthGuild = $j(),
-                healthEnemy = $j(),
                 allowedDiv = $j(),
-                bannerDiv = $j(),
-                collectDiv = $j(),
 				memberDivs = $j(),
 				member = $j(),
 				memberText = '',
@@ -431,19 +497,53 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 tempTxt = '',
 				stunnedClerics = 0,
                 collect = false,
-                myStatsTxt = '',
 				tower = 0,
+				which = '',
 				n = 0,
-                myStatsArr = [],
-                currentRecord = {},
                 classRegEx = new RegExp("guild_battle_container (\\w*)"),
-                toonStatsRegEx = new RegExp("(\\d+)\. (.*) Level: (\\d+) Status: (.*) (.+)/(.+) .*Battle Points: (.*)");
+                toonStatsRegEx = new RegExp("(\\d+)\. (.*) Level: (\\d+) Status: (.*) (.+)/(.+) .*Battle Points: (.*)"),
+				gates = $j(),
+				tabs = $j(),
+				health = $j(),
+				healthGuild = $j(),
+				healthEnemy = $j(),
+				bannerDiv = $j(),
+				collectDiv = $j(),
+				enterDiv = $j(),
+				tokenSpan = $j(),
+				timerSpan = $j(),
+				resultBody = $j(),
+				imgDiv = $j(),
+				myStatsTxt = '',
+				myStatsArr = [],
+				index = 0,
+				currentRecord = {},
+				minions = [],
+				tStr = '',
+				tNum = 0,
+				resultsTxt = '',
+				lastAttacked = state.getItem('FestivalMinionAttacked', {}),
+				won = {},
+				losses = [],
+				wins = [],
+				notStarted = '',
+				notFestival = '',
+				battleOver = '';
 
 
+            state.setItem('FestivalMinionAttacked', {});
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            bannerDiv = $j("#guild_battle_banner_section");
+            bannerDiv = $j("#globalContainer #" + (GBorFest ? 'arena' : 'guild') + "_battle_banner_section");
+			myStatsTxt = $u.setContent(bannerDiv.text().trim().innerTrim(), '');
+			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
+			notFestival = myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/);
+			battleOver = myStatsTxt.regex(/(This *.Battle Is Over)/) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
+			con.log(2, "arena_battle_banner_section", myStatsTxt, notStarted, notFestival, battleOver);
+			if (notFestival) {
+				return true;
+			}
+
             myStatsTxt = bannerDiv.children().eq(2).text();
-            con.log(1, "myStatsTxt 1", myStatsTxt);
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
 			currentRecord = guild_battle.getItem(GBorFest);
 			//if (!bannerDiv.attr("style").match(/_dead/)) {
@@ -451,7 +551,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			currentRecord.ticker = currentRecord.ticker ? currentRecord.ticker.trim() : '';
 			if (myStatsTxt) {
 				con.log(1, "myStatsTxt", myStatsTxt);
-				myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Battle Activity Points: (\\d+)"));
+				myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
 				if (myStatsArr && myStatsArr.length === 8) {
 					con.log(1, "myStatsArr", myStatsArr);
 					currentRecord.damage = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
@@ -461,6 +561,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 
+			tokenSpan = $j("#globalContainer span[id='guild_token_current_value']");
+			tStr = $u.hasContent(tokenSpan) ? tokenSpan.text().trim() : '';
+			currentRecord.tokens = tStr ? tStr.parseInt() : 0;
+
+			timerSpan = $j("#globalContainer span[id='guild_token_time_value']");
+			tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
+			currentRecord.tokenTime = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
+			con.log(2,'Tokens', currentRecord.tokens);
+			
 			allowedDiv = $j("#allowedAttacks");
 			if (allowedDiv && allowedDiv.length) {
 				currentRecord.attacks = allowedDiv.val() ? allowedDiv.val().parseInt() : 1;
@@ -499,25 +608,28 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.warn("guild_battle_health error");
 			}
 
-			gate = $j("div[id*='enemy_guild_member_list_']");
-			tower = gate.attr('id').match(/enemy_guild_member_list_(\d)/)[1];
-			con.log(5,'Gate ID',gate.attr('id'),tower);
+			gate = $j("div[id*='_guild_member_list_']");
+			tower = gate.attr('id').match(/_guild_member_list_(\d)/)[1];
+			which = gate.attr('id').match(/(\w+)_guild_member_list_(\d)/)[1];
+			con.log(2,'Gate ID',gate.attr('id'),tower, which);
 			if (!gate) {
 				con.warn("No gates found");
 			} else {
-				con.log(2,'Gate',tower);
-				memberDivs = gate.children();
+				con.log(2,'Gate',tower, which);
+				memberDivs = gate.children("div[style*='height']");
 				con.log(2,'Members found',memberDivs.length,memberDivs);
 				towerRecord =  {
 					'players' : 0,
 					'clerics' : 0,
 					'actives' : 0,
 					'AC' : 0,
-					'clericdamage' : 0,
-					'sealed' : 0};
+					'clericDamage' : 0,
+					'sealed' : 0,
+					'reviewed' : Date.now(),
+					};
 
-				for (var n = 1; n <=25; n++) {
-					delete currentRecord.members[tower + '-' + n];
+				for (var n = 1; n <= 25; n += 1) {
+					delete currentRecord[which].members[tower + '-' + n];
 					if (!memberDivs || !memberDivs.length || !memberDivs[n-1]) {
 						con.warn("No member found", tower, n);
 						continue;
@@ -562,13 +674,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					} else {
 						con.warn("Unable to read member stats",tower, n, memberArr);
 					}
-					currentRecord.members[tower + '-' + n] = memberRecord;
+					currentRecord[which].members[tower + '-' + n] = memberRecord;
 				}
 			}
 
 			towerRecord.sealed = towerRecord.clerics ? (stunnedClerics/towerRecord.clerics * 100).dp(1) : 100.0;
-			currentRecord.towers[tower] = towerRecord;
-			currentRecord.reviewed = Date.now();
+			currentRecord[which].towers[tower] = towerRecord;
 			con.log(2, "currentRecord", currentRecord);
 			guild_battle.setItem(GBorFest, currentRecord);
 			if (collect) {
@@ -894,11 +1005,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 	guild_battle.path = 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,clickimg:enemy_guild_on.gif,jq:#enemy_guild_tab,clickjq:#enemy_new_guild_tab_4,jq:#enemy_guild_member_list_4,clickjq:#basic_4_100000206587433 input[src*="gb_btn_duel.gif"]';
+
+	guild_battle.path = false;	
 	
  	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
-	guild_battle.work = function (force) {
+	guild_battle.work = function (GBorFest) {
 		try {
 			var timeBattlesList = config.getList('timed_guild_battles', ''),
 				begin = new Date(),
@@ -918,7 +1031,16 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				return true;
 			}
 
-			if (schedule.check('pageReviewTime')) {
+            for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
+                if (caap.stats.reviewPagesGB[i].page === GBorFest && schedule.since(caap.stats.reviewPagesGB[i].review, 2 * 60)) {
+					con.log(2,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
+					return caap.navigate2(caap.stats.reviewPagesGB[i].path);
+				}
+            }
+			con.log(2,'Guild review',caap.stats.reviewPagesGB);
+
+			
+			if (schedule.check('pageReviewTime' + GBorFest)) {
 				if (caap.navigateTo('guildv2_battle')) {
 					con.log(2, 'Checking Guild Battle page');
 					return true;
@@ -1186,8 +1308,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     },
                     handler = null,
 					record = guild_battle.getItem(GBorFest),
-					members = record.members,
-					towers = record.towers,
+					members = record.your.members,
+					towers = record.your.towers,
 					member = {},
 					tower = {},
                     head = '',
@@ -1198,6 +1320,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
                 for (pp = 1; pp <= 4; pp += 1) {
 					tower = towers[pp.toString()];
+					if (!tower) {
+						continue;
+					}
                     towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Seal: ' + tower.sealed + ' CDam: ' + tower.clericDamage + '<br>';
                 }
 

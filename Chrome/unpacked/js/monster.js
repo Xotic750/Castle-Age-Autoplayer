@@ -21,6 +21,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	monster.conqLandsLink = 'ajax:guildv2_conquest_command.php?tier=3';
 	monster.conqMonsterListLink = "ajax:guildv2_monster_list.php?guild_id=";
 
+	monster.lastClick = null;
+	
 	monster.record = function() {
         this.data = {
             'name': '',
@@ -1957,12 +1959,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 			caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
+/*
             for (var i = monster.records.length - 1; i >= 0 ; i--) {
                 if (monster.records[i].flag) {
 					var temp = monster.records.splice(i,1);
 					con.log(4,'Load Monster found Reviewpages',monster.records, caap.stats.reviewPages, i, temp);
                 }  
             }
+*/
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
 			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
 			monster.togglerPage('festival_tower', caap.stats.level > 6 && config.getItem("festivalTower", false));
@@ -1980,44 +1984,25 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.save = function(src) {
         try {
-			//monster.records = [];
-            for (var i = monster.records.length - 1; i >= 0 ; i--) {
+/*            for (var i = monster.records.length - 1; i >= 0 ; i--) {
                 if (monster.records[i].flag) {
-					//con.log(2,'Save Monster records before',monster.records, i);
 					monster.records.splice(i,1);
                 }
             }
-/*            if ($u.hasContent(caap.stats.reviewPages)) {
-				var mObj = {};
-				mObj.flag = true;
-				mObj.pages = caap.stats.reviewPages;
-				//monster.records[0] = mObj;
-				monster.records.push(mObj);
-				con.log(4,'Save Monster records OBJ', mObj, monster.records.length);
-            }
-*/			con.log(4,'Save Monster records after clean',monster.records, caap.stats.reviewPages);
-			if (caap.domain.which === 3) {
+*/			if (caap.domain.which === 3) {
                 con.log(4, "monster.save FB messaging set item");
                 caap.messaging.setItem('monster.records', monster.records);
-                //caap.messaging.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
             } else {
                 gm.setItem('monster.records', monster.records);
-                //gm.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
                     con.log(4, "monster.save send");
                     caap.messaging.setItem('monster.records', monster.records);
-                    //caap.messaging.setItem('caap.stats.reviewPages', caap.stats.reviewPages);
                 }
             }
 
             if (caap.domain.which !== 0) {
                 session.setItem("MonsterDashUpdate", true);
             }
-/*            if ($u.hasContent(caap.stats.reviewPages)) {
-				monster.records.pop();
-			}
-            con.log(4, "monster.save", monster.records, caap.stats.reviewPages);
-*/
             return true;
         } catch (err) {
             con.error("ERROR in monster.save: " + err);

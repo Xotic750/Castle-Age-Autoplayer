@@ -77,10 +77,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 userName = '',
                 mName = '',
                 md5 = '',
+				lastmd5 = monster.lastClick,
                 pageUserCheck = 0,
                 newInputsDiv = $j();
 
             monster.clean();
+			monster.lastClick = null;
 
             // get all buttons to check monsterObjectList
             if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
@@ -133,7 +135,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "Monster Name", mName);
                     con.log(3, "checkResults_fightList page", page);
                     md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
-					con.log(2,'md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase());
+					md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5;
+					con.log(2,'Monster list md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase(), md5);
                     monsterReviewed = monster.getItem(md5);
                     monsterReviewed.name = mName;
                     monsterReviewed.userName = userName;
@@ -1154,7 +1157,6 @@ con.log (1, "after button check:", monster, cM);
 				}
             }
 			con.log(5,'monster review',caap.stats.reviewPages);
-			monster.save();
 
             if (monster.records && monster.records.length === 0) {
                 return false;
@@ -1242,7 +1244,8 @@ con.log (1, "after button check:", monster, cM);
                     session.setItem('ReleaseControl', true);
                     link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
 
-                    con.log(3, "Link", link);
+                    con.log(2, "Link", link, cM.md5);
+					monster.lastClick = cM.md5;
                     caap.clickAjaxLinkSend(link);
 
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
@@ -1330,6 +1333,7 @@ con.log (1, "after button check:", monster, cM);
                 countJoin = 0,
                 it = 0,
                 jt = 0,
+				lastmd5 = monster.lastClick,
                 groups = {},
                 groupMatch = false,
                 found = false;
@@ -1337,6 +1341,7 @@ con.log (1, "after button check:", monster, cM);
             monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
                 (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice);
 
+			monster.lastClick = null;
             con.log(3, "monsterDiv", monsterDiv);
 
             if ($u.hasContent($j("div[style*='no_monster_back.jpg']", slice))) {
@@ -1579,8 +1584,9 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 }
             }
 
-            md5 = (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase().MD5();
-			con.log(2,'md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase());
+            md5 = (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase();
+			md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5.MD5();
+			con.log(2,'Monster page md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase(), md5);
             if ((feed.isScan || ajax) && matches && feed.scanRecord.md5 !== md5) {
                 con.warn("MD5 mismatch!", md5, feed.scanRecord.md5);
                 if (config.getItem("DebugLevel", 1) > 1) {
