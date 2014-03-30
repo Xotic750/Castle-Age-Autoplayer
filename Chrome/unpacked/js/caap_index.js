@@ -15,6 +15,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
+			con.log(1, 'TESTING', 'ASDF,@yaya a, asdf'.match(new RegExp("@[^,]+")));
+			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();
                 // Check for new gifts

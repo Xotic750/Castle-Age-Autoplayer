@@ -88,6 +88,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 festival.cleanWins();
+				guild_battle.setrPage('festival_battle_home');
                 session.setItem("festivalDashUpdate", true);
                 con.log(3, "festival.load", festival.records);
                 return true;
@@ -1203,7 +1204,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
         dashboard: function() {
             try {
-				return guild_battle.dashboardWork(1);
+				return guild_battle.dashboardWork(guild_battle.gf.festival);
 				
 /*                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("festivalDashUpdate", true)) {
                     var headers = ['Festival', 'Damage', 'Team%', 'Enemy%', 'My Status', 'TimeLeft', 'Status'],
@@ -1313,17 +1314,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             minion = !$j.isEmptyObject(minion) ? minion : {};
             state.setItem('FestivalMinionAttacked', minion);
             caap.setDomWaiting("festival_guild_battle.php");
-        },
-
-        checkResults_festival_battle_home: function() {
-            try {
-                //caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
-                festival.checkInfo();
-                return true;
-            } catch (err) {
-                con.error("ERROR in festival.checkResults_festival_battle_home: " + err);
-                return false;
-            }
         },
 
         checkResults_festival_guild_battle: function() {

@@ -9052,7 +9052,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			return guild_battle.work();
+			if (guild_battle.work(guild_battle.gf.festival)) {
+				return true;
+			}
+			return guild_battle.work(guild_battle.gf.guild_battle);
         } catch (err) {
             con.error("ERROR in guildBattle: " + err);
             return false;

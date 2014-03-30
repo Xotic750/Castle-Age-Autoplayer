@@ -398,7 +398,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			generalRecord.last = Date.now();
             caap.updateDashboard(true);
             general.save();
-			con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
+			con.log(3, "Got general stats for " + generalRecord.name, generalRecord);
 			return true;
         } catch (err) {
             con.error("ERROR in general.assignStats: " + err);
@@ -801,19 +801,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.getCoolDownType = function (whichGeneral) {
         try {
-            var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '',
-                it = 0,
-                ok = false;
+            var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
 
-            for (it = 0; it < general.coolStandardList.length; it += 1) {
-                if (general.coolStandardList[it] === generalType) {
-                    ok = true;
-                    break;
-                }
+           if (general.coolStandardList.indexOf(generalType) >= 0) {
+				con.log('Cool General',generalType, whichGeneral);
+				return generalType + "CoolGeneral";
             }
+			con.log('NO Cool General',generalType, whichGeneral);
 
-            generalType = ok ? (generalType ? generalType + "CoolGeneral" : '') : '';
-            return generalType;
+            return '';
         } catch (err) {
             con.error("ERROR in general.getCoolDownType: " + err);
             return undefined;
@@ -884,15 +880,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 			
 			//Check what target general should be
-            targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+            targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, whichGeneral));
             con.log(5, 'Select General ', whichGeneral, targetGeneral, coolName);
+			
+			if (targetGeneral == 'Use Current') {
+				return false;
+			}
 			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
                 }
 
-                targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : targetGeneral = general.GetLevelUpNames().pop();
+                targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop();
             }
 			
 			if (!general.getRecord(targetGeneral)) {

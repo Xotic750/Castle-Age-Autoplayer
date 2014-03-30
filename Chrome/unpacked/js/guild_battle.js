@@ -20,24 +20,21 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         this.data = {
             'name': '',
             'guildId': '',
-            'slot': 0,
+//            'slot': 0,
             'ticker': '',
+			'collectedTime' : 0,
+			'enteredTime' : 0,
+			'endTime' : 0,
+			'me' : {},
+			'attacks' : [],
             'enemy': {
 				'towers' : {},
 				'members' : {}
-				},
+			},
             'your': {
 				'towers' : {},
 				'members' : {}
-				},
-            'attacks': 1,
-            'damage': 0,
-            'myStatus': '',
-            'reviewed': 0,
-            'state': '',
-            'enemyHealth': 0,
-            'guildHealth': 0,
-            'conditions': '',
+			},
             'color': $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"))
         };
     };
@@ -55,7 +52,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             'status': '',
             'percent': 0,
 			'battlePoints' : 0,
-			'points' : 0
+			'points' : 0,
+			'scores' : {}
         };
     };
 
@@ -71,54 +69,79 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         };
     };
 
-    guild_battle.which = function(img, entity) {
-        try {
-            if (!$u.hasContent(img) || !$u.isString(img)) {
-                con.warn("img", img);
-                throw "Invalid identifying img!";
-            }
+	guild_battle.gf = {
+		'festival' : {
+			'name' : 'Festival',
+			'label' : 'festival',
+			'page' : 'festival_battle_home',
+			'token' : 'festivalTokens',
+			'bannerDiv' : 'arena_battle_banner_section',
+			'enterButton' : 'guild_enter_battle_button.gif',
+			'index' : 1,
+			'infoDiv' : '#app_body #current_battle_info',
+			'waitHours' : 3,
+			'minHealth' : 200,
+			'basePath' : 'festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle',
+			'startText' : 'XXXX',
+			'preGBText' : 'HOUR',
+			'activeText' : 'BATTLE NOW',
+			'collectText' : 'COLLECT'
+		},
+		'guild_battle' : {
+			'name' : 'Guild Battle',
+			'label' : 'guildBattle',
+			'page' : 'guildv2_battle',
+			'token' : 'guildBattleTokens',
+			'bannerDiv' : 'guild_battle_banner_section',
+			'enterButton' : 'guild_enter_battle_button2.gif',
+			'index' : 0,
+			'infoDiv' : '#app_body #guildv2_battle_middle',
+			'waitHours' : 9,
+			'minHealth' : 1,
+			'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
+			'startText' : 'submit the Guild for Auto-Matching',
+			'preGBText' : 'Auto-Match in Progress',
+			'activeText' : 'Time Remaining',
+			'collectText' : 'JOIN NOW!'
+		}
+	};
+	
+	guild_battle.enemy = {
+		'Mage' : [
+			{'name': 'duel',
+			'base' : 'win'},
+			'polymorph','confuse'],
+		'Rogue' : ['duel'],
+		'Warrior' : ['duel','whirlwind'],
+		'Cleric' : ['duel']
+	};
 
-            if (!$u.hasContent(entity) || !$u.isString(entity)) {
-                con.warn("entity", entity);
-                throw "Invalid entity name!";
-            }
+	guild_battle.your = {
+		'Mage' : [],
+		'Rogue' : [],
+		'Warrior' : [
+			{'name': 'guardian',
+			'base' : 'scoreHealth'},
+			{'name' : 'sentinel',
+			'base' : 'scoreHealth'}
+		],
+		'Cleric' : [
+			{'name': 'revive',
+			'base' : 'scoreDamage'},
+			{'name' : 'heal',
+			'base' : 'scoreDamage'},
+			{'name' : 'fortitude',
+			'base' : 'scoreHealth'},
+			{'name' : 'cleanse',
+			'base' : 'scoreDamage'},
+			{'name' : 'dispel',
+			'base' : 'scoreDamage'}
+		]
+	};
 
-            var i = '',
-                k = 0,
-                r = {},
-                name = '';
-
-            for (i in guild_battle.info) {
-                if (guild_battle.info.hasOwnProperty(i)) {
-                    if ($u.hasContent(name)) {
-                        break;
-                    }
-
-                    r = guild_battle.info[i];
-                    // current thinking is that continue should not be used as it can cause reader confusion
-                    // therefore when linting, it throws a warning
-                    /*jslint continue: true */
-                    if (!$u.hasContent(r) || !$u.hasContent(r[entity]) || !$j.isArray(r[entity])) {
-                        continue;
-                    }
-                    /*jslint continue: false */
-
-                    for (k = 0; k < r[entity].length; k += 1) {
-                        if (img === r[entity][k]) {
-                            name = i;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return name;
-        } catch (err) {
-            con.error("ERROR in guild_battle.which: " + err);
-            return undefined;
-        }
-    };
-
+	guild_battle.gf.festival.other = guild_battle.gf.guild_battle;
+	guild_battle.gf.guild_battle.other = guild_battle.gf.festival;
+	
 	// Add a review page with path, and set 'entry' key to value, if wanted
 	guild_battle.setrPage = function(path, entry, value) {
         try {
@@ -132,7 +155,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 con.warn("path", path);
                 throw "Invalid identifying path!";
             }
-            //caap.stats.reviewPagesGB = config.getItem('caap.stats.reviewPagesGB', []);
+            caap.stats.reviewPagesGB = $u.setContent(caap.stats.reviewPagesGB, []);
 
             for (var it = 0; it < caap.stats.reviewPagesGB.length; it++) {
                 if (caap.stats.reviewPagesGB[it].path === path) {
@@ -167,9 +190,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             for (var i = caap.stats.reviewPagesGB.length - 1; i >= 0; i += -1) {
                 if (caap.stats.reviewPagesGB[i][entry] === value) {
 					deleted += 1;
-					con.log(2,'Monster review pages before',caap.stats.reviewPagesGB, entry, i);
+					con.log(2,'GB review pages before',caap.stats.reviewPagesGB, entry, i);
 					caap.stats.reviewPagesGB.splice(i,1);
-					con.log(2,'Monster review pages after',caap.stats.reviewPagesGB, entry, i, deleted);
+					con.log(2,'GB review pages after',caap.stats.reviewPagesGB, entry, i, deleted);
                 }
             }
 			return deleted;
@@ -193,25 +216,35 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 	
-	guild_battle.activateBattle = function(GBorFest) {
+	guild_battle.makePath = function(gf, type, i) {
         try {
-			var basePath = GBorFest ? '' :   'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,',
-				types = ['enemy','your'];
-			types.forEach(function(type) {
-				for (var i = 1; i <= 4; i++) {
-					path = basePath + 'clickimg:enemy_guild_on.gif,jq:#' + type + '_guild_tab,clickjq:#' + type + '_new_guild_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
-					guild_battle.togglerPage(path, true, 'page', GBorFest);
-					con.log(2,'Activate path', path, caap.stats.reviewPagesGB);
-				}
-			});
+			if (!$u.isObject(gf) || !$u.isString(type) || !($u.isNumber(i) || $u.isString(i))) {
+				con.warn('Invalid guild_battle.makePath input', gf, type, i);
+				return false;
+			}
+			if (gf.name == 'Festival') {
+				return gf.basePath + ',clickjq:#' + type + '_team_tab,jq:#' + type + '_guild_battle_section_battle_list,clickjq:#' + type + '_arena_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
+			}
+			return gf.basePath + ',clickimg:' + type + '_guild_off.gif,jq:#' + type + '_guild_tab,clickjq:#' + type + '_new_guild_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
         } catch (err) {
-            con.error("ERROR in guild_battle.activateBattle: " + err);
+            con.error("ERROR in guild_battle.makePath: " + err);
             return false;
         }
     };
-			
-
 	
+	guild_battle.setReview = function(gf) {
+        try {
+			var	types = ['enemy','your'];
+			types.forEach(function(type) {
+				for (var i = 1; i <= 4; i++) {
+					guild_battle.setrPage(guild_battle.makePath(gf, type, i), 'page', gf.page);
+				}
+			});
+        } catch (err) {
+            con.error("ERROR in guild_battle.setReview: " + err);
+            return false;
+        }
+    };
 
     guild_battle.load = function() {
         try {
@@ -219,7 +252,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
-//			caap.stats.reviewPagesGB = $u.setContent(caap.stats.reviewPagesGB, []);
+			guild_battle.setrPage('guildv2_battle');
+			//caap.stats.reviewPagesGB = [];
             session.setItem("guildBattleDashUpdate", true);
             con.log(3, "guild_battle.load", guild_battle.records);
             return true;
@@ -253,19 +287,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
-    guild_battle.getItem = function(GBorFest) {
+    guild_battle.getItem = function(gf) {
         try {
-            if (GBorFest !== 0 && GBorFest !== 1) {
-                con.warn("GBorFest", GBorFest);
-                throw "Invalid identifying GBorFest!";
+            if (gf !== guild_battle.gf.festival && gf !== guild_battle.gf.guild_battle) {
+                con.warn("getItem invalid gf", gf);
+                throw "Invalid identifying gf!";
             }
 
-			if ($j.isPlainObject(guild_battle.records[GBorFest])) {
-                con.log(2, "Got guild_battle record #"+GBorFest, guild_battle.records[GBorFest].data, guild_battle.records);
-                return guild_battle.records[GBorFest].data;
+			if ($j.isPlainObject(guild_battle.records[gf.index])) {
+                con.log(2, "Got guild_battle record #"+gf.index, guild_battle.records[gf.index].data, guild_battle.records, gf);
+                return guild_battle.records[gf.index].data;
 			}
             var newRecord = new guild_battle.record();
-            con.log(2, "New guild_battle record #"+GBorFest, newRecord.data, guild_battle.records);
+            con.log(2, "New guild_battle record #"+gf.index, newRecord.data, guild_battle.records);
             return newRecord.data;
         } catch (err) {
             con.error("ERROR in guild_battle.getItem: " + err);
@@ -273,20 +307,20 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
-    guild_battle.setItem = function(GBorFest, record) {
+    guild_battle.setItem = function(gf, record) {
         try {
+            if (gf !== guild_battle.gf['festival'] && gf !== guild_battle.gf['guild_battle']) {
+                con.warn("getItem invalid gf", gf);
+                throw "Invalid identifying gf!";
+            }
+
             if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
-            if (!$u.isNumber(GBorFest)) {
-                con.warn("GBorFest", GBorFest);
-                throw "Invalid identifying GBorFest!";
-            }
-
-			guild_battle.records[GBorFest] = {};
-			guild_battle.records[GBorFest].data = record;
-			con.log(2, "Updated guild_battle record #"+GBorFest, record, guild_battle.records);
+			guild_battle.records[gf.index] = {};
+			guild_battle.records[gf.index].data = record;
+			con.log(2, "Updated guild_battle record #"+gf.index, record, guild_battle.records);
 
             guild_battle.save();
             return true;
@@ -344,152 +378,135 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
-    guild_battle.navigate_to_main = function() {
-        return caap.navigateTo('guild', 'tab_guild_main_on.gif');
-    };
-
-    guild_battle.navigate_to_battles_refresh = function() {
-        var button = caap.checkForImage("guild_battle_tab_on.jpg");
-        if ($u.hasContent(button)) {
-            caap.click(button);
-        }
-
-        state.setItem('guildBattleBattlesRefresh', false);
-        return $u.hasContent(button);
-    };
-
-    guild_battle.navigate_to_battles = function() {
-        return caap.navigateTo('guildv2_battle_summon_list,guildv2_current_battle_battles', 'guild_battle_list_on.jpg');
-    };
-
-	// Used to list up guild members.
-    guild_battle.populate = function() {
+	guild_battle.onTop = function(gf) {
         try {
-            var buttons = $j("input[src*='guild_battle_']"),
-                slotArr = [],
-                it = 0;
+			var record = guild_battle.getItem(gf),
+				otherRecord = guild_battle.getItem(gf.other),
+				now = new Date(),
+				text = '',
+				infoDiv = $j(gf.infoDiv);
+				
+			if (gf.name == 'Festival') {
+		
+				var tDate = new Date(),
+					next = $u.setContent(infoDiv.children().eq(0).children().eq(0).text(), '').trim().innerTrim(),
+					timer = $u.setContent(infoDiv.children().eq(1).children().eq(0).text(), '').trim().innerTrim(),
+					tz = $u.setContent(timer.regex(/UTC ([\-+]*?\d+);/), 0),
+					ampm = $u.setContent(timer.regex(/\d+:\d+ (AM|PM)/), 'AM'),
+					hour = $u.setContent(timer.regex(/(\d+):\d+/), 0),
+					start = 0;
 
-            if (buttons && buttons.length) {
-                buttons.each(function() {
-                    var button = $j(this),
-                        form = null,
-                        currentRecord = {},
-                        imageName = '',
-                        slot = 0,
-                        name = '',
-                        guildId = '',
-                        passed = true;
+				hour = ampm === 'AM' && hour === 12 ? 0 : (ampm === 'PM' ? hour + 12 : hour);
+				hour = tz === 0 ? hour : hour - tz;
+				hour = hour < 0 ? hour + 24 : (hour > 24 ? hour - 24 : hour);
+				tDate.setUTCHours(hour, 0, 0, 0);
+				tDate.setUTCDate(tDate.getDate() + (tDate < now ? 1 : 0));
+				record.reviewed = now.getTime();
+				con.log(2, "Festival.checkInfo", next, timer, hour, tz);
+				con.log(2, "When", tDate.toUTCString());
 
-                    form = button.parents("form").eq(0);
-                    if (form && form.length) {
-                        slot = form.find("input[name='slot']").eq(0).val();
-                        slot = slot ? slot.parseInt() : 0;
-                        if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
-                            con.log(3, "slot", slot);
-                            slotArr.push(slot);
-                            currentRecord = guild_battle.getItem(slot);
-                            name = button.parents().eq(4).text();
-                            name = name.replace("has  been summoned!", "");
-                            name = name.replace("Join Battle!", "");
-                            name = name.replace("Collect Now!", "");
-                            name = name ? name.trim() : '';
-                            if (name) {
-                                if (currentRecord.name !== name) {
-                                    con.log(1, "Updated name", currentRecord.name, name);
-                                    currentRecord.name = name;
-                                }
-                            } else {
-                                con.warn("name error", name);
-                                passed = false;
-                            }
+				if (record.endTime < record.reviewed) {
+					record.startTime = tDate.getTime();
+					record.endTime = record.startTime + 3600000;
+					schedule.setItem('StartTime', record.startTime, 20);
+					con.log(2, "New start time");
+				}
+				tDate.setUTCHours(hour, 0, 0, 0);
+				con.log(2, "Festival start time", tDate, $u.makeTime(tDate, caap.timeStr(true)));
+				
+				start = record.startTime - record.reviewed;
+				start = start > 0 ? start : 0;
+				if (start && record.state === 'Ready') {
+					con.log(2, "Festival starting in", start);
+					schedule.setItem("Festival Review", start, 20);
+				} else {
+					con.log(2, "Festival review in", 300);
+					schedule.setItem("Festival Review", 300, 20);
+				}
+				if (record.state === '' || record.state === 'Completed') {
+					schedule.setItem(gf.name + "TokenTicker", 0);
+					record.state = 'Ready';
+					record.tokens = 10;
+					record.myStatus = '';
+					record.damage = 0;
+					record.teamHealth = 0;
+					record.enemyHealth = 0;
+					record.ticker = '';
+				}
+				text = next;
+				
+			} else { // GBorFest == guild_battle
+				text = $u.setContent(infoDiv.text().trim().innerTrim(), '');
+			}
 
-                            guildId = form.find("input[name='guild_id']").eq(0).val();
-                            if (caap.stats.guild.id && guildId === caap.stats.guild.id) {
-                                if (currentRecord.guildId !== guildId) {
-                                    con.log(2, "Updated guildId", currentRecord.guildId, guildId);
-                                    currentRecord.guildId = guildId;
-                                }
-                            } else {
-                                con.warn("guildId error", guildId, caap.stats.guild.id);
-                                passed = false;
-                            }
+			if (text.indexOf(gf.startText) >= 0) {
+				guild_battle.deleterPage('page',gf.page);
+				record.state = 'Start';
+			} else if (text.indexOf(gf.preGBText) >= 0 || text.indexOf(' MIN') >= 0) {
+				guild_battle.deleterPage('page',gf.page);
+				record.state = 'PreBattle';
+			} else if (text.indexOf(gf.activeText) >= 0) {
+				record.state = 'Active';
+				guild_battle.setrPage(gf.basePath, 'page', gf.page);
+			} else if (text.indexOf(gf.collectText) >= 0) {
+				guild_battle.deleterPage('page',gf.page);
+				record.state = 'Collect';
+				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && config.getItem('guild_battle_collect',false)) {
+					guild_battle.setrPage(gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif','page',gf.page);
+				}
+					
+			} else {
+				con.warn(gf.name + ' Unknown message text', text);
+			}
+			// troubleshooting line 
+			if (gf.name == 'Festival') {
+				// guild_battle.setReview(gf);
+				hour = record.state == 'Collect' ? 3 : $u.setContent(text.regex(/(\d+) HOUR/), 0);
+				tDate = new Date();
+				tDate.setHours(tDate.getHours() + hour%6 + 1, -3, 0, 0);
+				record.startTime = tDate.getTime();
+				con.log(2, "Festival possible start time", hour, tDate, $u.makeTime(tDate, caap.timeStr(true)));
+			}
 
-                            imageName = button.attr("src").basename();
-                            if (imageName) {
-                                switch (imageName) {
-                                case "guild_battle_joinbtn.gif":
-                                    currentRecord.color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
-                                    currentRecord.state = "Alive";
+			guild_battle.setItem(gf, record);
+			guild_battle.setrPage(gf.page, 'review', Date.now());
 
-                                    break;
-                                    // Need to find the image for dragon_list_btn_4.jpg. Its view or fail, might no longer be in use
-                                case "guild_battle_collectbtn.gif":
-                                case "dragon_list_btn_4.jpg":
-                                    currentRecord.color = "grey";
-                                    if (currentRecord.state !== "Completed") {
-                                        con.log(2, "Updated state", currentRecord.state, "Collect");
-                                        currentRecord.state = "Collect";
-                                    }
+			con.log(2, "guild_battle.onTop", record, record.state, caap.stats.priorityGeneral);
+			return true;
 
-                                    break;
-                                default:
-                                    currentRecord.state = "Error";
-                                    con.warn("state error", imageName);
-                                    passed = false;
-                                }
-                            } else {
-                                con.warn("imageName error", button.attr("src"), imageName);
-                                passed = false;
-                            }
-                        } else {
-                            con.warn("slot error", slot);
-                            passed = false;
-                        }
-                    } else {
-                        con.warn("form error", button);
-                        passed = false;
-                    }
-
-                    if (passed) {
-                        con.log(2, "currentRecord/button", currentRecord, button);
-                        guild_battle.setItem(currentRecord);
-                    } else {
-                        con.warn("populate record failed", currentRecord, button);
-                    }
-
-                    button = null;
-                    form = null;
-                });
-
-                for (it = guild_battle.records.length - 1; it >= 0; it -= 1) {
-                    if (!slotArr.hasIndexOf(guild_battle.records[it].slot)) {
-                        guild_battle.deleteItem(guild_battle.records[it].slot);
-                    }
-                }
-
-                guild_battle.select(true);
-                buttons = null;
-            } else {
-                con.log(1, "No buttons found");
-                guild_battle.clear();
-            }
-
-            caap.updateDashboard(true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_battle.populate: " + err);
+			} catch (err) {
+				con.error("ERROR in guild_battle.onTop: " + err);
             return false;
         }
     };
-
-    guild_battle.onBattle = function(GBorFest) {
+	
+	// Parses a string for the key, and adds/multiplies the score by according to the key
+	// For example (500, 'cleric:+100', 'cleric') would return the score + 100, i.e. 600
+    guild_battle.parse = function(tf, text, key) {
+        try {
+			var args = text.match(new RegExp(key + ':([^,]+)'));
+			
+			con.log(5,'scoringtext match',key, text, args);
+			if (tf && args && args.length == 2) {
+				return args[1].parseFloat();
+			}
+            return 1;
+        } catch (err) {
+            con.error("ERROR in guild_battle.clear: " + err);
+            return false;
+        }
+    };
+	
+    guild_battle.onBattle = function(gf) {
         try {
             var gate = $j(),
                 allowedDiv = $j(),
 				memberDivs = $j(),
 				member = $j(),
 				memberText = '',
-				memberArr = [],
+				args = [],
+				text = '',
+				general = '',
 				targetIdDiv = $j(),
 				memberRecord = new guild_battle.member().data,
 				towerRecord = {},
@@ -515,49 +532,83 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				resultBody = $j(),
 				imgDiv = $j(),
 				myStatsTxt = '',
-				myStatsArr = [],
 				index = 0,
-				currentRecord = {},
+				currentRecord = guild_battle.getItem(gf),
 				minions = [],
 				tStr = '',
 				tNum = 0,
 				resultsTxt = '',
+				score = 0,
 				lastAttacked = state.getItem('FestivalMinionAttacked', {}),
 				won = {},
 				losses = [],
 				wins = [],
 				notStarted = '',
 				notFestival = '',
-				battleOver = '';
+				battleOver = '',
+				scoring = config.getItem('guild_battle_scoring','');
 
-
+			guild_battle.setrPage(gf.basePath, 'review', Date.now());
+			guild_battle.setrPage(gf.basePath, 'page', gf.page);
+            con.log(2, gf.name + " battle screen");
             state.setItem('FestivalMinionAttacked', {});
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            bannerDiv = $j("#globalContainer #" + (GBorFest ? 'arena' : 'guild') + "_battle_banner_section");
+            bannerDiv = $j("#globalContainer #" + gf.bannerDiv);
 			myStatsTxt = $u.setContent(bannerDiv.text().trim().innerTrim(), '');
 			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			notFestival = myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/);
-			battleOver = myStatsTxt.regex(/(This *.Battle Is Over)/) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
+			battleOver = myStatsTxt.regex(/(This .*Battle Is Over)/) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
 			con.log(2, "arena_battle_banner_section", myStatsTxt, notStarted, notFestival, battleOver);
 			if (notFestival) {
 				return true;
 			}
 
-            myStatsTxt = bannerDiv.children().eq(2).text();
-            myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
-			currentRecord = guild_battle.getItem(GBorFest);
-			//if (!bannerDiv.attr("style").match(/_dead/)) {
-			currentRecord.ticker = $j("#battleTicker").text();
-			currentRecord.ticker = currentRecord.ticker ? currentRecord.ticker.trim() : '';
-			if (myStatsTxt) {
-				con.log(1, "myStatsTxt", myStatsTxt);
-				myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
-				if (myStatsArr && myStatsArr.length === 8) {
-					con.log(1, "myStatsArr", myStatsArr);
-					currentRecord.damage = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
-					currentRecord.myStatus = myStatsArr[6] ? myStatsArr[6].trim() : '';
+			if (battleOver) {
+				if (!caap.hasImage('guild_battle_collectbtn_small.gif')) {
+					currentRecord.collectedTime = Date.now();
+					guild_battle.deleterPage('page',gf.page);
+					guild_battle.setItem(gf, currentRecord);
 				} else {
-					con.warn("myStatsArr error", myStatsArr, myStatsTxt);
+					currentRecord.collectedTime = 0;
+				}
+				return true;
+			}
+							
+			if (caap.hasImage(gf.enterButton)) {
+				con.log(5, 'Battle has enter button', config.getItem('guild_battle_enter',false));
+				if (config.getItem('guild_battle_enter',false)) {
+					con.log(5, 'Saving push button path');
+					guild_battle.setrPage(gf.basePath + ',clickimg:' + gf.enterButton,'page',gf.page);
+				}
+				guild_battle.setItem(gf, currentRecord);
+				return true;
+			}
+
+			currentRecord.enteredTime = Date.now();
+			con.log(5, 'No enter button', caap.hasImage(gf.enterButton), gf.enterButton);
+			guild_battle.setReview(gf);
+
+			text = $u.setContent($j("#monsterTicker").text().trim(),'');
+            currentRecord.endTime = Date.now() + text.parseTimer() * 1000;
+
+            myStatsTxt = $u.setContent(bannerDiv.children().eq(2).text().trim().innerTrim(), '');
+			if (myStatsTxt) {
+				con.log(5, "myStatsTxt", myStatsTxt);
+				args = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
+				if (args && args.length === 8) {
+					con.log(1, "my stats", args);
+					currentRecord.me.mclass = args[3];
+					currentRecord.me.status = args[6] ? args[6].trim() : '';
+					currentRecord.me.healthNum = args[4] ? args[4].parseInt() : 0;
+					currentRecord.me.healthMax = args[5] ? args[5].parseInt() : 1;
+					currentRecord.me.battlePoints = args[7] ? args[7].parseInt() : 0;
+					currentRecord.me.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
+					con.log(2, 'myRecord', memberRecord);
+				} else if (myStatsTxt.indexOf('Battle Has Not Started') >= 0) {
+					// Wait retry until started
+					return true;
+				} else {
+					con.warn("args error", args, myStatsTxt);
 				}
 			}
 
@@ -572,12 +623,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			
 			allowedDiv = $j("#allowedAttacks");
 			if (allowedDiv && allowedDiv.length) {
-				currentRecord.attacks = allowedDiv.val() ? allowedDiv.val().parseInt() : 1;
+/*				currentRecord.attacks = allowedDiv.val() ? allowedDiv.val().parseInt() : 1;
 				if (currentRecord.attacks < 1 || currentRecord.attacks > 5) {
 					currentRecord.attacks = 1;
 					con.warn("Invalid allowedAttacks");
 				}
-			} else {
+*/			} else {
 				con.warn("Could not find allowedAttacks");
 			}
 
@@ -611,7 +662,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			gate = $j("div[id*='_guild_member_list_']");
 			tower = gate.attr('id').match(/_guild_member_list_(\d)/)[1];
 			which = gate.attr('id').match(/(\w+)_guild_member_list_(\d)/)[1];
-			con.log(2,'Gate ID',gate.attr('id'),tower, which);
+			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'review', Date.now());
+			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'page', gf.page);
+			con.log(2,'Gate ID',gate.attr('id'),tower, which, caap.stats.reviewPagesGB);
 			if (!gate) {
 				con.warn("No gates found");
 			} else {
@@ -623,15 +676,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					'clerics' : 0,
 					'actives' : 0,
 					'AC' : 0,
-					'clericDamage' : 0,
-					'sealed' : 0,
-					'reviewed' : Date.now(),
-					};
+					'clericHealthNum' : 0,
+					'clericHealthMax' : 0,
+					'clericLife' : 0
+				};
 
 				for (var n = 1; n <= 25; n += 1) {
 					delete currentRecord[which].members[tower + '-' + n];
 					if (!memberDivs || !memberDivs.length || !memberDivs[n-1]) {
-						con.warn("No member found", tower, n);
+						con.log(5, "No member found", tower, n);
 						continue;
 					}
 					member = $j(memberDivs[n-1]);
@@ -648,40 +701,82 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					memberText = member.children().text();
 					memberText = memberText ? memberText.trim().innerTrim() : '';
 					con.log(5, 'memberText', memberText);
-					memberArr = memberText.match(toonStatsRegEx);
-					con.log(5, 'memberArr', memberArr);
+					args = memberText.match(toonStatsRegEx);
+					con.log(5, 'member args', args);
 					memberRecord.mclass = member.children().attr('class').match(classRegEx)[1];
 					towerRecord.clerics += memberRecord.mclass == 'cleric' ? 1 : 0;
 					memberRecord.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
-					if (memberArr && memberArr.length === 8) {
-						// memberRecord.position = memberArr[1] || '';
-						memberRecord.name = memberArr[2] || '';
-						memberRecord.level = memberArr[3] ? memberArr[3].parseInt() : 0;
-						memberRecord.status = memberArr[4] || '';
-						memberRecord.healthNum = memberArr[5] ? memberArr[5].parseInt() : 0;
-						memberRecord.healthMax = memberArr[6] ? memberArr[6].parseInt() : 1;
-						memberRecord.battlePoints = memberArr[7] ? memberArr[7].parseInt() : 0;
+					if (args && args.length === 8) {
+						// memberRecord.position = args[1] || '';
+						memberRecord.name = args[2] || '';
+						memberRecord.level = args[3] ? args[3].parseInt() : 0;
+						memberRecord.status = args[4] || '';
+						memberRecord.healthNum = args[5] ? args[5].parseInt() : 0;
+						memberRecord.healthMax = args[6] ? args[6].parseInt() : 1;
+						memberRecord.battlePoints = args[7] ? args[7].parseInt() : 0;
 						memberRecord.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
-						con.log(5, 'memberRecord', memberRecord);
 						memberRecord.winChance = Math.min((caap.stats.indicators.api / memberRecord.level / 10 * 100).dp(1),100);
 						memberRecord.score = (memberRecord.winChance * (memberRecord.points /100 - 1) + 100).dp(0);
+						memberRecord.scoreDamage = Math.atan((memberRecord.healthMax - memberRecord.healthNum)/1000)/Math.PI*2*100;
+						memberRecord.scoreHealth = 100 - Math.atan(Math.max(memberRecord.healthNum - gf.minHealth, 0)/1000)/Math.PI*2*100;
+                        memberRecord.guardian = $u.hasContent($j("img[src*='ability_sentinel']", member)) ? true : false;
+                        memberRecord.polymorph = $u.hasContent($j("img[src*='polymorph_effect']", member)) ? true : false;
+                        memberRecord.poison = $u.hasContent($j("img[src*='effect_poison']", member)) ? true : false;
+                        memberRecord.confuse = $u.hasContent($j("img[src*='effect_confuse']", member)) ? true : false;
+                        memberRecord.revive = $u.hasContent($j("img[src*='effect_revive']", member)) ? true : false;
+                        memberRecord.shout = $u.hasContent($j("img[src*='effect_shout']", member)) ? true : false;
+                        memberRecord.confidence = $u.hasContent($j("img[src*='effect_confidence']", member)) ? true : false;
+						con.log(5, 'memberRecord', memberRecord);
 						towerRecord.players++;
 						towerRecord.actives += memberRecord.battlePoints > 0 ? 1 : 0;
 						towerRecord.AC += (memberRecord.battlePoints > 0 && memberRecord.mclass == 'cleric') ? 1 : 0;
 						stunnedClerics += (memberRecord.status == 'Stunned' && memberRecord.mclass == 'cleric') ? 1 : 0;
-						towerRecord.clericDamage += memberRecord.mclass == 'cleric' ? memberRecord.healthMax - memberRecord.healthNum : 0;
+						towerRecord.clericHealthNum += memberRecord.mclass == 'cleric' ? memberRecord.healthNum : 0;
+						towerRecord.clericHealthMax += memberRecord.mclass == 'cleric' ? memberRecord.healthMax : 0;
+
 						
+						// for testing
+//						currentRecord.me.mclass = 'Cleric';
+						guild_battle[which][currentRecord.me.mclass].forEach(function(att) {
+							args = scoring.match(new RegExp(att.name + "\\[(.*?)\\]"));
+							con.log(5,'scoring match attack', scoring, args, att.name);
+							if (args && args.length >= 1) {
+								if (currentRecord.attacks.indexOf(att.name) == -1) {
+									currentRecord.attacks.push(att.name);
+								}
+								// First number is for multipliers, second is added
+								score = 0;
+								text = args[1];
+								['cleric','rogue','warrior','mage'].forEach(function(value) {
+									score += guild_battle.parse(memberRecord.mclass == value, text, value);
+								});
+								['polymorph','poison','confuse','guardian','revive','shout','confidence'].forEach(function(value) {
+									score += guild_battle.parse(memberRecord[value], text, value);
+								});
+								score += guild_battle.parse(memberRecord.battlePoints, text, 'active');
+
+								memberRecord.scores[att.name] = {};
+								con.log(5,'record check', score, att.base,memberRecord[att.base], memberRecord.scoreDamage); 
+								score *= memberRecord[att.base];
+								memberRecord.scores[att.name].score = memberRecord.healthNum < gf.minHealth ? 0 : score.dp(2);
+								general = text.match(new RegExp("@[^,]+"));
+								memberRecord.scores[att.name].general = general && general.length > 0 ? general[0] : '';
+							}
+						});
+							
 					} else {
-						con.warn("Unable to read member stats",tower, n, memberArr);
+						con.warn("Unable to read member stats",tower, n, args);
 					}
 					currentRecord[which].members[tower + '-' + n] = memberRecord;
 				}
 			}
 
-			towerRecord.sealed = towerRecord.clerics ? (stunnedClerics/towerRecord.clerics * 100).dp(1) : 100.0;
+			towerRecord.clericLife = towerRecord.clerics ? (towerRecord.clericHealthNum/towerRecord.clericHealthMax * 100).dp(1) : 100.0;
 			currentRecord[which].towers[tower] = towerRecord;
 			con.log(2, "currentRecord", currentRecord);
-			guild_battle.setItem(GBorFest, currentRecord);
+			guild_battle.setItem(gf, currentRecord);
+			session.setItem(gf.label + "DashUpdate", true);
+//            caap.updateDashboard(true);
 			if (collect) {
 				caap.click(collectDiv);
 			}
@@ -712,346 +807,104 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
-    guild_battle.checkPage = function(record) {
-        try {
-            if (!record || !$j.isPlainObject(record)) {
-                throw "Not passed a record";
-            }
-
-            var slot = 0;
-
-            slot = $j("input[name='slot']").eq(0).val();
-            slot = slot ? slot.parseInt() : 0;
-            return (record.slot === slot);
-        } catch (err) {
-            con.error("ERROR in guild_battle.checkPage: " + err);
-            return undefined;
-        }
-    };
-
-    guild_battle.getTargetMember = function(record) {
-        try {
-            var it = 0,
-                ol = 0,
-                len = 0,
-                alive = 0,
-                member = {},
-                minHealth = 0,
-                specialTargets = [],
-                firstSpecial = -1,
-                ignoreClerics = false,
-                attackOrderList = [],
-                isSpecial = false,
-                isMatch = false,
-                attackNorth = config.getItem('attackGateNorth', true),
-                attackEast = config.getItem('attackGateEast', true),
-                attackSouth = config.getItem('attackGateSouth', true),
-                attackWest = config.getItem('attackGateWest', true);
-
-            if (!record || !$j.isPlainObject(record)) {
-                throw "Not passed a record";
-            }
-
-            minHealth = config.getItem('IgnoreMembersBelow', 0);
-            if (!$u.isNumber(minHealth)) {
-                minHealth = 0;
-            }
-
-            attackOrderList = config.getList('orderGuildMember', '');
-            if (!attackOrderList || attackOrderList.length === 0) {
-                attackOrderList = [String.fromCharCode(0)];
-                con.log(1, "Added null character to getTargetMember attackOrderList", attackOrderList);
-            }
-
-            ignoreClerics = config.getItem('ignoreClerics', false);
-            // current thinking is that continue should not be used as it can cause reader confusion
-            // therefore when linting, it throws a warning
-            /*jslint continue: true */
-            for (ol = 0, len = attackOrderList.length; ol < len; ol += 1) {
-                if (member && $j.isPlainObject(member) && !$j.isEmptyObject(member)) {
-                    con.log(1, "Member matched and set - break", member);
-                    break;
-                }
-
-                specialTargets = guild_battle.info[record.name].special1.slice();
-                for (it = record.members.length - 1; it >= 0; it -= 1) {
-                    if (!attackNorth && record.members[it].tower === 1) {
-                        con.log(1, "Skipping North Member", it, record.members[it]);
-                        continue;
-                    }
-
-                    if (!attackWest && record.members[it].tower === 2) {
-                        con.log(1, "Skipping West Member", it, record.members[it]);
-                        continue;
-                    }
-
-                    if (!attackEast && record.members[it].tower === 3) {
-                        con.log(1, "Skipping East Member", it, record.members[it]);
-                        continue;
-                    }
-
-                    if (!attackSouth && record.members[it].tower === 4) {
-                        con.log(1, "Skipping South Member", it, record.members[it]);
-                        continue;
-                    }
-
-                    if (attackOrderList[ol] === String.fromCharCode(0)) {
-                        isMatch = true;
-                    } else {
-                        isMatch = !record.members[it].name.toLowerCase().hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase());
-                    }
-
-                    if (isMatch) {
-                        con.log(1, "Member matched", it, record.members[it]);
-                    }
-
-                    isSpecial = specialTargets.hasIndexOf(it);
-                    if (record.members[it].status === 'Stunned') {
-                        con.log(1, 'Stunned', isMatch, isSpecial, record.members[it].healthNum);
-                        if (isSpecial && $u.isNaN(record.members[it].healthNum)) {
-                            specialTargets.pop();
-                            if (isMatch) {
-                                con.log(1, "Special member stunned", specialTargets);
-                            }
-                        } else if (isMatch) {
-                            con.log(1, "Member stunned");
-                        }
-
-                        continue;
-                    }
-
-                    // need to look at this when next fighting one, don't think ignore cleric code is correct
-                    if (isSpecial) {
-                        if (!$u.isNaN(record.members[it].healthNum)) {
-                            specialTargets.pop();
-                            con.log(1, "Not special member", it, specialTargets);
-                            if (ignoreClerics && record.members[it].mclass === "Cleric") {
-                                con.log(1, "Ignoring Cleric", record.members[it]);
-                                continue;
-                            }
-                        } else if (firstSpecial < 0) {
-                            firstSpecial = it;
-                            con.log(1, "firstSpecial member", firstSpecial);
-                        } else {
-                            con.log(1, "Special member", it, specialTargets);
-                        }
-                    } else {
-                        if (ignoreClerics && record.members[it].mclass === "Cleric") {
-                            con.log(1, "Ignoring Cleric", record.members[it]);
-                            continue;
-                        }
-                    }
-
-                    if ($u.isNumber(minHealth) && !isSpecial) {
-                        if (record.members[it].healthNum < minHealth) {
-                            if (!alive) {
-                                alive = it;
-                                con.log(1, "First alive", alive);
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    if (isMatch) {
-                        member = record.members[it];
-                        break;
-                    }
-                }
-            }
-            /*jslint continue: false */
-
-            if ($j.isEmptyObject(member) && firstSpecial >= 0) {
-                member = record.members[firstSpecial];
-                con.log(1, "Target Special", firstSpecial, record.members[firstSpecial]);
-            }
-
-            if (config.getItem('chooseIgnoredMembers', false) && alive) {
-                member = record.members[alive];
-                con.log(1, "Target Alive", alive, record.members[alive]);
-            }
-
-            con.log(1, "Target member", member);
-            return member;
-        } catch (err) {
-            con.error("ERROR in guild_battle.getTargetMember: " + err);
-            return undefined;
-        }
-    };
-
-    guild_battle.select = function(force) {
-        try {
-            var it = 0,
-                ol = 0,
-                len = 0,
-                len1 = 0,
-                attackOrderList = [],
-                conditions = '',
-                ach = 999999,
-                max = 999999,
-                target = {},
-                firstOverAch = {},
-                firstUnderMax = {};
-
-            if (!(force || caap.oneMinuteUpdate('selectGuildBattle'))) {
-                return state.getItem('targetGuildBattle', {});
-            }
-
-            state.setItem('targetGuildBattle', {});
-            attackOrderList = config.getList('orderGuildBattle', '');
-            if (!attackOrderList || attackOrderList.length === 0) {
-                attackOrderList = [String.fromCharCode(0)];
-                con.log(3, "Added null character to select attackOrderList", attackOrderList);
-            }
-
-            // current thinking is that continue should not be used as it can cause reader confusion
-            // therefore when linting, it throws a warning
-            /*jslint continue: true */
-            for (it = guild_battle.records.length - 1; it >= 0; it -= 1) {
-                if (guild_battle.records[it].state !== 'Alive') {
-                    guild_battle.records[it].color = "grey";
-                    guild_battle.records[it].conditions = '';
-                    continue;
-                }
-
-                attackOrderList.push(guild_battle.records[it].slot.toString());
-                guild_battle.records[it].conditions = 'none';
-                guild_battle.records[it].color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
-            }
-            /*jslint continue: false */
-
-            // current thinking is that continue should not be used as it can cause reader confusion
-            // therefore when linting, it throws a warning
-            /*jslint continue: true */
-            for (ol = 0, len1 = attackOrderList.length; ol < len1; ol += 1) {
-                conditions = attackOrderList[ol].replace(new RegExp("^[^:]+"), '').toString().trim();
-                for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
-                    if (guild_battle.records[it].state !== 'Alive') {
-                        guild_battle.records[it].color = "grey";
-                        continue;
-                    }
-
-                    if (guild_battle.records[it].myStatus === 'Stunned') {
-                        guild_battle.records[it].color = "purple";
-                        continue;
-                    }
-
-                    if (guild_battle.records[it].conditions !== 'none') {
-                        continue;
-                    }
-
-                    if (attackOrderList[ol] !== String.fromCharCode(0)) {
-                        if (!(guild_battle.records[it].slot + " " + guild_battle.records[it].name.toLowerCase()).hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
-                            continue;
-                        }
-                    }
-
-                    if (conditions) {
-                        guild_battle.records[it].conditions = conditions;
-                        if (conditions.hasIndexOf("ach")) {
-                            ach = battle.parseCondition('ach', conditions);
-                        }
-
-                        if (conditions.hasIndexOf("max")) {
-                            max = battle.parseCondition('max', conditions);
-                        }
-                    }
-
-                    if (guild_battle.records[it].damage >= ach) {
-                        guild_battle.records[it].color = "darkorange";
-                        if (!firstOverAch || !$j.isPlainObject(firstOverAch) || $j.isEmptyObject(firstOverAch)) {
-                            if (guild_battle.records[it].damage >= max) {
-                                guild_battle.records[it].color = "red";
-                                con.log(2, 'OverMax', guild_battle.records[it]);
-                            } else {
-                                firstOverAch = guild_battle.records[it];
-                                con.log(2, 'firstOverAch', firstOverAch);
-                            }
-                        }
-                    } else if (guild_battle.records[it].damage < max) {
-                        if (!firstUnderMax || !$j.isPlainObject(firstUnderMax) || $j.isEmptyObject(firstUnderMax)) {
-                            firstUnderMax = guild_battle.records[it];
-                            con.log(2, 'firstUnderMax', firstUnderMax);
-                        }
-                    } else {
-                        guild_battle.records[it].color = "red";
-                        con.log(2, 'OverMax', guild_battle.records[it]);
-                    }
-                }
-            }
-            /*jslint continue: false */
-
-            target = firstUnderMax;
-            if (!target || !$j.isPlainObject(target) || $j.isEmptyObject(target)) {
-                target = firstOverAch;
-            }
-
-            con.log(2, 'Guild Battle Target', target);
-            if (target && $j.isPlainObject(target) && !$j.isEmptyObject(target)) {
-                target.color = 'green';
-                guild_battle.setItem(target);
-            } else {
-                state.setItem('guildBattleBattlesBurn', false);
-                guild_battle.save();
-            }
-
-            return state.setItem('targetGuildBattle', target);
-        } catch (err) {
-            con.error("ERROR in guild_battle.select: " + err);
-            return undefined;
-        }
-    };
-
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
 	guild_battle.path = 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,clickimg:enemy_guild_on.gif,jq:#enemy_guild_tab,clickjq:#enemy_new_guild_tab_4,jq:#enemy_guild_member_list_4,clickjq:#basic_4_100000206587433 input[src*="gb_btn_duel.gif"]';
 
-	guild_battle.path = false;	
+	guild_battle.path = '@Joan,festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle,clickimg:guild_battle_collectbtn_small.gif';
 	
- 	// Parse the menu item too see if a loadout override should be equipped.  If time is during a general override time,
+	guild_battle.path = false;	
+
+ 	// Parse the menu item too see if a loadout override should be equipped. If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
-	guild_battle.work = function (GBorFest) {
+	guild_battle.work = function (gf) {
 		try {
-			var timeBattlesList = config.getList('timed_guild_battles', ''),
+			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
+				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
+				record = guild_battle.getItem(gf),
+				startTime = $u.setContent(fRecord.startTime, 0),
+				timeBattlesList = config.getList('timed_guild_battles', ''),
 				begin = new Date(),
 				end = new Date(),
 				timeString = '',
 				result = '',
+				maxTokens = 0,
 				button = null,
+				t = { 'score' : 0 },
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 				match = (timedSetting === 'Battle available') ? true : false,
 				now = new Date();
 				
+			// For testing paths
 			if (guild_battle.path) {
 				result = caap.navigate2(guild_battle.path);
-				if (result == 'done' || result == 'failed' || !result) {
+				if (result == 'done' || result == 'fail' || !result) {
 					guild_battle.path = false;
 				}
 				return true;
 			}
+		
+			con.log(5, 'schedule since ', schedule.since(startTime, 0), schedule.since(startTime,  3 * 60), startTime, fRecord, guild_battle.records);
+			
+			if ((fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) || gRecord.state == 'PreBattle') {
+				caap.stats.priorityGeneral = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+			} else {
+				caap.stats.priorityGeneral = false;
+			}
+			
+			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
+					caap.stats.battleIdle = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
+			}
 
-            for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
-                if (caap.stats.reviewPagesGB[i].page === GBorFest && schedule.since(caap.stats.reviewPagesGB[i].review, 2 * 60)) {
-					con.log(2,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
-					return caap.navigate2(caap.stats.reviewPagesGB[i].path);
-				}
-            }
-			con.log(2,'Guild review',caap.stats.reviewPagesGB);
 
 			
-			if (schedule.check('pageReviewTime' + GBorFest)) {
-				if (caap.navigateTo('guildv2_battle')) {
-					con.log(2, 'Checking Guild Battle page');
-					return true;
+            for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
+				con.log(5,'Pre  battle page',caap.stats.reviewPagesGB[i].page, gf, schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60));
+				// For now, this looks at both festival and GB pages that are due for review
+                if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
+					con.log(2,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
+					result = caap.navigate2(caap.stats.reviewPagesGB[i].path);
+					if (result == 'fail') {
+						guild_battle.deleterPage('path', caap.stats.reviewPagesGB[i].path);
+					} else if (result) {
+						return true;
+					} else {
+						con.log(2, 'Loading keep page to force page reload');
+						return caap.navigateTo('keep');
+					}
 				}
-				con.log(2, 'Loading keep page to force Guild Page reload');
-				return caap.navigateTo('keep');
+            }
+			con.log(5,'Guild review',caap.stats.reviewPagesGB);
+			
+			maxTokens = schedule.since(record.endTime, -8 * 60 ) ? 0 : config.getItem(gf.name + 'TokenMax', 8);
+			con.log(5,'ATTACK!',record.tokens,maxTokens, schedule.since(record.endTime, -8 * 60 ) , record.state, !schedule.since(record.enteredTime, gf.waitHours * 60 * 60), record.me.healthNum > gf.minHealth);
+			if (record.tokens > maxTokens && record.state == 'Active' && !schedule.since(record.enteredTime, gf.waitHours * 60 * 60) && record.me.healthNum > gf.minHealth) {
+				['your'].forEach(function(team) {
+					$j.each(record[team].members, function(location, member) {
+						$j.each(member.scores, function(attack, obj) {
+							if (obj.score >= t.score) {
+								t.tower = location.replace(/-.*/,'');
+								t.id = member.target_id;
+								t.score = obj.score;
+								t.attack = attack;
+								t.team = team;
+								t.general = obj.general;
+								t.target = member;
+							}
+						});
+					});
+				});
+				
+				con.log(2, 'ATTACKING', t);
+				
+				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#special_defense_' + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
 			}
-			if (timedSetting=='Never' || caap.stats.GBstatus !== 'Start') {
+				
+			if (timedSetting=='Never' || gRecord.state !== 'Start') {
 				return false;
 			}
-			con.log(5, 'guild battle work start', timeBattlesList);
+			con.log(2, 'checking to see if starting GB', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
 				if (!timeBattlesList[p].toString().trim()) {
@@ -1096,136 +949,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.log(1, 'CLICK GUILD BATTLE START');
 					return caap.click(button);
 				}
-			} else if (caap.stats.GBstatus == 'Start') {
-				caap.stats.priorityGeneral = false;
 			}
 
-			con.log(4, 'No time match to current time', now);
+			con.log(5, 'No time match to current time', now);
 			return false;
         } catch (err) {
             con.error("ERROR in guild_battle.work: " + err);
             return false;
-        }
-    };
-	
-	
-    guild_battle.attack2stamina = {
-        1: 1,
-        2: 5,
-        3: 10,
-        4: 20,
-        5: 50
-    };
-
-    guild_battle.getAttackValue = function(record, member) {
-        try {
-            if (!member || !$j.isPlainObject(member)) {
-                throw "Not passed a member";
-            }
-
-            var attack = 0,
-                recordInfo = guild_battle.info[record.name],
-                specialTargets = recordInfo.special2.slice();
-
-            if (specialTargets.hasIndexOf(member.target_id) && $u.isNaN(member.healthNum)) {
-                if (caap.stats.stamina.num < 5) {
-                    attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
-                    attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
-                    attack = 3;
-                } else if (caap.stats.stamina.num < 50) {
-                    attack = 4;
-                } else {
-                    attack = 5;
-                }
-            } else if (member.healthNum < recordInfo.health[0]) {
-                attack = 1;
-            } else if (member.healthNum < recordInfo.health[1]) {
-                if (caap.stats.stamina.num < 5) {
-                    attack = 1;
-                } else {
-                    attack = 2;
-                }
-            } else if (member.healthNum < recordInfo.health[2]) {
-                if (caap.stats.stamina.num < 5) {
-                    attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
-                    attack = 2;
-                } else {
-                    attack = 3;
-                }
-            } else if (member.healthNum < recordInfo.health[3]) {
-                if (caap.stats.stamina.num < 5) {
-                    attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
-                    attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
-                    attack = 3;
-                } else {
-                    attack = 4;
-                }
-            } else {
-                if (caap.stats.stamina.num < 5) {
-                    attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
-                    attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
-                    attack = 3;
-                } else if (caap.stats.stamina.num < 50) {
-                    attack = 4;
-                } else {
-                    attack = 5;
-                }
-            }
-
-            if (attack > record.attacks) {
-                attack = record.attacks;
-            }
-
-            con.log(2, 'getAttackValue', attack);
-            return attack;
-        } catch (err) {
-            con.error("ERROR in guild_battle.getAttackValue: " + err);
-            return undefined;
-        }
-    };
-
-    guild_battle.getStaminaValue = function(record, member) {
-        try {
-            if (!member || !$j.isPlainObject(member)) {
-                throw "Not passed a member";
-            }
-
-            var stamina = 0,
-                staminaCap = 0,
-                recordInfo = guild_battle.info[record.name],
-                specialTargets = recordInfo.special2.slice();
-
-            if (specialTargets.hasIndexOf(member.target_id) && $u.isNaN(member.healthNum)) {
-                stamina = 50;
-            } else if (member.healthNum < recordInfo.health[0]) {
-                stamina = 1;
-            } else if (member.healthNum < recordInfo.health[1]) {
-                stamina = 5;
-            } else if (member.healthNum < recordInfo.health[2]) {
-                stamina = 10;
-            } else if (member.healthNum < recordInfo.health[3]) {
-                stamina = 20;
-            } else {
-                stamina = 50;
-            }
-
-            staminaCap = guild_battle.attack2stamina[record.attacks];
-            if (stamina > staminaCap) {
-                stamina = staminaCap;
-            }
-
-            con.log(2, 'getStaminaValue', stamina);
-            return stamina;
-        } catch (err) {
-            con.error("ERROR in guild_battle.getStaminaValue: " + err);
-            return undefined;
         }
     };
 
@@ -1239,6 +969,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     'Never - disables starting guild battles'
                 ],
 				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
+				guild_battle_scoring_inst = "List of score adjustments to pick targets",
 				GBCheckFreqInstructions = "How often in minutes the Guild Battle top page will be visited to see if a Guild Battle is in progress",
 				GBStartFreqInstructions = "How often in minutes the Guild Battle top page will be visited if an Auto-match is in progress",
                 htmlCode = '';
@@ -1246,29 +977,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
             htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 15, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 5, '', '', true, false);
+            htmlCode += caap.makeTD("Rate targets by:");
+            htmlCode += caap.makeTextBox('guild_battle_scoring', guild_battle_scoring_inst, '', '');
+            htmlCode += caap.makeCheckTR("Collect after", 'guild_battle_collect', false, 'Check to automatically collect after festival and Facebook guild battles');
+            htmlCode += caap.makeCheckTR("Auto-join battle", 'guild_battle_enter', false, 'Check to automatically join festival and Facebook guild battles');
+            htmlCode += caap.makeNumberFormTR("Use tokens over", 'FestivalTokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Use tokens over", 'Guild BattleTokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
             htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
             htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
             htmlCode += caap.makeTD("Start Guild Battles at these times:");
             htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
             htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes');
-/*            htmlCode += caap.makeCheckTR('Classic Battles First', 'doClassicBattlesFirst', false, 'Prioritise the classic battles and raids before Guild Battles.');
-            htmlCode += caap.makeCheckTR('Siege Battle', 'doGuildBattleSiege', true, 'Perform siege assists when visiting your Guild Battle.');
-            htmlCode += caap.makeCheckTR('Collect Rewards', 'guildBattleCollect', false, 'Collect the rewards of your completed Guild Battles.');
-            htmlCode += caap.makeCheckTR("Do not Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Battle's Clerics. Does not include the Gate members e.g. Azriel");
-            htmlCode += caap.makeTD("Attack Gates");
-            htmlCode += caap.makeTD("N" + caap.makeCheckBox('attackGateNorth', true), false, true, "display: inline-block; width: 25%;");
-            htmlCode += caap.makeTD("W" + caap.makeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
-            htmlCode += caap.makeTD("E" + caap.makeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
-            htmlCode += caap.makeTD("S" + caap.makeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-            htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'IgnoreMembersBelow', "Do not attack battle members that have a health below this value.", 0, '', '');
-            htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMembers', false, 'When the only selection left is the battle general then go back and attack any previously ignored battle members.');
-            htmlCode += caap.makeTD("Attack Battles in this order");
-            htmlCode += caap.makeTextBox('orderGuildBattle', 'Attack your guild battles in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
-            htmlCode += caap.makeTD("Attack Members in this order");
-            htmlCode += caap.makeTextBox('orderGuildMember', 'Attack your guild members in this order. Uses the member name.', '', '');
-*/          htmlCode += caap.endDropHide('WhenGuildBattle');
-            //htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
+			htmlCode += caap.endDropHide('WhenGuildBattle');
             config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
             return htmlCode;
@@ -1279,22 +1000,22 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
     };
 
     guild_battle.dashboard = function() {
-		guild_battle.dashboardWork(0);
+		guild_battle.dashboardWork(guild_battle.gf.guild_battle);
 	};
 
-    guild_battle.dashboardWork = function(GBorFest) {
+    guild_battle.dashboardWork = function(gf) {
         try {
             /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_guildBattle' div. We set our
                 table and then build the header row.
             \-------------------------------------------------------------------------------------*/
 			
-			var battleName = GBorFest ? 'Festival' : 'Guild Battle',
-				battleLabel = GBorFest ? 'festival' : 'guildBattle';
-            if (config.getItem('DBDisplay', '') === battleName && session.getItem(battleLabel + "DashUpdate", true)) {
+            if (config.getItem('DBDisplay', '') === gf.name && session.getItem(gf.label + "DashUpdate", true)) {
                 var color = '',
-                    headers = ['Index', 'Name', 'Class', 'Level', 'Health', 'Damage%', 'Status', 'Activity', 'Points', 'Win%', 'Score', 'Link', '&nbsp;'],
-                    values = ['index', 'name', 'mclass', 'level', 'healthNum', 'percent', 'status', 'battlePoints', 'points', 'winChance', 'score', 'link'],
+                    headers = ['Index', 'Name'],
+                    values = ['index', 'name'],
+                    headers2 = ['Class', 'Level', 'Health', 'Max', 'Status', 'Activity', 'Points', 'Win%'],
+                    values2 = ['mclass', 'level', 'healthNum', 'healthMax', 'status', 'battlePoints', 'points', 'winChance'],
                     pp = 0,
                     i = {},
                     len = 0,
@@ -1307,7 +1028,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                         title: ''
                     },
                     handler = null,
-					record = guild_battle.getItem(GBorFest),
+					record = guild_battle.getItem(gf),
 					members = record.your.members,
 					towers = record.your.towers,
 					member = {},
@@ -1316,14 +1037,27 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     body = '',
                     row = '',
 					towerHtml = '';
-				con.log(2, "Dash record",record);
+				con.log(5, "Dash record",record);
+				
+				if ($u.isArray(record.attacks)) {
+					headers = headers.concat(record.attacks);
+					headers = headers.concat(headers2);
+					values = values.concat(record.attacks);
+					values = values.concat(values2);
+					con.log(5, 'Dashboard New arrays',record.attacks, headers, values);
+				} else {
+					headers = headers.concat(headers2);
+					values = values.concat(values2);
+					con.log(2, 'No attacks scored yet',record.attacks);
+				}
+				headers.push('Cnd');
 
                 for (pp = 1; pp <= 4; pp += 1) {
 					tower = towers[pp.toString()];
 					if (!tower) {
 						continue;
 					}
-                    towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Seal: ' + tower.sealed + ' CDam: ' + tower.clericDamage + '<br>';
+                    towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Cleric Life%: ' + tower.clericLife + '<br>';
                 }
 
                 for (pp = 0; pp < headers.length; pp += 1) {
@@ -1337,17 +1071,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 }
 
                 head = caap.makeTr(head);
-				con.log(2, "members", members, record);
+				con.log(5, "members", members, record);
                 for (var i in members) {
 					if (members.hasOwnProperty(i)) {
 						row = "";
-						for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
+						for (pp = 0; pp < values.length; pp += 1) {
 							member = members[i];
 							con.log(5,'i pp', i, pp, values[pp],member[values[pp]]);
 							switch (values[pp]) {
 							case 'name':
 								data = {
-									text: '<span id="caap_' + battleLabel + '_' + pp + '" title="Clicking this link will take you to (' +  ') ' + record.name + '" mname="1"' +
+									text: '<span id="caap_' + gf.label + '_' + pp + '" title="Clicking this link will take you to (' +  ') ' + record.name + '" mname="1"' +
 										'" rlink="guild_battle_battle.php?twt2=' + '&guild_id=' + record.guildId + '&slot='  +
 										'" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + member[values[pp]] + '</span>',
 									color: record.color,
@@ -1378,7 +1112,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 								break;
 							default:
 								row += caap.makeTd({
-									text: $u.hasContent(member[values[pp]]) ? member[values[pp]] : '',
+									text: record.attacks.indexOf(values[pp]) >= 0 ?  member.scores[values[pp]].score : $u.hasContent(member[values[pp]]) ? member[values[pp]] : '',
 									color: record.color,
 									id: '',
 									title: ''
@@ -1418,7 +1152,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					}
                 }
 
-                $j("#caap_" + battleLabel, caap.caapTopObject).html($j(caap.makeTable("guild_battle", head, body)).dataTable({
+                $j("#caap_" + gf.label, caap.caapTopObject).html($j(caap.makeTable("guild_battle", head, body)).dataTable({
                     "bAutoWidth": false,
                     "bFilter": false,
                     "bJQueryUI": false,
@@ -1429,7 +1163,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     "bStateSave": true,
                     "bSortClasses": false
                 }));
-				$j("#caap_" + battleLabel, caap.caapTopObject).prepend(towerHtml);
+				$j("#caap_" + gf.label, caap.caapTopObject).prepend(towerHtml);
 
                 handler = function(e) {
                     var visitBattleLink = {
@@ -1449,13 +1183,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
                     // caap.clickAjaxLinkSend(visitBattleLink.arlink);
 					guild_battle.path = visitBattleLink.arlink;
-					con.log(2,'battle path set',guild_battle.path);
+					con.log(5,'battle path set',guild_battle.path);
                 };
 
-                $j("span[id*='caap_" + battleLabel + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
+                $j("span[id*='caap_" + gf.label + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
                 handler = null;
 
-                session.setItem(battleLabel + "DashUpdate", false);
+                session.setItem(gf.label + "DashUpdate", false);
             }
 
             return true;

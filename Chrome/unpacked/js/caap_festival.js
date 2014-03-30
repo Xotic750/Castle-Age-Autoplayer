@@ -15,7 +15,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_festival_battle_home = function () {
         try {
-            return festival.checkResults_festival_battle_home();
+			//caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
+			guild_battle.onTop(guild_battle.gf.festival);
+			return true;
         } catch (err) {
             con.error("ERROR in checkResults_festival_battle_home: " + err);
             return false;
@@ -24,8 +26,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_festival_guild_battle = function () {
         try {
-            con.log(2, "Festival battle screen");
-			guild_battle.onBattle(1);
+			guild_battle.onBattle(guild_battle.gf.festival);
             // return festival.checkResults_festival_guild_battle();
         } catch (err) {
             con.error("ERROR in checkResults_festival_guild_battle: " + err);
