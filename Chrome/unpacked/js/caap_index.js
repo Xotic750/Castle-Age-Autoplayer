@@ -15,7 +15,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
-			con.log(1, 'TESTING', 'ASDF,@yaya a, asdf'.match(new RegExp("@[^,]+")));
+			var test = 'revive[cleric:16,active:8,seal:4,guardian:2,revive:1600@Loadout Heal]'.match(new RegExp("revive:(\\D?)([^,]+)"));
+			con.log(1, 'TESTING', test, test[1].parseFloat());
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();

@@ -96,6 +96,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'enterButton' : 'guild_enter_battle_button2.gif',
 			'index' : 0,
 			'infoDiv' : '#app_body #guildv2_battle_middle',
+			'IDDiv' : 'special_defense_',
 			'waitHours' : 9,
 			'minHealth' : 1,
 			'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
@@ -127,7 +128,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		],
 		'Cleric' : [
 			{'name': 'revive',
-			'base' : 'scoreDamage'},
+			'base' : 'scoreHealth'},
 			{'name' : 'heal',
 			'base' : 'scoreDamage'},
 			{'name' : 'fortitude',
@@ -482,15 +483,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	
 	// Parses a string for the key, and adds/multiplies the score by according to the key
 	// For example (500, 'cleric:+100', 'cleric') would return the score + 100, i.e. 600
-    guild_battle.parse = function(tf, text, key) {
+    guild_battle.parse = function(tf, text, key, score) {
         try {
-			var args = text.match(new RegExp(key + ':([^,]+)'));
+			var args = text.match(new RegExp(key + ':(\\D?)([^,]+)'));
 			
 			con.log(5,'scoringtext match',key, text, args);
-			if (tf && args && args.length == 2) {
-				return args[1].parseFloat();
+			if (tf && args && args.length == 3) {
+				if (args[1] == '-') {
+					score[1] += -args[2].parseFloat();
+				} else {
+					score[0] += args[2].parseFloat();
+				}
 			}
-            return 1;
+            return score;
         } catch (err) {
             con.error("ERROR in guild_battle.clear: " + err);
             return false;
@@ -538,7 +543,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				tStr = '',
 				tNum = 0,
 				resultsTxt = '',
-				score = 0,
+				score = [],
 				lastAttacked = state.getItem('FestivalMinionAttacked', {}),
 				won = {},
 				losses = [],
@@ -689,12 +694,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					}
 					member = $j(memberDivs[n-1]);
 					memberRecord = new guild_battle.member().data;
-					targetIdDiv = member.find("input[name='target_id']").eq(0);
+					text = (which == 'enemy' ? 'basic_' : 'special_defense_') + tower + '_';
+					targetIdDiv = member.find('div[id^="' + text + '"]').eq(0);
 					if (targetIdDiv && targetIdDiv.length) {
-						memberRecord.target_id = targetIdDiv.val() ? targetIdDiv.val().parseInt() : 1;
-						con.log(5,"Target_id for member", memberRecord.target_id);
+						con.log(2,"Target_id for member", targetIdDiv.attr('id'), targetIdDiv);
+						memberRecord.target_id = targetIdDiv.attr('id').replace(text,'');
+						con.log(2,"Target_id for member", memberRecord.target_id,targetIdDiv.attr('id'), targetIdDiv);
 					} else {
-						con.log(2, "Unable to find target_id for member", tower, n, member);
+						con.log(2, "Unable to find target_id for member", tower, n, member, targetIdDiv);
 						continue;
 					}
 
@@ -745,19 +752,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									currentRecord.attacks.push(att.name);
 								}
 								// First number is for multipliers, second is added
-								score = 0;
+								score = [0, 0];
 								text = args[1];
 								['cleric','rogue','warrior','mage'].forEach(function(value) {
-									score += guild_battle.parse(memberRecord.mclass == value, text, value);
+									score = guild_battle.parse(memberRecord.mclass == value, text, value, score);
 								});
 								['polymorph','poison','confuse','guardian','revive','shout','confidence'].forEach(function(value) {
-									score += guild_battle.parse(memberRecord[value], text, value);
+									score = guild_battle.parse(memberRecord[value], text, value, score);
 								});
-								score += guild_battle.parse(memberRecord.battlePoints, text, 'active');
+								score = guild_battle.parse(memberRecord.battlePoints, text, 'active', score);
 
 								memberRecord.scores[att.name] = {};
 								con.log(5,'record check', score, att.base,memberRecord[att.base], memberRecord.scoreDamage); 
-								score *= memberRecord[att.base];
+								score = score[0] * memberRecord[att.base] + score[1];
 								memberRecord.scores[att.name].score = memberRecord.healthNum < gf.minHealth ? 0 : score.dp(2);
 								general = text.match(new RegExp("@[^,]+"));
 								memberRecord.scores[att.name].general = general && general.length > 0 ? general[0] : '';
