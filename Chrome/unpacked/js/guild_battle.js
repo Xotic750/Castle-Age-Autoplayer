@@ -697,11 +697,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					text = (which == 'enemy' ? 'basic_' : 'special_defense_') + tower + '_';
 					targetIdDiv = member.find('div[id^="' + text + '"]').eq(0);
 					if (targetIdDiv && targetIdDiv.length) {
-						con.log(2,"Target_id for member", targetIdDiv.attr('id'), targetIdDiv);
+						con.log(5,"Target_id for member", targetIdDiv.attr('id'), targetIdDiv);
 						memberRecord.target_id = targetIdDiv.attr('id').replace(text,'');
-						con.log(2,"Target_id for member", memberRecord.target_id,targetIdDiv.attr('id'), targetIdDiv);
+						con.log(5,"Target_id for member", memberRecord.target_id,targetIdDiv.attr('id'), targetIdDiv);
 					} else {
-						con.log(2, "Unable to find target_id for member", tower, n, member, targetIdDiv);
+						con.log(5, "Unable to find target_id for member", tower, n, member, targetIdDiv);
 						continue;
 					}
 
