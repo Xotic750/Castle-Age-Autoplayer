@@ -455,37 +455,18 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				tDate.setUTCHours(hour, 0, 0, 0);
 				tDate.setUTCDate(tDate.getDate() + (tDate < now ? 1 : 0));
 				record.reviewed = now.getTime();
-				con.log(2, "Festival.checkInfo", next, timer, hour, tz);
-				con.log(2, "When", tDate.toUTCString());
+				con.log(5, "Festival.checkInfo", next, timer, hour, tz);
+				con.log(5, "When", tDate.toUTCString());
 
 				if (record.endTime < record.reviewed) {
 					record.startTime = tDate.getTime();
 					record.endTime = record.startTime + 3600000;
 					schedule.setItem('StartTime', record.startTime, 20);
-					con.log(2, "New start time");
+					con.log(5, "New start time");
 				}
 				tDate.setUTCHours(hour, 0, 0, 0);
-				con.log(2, "Festival start time", tDate, $u.makeTime(tDate, caap.timeStr(true)));
+				con.log(5, "Festival battle start time" + $u.makeTime(tDate, caap.timeStr(true)), tDate);
 				
-				start = record.startTime - record.reviewed;
-				start = start > 0 ? start : 0;
-				if (start && record.state === 'Ready') {
-					con.log(2, "Festival starting in", start);
-					schedule.setItem("Festival Review", start, 20);
-				} else {
-					con.log(2, "Festival review in", 300);
-					schedule.setItem("Festival Review", 300, 20);
-				}
-				if (record.state === '' || record.state === 'Completed') {
-					schedule.setItem(gf.name + "TokenTicker", 0);
-					record.state = 'Ready';
-					record.tokens = 10;
-					record.myStatus = '';
-					record.damage = 0;
-					record.teamHealth = 0;
-					record.enemyHealth = 0;
-					record.ticker = '';
-				}
 				text = next;
 				
 			} else { // GBorFest == guild_battle
@@ -512,7 +493,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				con.warn(gf.name + ' Unknown message text', text);
 			}
-			// troubleshooting line 
+
 			if (gf.name == 'Festival') {
 				// guild_battle.setReview(gf);
 				hour = record.state == 'Collect' ? 3 : $u.setContent(text.regex(/(\d+) HOUR/), 0);
