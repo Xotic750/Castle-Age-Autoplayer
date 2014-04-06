@@ -3192,6 +3192,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
             /*-------------------------------------------------------------------------------------\
+            Next we put in our Guild and Festival battle dropdown which will only show when we have
+            selected the Guild or Festival battle display.
+            \-------------------------------------------------------------------------------------*/
+//            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'>";
+//            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['Festival','Guild Battle'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
+            layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild','Overview'], ['Them','Us','Both'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
+
+            /*-------------------------------------------------------------------------------------\
             Next we put in our Refresh Generals List button which will only show when we have
             selected the Generals display.
             \-------------------------------------------------------------------------------------*/
@@ -3278,8 +3288,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += caap.makeDropDown('DBDisplay', displayList, displayInst, '', 'User Stats', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
-            We install the display selection box that allows the user to toggle through the
-            available displays.
+            We install the minimize/maximise button that allows the user to make the dashboard
+			appear or disappear.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_dashMin' class='ui-icon ui-icon-circle-minus' style='position:absolute;top:0px;right:5px;' title='Minimise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
 

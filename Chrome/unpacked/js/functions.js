@@ -148,7 +148,13 @@ function caap_WaitForData() {
         caap.start();
     } else {
         caap_log("Waiting for data ...");
-        window.setTimeout(caap_WaitForData, 100);
+		if (caap.hasImage('crusader2_btn_submit.gif')) {
+			caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
+            $j("input[src*='crusader2_btn_submit.gif']").trigger('click');
+			window.setTimeout(caap_WaitForData, 5 * 60 * 1000);
+		} else {
+			window.setTimeout(caap_WaitForData, 100);
+		}
     }
 }
 

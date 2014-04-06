@@ -84,6 +84,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monster.clean();
 			monster.lastClick = null;
 
+            if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
+                con.log(1, "Deleting monster that has expired",lastmd5);
+				monster.deleteItem(lastmd5);
+                return false;
+            }
+
             // get all buttons to check monsterObjectList
             if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
                 con.log(2, "No buttons found");
@@ -1344,58 +1350,53 @@ con.log (1, "after button check:", monster, cM);
 			monster.lastClick = null;
             con.log(3, "monsterDiv", monsterDiv);
 
-            if ($u.hasContent($j("div[style*='no_monster_back.jpg']", slice))) {
-                con.warn("No monster");
-                //need to add some code to this condition to remove records etc etc
-            } else {
-                // new monster layout logic
-                if (dleadersDiv.text() === '') {
-                    dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+			// new monster layout logic
+			if (dleadersDiv.text() === '') {
+				dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
 
-                    maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
-                    /* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
-                    for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
-                        if (dleadersDiv2[ii].children.length > 0) {
-                            con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
-                        }
-                    }*/
-                } else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
-                    con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
-                    tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
-                    if ($u.hasContent(tempDiv)) {
-                        tempDiv.each(function (index) {
-                            $j(this).parent().attr("id", "mark" + index);
-                        });
+				maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
+				/* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
+				for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
+					if (dleadersDiv2[ii].children.length > 0) {
+						con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
+					}
+				}*/
+			} else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
+				con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
+				tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
+				if ($u.hasContent(tempDiv)) {
+					tempDiv.each(function (index) {
+						$j(this).parent().attr("id", "mark" + index);
+					});
 
-                        tempDiv.each(function (index) {
-                            var group = $j(this),
-                                levels = $j("b", group).text(),
-                                start = levels.regex(/Levels (\d+)/),
-                                max = group.text().trim().innerTrim().replace(levels, '').trim(),
-                                maxNum = max.regex(/(\d+)/),
-                                count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
+					tempDiv.each(function (index) {
+						var group = $j(this),
+							levels = $j("b", group).text(),
+							start = levels.regex(/Levels (\d+)/),
+							max = group.text().trim().innerTrim().replace(levels, '').trim(),
+							maxNum = max.regex(/(\d+)/),
+							count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
 
-                            con.log(3, "groups", index, levels, start, maxNum, count);
-                            groups[levels] = {
-                                'level': start,
-                                'max': maxNum,
-                                'count': count
-                            };
+						con.log(3, "groups", index, levels, start, maxNum, count);
+						groups[levels] = {
+							'level': start,
+							'max': maxNum,
+							'count': count
+						};
 
-                            countJoin += count;
-                            if (!feed.isScan && !ajax) {
-                                group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
-                            }
+						countJoin += count;
+						if (!feed.isScan && !ajax) {
+							group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+						}
 
-                            group = null;
-                            levels = null;
-                        });
-                    } else {
-                        tempDiv = $j("table:eq(1) a", dragonDiv);
-                        countJoin = tempDiv.length;
-                    }
-                }
-            }
+						group = null;
+						levels = null;
+					});
+				} else {
+					tempDiv = $j("table:eq(1) a", dragonDiv);
+					countJoin = tempDiv.length;
+				}
+			}
 
             groups.total = {
                 'max': maxJoin,
