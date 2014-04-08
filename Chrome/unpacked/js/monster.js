@@ -1125,7 +1125,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 10000000,
             cta_img: ['cta_alexandra.gif']
         },        
-		"Alpha Kraken": {
+/*		"Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
 			alpha: true,
 			duration: 168,
 			hp: 650000000,
@@ -1149,10 +1149,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			mClass: 'Epic World',
 			mpool: 3,
 			newbg_img: ['monster_alpha_kraken_header.jpg'],
-			list_img: ['monster_kraken2_list.jpg'],
+			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
-		"Kraken": {
+*/		"Kraken": {
 			alpha: true,
 			duration: 168,
 			hp: 300000000,
@@ -1176,7 +1176,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			join: [30, 30, 35, 50],
 			mClass: 'Epic World',
 			mpool: 3,
-			newbg_img: ['monster_kraken_header.jpg'],
+//			newbg_img: ['monster_kraken_header.jpg'], // Changed so alpha krakens will be recognized as krakens
+			newbg_img: ['monster_kraken_large.jpg'],
 			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
