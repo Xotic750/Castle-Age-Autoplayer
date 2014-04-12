@@ -16,7 +16,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.records = [];
 
-    monster.record = function() {
+//    caap.stats.reviewPages = [];
+
+	monster.conqLandsLink = 'ajax:guildv2_conquest_command.php?tier=3';
+	monster.conqMonsterListLink = "ajax:guildv2_monster_list.php?guild_id=";
+
+	monster.lastClick = null;
+	
+	monster.record = function() {
         this.data = {
             'name': '',
             'userName': '',
@@ -74,6 +81,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
+	// Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
+	// No comma allowed in Object names
     monster.info = {
         'Skaar Deathrune': {
             duration: 96,
@@ -104,7 +113,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['death_list.jpg'],
             cta_img: ['ntwitter_deathrune1.gif']
         },
-        'Ragnarok, The Ice Elemental': {
+        'Ragnarok': {
             duration: 168,
             defense: true,
             hp: 100000000,
@@ -133,7 +142,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['water_list.jpg'],
             cta_img: ['ntwitter_ragnarok1.gif']
         },
-        'Genesis, The Earth Elemental': {
+        'Genesis': {
             duration: 168,
             defense: true,
             hp: 100000000,
@@ -163,7 +172,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['earth_element_list.jpg'],
             cta_img: ['ntwitter_genesis1.gif']
         },
-        'Cronus, The World Hydra': {
+        'Cronus': {
             duration: 168,
             hp: 100000000,
             ach: 500000,
@@ -190,7 +199,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 'cta_hydra_blizzard.gif',
                 'cta_hydra_firestorm.gif']
         },
-        'Battle Of The Dark Legion': {
+        'Dark Legion': {
             duration: 168,
             hp: 100000,
             ach: 1000,
@@ -287,7 +296,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             newbg_img: ['monster_header_minotaur.jpg'],
             list_img: ['monster_minotaur_list.jpg']
         },
-        'Gildamesh, The Orc King': {
+        'Gildamesh': {
             duration: 72,
             ach: 15000,
             siege: 0,
@@ -300,7 +309,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['orc_boss_list.jpg'],
             cta_img: ['cta_orc_king.gif']
         },
-        'Colossus Of Terra': {
+        'Colossus': {
             duration: 72,
             ach: 20000,
             siege: 0,
@@ -313,7 +322,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['stone_giant_list.jpg'],
             cta_img: ['cta_stone.gif']
         },
-        'Sylvanas The Sorceress Queen': {
+        'Sylvanas': {
             duration: 48,
             ach: 50000,
             siege: 1,
@@ -329,7 +338,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['boss_sylvanus_list.jpg'],
             cta_img: ['cta_sylvanas.gif']
         },
-        'Lotus Ravenmoore': {
+        'Lotus': {
             duration: 48,
             ach: 500000,
             siege: 0,
@@ -339,7 +348,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['boss_lotus_list.jpg'],
             cta_img: ['cta_lotus.gif']
         },
-        'Keira The Dread Knight': {
+        'Keira': {
             duration: 48,
             ach: 30000,
             siege: 0,
@@ -432,7 +441,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['seamonster_list_blue.jpg'],
             cta_img: ['twitter_seamonster_blue_1.jpg']
         },
-        'The Deathrune Siege': {
+        'Deathrune Siege': {
             duration: 232,
             ach: 100,
             siege: 2,
@@ -474,7 +483,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             cta_img: ['cta_mephi.gif']
         },
         // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
-        'War Of The Red Plains': {
+        'Red Plains': {
             alpha: true,
             tactics: true,
             duration: 168,
@@ -503,7 +512,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             cta_img: ['nm_war_twitter_1.gif']
         },
         // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
-        'Bahamut, The Volcanic Dragon': {
+        'Bahamut': {
             alpha: true,
             duration: 168,
             hp: 130000000,
@@ -531,7 +540,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         // http://castleage.wikidot.com/alpha-bahamut
         // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
-        'Alpha Bahamut, The Volcanic Dragon': {
+        'Alpha Bahamut': {
             alpha: true,
             duration: 168,
             hp: 620000000,
@@ -561,7 +570,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             cta_img: ['ntwitter_volcanic5.gif']
         },
         // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
-        'Azriel, The Angel Of Wrath': {
+        'Azriel': {
             alpha: true,
             duration: 168,
             hp: 600000000,
@@ -621,7 +630,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['nm_alpha_mephistopheles_list.jpg'],
             cta_img: ['nm_alpha_mephistopheles_twitter_1.gif']
         },
-        'Gehenna, The Fire Elemental': {
+        'Gehenna': {
             alpha: true,
             duration: 168,
             hp: 350000000,
@@ -651,7 +660,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['nm_gehenna_list.jpg'],
             cta_img: ['nm_gehenna_twitter_1.gif']
         },
-        "Aurelius, Lion's Rebellion": {
+        "Aurelius": {
             alpha: true,
             tactics: true,
             duration: 168,
@@ -709,7 +718,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['corv_list.jpg'],
             cta_img: ['cta_corv1.gif']
         },
-        'Valhalla, The Air Elemental': {
+        'Valhalla': {
             alpha: true,
             duration: 168,
             hp: 650000000,
@@ -740,7 +749,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_valhalla_list.jpg'],
             cta_img: ['cta_valhalla.gif']
         },
-        'Jahanna, Priestess Of Aurora': {
+        'Jahanna': {
             alpha: true,
             duration: 168,
             hp: 650000000,
@@ -770,7 +779,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['boss_jahanna_list.jpg'],
             cta_img: ['cta_jahanna.gif']
         },
-        "Agamemnon The Overseer": {
+        "Agamemnon": {
             alpha: true,
             duration: 168,
             hp: 640000000,
@@ -859,7 +868,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['boss_ambrosia_list.jpg'],
             cta_img: ['cta_ambrosia.gif']
         },
-        "Kromash, The Storm Giant": {
+        "Kromash": {
             alpha: true,
             duration: 168,
             hp: 500000000,
@@ -889,7 +898,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_kromash_list.jpg'],
             cta_img: ['cta_kromash.gif']
         },
-        "Glacius, The Frost Giant": {
+        "Glacius": {
             alpha: true,
             duration: 168,
             hp: 400000000,
@@ -919,7 +928,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_glacius_list.jpg'],
             cta_img: ['cta_glacius.gif']
         },
-        "Shardros, The Mountain Giant": {
+        "Shardros": {
             alpha: true,
             duration: 168,
             hp: 175000000,
@@ -947,7 +956,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_shardros_list.jpg'],
             cta_img: ['cta_shardros.gif']
         },
-        "Magmos, The Lava Giant": {
+        "Magmos": {
             alpha: true,
             duration: 168,
             hp: 500000000,
@@ -973,7 +982,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_magmos_list.jpg'],
             cta_img: ['cta_magmos.gif']
         },
-        "Typhonus, The Chimera": {
+        "Typhonus": {
             alpha: true,
             duration: 168,
             hp: 500000000,
@@ -1088,7 +1097,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['monster_vermilion_list.jpg'],
             cta_img: ['cta_vermilion.gif']
         },
-        "Alexandra the Unbreakable": {
+        "Alexandra": {
             alpha: true,
             duration: 168,
             hp: 640000000,
@@ -1116,7 +1125,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 10000000,
             cta_img: ['cta_alexandra.gif']
         },        
-		"Alpha Kraken": {
+		"Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
 			alpha: true,
 			duration: 168,
 			hp: 650000000,
@@ -1140,7 +1149,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			mClass: 'Epic World',
 			mpool: 3,
 			newbg_img: ['monster_alpha_kraken_header.jpg'],
-			list_img: ['monster_kraken2_list.jpg'],
+			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
 		"Kraken": {
@@ -1167,7 +1176,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			join: [30, 30, 35, 50],
 			mClass: 'Epic World',
 			mpool: 3,
-			newbg_img: ['monster_kraken_header.jpg'],
+			newbg_img: ['monster_kraken_header.jpg'], 
 			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
@@ -1670,7 +1679,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts : 2,
             partOrder : [2,1]
         },
-        "Leviathan of the Deep" : {
+        "Leviathan of the Dee..." : {
             alpha : true,
             duration : 168,
             hp : 600000000,
@@ -1695,7 +1704,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_deep_list.jpg'],
             cta_img : ['cta_leviathan_deep.gif']
         },
-        "Leviathan of the Grove" : {
+        "Leviathan of the Gro..." : {
             alpha : true,
             duration : 168,
             hp : 675000000,
@@ -1720,7 +1729,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_grove_list.jpg'],
             cta_img : ['cta_leviathan_grove.gif']
         },
-        "Leviathan of the Void" : {
+        "Leviathan of the Voi..." : {
             alpha : true,
             duration : 168,
             hp : 750000000,
@@ -1745,7 +1754,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_void_list.jpg'],
             cta_img : ['cta_leviathan_void.gif']
         },
-        "Leviathan of the Wrath" : {
+        "Leviathan of Wrath" : {
             alpha : true,
             duration : 168,
             hp : 825000000,
@@ -1868,15 +1877,104 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
+	// Add a review page with path, and set 'entry' key to value, if wanted
+	monster.setrPage = function(path, entry, value) {
+        try {
+			var rPage = {
+				'path' : path,
+				'review' : 0,
+				'page' : false
+			};
+
+            if (!$u.hasContent(path) || !$u.isString(path)) {
+                con.warn("path", path);
+                throw "Invalid identifying path!";
+            }
+            //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
+
+            for (var it = 0; it < caap.stats.reviewPages.length; it++) {
+                if (caap.stats.reviewPages[it].path === path) {
+					if ($u.hasContent(entry)) {
+						caap.stats.reviewPages[it][entry] = value;
+					}
+					return true;
+                }
+            }
+			if ($u.hasContent(entry)) {
+				rPage[entry] = value;
+			}
+
+			caap.stats.reviewPages.push(rPage);
+			con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
+			return false;
+        } catch (err) {
+            con.error("ERROR in monster.setrPage: " + err);
+            return false;
+        }
+    };
+
+	// Delete all review pages where 'entry' = value
+	monster.deleterPage = function(entry, value) {
+        try {
+            if (!$u.hasContent(entry) || !$u.isString(entry)) {
+                con.warn("Delete entry invalid", entry, value);
+                throw "Invalid identifying entry!";
+            }
+			var deleted = 0;
+
+            for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
+                if (caap.stats.reviewPages[i][entry] === value) {
+					deleted += 1;
+					con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
+					caap.stats.reviewPages.splice(i,1);
+					con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
+                }
+            }
+			return deleted;
+
+        } catch (err) {
+            con.error("ERROR in monster.deleterPage: " + err);
+            return false;
+        }
+    };
+
+	// Delete or add review page based on if 'tf' is true or false
+	monster.togglerPage = function(path, tf, entry, value) {
+        try {
+            if (tf) {
+                return monster.setrPage(path, entry, value);
+            }
+			return monster.deleterPage('path', path);
+        } catch (err) {
+            con.error("ERROR in monster.togglerPage: " + err);
+            return false;
+        }
+    };
+
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records === 'default' || !$j.isArray(monster.records)) {
+            if (monster.records == 'default' || !$j.isArray(monster.records)) {
                 monster.records = gm.setItem('monster.records', []);
             }
+			caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
+
+/*
+            for (var i = monster.records.length - 1; i >= 0 ; i--) {
+                if (monster.records[i].flag) {
+					var temp = monster.records.splice(i,1);
+					con.log(4,'Load Monster found Reviewpages',monster.records, caap.stats.reviewPages, i, temp);
+                }  
+            }
+*/
+			monster.togglerPage('player_monster_list', caap.stats.level > 6);
+			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
+			monster.togglerPage('festival_tower', caap.stats.level > 6 && config.getItem("festivalTower", false));
+			monster.togglerPage('festival_tower2', caap.stats.level > 6 && config.getItem("festivalTower", false));
+			monster.togglerPage('ajax:raid.php', caap.stats.level > 7);
 
             session.setItem("MonsterDashUpdate", true);
-            con.log(5, "monster.load", monster.records);
+			con.log(4,'Load Monster records after',monster.records, caap.stats.reviewPages);
             return true;
         } catch (err) {
             con.error("ERROR in monster.load: " + err);
@@ -1886,13 +1984,18 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.save = function(src) {
         try {
-            if (caap.domain.which === 3) {
+/*            for (var i = monster.records.length - 1; i >= 0 ; i--) {
+                if (monster.records[i].flag) {
+					monster.records.splice(i,1);
+                }
+            }
+*/			if (caap.domain.which === 3) {
+                con.log(4, "monster.save FB messaging set item");
                 caap.messaging.setItem('monster.records', monster.records);
             } else {
                 gm.setItem('monster.records', monster.records);
-                con.log(5, "monster.save", monster.records);
                 if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
-                    con.log(2, "monster.save send");
+                    con.log(4, "monster.save send");
                     caap.messaging.setItem('monster.records', monster.records);
                 }
             }
@@ -1900,7 +2003,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             if (caap.domain.which !== 0) {
                 session.setItem("MonsterDashUpdate", true);
             }
-
             return true;
         } catch (err) {
             con.error("ERROR in monster.save: " + err);
@@ -2198,22 +2300,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ranger': ['Strengthen', 'Heal', 'Cripple']
     };
 
-    monster.flagReview = function() {
-        try {
-            schedule.setItem("monsterReview", 0);
-            //state.setItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
-            state.setItem('monsterReviewCounter', - 10); // set this high so we have room for more monsters
-            return true;
-        } catch (err) {
-            con.error("ERROR in monster.flagReview: " + err);
-            return false;
-        }
-    };
-
     monster.flagFullReview = function() {
         try {
             monster.clear();
-            monster.flagReview();
             schedule.setItem('NotargetFrombattle_monster', 0);
             session.setItem('ReleaseControl', true);
             caap.updateDashboard(true);
@@ -2222,6 +2311,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             } else {
                 localStorage.AFrecentAction = true;
             }
+			for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+				monster.setrPage(caap.stats.reviewPages[i].path, 'review', -1);
+			}
 
             return true;
         } catch (err) {
@@ -2308,7 +2400,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     if (monster.records[it].damage !== -1 && monster.records[it].color !== 'grey' && schedule.since(monster.records[it].stunTime, 0)) {
                         con.log(2, "Review monster due to class timer", monster.records[it].name);
                         monster.records[it].review = -1;
-                        monster.flagReview();
                     }
                 }
                 monster.records[it].conditions = 'none';
@@ -2453,7 +2544,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                             firstStunOverAch = monsterList[selectTypes[s]][m];
                                             con.log(3, 'firstStunOverAch', firstStunOverAch, monsterObj.name);
                                         }
-                                    } else if (monsterObj.over !== 'max') {
+//                                    } else if (monsterObj.over !== 'max') {
+                                    } else {
                                         firstStunUnderMax = monsterList[selectTypes[s]][m];
                                         con.log(3, 'firstStunUnderMax', firstStunUnderMax, monsterObj.name);
                                     }
@@ -2682,14 +2774,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     return false;
                 }
 
-                if (/Aurelius, Lion's Rebellion/.test(tempText)) {
-                    feedMonster = "Aurelius, Lion's Rebellion";
-                    userName = tempText.replace(feedMonster, '').trim();
-                } else {
-                    feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1');
-                    userName = tempText.replace(feedMonster, '').trim();
-                    feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
-                }
+				feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1').replace(/,.*/,'');
+				userName = tempText.replace(feedMonster, '').trim();
+				feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
 
                 if (!$u.hasContent(feedMonster)) {
                     con.warn("2:Unable to get monster string!!", tempText);

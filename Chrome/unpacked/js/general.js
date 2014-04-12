@@ -49,9 +49,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
     general.hbest = 0;
 	
-	// General priority is false if no priority.  'Use Current' if the general should not be changed.
-    general.priority = false;
-
     general.load = function () {
         try {
             general.records = gm.getItem('general.records', 'default');
@@ -133,8 +130,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				timeStrings = '',
 				now = new Date();
 			// Priority generals, such as Guild Battle class generals, outrank timed generals.
-			if (general.priority) {
-				timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + general.priority;
+			if (caap.stats.priorityGeneral) {
+				timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
 				timedLoadoutsList.unshift(timeStrings);
 				con.log(2,'Priority gen set', timeStrings, timedLoadoutsList);
 			}
@@ -401,7 +398,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			generalRecord.last = Date.now();
             caap.updateDashboard(true);
             general.save();
-			con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
+			con.log(3, "Got general stats for " + generalRecord.name, generalRecord);
 			return true;
         } catch (err) {
             con.error("ERROR in general.assignStats: " + err);
@@ -804,19 +801,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.getCoolDownType = function (whichGeneral) {
         try {
-            var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '',
-                it = 0,
-                ok = false;
+            var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
 
-            for (it = 0; it < general.coolStandardList.length; it += 1) {
-                if (general.coolStandardList[it] === generalType) {
-                    ok = true;
-                    break;
-                }
+           if (general.coolStandardList.indexOf(generalType) >= 0) {
+				con.log('Cool General',generalType, whichGeneral);
+				return generalType + "CoolGeneral";
             }
+			con.log('NO Cool General',generalType, whichGeneral);
 
-            generalType = ok ? (generalType ? generalType + "CoolGeneral" : '') : '';
-            return generalType;
+            return '';
         } catch (err) {
             con.error("ERROR in general.getCoolDownType: " + err);
             return undefined;
@@ -887,15 +880,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 			
 			//Check what target general should be
-            targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, 'Use Current'));
+            targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, whichGeneral));
             con.log(5, 'Select General ', whichGeneral, targetGeneral, coolName);
+			
+			if (targetGeneral == 'Use Current') {
+				return false;
+			}
 			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
                 }
 
-                targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : targetGeneral = general.GetLevelUpNames().pop();
+                targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop();
             }
 			
 			if (!general.getRecord(targetGeneral)) {
@@ -986,13 +983,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-	//Read the visible stats from all generals on the generals select page
+	//Read the equipped stats from all generals by loading them one-by-one
     general.GetAllStats = function () {
         try {
             var generalImage = '',
 				generalName = '',
                 len = 0;
-
+				
+			session.setItem('ReleaseControl', true);
 			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
             }
@@ -1108,11 +1106,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('GClassOn');
 			htmlCode += caap.makeDropDownTR("Guild Class", 'GClassGeneral', general.LoadoutList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.endCheckHide('GClassOn');
-            htmlCode += caap.makeCheckTR("General for during Guild Battles.", 'GFightOn', false, GCheckInst);
+/*            htmlCode += caap.makeCheckTR("General for during Guild Battles.", 'GFightOn', false, GCheckInst);
             htmlCode += caap.startCheckHide('GFightOn');
 			htmlCode += caap.makeDropDownTR("Guild Fight", 'GFightGeneral', general.LoadoutList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.endCheckHide('GFightOn');
-			htmlCode += caap.endToggle;
+*/			htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
             con.error("ERROR in general.menu: " + err);

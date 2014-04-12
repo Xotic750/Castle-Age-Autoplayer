@@ -3154,6 +3154,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
+                    'Guild Battle',
                     'Item Stats',
                     'Magic Stats',
                     'Monster',
@@ -3189,6 +3190,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'>";
             layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            /*-------------------------------------------------------------------------------------\
+            Next we put in our Guild and Festival battle dropdown which will only show when we have
+            selected the Guild or Festival battle display.
+            \-------------------------------------------------------------------------------------*/
+//            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'>";
+//            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['Festival','Guild Battle'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
+            layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
             Next we put in our Refresh Generals List button which will only show when we have
@@ -3277,8 +3288,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += caap.makeDropDown('DBDisplay', displayList, displayInst, '', 'User Stats', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
-            We install the display selection box that allows the user to toggle through the
-            available displays.
+            We install the minimize/maximise button that allows the user to make the dashboard
+			appear or disappear.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_dashMin' class='ui-icon ui-icon-circle-minus' style='position:absolute;top:0px;right:5px;' title='Minimise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
 
@@ -4903,7 +4914,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guildv2_battle'
         },
         'guild_battle': {
-            signaturePic: 'guild_battle_portrait.gif',
+            signaturePic: 'guild_battle_banner.jpg',
             CheckResultsFunction: 'checkResults_guild_battle'
         },
         'item_archive_bonus': {
@@ -5067,7 +5078,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else {
                     con.log(2, "page and page2 differ", page, page2, pageUrl);
                 }
-            }
+            } else {
+				con.log(2, "Page and page2", page, page2, pageUrl);
+			}
 
             session.setItem('pageUserCheck', page === 'keep' ? $u.setContent(pageUrl.regex(/user=(\d+)/), 0) : 0);
             if ($u.hasContent(page) && $u.hasContent(caap.pageList[page]) && $u.hasContent(caap.pageList[page].subpages)) {
@@ -5380,7 +5393,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 					caap.stats[stat].max = $u.setContent(caap.stats[stat].max, max);
 					caap.stats[stat].dif = caap.stats[stat].max - caap.stats[stat].num;
-					con.log(2, 'Stat ' + stat + ' max',caap.stats[stat].max);
+					con.log(5, 'Stat ' + stat + ' max',caap.stats[stat].max);
 				} else {
 					con.warn("Unable to get " + stat + "Div");
 					passed = false;
@@ -9070,7 +9083,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			return guild_battle.checkTime();
+			if (guild_battle.work(guild_battle.gf.festival)) {
+				return true;
+			}
+			return guild_battle.work(guild_battle.gf.guild_battle);
         } catch (err) {
             con.error("ERROR in guildBattle: " + err);
             return false;

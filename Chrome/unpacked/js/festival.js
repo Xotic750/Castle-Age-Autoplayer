@@ -88,7 +88,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 festival.cleanWins();
-                session.setItem("FestivalDashUpdate", true);
+				guild_battle.setrPage('festival_battle_home');
+                session.setItem("festivalDashUpdate", true);
                 con.log(3, "festival.load", festival.records);
                 return true;
             } catch (err) {
@@ -111,7 +112,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (caap.domain.which !== 0) {
-                    session.setItem("FestivalDashUpdate", true);
+                    session.setItem("festivalDashUpdate", true);
                 }
 
                 return true;
@@ -186,7 +187,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 festival.save();
                 state.setItem('staminaFestival', 0);
                 state.setItem('targetFestival', {});
-                session.setItem("FestivalDashUpdate", true);
+                session.setItem("festivalDashUpdate", true);
                 return true;
             } catch (err) {
                 con.error("ERROR in festival.clear: " + err);
@@ -802,7 +803,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     currentRecord.reviewed = Date.now();
-                    con.log(3, "currentRecord", currentRecord);
+                    con.log(2, "currentRecord", currentRecord);
                     festival.setItem(currentRecord);
                     if (currentRecord.state === 'Collect' && $u.hasContent(collectDiv)) {
                         caap.click(collectDiv);
@@ -1203,93 +1204,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
         dashboard: function() {
             try {
-                if (config.getItem('DBDisplay', '') === 'Festival' && session.getItem("FestivalDashUpdate", true)) {
-                    var headers = ['Festival', 'Damage', 'Team%', 'Enemy%', 'My Status', 'TimeLeft', 'Status'],
-                        values = ['damage', 'teamHealth', 'enemyHealth', 'myStatus', 'ticker', 'state'],
-                        pp = 0,
-                        i = 0,
-                        len = 0,
-                        data = {},
-                        color = '',
-                        handler = null,
-                        head = '',
-                        body = '',
-                        row = '';
-
-                    for (pp = 0; pp < headers.length; pp += 1) {
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: ''
-                        });
-                    }
-
-                    head = caap.makeTr(head);
-                    for (i = 0, len = festival.records.length; i < len; i += 1) {
-                        row = "";
-                        data = {
-                            text: '<span id="caap_festival_1" title="Clicking this link will take you to the Festival" rlink="festival_battle_home.php" ' +
-                                'onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">Festival</span>',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                        color = festival.records[i].state === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
-                        color = festival.records[i].state === 'Alive' && festival.records[i].enemyHealth === festival.records[i].teamHealth ? 'purple' : color;
-                        color = festival.records[i].enemyHealth > festival.records[i].teamHealth ? 'red' : color;
-                        for (pp = 0; pp < values.length; pp += 1) {
-                            if (values[pp] === 'ticker') {
-                                row += caap.makeTd({
-                                    text: $u.hasContent(festival.records[i][values[pp]]) ? festival.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '',
-                                    color: color,
-                                    id: '',
-                                    title: ''
-                                });
-                            } else {
-                                row += caap.makeTd({
-                                    text: $u.hasContent(festival.records[i][values[pp]]) && ($u.isString(festival.records[i][values[pp]]) || festival.records[i][values[pp]] > 0) ? festival.records[i][values[pp]] : '',
-                                    color: color,
-                                    id: '',
-                                    title: ''
-                                });
-                            }
-                        }
-
-                        body += caap.makeTr(row);
-                    }
-
-                    $j("#caap_festival", caap.caapTopObject).html(caap.makeTable("festival", head, body));
-
-                    handler = function(e) {
-                        var visitMonsterLink = {
-                            mname: '',
-                            arlink: ''
-                        },
-                        i = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'mname') {
-                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                            } else if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
-                            }
-                        }
-
-                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
-                    };
-
-                    $j("span[id='caap_festival_1']", caap.caapTopObject).off('click', handler).click(handler);
-
-                    session.setItem("FestivalDashUpdate", false);
-                }
-
-                return true;
-            } catch (err) {
+				return guild_battle.dashboardWork(guild_battle.gf.festival);
+			} catch (err) {
                 con.error("ERROR in festival.dashboard: " + err);
                 return false;
             }
@@ -1312,17 +1228,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.setDomWaiting("festival_guild_battle.php");
         },
 
-        checkResults_festival_battle_home: function() {
-            try {
-                //caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
-                festival.checkInfo();
-                return true;
-            } catch (err) {
-                con.error("ERROR in festival.checkResults_festival_battle_home: " + err);
-                return false;
-            }
-        },
-
         checkResults_festival_guild_battle: function() {
             try {
                 //caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
@@ -1332,7 +1237,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 festival.onBattle();
                 return true;
-            } catch (err) {
+
+			} catch (err) {
                 con.error("ERROR in festival.checkResults_festival_guild_battle: " + err);
                 return false;
             }
