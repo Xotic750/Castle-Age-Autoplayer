@@ -134,7 +134,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).children().eq(0).text().trim();
                     con.log(3, "Monster userName", userName);
                     tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename().trim();
-                    con.log(3, "Monster tempText", tempText);
+                    con.log(2, "Monster tempText from image", tempText);
+                    tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
+                    con.log(2, "Monster tempText from bold", tempText);
                     monsterText = monster.getListName(tempText).replace(/,.*/,'').trim();
                     con.log(3, "Monster monsterText", monsterText);
                     mName = userName + ' ' + monsterText;
@@ -153,7 +155,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monsterReviewed.page = "battle_monster";
                     newInputsDiv = $j("img[src*='list_btn_collect'],img[src*='list_btn_atk']", monsterRow.eq(it));
                     engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/(collect|atk)/);
-                    con.log(2, "engageButtonName", engageButtonName);
+                    con.log(4, "engageButtonName", engageButtonName);
                     switch (engageButtonName) {
                         case 'collect':
                             monsterReviewed.status = 'Collect Reward';

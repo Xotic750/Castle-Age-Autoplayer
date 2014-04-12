@@ -1149,7 +1149,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			mClass: 'Epic World',
 			mpool: 3,
 			newbg_img: ['monster_alpha_kraken_header.jpg'],
-			list_img: ['monster_kraken2_list.jpg'],
+			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
 		"Kraken": {
@@ -1176,7 +1176,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			join: [30, 30, 35, 50],
 			mClass: 'Epic World',
 			mpool: 3,
-			newbg_img: ['monster_kraken_header.jpg'],
+			newbg_img: ['monster_kraken_large.jpg'],
 			list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
@@ -1679,7 +1679,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts : 2,
             partOrder : [2,1]
         },
-        "Leviathan: Deep" : {
+        "Leviathan of the Dee..." : {
             alpha : true,
             duration : 168,
             hp : 600000000,
@@ -1704,7 +1704,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_deep_list.jpg'],
             cta_img : ['cta_leviathan_deep.gif']
         },
-        "Leviathan: Grove" : {
+        "Leviathan of the Gro..." : {
             alpha : true,
             duration : 168,
             hp : 675000000,
@@ -1729,7 +1729,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_grove_list.jpg'],
             cta_img : ['cta_leviathan_grove.gif']
         },
-        "Leviathan: Void" : {
+        "Leviathan of the Voi..." : {
             alpha : true,
             duration : 168,
             hp : 750000000,
@@ -1754,7 +1754,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_void_list.jpg'],
             cta_img : ['cta_leviathan_void.gif']
         },
-        "Leviathan: Wrath" : {
+        "Leviathan of Wrath" : {
             alpha : true,
             duration : 168,
             hp : 825000000,
