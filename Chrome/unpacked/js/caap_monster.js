@@ -137,7 +137,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(2, "Monster tempText from image", tempText);
                     tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
                     con.log(2, "Monster tempText from bold", tempText);
-                    monsterText = monster.getListName(tempText).replace(/,.*/,'').trim();
+                    monsterText = tempText.replace(/,.*/,'').trim();
                     con.log(3, "Monster monsterText", monsterText);
                     mName = userName + ' ' + monsterText;
                     con.log(2, "Monster Name", mName);
