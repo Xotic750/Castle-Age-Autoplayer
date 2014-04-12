@@ -172,7 +172,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['earth_element_list.jpg'],
             cta_img: ['ntwitter_genesis1.gif']
         },
-        'Cronus, Hydra': {
+        'Cronus': {
             duration: 168,
             hp: 100000000,
             ach: 500000,

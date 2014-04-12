@@ -23,7 +23,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 //            'slot': 0,
             'ticker': '',
 			'collectedTime' : 0,
-			'enteredTime' : 0,
+			'lastBattleTime' : 0,
 			'endTime' : 0,
 			'seal' : '0',
 			'me' : {},
@@ -105,6 +105,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'label' : 'festival',
 			'page' : 'festival_battle_home',
 			'token' : 'festivalTokens',
+			'options' : ['Festival','Both'],
 			'bannerDiv' : 'arena_battle_banner_section',
 			'enterButton' : 'guild_enter_battle_button.gif',
 			'index' : 1,
@@ -122,6 +123,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'label' : 'guildBattle',
 			'page' : 'guildv2_battle',
 			'token' : 'guildBattleTokens',
+			'options' : ['Guild Battles','Both'],
 			'bannerDiv' : 'guild_battle_banner_section',
 			'enterButton' : 'guild_enter_battle_button2.gif',
 			'index' : 0,
@@ -167,7 +169,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		'Rogue' : [],
 		'Warrior' : [
 			{'name': 'guardian',
-			'self': 'only',
+			'self': false,
 			'base' : 'level'},
 			{'name' : 'sentinel',
 			'base' : 'level'}
@@ -436,6 +438,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         try {
 			var record = guild_battle.getItem(gf),
 				otherRecord = guild_battle.getItem(gf.other),
+				nextReview = Date.now(),
 				now = new Date(),
 				text = '',
 				infoDiv = $j(gf.infoDiv);
@@ -477,6 +480,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (text.indexOf(gf.startText) >= 0) {
 				guild_battle.deleterPage('page',gf.page);
 				record.state = 'Start';
+				nextReview += -3 * 60 * 1000;
 			} else if (text.indexOf(gf.preGBText) >= 0 || text.indexOf(' MIN') >= 0) {
 				guild_battle.deleterPage('page',gf.page);
 				record.state = 'PreBattle';
@@ -486,11 +490,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else if (text.indexOf(gf.collectText) >= 0) {
 				guild_battle.deleterPage('page',gf.page);
 				record.state = 'Collect';
-				//con.log(5,'collect button',gf.waitHours, schedule.since(record.collectedTime, gf.waitHours * 60 * 60),config.getItem('guild_battle_collect',false));
-				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && config.getItem('guild_battle_collect',false)) {
+				con.log(5,'collect button',gf.waitHours, schedule.since(record.collectedTime, gf.waitHours * 60 * 60),gf.options, config.getItem('guild_battle_collect',false), gf.options.indexOf(config.getItem('guild_battle_collect',false)));
+				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && gf.options.indexOf(config.getItem('guild_battle_collect',false)) >= 0) {
 					guild_battle.setrPage(gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif','page',gf.page);
 				}
-					
+				nextReview = Math.max(record.lastBattleTime + (gf.waitHours * 60 * 60 - 4 * 60) * 1000, Date.now());
+				
 			} else {
 				con.warn(gf.name + ' Unknown message text', text);
 			}
@@ -505,7 +510,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 
 			guild_battle.setItem(gf, record);
-			guild_battle.setrPage(gf.page, 'review', Date.now());
+			guild_battle.setrPage(gf.page, 'review', nextReview);
 
 			con.log(2, "guild_battle.onTop", record, record.state, caap.stats.priorityGeneral);
 			return true;
@@ -601,6 +606,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				score = [],
 				total = 0,
 				notStarted = '',
+				isMe = false,
 				notMyBattle = '',
 				battleOver = '',
 				scoring = config.getItem('guild_battle_scoring','');
@@ -686,7 +692,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(5, 'Battle has enter button', config.getItem('guild_battle_enter',false));
 				fR['your'].attacks = []; // Should probably make these more frequent, but leaving here for now
 				fR['enemy'].attacks = [];
-				if (config.getItem('guild_battle_enter',false) && caap.stats.stamina.num >= 20) {
+				if (gf.options.indexOf(config.getItem('guild_battle_enter',false)) >= 0 && caap.stats.stamina.num >= 20) {
 					guild_battle.deleterPage('page',gf.page);
 					guild_battle.setrPage(gf.basePath + ',clickimg:' + gf.enterButton,'page',gf.page);
 				}
@@ -694,9 +700,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				return true;
 			}
 
-			fR.enteredTime = Date.now();
+			fR.lastBattleTime = Date.now();
 			con.log(5, 'No enter button', caap.hasImage(gf.enterButton), gf.enterButton);
-			guild_battle.setReview(gf);
+
+			if (gf.options.indexOf(config.getItem('guild_battle_fight',false)) >= 0) {
+				con.log(5,'Opted out of battle.', config.getItem('guild_battle_fight',false));
+				guild_battle.setReview(gf);
+			}
+			
 
 			text = $u.setContent($j("#monsterTicker").text().trim(),'');
             fR.endTime = Date.now() + text.parseTimer() * 1000;
@@ -875,7 +886,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						guild_battle[which][fR.me.mclass].forEach(function(att) {
 							args = scoring.match(new RegExp(att.name + "(\\[.*?)\\]"));
 							con.log(5,'scoring match attack', scoring, args, att.name);
-							if (!args || args.length == 0) {
+							isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
+							if (!args || args.length == 0 || ($u.isBoolean(att.self) && att.self !== isMe)) {
 								return;
 							}
 							if (!fR[which].attacks) {
@@ -889,9 +901,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							['cleric','rogue','warrior','mage'].forEach(function(value) {
 								score = guild_battle.parse(mR.mclass == value, text, value, score);
 							});
+							['1','2','3','4'].forEach(function(value) {
+								score = guild_battle.parse(tower == value, text, 't' + value, score);
+							});
 							['poly','poison','confuse','guardian','revive','shout','confidence','fortify'].forEach(function(value) {
 								score = guild_battle.parse(mR[value], text, value, score);
 							});
+							score = guild_battle.parse(isMe, text, 'me', score);
 							score = guild_battle.parse(mR.battlePoints, text, 'active', score);
 							score = guild_battle.parse(true, text, 'base', score);
 							score = guild_battle.parse(mR.healthNum == mR.healthMax, text, 'bs', score);
@@ -995,6 +1011,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				button = '',
 				maxTokens = 0,
 				stun = false,
+				burnTokens = false,
 				teams = [],
 				button = null,
 				t = { 'score' : 0 },
@@ -1018,7 +1035,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				caap.stats.priorityGeneral = false;
 			}
-			
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
 					caap.stats.battleIdle = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
 			}
@@ -1046,11 +1062,16 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             }
 			con.log(5,'Guild review',caap.stats.reviewPagesGB);
 			
-			maxTokens = schedule.since(fR.endTime, -8 * 60 ) ? 0 : config.getItem(gf.name + 'TokenMax', 8);
-			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, !schedule.since(fR.enteredTime, gf.waitHours * 60 * 60), fR.me.healthNum > gf.minHealth);
+			if (gf.options.indexOf(config.getItem('guild_battle_fight',false)) < 0 || caap.stats.priorityGeneral) {
+				return false;
+			}
 			
-			if (fR.tokens > maxTokens && fR.state == 'Active' && !schedule.since(fR.enteredTime, gf.waitHours * 60 * 60)) {
-				stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
+			burnTokens = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
+			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
+			maxTokens = burnTokens ? 0 : stun == 'stunned' ? 8 : config.getItem('TokenMax', 8);
+			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, !schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60), fR.me.healthNum > gf.minHealth);
+			
+			if (fR.tokens > maxTokens && fR.state == 'Active') {
 				teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
 				teams.forEach(function(which) {
 					['1','2','3','4'].forEach(function(tower) {
@@ -1065,7 +1086,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					return false;
 				}
 				
-				con.log(2, 'ATTACKING', t.team, t.tower, t.name, t);
+				con.log(2, 'ATTACKING', t.team, t.tower, t.name, t.attack, t);
 				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
 				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
 			}
@@ -1132,6 +1153,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         try {
             // Guild Battle controls
             var gbattleList = ['Battle available', 'At fixed times', 'Never'],
+				gbattleOptions = ['Both', 'Guild Battles', 'Festival', 'Never'],
                 gbattleInst = [
                     'Battle available will initiate a guild battle whenever the Start Button is available',
                     'At fixed times will allow you to set a schedule of when to start battles',
@@ -1139,19 +1161,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 ],
 				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
 				guild_battle_scoring_inst = "List of score adjustments to pick targets",
-				GBCheckFreqInstructions = "How often in minutes the Guild Battle top page will be visited to see if a Guild Battle is in progress",
-				GBStartFreqInstructions = "How often in minutes the Guild Battle top page will be visited if an Auto-match is in progress",
                 htmlCode = '';
 
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
-            htmlCode += caap.makeNumberFormTR("Check Guild Battle page", 'GBCheckFreq', GBCheckFreqInstructions, 15, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Check Guild Battles start", 'GBStartFreq', GBStartFreqInstructions, 5, '', '', true, false);
-            htmlCode += caap.makeTD("Rate targets by:");
-            htmlCode += caap.makeTextBox('guild_battle_scoring', guild_battle_scoring_inst, '', '');
-            htmlCode += caap.makeCheckTR("Collect after", 'guild_battle_collect', false, 'Check to automatically collect after festival and Facebook guild battles');
-            htmlCode += caap.makeCheckTR("Auto-join battle", 'guild_battle_enter', false, 'Check to automatically join festival and Facebook guild battles');
-            htmlCode += caap.makeNumberFormTR("Use tokens over", 'FestivalTokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Use tokens over", 'Guild BattleTokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
+            htmlCode += caap.makeDropDownTR("Auto-collect after", 'guild_battle_collect', gbattleOptions, [], '', 'Never', false, false, 62);
+            htmlCode += caap.makeDropDownTR("Auto-join", 'guild_battle_enter', gbattleOptions, [], '', 'Never', false, false, 62);
+            htmlCode += caap.makeDropDownTR("Fight in", 'guild_battle_fight', gbattleOptions, [], '', 'Never', false, false, 62);
+            htmlCode += caap.makeNumberFormTR("Use tokens over", 'TokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
+            htmlCode += caap.makeTD("Rate targets by: <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=830' target='_blank' style='color: blue'>(INFO)</a>");
+            htmlCode += caap.makeTextBox('guild_battle_scoring', guild_battle_scoring_inst, 'cduel[],mduel[],wduel[],rduel[]', '');
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
             htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
             htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
@@ -1220,6 +1238,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					style = '" style="display:' + (config.getItem('GFDisplay', 'Opponent') == whichLabel ? 'block' : 'none') + '"';
 					$j("#caap_" + gf.label, caap.caapTopObject).append('<div id="caap_'+ which + gf.label + style + '></div>');
 
+					if (config.getItem('GFDisplay', 'Opponent') != whichLabel) {
+						return;
+					}
                     head = '';
                     body = '';
                     row = '';
@@ -1303,7 +1324,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 								default:
 									if (record[which].attacks && record[which].attacks.indexOf(values[pp]) >= 0) {
 										if ($u.hasContent(member.scores[values[pp]])) {
-											seal = pp == record[which].seal ? 'seal' : 'normal';
+											seal = i.replace(/-.*/,'') == record[which].seal ? 'seal' : 'normal';
 											value = member.scores[values[pp]][seal];
 										} else {
 											value = 'N/A';

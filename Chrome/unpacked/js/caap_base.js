@@ -3199,7 +3199,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
             layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['Festival','Guild Battle'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
-            layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild','Overview'], ['Them','Us','Both'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
+            layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
             Next we put in our Refresh Generals List button which will only show when we have

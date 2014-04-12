@@ -1106,11 +1106,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.startCheckHide('GClassOn');
 			htmlCode += caap.makeDropDownTR("Guild Class", 'GClassGeneral', general.LoadoutList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.endCheckHide('GClassOn');
-            htmlCode += caap.makeCheckTR("General for during Guild Battles.", 'GFightOn', false, GCheckInst);
+/*            htmlCode += caap.makeCheckTR("General for during Guild Battles.", 'GFightOn', false, GCheckInst);
             htmlCode += caap.startCheckHide('GFightOn');
 			htmlCode += caap.makeDropDownTR("Guild Fight", 'GFightGeneral', general.LoadoutList, '', '', 'Use Current', false, false, 62);
             htmlCode += caap.endCheckHide('GFightOn');
-			htmlCode += caap.endToggle;
+*/			htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
             con.error("ERROR in general.menu: " + err);
