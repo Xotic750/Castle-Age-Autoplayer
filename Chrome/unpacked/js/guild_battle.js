@@ -528,12 +528,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
             return score;
         } catch (err) {
-            con.error("ERROR in guild_battle.clear: " + err);
+            con.error("ERROR in guild_battle.parse: " + err);
             return false;
         }
     };
 	
-    guild_battle.target = function(t, total, mR, attack, general, tower) {
+    guild_battle.target = function(t, total, mR, attack, general, team, tower) {
         try {
 			if (total > t.score) {
 				t.tower = tower;
@@ -542,10 +542,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				t.attack = attack.regex(/duel/) ? 'duel' : attack;
 				t.team = team;
 				t.general = general;
+				t.name = mR.name;
 			}
 			return t;
         } catch (err) {
-            con.error("ERROR in guild_battle.clear: " + err);
+            con.error("ERROR in guild_battle.team: " + err);
             return false;
         }
     };
@@ -595,7 +596,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				tNum = 0,
 				maxDamage = 0,
 				maxTower = 0,
-				id = '',
+				wlid = '',
 				resultsTxt = '',
 				score = [],
 				total = 0,
@@ -612,19 +613,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			notMyBattle = myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/);
 			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
-			con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
+			con.log(5, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
 			if (notMyBattle) {
 				return true;
 			}
 
-			id = $u.setContent($j("#globalContainer #results_main_wrapper input[name='target_id']").attr('value'), false);
+			wlid = $u.setContent($j("#globalContainer #results_main_wrapper input[name='target_id']").attr('value'), false);
 			text = $j("#globalContainer #results_main_wrapper").text();
-			con.log(2,'Pre Results',id, text, text.regex(/\+(\d+) Battle Activity Points/), tNum, wlR, wlRs);
-			if (id && text && text !== '') {
-				if (!$u.isObject(wlRs[id])) {
-					wlRs[id] = new guild_battle.wlRecord().data;
+			con.log(5,'Pre Results',wlid, text, text.regex(/\+(\d+) Battle Activity Points/), tNum, wlR, wlRs);
+			if (wlid && text && text !== '') {
+				if (!$u.isObject(wlRs[wlid])) {
+					wlRs[wlid] = new guild_battle.wlRecord().data;
 				}
-				wlR = wlRs[id];
+				wlR = wlRs[wlid];
 				tNum = $u.setContent(text.regex(/\+(\d+) Battle Activity Points/),0);
 
 				if (tNum == 50) {
@@ -654,7 +655,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					wlR[lastMove].total = wlR[lastMove].wins + wlR[lastMove].losses;
 					guild_battle.setItem('winlossRecords', wlRs);
 				}
-				con.log(2,'Results',id, text, tNum, wlR, wlRs);
+				con.log(2,'Results',wlid, text, tNum, wlR, wlRs);
 			} else {
 				text = $j("#globalContainer div[class='results']").text();
 				if (text.regex(/(You do not have enough battle tokens for this action)/i)) {
@@ -665,7 +666,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.log(1, "Oops, you tripped");
 				} else if (text.regex(/(is stunned and cannot)/i)) {
 					con.log(1, "Ally is stunned");
-				} else if (text !== ['']) {
+				} else if (text !== '') {
 					con.log(1, "Unknown win or loss or result", text);
 				}
 			}
@@ -705,14 +706,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(5, "myStatsTxt", myStatsTxt);
 				args = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
 				if (args && args.length === 8) {
-					con.log(1, "my stats", args);
+					con.log(5, "my stats", args);
 					fR.me.mclass = args[3];
 					fR.me.status = args[6] ? args[6].trim() : '';
 					fR.me.healthNum = args[4] ? args[4].parseInt() : 0;
 					fR.me.healthMax = args[5] ? args[5].parseInt() : 1;
 					fR.me.battlePoints = args[7] ? args[7].parseInt() : 0;
 					fR.me.percent = ((mR.healthNum / mR.healthMax) * 100).dp(2);
-					con.log(2, 'myRecord', mR);
+					con.log(5, 'myRecord', mR);
 				} else if (myStatsTxt.indexOf('Battle Has Not Started') >= 0) {
 					// Wait retry until started
 					return true;
@@ -728,7 +729,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			timerSpan = $j("#globalContainer span[id='guild_token_time_value']");
 			tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
 			fR.tokenTime = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
-			con.log(2,'Tokens', fR.tokens);
+			con.log(5,'Tokens', fR.tokens);
 			
 			health = $j("#guild_battle_health");
 			if (health && health.length) {
@@ -762,25 +763,33 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			which = gate.attr('id').match(/(\w+)_guild_member_list_(\d)/)[1];
 			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'review', Date.now());
 			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'page', gf.page);
-			con.log(2,'Gate ID',gate.attr('id'),tower, which, caap.stats.reviewPagesGB);
+			con.log(5,'Gate ID',gate.attr('id'),tower, which, caap.stats.reviewPagesGB);
 			if (!gate) {
 				con.warn("No gates found");
 			} else {
-				con.log(2,'Gate',tower, which);
+				con.log(2,'Gate', which, tower);
 				memberDivs = gate.children("div[style*='height']");
-				con.log(2,'Members found',memberDivs.length,memberDivs);
+				con.log(5,'Members found',memberDivs.length,memberDivs);
 				towerRecord =  {
 					'players' : 0,
 					'clerics' : 0,
 					'actives' : 0,
 					'AC' : 0,
 					'seal' : {
-						'stunned' : {},
-						'unstunned' : {}
+						'stunned' : {
+							'score' : 0
+						},
+						'unstunned' : {
+							'score' : 0
+						}
 					},
 					'normal' : {
-						'stunned' : {},
-						'unstunned' : {}
+						'stunned' : {
+							'score' : 0
+						},
+						'unstunned' : {
+							'score' : 0
+						}
 					},
 					'clericHealthNum' : 0,
 					'clericHealthMax' : 0,
@@ -839,6 +848,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						mR.metrics.damage = Math.atan((mR.healthMax - mR.healthNum)/1000)/Math.PI*2*100;
 						mR.metrics.level = Math.atan(mR.level/1000)/Math.PI*2*100;
 						mR.metrics.rhealth = 100 - Math.atan(Math.max(mR.healthNum - gf.minHealth, 0)/1000)/Math.PI*2*100;
+						
+						if (wlid == mR.target_id) {
+							wlRs[wlid].level = mR.level;
+							wlRs[wlid].name = mR.name;
+						}
 
                         mR.guardian = $u.hasContent($j("img[src*='ability_sentinel']", member)) ? true : false;
                         mR.poly = $u.hasContent($j("img[src*='polymorph_effect']", member)) ? true : false;
@@ -888,12 +902,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							['normal','seal'].forEach(function(seal) {
 								score = guild_battle.parse(seal == 'seal', text, 'seal', score);
 								total = score[0] * mR.metrics[att.base] + score[1];
-								mR.scores[att.name][seal] = mR.healthNum >= (which == 'your' ? gf.minHealth : 1) ? score.dp(2) : 0;
+								total = mR.healthNum >= (which == 'your' ? gf.minHealth : 1) ? total.dp(2) : 0;
+								mR.scores[att.name][seal] = total;
 								general = text.match(new RegExp("@[^,]+"));
 								general = general && general.length > 0 ? general[0] : '@Use Current';
-								fR[which].towers[tower][seal].unstunned = guild_battle.target(fR[which].towers[tower][seal].unstunned, total, mR, att.name, general, tower);
-								if (which == 'enemy' && att.name.test(/duel/)) {
-									fR[which].towers[tower][seal].stunned = guild_battle.target(fR[which].towers[tower][seal].stunned, total, mR, att.name, general, tower);
+								towerRecord[seal].unstunned = guild_battle.target(towerRecord[seal].unstunned, total, mR, att.name, general, which, tower);
+								if (which == 'enemy' && att.name.regex(/duel/)) {
+									towerRecord[seal].stunned = guild_battle.target(towerRecord[seal].stunned, total, mR, att.name, general, which, tower);
 								}
 							});
 						});
@@ -905,22 +920,22 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			towerRecord.clericDamage = towerRecord.clericHealthMax - towerRecord.clericHealthNum;
-			
+			towerRecord.clericLife = towerRecord.clerics ? (towerRecord.clericHealthNum/towerRecord.clericHealthMax * 100).dp(1) : 100.0;
+			fR[which].towers[tower] = towerRecord;
+
 			['your','enemy'].forEach(function(fwhich) {
 				maxDamage = 0;
 				maxTower = 0;
 				['1','2','3','4'].forEach(function(fTower) {
-					if (fR[fwhich].towers[fTower].clericDamage > maxDamage + 1000) {
-						maxDamage = fR[fwhich].towers[fTower].clericDamage;
+					towerRecord = fR[fwhich].towers[fTower];
+					if ($u.isObject(towerRecord) && $u.isNumber(towerRecord.clericDamage) && towerRecord.clericDamage > maxDamage + 1000 && towerRecord.clericHealthNum > 0) {
+						maxDamage = towerRecord.clericDamage;
 						maxTower = fTower;
 					}
 				});
 				fR[fwhich].seal = maxTower;
 			});
 			
-
-			towerRecord.clericLife = towerRecord.clerics ? (towerRecord.clericHealthNum/towerRecord.clericHealthMax * 100).dp(1) : 100.0;
-			fR[which].towers[tower] = towerRecord;
 			con.log(2, "Current Record", fR);
 			guild_battle.setItem(gf, fR);
 			session.setItem(gf.label + "DashUpdate", true);
@@ -970,7 +985,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		try {
 			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
 				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
-				record = guild_battle.getItem(gf),
+				fR = guild_battle.getItem(gf),
 				startTime = $u.setContent(fRecord.startTime, 0),
 				timeBattlesList = config.getList('timed_guild_battles', ''),
 				begin = new Date(),
@@ -979,6 +994,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				result = '',
 				button = '',
 				maxTokens = 0,
+				stun = false,
 				teams = [],
 				button = null,
 				t = { 'score' : 0 },
@@ -1030,46 +1046,26 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             }
 			con.log(5,'Guild review',caap.stats.reviewPagesGB);
 			
-			maxTokens = schedule.since(record.endTime, -8 * 60 ) ? 0 : config.getItem(gf.name + 'TokenMax', 8);
-			con.log(5,'ATTACK!',record.tokens,maxTokens, schedule.since(record.endTime, -8 * 60 ) , record.state, !schedule.since(record.enteredTime, gf.waitHours * 60 * 60), record.me.healthNum > gf.minHealth);
+			maxTokens = schedule.since(fR.endTime, -8 * 60 ) ? 0 : config.getItem(gf.name + 'TokenMax', 8);
+			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, !schedule.since(fR.enteredTime, gf.waitHours * 60 * 60), fR.me.healthNum > gf.minHealth);
 			
-			if (record.tokens > maxTokens && record.state == 'Active' && !schedule.since(record.enteredTime, gf.waitHours * 60 * 60)) {
-				stun = record.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
-				teams = stun == 'stunned' ? ['your','enemy'] : ['enemy'];
+			if (fR.tokens > maxTokens && fR.state == 'Active' && !schedule.since(fR.enteredTime, gf.waitHours * 60 * 60)) {
+				stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
+				teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
 				teams.forEach(function(which) {
 					['1','2','3','4'].forEach(function(tower) {
-						seal = tower == fR[which].seal ? 'seal' : 'normal';
+						var seal = tower == fR[which].seal ? 'seal' : 'normal';
 						t = fR[which].towers[tower][seal][stun].score > t.score ? fR[which].towers[tower][seal][stun] : t;
+						con.log(5, 'Attack evals:',which, tower, seal, stun, t);
 					});
 				});
 			
-/*			
-			if (record.tokens > maxTokens && record.state == 'Active' && !schedule.since(record.enteredTime, gf.waitHours * 60 * 60)) {
-				['your','enemy'].forEach(function(team) {
-					if (team == 'your' && record.me.healthNum <= gf.minHealth) {
-						return;
-					}
-					$j.each(record[team].members, function(location, member) {
-						$j.each(member.scores, function(attack, obj) {
-							if (obj.score > t.score &&  (record.me.healthNum > gf.minHealth || attack.regex(/duel/))) {
-	*/ //							t.tower = location.replace(/-.*/,'');
-/*								t.id = member.target_id;
-								t.score = obj.score;
-								t.attack = attack.regex(/duel/) ? 'duel' : attack;
-								t.team = team;
-								t.general = obj.general;
-								t.target = member;
-							}
-						});
-					});
-				});
-				
-*/				if (!t.id) {
+				if (!t.id) {
 					con.log(2, 'No valid target to attack');
 					return false;
 				}
 				
-				con.log(2, 'ATTACKING', t);
+				con.log(2, 'ATTACKING', t.team, t.tower, t.name, t);
 				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
 				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
 			}
@@ -1211,6 +1207,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					towers = {},
 					tower = {},
 					style = '',
+					seal = '',
 					whichLabel = '',
                     head = '',
                     body = '',
@@ -1306,7 +1303,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 								default:
 									if (record[which].attacks && record[which].attacks.indexOf(values[pp]) >= 0) {
 										if ($u.hasContent(member.scores[values[pp]])) {
-											value = member.scores[values[pp]].score;
+											seal = pp == record[which].seal ? 'seal' : 'normal';
+											value = member.scores[values[pp]][seal];
 										} else {
 											value = 'N/A';
 										}
