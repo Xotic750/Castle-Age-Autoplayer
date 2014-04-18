@@ -150,6 +150,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		],
 		'Rogue' : [
 			{'name': 'rduel',
+			'base' : 'duel'},
+			{'name': 'poison',
 			'base' : 'duel'}
 		],
 		'Warrior' : [
@@ -166,7 +168,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 	guild_battle.your = {
 		'Mage' : [],
-		'Rogue' : [],
+		'Rogue' : [
+			{'name': 'smokebomb',
+			'self': false,
+			'base' : 'level'}
+		],
 		'Warrior' : [
 			{'name': 'guardian',
 			'self': false,
@@ -685,7 +691,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					fR.collectedTime = 0;
 				}
 				guild_battle.setItem(gf, fR);
-				return true;
+				//return true;
 			}
 							
 			if (caap.hasImage(gf.enterButton)) {
@@ -873,6 +879,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                         mR.shout = $u.hasContent($j("img[src*='effect_shout']", member)) ? true : false;
                         mR.fortify = $u.hasContent($j("img[src*='effect_fort']", member)) ? true : false;
                         mR.confidence = $u.hasContent($j("img[src*='effect_confidence']", member)) ? true : false;
+                        mR.smokebomb = $u.hasContent($j("img[src*='effect_smoke']", member)) ? true : false;
 						con.log(5, 'Member Record', mR);
 						towerRecord.players += 1;
 						towerRecord.actives += mR.battlePoints > 0 ? 1 : 0;
@@ -904,7 +911,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							['1','2','3','4'].forEach(function(value) {
 								score = guild_battle.parse(tower == value, text, 't' + value, score);
 							});
-							['poly','poison','confuse','guardian','revive','shout','confidence','fortify'].forEach(function(value) {
+							['poly','poison','confuse','guardian','revive','shout','confidence','fortify','smokebomb'].forEach(function(value) {
 								score = guild_battle.parse(mR[value], text, value, score);
 							});
 							score = guild_battle.parse(isMe, text, 'me', score);
@@ -912,6 +919,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							score = guild_battle.parse(true, text, 'base', score);
 							score = guild_battle.parse(mR.healthNum == mR.healthMax, text, 'bs', score);
 							score = guild_battle.parse(mR.healthMax - mR.healthNum < 300 , text, 'healed', score);
+							score = guild_battle.parse(gf.label == 'festival' , text, 'festival', score);
 
 							mR.scores[att.name] = {};
 							con.log(5,'record check', score, att.base,mR[att.base], mR.scoreDamage);
@@ -1031,12 +1039,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			con.log(5, 'schedule since ', schedule.since(startTime, 0), schedule.since(startTime,  3 * 60), startTime, fRecord, guild_battle.records);
 			
 			if ((fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) || gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
 			} else {
 				caap.stats.priorityGeneral = false;
 			}
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
-					caap.stats.battleIdle = config.getItem('GFightOn',false) ? config.getItem('GFightGeneral','Use Current') : false;
+				caap.stats.battleIdle = config.getItem('GBIdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBIdleGeneral','Use Current');
+			} else {
+				caap.stats.battleIdle = false;
 			}
 
 			// Work around for faulty storage of caap.stats
@@ -1048,7 +1058,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(5,'Pre  battle page',caap.stats.reviewPagesGB[i].page, gf, schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60));
 				// For now, this looks at both festival and GB pages that are due for review
                 if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
-					con.log(2,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
+					con.log(5,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
 					result = caap.navigate2(caap.stats.reviewPagesGB[i].path);
 					if (result == 'fail') {
 						guild_battle.deleterPage('path', caap.stats.reviewPagesGB[i].path);
@@ -1069,7 +1079,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			burnTokens = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
 			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
 			maxTokens = burnTokens ? 0 : stun == 'stunned' ? 8 : config.getItem('TokenMax', 8);
-			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, !schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60), fR.me.healthNum > gf.minHealth);
+			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, fR.me.healthNum > gf.minHealth);
 			
 			if (fR.tokens > maxTokens && fR.state == 'Active') {
 				teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
@@ -1094,7 +1104,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (timedSetting=='Never' || gRecord.state !== 'Start') {
 				return false;
 			}
-			con.log(2, 'checking to see if starting GB', timeBattlesList);
+			con.log(5, 'checking to see if starting GB', timeBattlesList);
 			// Next we step through the users list getting the name and conditions
 			for (var p = 0; p < timeBattlesList.length; p++) {
 				if (!timeBattlesList[p].toString().trim()) {
@@ -1127,7 +1137,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('GClassOn',false) ? config.getItem('GClassGeneral','Use Current') : false;
+				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}

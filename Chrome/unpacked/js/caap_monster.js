@@ -90,17 +90,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            // get all buttons to check monsterObjectList
-            if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
-                con.log(2, "No buttons found");
-                if ($j("div:contains('You currently are not engaged')").length > 0) {
-                    state.setItem('reviewDone', true);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
 
             page = session.getItem('page', 'battle_monster');
 
@@ -112,8 +101,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				monster.setrPage(page,'review',Date.now());
 			}
-            con.log(2, "list caap.stats.reviewPages", caap.stats.reviewPages, caap.stats.level);
+            con.log(5, "list caap.stats.reviewPages", caap.stats.reviewPages, caap.stats.level);
 			
+            // get all buttons to check monsterObjectList
+            if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
+                con.log(2, "No buttons found");
+                if ($j("div:contains('You currently are not engaged')").length > 0) {
+                    state.setItem('reviewDone', true);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
             if (page === 'player_monster_list') {
                 // Review monsters and find attack and fortify button
                 for (it = 0, len = monsterRow.length; it < len; it += 1) {
@@ -132,19 +132,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     /*jslint continue: false */
 
                     userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).children().eq(0).text().trim();
-                    con.log(3, "Monster userName", userName);
                     tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename().trim();
-                    con.log(2, "Monster tempText from image", tempText);
                     tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
-                    con.log(2, "Monster tempText from bold", tempText);
                     monsterText = tempText.replace(/,.*/,'').trim();
-                    con.log(3, "Monster monsterText", monsterText);
                     mName = userName + ' ' + monsterText;
-                    con.log(2, "Monster Name", mName);
-                    con.log(3, "checkResults_fightList page", page);
+                    con.log(2, "Monster Name", userName, mName);
                     md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
 					md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5;
-					con.log(2,'Monster list md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase(), md5);
+					con.log(5,'Monster list md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase(), md5);
                     monsterReviewed = monster.getItem(md5);
                     monsterReviewed.name = mName;
                     monsterReviewed.userName = userName;
@@ -1144,7 +1139,7 @@ con.log (1, "after button check:", monster, cM);
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-            if (config.getItem('WhenMonster', 'Never') === 'Never' && config.getItem('WhenBattle', 'Never') === 'Never') {
+            if (config.getItem('WhenMonster', 'Never') === 'Never' && ['No Monster', 'Demi Points Only'].indexOf(config.getItem('WhenBattle', 'Never')) < 0 &&  config.getItem('TargetType', 'Freshmeat') != 'Raid') {
                 return false;
             }
 
@@ -1350,7 +1345,6 @@ con.log (1, "after button check:", monster, cM);
                 (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice);
 
 			monster.lastClick = null;
-            con.log(3, "monsterDiv", monsterDiv);
 
 			// new monster layout logic
 			if (dleadersDiv.text() === '') {
@@ -1424,14 +1418,12 @@ con.log (1, "after button check:", monster, cM);
                 caap.chatLink(slice, "#chat_log div[style*='hidden'] div[style*='320px']");
             }
 
-            con.log(2, "monsterDiv", monsterDiv);
             if ($u.hasContent(monsterDiv)) {
                 army.eliteCheckImg();
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
-                con.log(2, "fMonstStyle", fMonstStyle);
+                con.log(5, "fMonstStyle", fMonstStyle);
                 if (!$u.hasContent(fMonstStyle)) {
                     nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_title.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg|boss_header_\S+\.jpg)/);
-                    con.log(2, "nMonstStyle", nMonstStyle);
                 }
 
                 if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle)) {
@@ -1456,7 +1448,7 @@ con.log (1, "after button check:", monster, cM);
                     tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                 }
 
-                con.log(2, "summoned text", tempText);
+                con.log(5, "summoned text", tempText);
             } else {
                 monsterDiv = $j("div[style*='nm_top']", slice);
                 if ($u.hasContent(monsterDiv)) {
@@ -1556,7 +1548,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             }
 
             mName = userName + ' ' + feedMonster;
-            con.log(2, "Monster name", mName);
+            con.log(5, "Monster name", mName);
             if (feed.isScan || ajax) {
                 if (feed.scanRecord.id !== id) {
                     con.warn("User ID doesn't match!");
@@ -1589,7 +1581,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
             md5 = (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase();
 			md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5.MD5();
-			con.log(2,'Monster page md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase(), md5);
+			con.log(5,'Monster page md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase(), md5);
             if ((feed.isScan || ajax) && matches && feed.scanRecord.md5 !== md5) {
                 con.warn("MD5 mismatch!", md5, feed.scanRecord.md5);
                 if (config.getItem("DebugLevel", 1) > 1) {
@@ -1675,7 +1667,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             cM.fImg = $u.setContent(fMonstStyle, '');
             cM.type = $u.setContent(cM.type, '');
             monsterInfo = monster.getInfo(cM);
-            con.log(2, "monsterInfo", cM.monster, monsterInfo);
+            con.log(2, "On Monster info" + mName, cM.monster, monsterInfo);
             if ($u.hasContent(monsterInfo) && $u.hasContent(monsterInfo.levels)) {
                 for (it = 0; it < monsterInfo.levels.length; it += 1) {
                     groupMatch = false;
@@ -1899,7 +1891,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             }
 */          monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' : 'monster_health_background.jpg';
             monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
-            con.log(2, 'monster health',monsterInfo ,monstHealthImg ,monsterDiv);
+            con.log(5, 'monster health',monsterInfo ,monstHealthImg ,monsterDiv);
 
             if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                 cM.time = time;

@@ -6192,7 +6192,7 @@
                     first,
                     result;
 
-                if (3 < compression) {    // try evey compression level and returns the best option
+                if (3 < compression) {    // try every compression level and returns the best option
                     i = JSON['hbest'](collection);
                     result = cache[i];
                     cache = [];
