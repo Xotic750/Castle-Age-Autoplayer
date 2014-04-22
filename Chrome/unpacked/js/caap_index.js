@@ -19,7 +19,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var score = args[2] == '-' ? -args[3].parseFloat() : args[3].parseFloat();
 
 			
-			con.log(1, 'TESTING', args, args[1], false !== (args[1] == '!'), score);
+			//con.log(1, 'TESTING', args, args[1], false !== (args[1] == '!'), score);
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();

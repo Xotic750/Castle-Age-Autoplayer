@@ -1009,6 +1009,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(2, "Loading general #" + (it + 1) + ' of ' + (len + 1), general.records[it].name);
 					return true;
 				}
+				// Go to the keep to force a page refresh to display actual max energy/stamina
+				con.log(2, "Checking keep stats for general #" + it + ' of ' + len, general.records[it].name);
+				return caap.navigateTo('keep');
 			}
 
         } catch (err) {
