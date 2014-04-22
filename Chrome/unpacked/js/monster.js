@@ -1429,7 +1429,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 5,
             partOrder: [5, 4, 3, 2, 1]
         },
-        "Lord Of Darkness": {
+        "Lord of Darkness": {
             alpha: true,
             duration: 168,
             hp: 850000000,

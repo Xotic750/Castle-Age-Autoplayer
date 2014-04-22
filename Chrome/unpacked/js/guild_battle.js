@@ -26,6 +26,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'lastBattleTime' : 0,
 			'endTime' : 0,
 			'seal' : '0',
+			'easy' : false,
+			'simtis' : false,
 			'me' : {},
             'enemy': {
 				'towers' : {},
@@ -60,6 +62,36 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         };
     };
 
+	guild_battle.towerRecord = function () {
+		this.data = {
+			'players' : 0,
+			'clerics' : 0,
+			'actives' : 0,
+			'AC' : 0,
+			'seal' : {
+				'stunned' : {
+					'score' : 0
+				},
+				'unstunned' : {
+					'score' : 0
+				}
+			},
+			'normal' : {
+				'stunned' : {
+					'score' : 0
+				},
+				'unstunned' : {
+					'score' : 0
+				}
+			},
+			'clericHealthNum' : 0,
+			'clericHealthMax' : 0,
+			'clericDamage' : 0,
+			'clericLife' : 0
+		};
+	};
+	
+	
     guild_battle.wlRecord = function() {
         this.data = {
             'name': '',
@@ -103,7 +135,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		'festival' : {
 			'name' : 'Festival',
 			'label' : 'festival',
+			'mess' : 'festival',
 			'page' : 'festival_battle_home',
+			'tabs' : '_arena_tab_',
 			'token' : 'festivalTokens',
 			'options' : ['Festival','Both'],
 			'bannerDiv' : 'arena_battle_banner_section',
@@ -121,7 +155,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		'guild_battle' : {
 			'name' : 'Guild Battle',
 			'label' : 'guildBattle',
+			'mess' : 'guild_battle',
 			'page' : 'guildv2_battle',
+			'tabs' : '_new_guild_tab_',
 			'token' : 'guildBattleTokens',
 			'options' : ['Guild Battles','Both'],
 			'bannerDiv' : 'guild_battle_banner_section',
@@ -289,8 +325,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	
 	guild_battle.setReview = function(gf) {
         try {
-			var	types = ['enemy','your'];
-			types.forEach(function(type) {
+			['your','enemy'].forEach(function(type) {
 				for (var i = 1; i <= 4; i++) {
 					guild_battle.setrPage(guild_battle.makePath(gf, type, i), 'page', gf.page);
 				}
@@ -500,7 +535,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && gf.options.indexOf(config.getItem('guild_battle_collect',false)) >= 0) {
 					guild_battle.setrPage(gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif','page',gf.page);
 				}
-				nextReview = Math.max(record.lastBattleTime + (gf.waitHours * 60 * 60 - 4 * 60) * 1000, Date.now());
+				nextReview = Math.max($u.setContent(record.lastBattleTime,0) + (gf.waitHours * 60 * 60 - 4 * 60) * 1000, Date.now());
 				
 			} else {
 				con.warn(gf.name + ' Unknown message text', text);
@@ -528,8 +563,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
     };
 	
 	// Parses a string for the key, and adds/multiplies the score by according to the key
-	// For example (500, 'cleric:+100', 'cleric') would return the score + 100, i.e. 600
-    guild_battle.parse = function(tf, text, key, score) {
+	// For example ('cleric', true,  'cleric:+100', [500,100]) would return the score + 100, i.e. 600
+	// Default is to multiply, if +/- not present
+    guild_battle.parse = function(key, tf, text, score) {
         try {
 			var args = text.match(new RegExp('(!?)' + key + ':(\\D?)([^,]+)'));
 			
@@ -577,7 +613,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				wlRs = guild_battle.getItem('winlossRecords'), 
 				wlR = {},
 				mR = new guild_battle.member().data, // member record
-				towerRecord = {},
+				tR = new guild_battle.towerRecord().data, // tower record
                 tempDiv = $j(),
                 tempTxt = '',
 				stunnedClerics = 0,
@@ -610,6 +646,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				wlid = '',
 				resultsTxt = '',
 				score = [],
+				towerPops = [],
+				sealedTowers = 0,
 				total = 0,
 				notStarted = '',
 				isMe = false,
@@ -774,45 +812,34 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				con.warn("guild_battle_health error");
 			}
-
+			
 			gate = $j("div[id*='_guild_member_list_']");
 			tower = gate.attr('id').match(/_guild_member_list_(\d)/)[1];
 			which = gate.attr('id').match(/(\w+)_guild_member_list_(\d)/)[1];
 			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'review', Date.now());
 			guild_battle.setrPage(guild_battle.makePath(gf, which, tower), 'page', gf.page);
 			con.log(5,'Gate ID',gate.attr('id'),tower, which, caap.stats.reviewPagesGB);
+
+			towerPops = $j("#globalContainer div[id*='" + which + gf.tabs + "']").map(function() {
+				return this.innerText.match(/(\d+)/)[1];
+			}).get();
+			['1','2','3','4'].forEach(function(stower) {
+				sealedTowers += $u.hasContent(fR[which].towers[stower]) ? fR[which].towers[stower].clericHealthNum == 0 : towerPops[stower - 1] > 0;
+			});
+			// easy if only 1 unsealed tower left or 2 unsealed and winning by over 20%
+			if (which == 'your') {
+				fR.simtis = !$u.isString(fR.me.tower) ? false : towerPops[fR.me.tower - 1] < fR.your.towers[fR.me.tower].players;
+			} else {
+				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2;
+				con.log(2,'EASY',fR.easy, sealedTowers + (fR.guildHealth > fR.enemyHealth + 20), sealedTowers, towerPops);
+			}
+			con.log(2,'SIMTIS',fR.simtis,fR.easy,$u.isString(fR.me.tower),fR.me.tower, towerPops, towerPops[(fR.me.tower || 1) - 1]);
 			if (!gate) {
 				con.warn("No gates found");
 			} else {
 				con.log(2,'Gate', which, tower);
 				memberDivs = gate.children("div[style*='height']");
 				con.log(5,'Members found',memberDivs.length,memberDivs);
-				towerRecord =  {
-					'players' : 0,
-					'clerics' : 0,
-					'actives' : 0,
-					'AC' : 0,
-					'seal' : {
-						'stunned' : {
-							'score' : 0
-						},
-						'unstunned' : {
-							'score' : 0
-						}
-					},
-					'normal' : {
-						'stunned' : {
-							'score' : 0
-						},
-						'unstunned' : {
-							'score' : 0
-						}
-					},
-					'clericHealthNum' : 0,
-					'clericHealthMax' : 0,
-					'clericDamage' : 0,
-					'clericLife' : 0
-				};
 
 				for (var n = 1; n <= 25; n += 1) {
 					delete fR[which].members[tower + '-' + n];
@@ -839,7 +866,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					args = memberText.match(toonStatsRegEx);
 					con.log(5, 'member args', args);
 					mR.mclass = member.children().attr('class').match(classRegEx)[1];
-					towerRecord.clerics += mR.mclass == 'cleric' ? 1 : 0;
+					tR.clerics += mR.mclass == 'cleric' ? 1 : 0;
 					mR.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
 					if (args && args.length === 8) {
 						// mR.position = args[1] || '';
@@ -851,12 +878,28 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						mR.battlePoints = args[7] ? args[7].parseInt() : 0;
 						mR.percent = ((mR.healthNum / mR.healthMax) * 100).dp(2);
 
+                        mR.guardian = $u.hasContent($j("img[src*='ability_sentinel']", member)) ? true : false;
+                        mR.poly = $u.hasContent($j("img[src*='polymorph_effect']", member)) ? true : false;
+                        mR.poison = $u.hasContent($j("img[src*='effect_poison']", member)) ? true : false;
+                        mR.confuse = $u.hasContent($j("img[src*='effect_confuse']", member)) ? true : false;
+                        mR.revive = $u.hasContent($j("img[src*='effect_revive']", member)) ? true : false;
+                        mR.shout = $u.hasContent($j("img[src*='effect_shout']", member)) ? true : false;
+                        mR.fortify = $u.hasContent($j("img[src*='effect_fort']", member)) ? true : false;
+                        mR.confidence = $u.hasContent($j("img[src*='effect_confidence']", member)) ? true : false;
+                        mR.smokebomb = $u.hasContent($j("img[src*='effect_smoke']", member)) ? true : false;
+
 						['duel', 'poly','confuse'].forEach(function(awin) {
-							var api = (awin == 'confuse' ? 1.5 : awin == 'poly' ? 1.25 : 1) * caap.stats.indicators.api;
-							var winChance = Math.min((api / mR.level / 10 * 100).dp(1),100);
+							var api = (awin == 'confuse' ? 1.5 : awin == 'poly' ? 1.25 : 1) * caap.stats.indicators.api,
+								numerator = 0,
+								denominator = 0,
+								winChance = Math.min((api / mR.level / 10 * 100).dp(1),100);
 							wlR = wlRs[mR.target_id];
-							if ($u.hasContent(wlR) && $u.hasContent(wlR[awin]) && wlR[awin].total) {
-								mR.metrics[awin] = ((winChance * 0.5 / 100 + wlR[awin].wins / wlR[awin].total) / (wlR[awin].total + 0.5) * 100).dp(1);
+							if (mR.poly) {
+								mR.metrics[awin] = 100;
+							} else if ($u.hasContent(wlR) && $u.hasContent(wlR[awin]) && $u.isDefined(wlR[awin].total)) {
+								var numerator = wlR.duel.wins + (awin != 'duel' ? wlR.poly.wins : 0) + (awin == 'confuse' ? wlR.confuse.wins : 0);
+								var denominator = awin == 'confuse' ? wlR.confuse.total +  wlR.poly.wins +  wlR.duel.wins : awin == 'poly' ? wlR.confuse.losses +  wlR.poly.total +  wlR.duel.wins : wlR.confuse.losses +  wlR.poly.losses +  wlR.duel.total;
+								mR.metrics[awin] = ((winChance * 0.5 / 100 + numerator) / (0.5 + denominator) * 100).dp(1);
 							} else {
 								mR.metrics[awin] = winChance;
 							}
@@ -871,29 +914,23 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							wlRs[wlid].name = mR.name;
 						}
 
-                        mR.guardian = $u.hasContent($j("img[src*='ability_sentinel']", member)) ? true : false;
-                        mR.poly = $u.hasContent($j("img[src*='polymorph_effect']", member)) ? true : false;
-                        mR.poison = $u.hasContent($j("img[src*='effect_poison']", member)) ? true : false;
-                        mR.confuse = $u.hasContent($j("img[src*='effect_confuse']", member)) ? true : false;
-                        mR.revive = $u.hasContent($j("img[src*='effect_revive']", member)) ? true : false;
-                        mR.shout = $u.hasContent($j("img[src*='effect_shout']", member)) ? true : false;
-                        mR.fortify = $u.hasContent($j("img[src*='effect_fort']", member)) ? true : false;
-                        mR.confidence = $u.hasContent($j("img[src*='effect_confidence']", member)) ? true : false;
-                        mR.smokebomb = $u.hasContent($j("img[src*='effect_smoke']", member)) ? true : false;
 						con.log(5, 'Member Record', mR);
-						towerRecord.players += 1;
-						towerRecord.actives += mR.battlePoints > 0 ? 1 : 0;
-						towerRecord.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
+						tR.players += 1;
+						tR.actives += mR.battlePoints > 0 ? 1 : 0;
+						tR.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
 						stunnedClerics += (mR.status == 'Stunned' && mR.mclass == 'cleric') ? 1 : 0;
-						towerRecord.clericHealthNum += mR.mclass == 'cleric' ? mR.healthNum : 0;
-						towerRecord.clericHealthMax += mR.mclass == 'cleric' ? mR.healthMax : 0;
+						tR.clericHealthNum += mR.mclass == 'cleric' ? mR.healthNum : 0;
+						tR.clericHealthMax += mR.mclass == 'cleric' ? mR.healthMax : 0;
+						isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
+						if (isMe) {
+							fR.me.tower = tower;
+						}
 						
 						// for testing
 						//fR.me.mclass = 'Warrior';
 						guild_battle[which][fR.me.mclass].forEach(function(att) {
 							args = scoring.match(new RegExp(att.name + "(\\[.*?)\\]"));
 							con.log(5,'scoring match attack', scoring, args, att.name);
-							isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
 							if (!args || args.length == 0 || ($u.isBoolean(att.self) && att.self !== isMe)) {
 								return;
 							}
@@ -906,33 +943,38 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							score = [1, 0];
 							text = args[1];
 							['cleric','rogue','warrior','mage'].forEach(function(value) {
-								score = guild_battle.parse(mR.mclass == value, text, value, score);
+								score = guild_battle.parse(value, 	mR.mclass == value, 				text, score);
 							});
 							['1','2','3','4'].forEach(function(value) {
-								score = guild_battle.parse(tower == value, text, 't' + value, score);
+								score = guild_battle.parse('t' + value, tower == value, 				text, score);
 							});
 							['poly','poison','confuse','guardian','revive','shout','confidence','fortify','smokebomb'].forEach(function(value) {
-								score = guild_battle.parse(mR[value], text, value, score);
+								score = guild_battle.parse(value, 	mR[value],							text, score);
 							});
-							score = guild_battle.parse(isMe, text, 'me', score);
-							score = guild_battle.parse(mR.battlePoints, text, 'active', score);
-							score = guild_battle.parse(true, text, 'base', score);
-							score = guild_battle.parse(mR.healthNum == mR.healthMax, text, 'bs', score);
-							score = guild_battle.parse(mR.healthMax - mR.healthNum < 300 , text, 'healed', score);
-							score = guild_battle.parse(gf.label == 'festival' , text, 'festival', score);
+							score = guild_battle.parse('me',		isMe, 								text, score);
+							score = guild_battle.parse('active',	mR.battlePoints, 					text, score);
+							score = guild_battle.parse('base', 		true,								text, score);
+							score = guild_battle.parse('bs', 		mR.healthNum == mR.healthMax,		text, score);
+							score = guild_battle.parse('healed', 	mR.healthMax - mR.healthNum < 300,	text, score);
+							score = guild_battle.parse('festival', 	gf.label == 'festival',				text, score);
+							score = guild_battle.parse('easy', 		fR.easy,							text, score);
+							score = guild_battle.parse('easyc', 	fR.easy && mR.mclass == 'cleric',	text, score);
+							score = guild_battle.parse('simtis', 	fR.simtis,							text, score);
+							score = guild_battle.parse(mR.target_id,true,								text, score);
+							score = guild_battle.parse('unstunned',	mR.healthNum > 200,					text, score);
 
 							mR.scores[att.name] = {};
 							con.log(5,'record check', score, att.base,mR[att.base], mR.scoreDamage);
 							['normal','seal'].forEach(function(seal) {
-								score = guild_battle.parse(seal == 'seal', text, 'seal', score);
+								score = guild_battle.parse('seal', 	seal == 'seal',						text, score);
 								total = score[0] * mR.metrics[att.base] + score[1];
 								total = mR.healthNum >= (which == 'your' ? gf.minHealth : 1) ? total.dp(2) : 0;
 								mR.scores[att.name][seal] = total;
 								general = text.match(new RegExp("@[^,]+"));
 								general = general && general.length > 0 ? general[0] : '@Use Current';
-								towerRecord[seal].unstunned = guild_battle.target(towerRecord[seal].unstunned, total, mR, att.name, general, which, tower);
+								tR[seal].unstunned = guild_battle.target(tR[seal].unstunned, total, mR, att.name, general, which, tower);
 								if (which == 'enemy' && att.name.regex(/duel/)) {
-									towerRecord[seal].stunned = guild_battle.target(towerRecord[seal].stunned, total, mR, att.name, general, which, tower);
+									tR[seal].stunned = guild_battle.target(tR[seal].stunned, total, mR, att.name, general, which, tower);
 								}
 							});
 						});
@@ -943,27 +985,27 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					fR[which].members[tower + '-' + n] = mR;
 				}
 			}
-			towerRecord.clericDamage = towerRecord.clericHealthMax - towerRecord.clericHealthNum;
-			towerRecord.clericLife = towerRecord.clerics ? (towerRecord.clericHealthNum/towerRecord.clericHealthMax * 100).dp(1) : 100.0;
-			fR[which].towers[tower] = towerRecord;
+			tR.clericDamage = tR.clericHealthMax - tR.clericHealthNum;
+			tR.clericLife = tR.clerics ? (tR.clericHealthNum/tR.clericHealthMax * 100).dp(1) : 100.0;
+			fR[which].towers[tower] = tR;
 
 			['your','enemy'].forEach(function(fwhich) {
 				maxDamage = 0;
 				maxTower = 0;
 				['1','2','3','4'].forEach(function(fTower) {
-					towerRecord = fR[fwhich].towers[fTower];
-					if ($u.isObject(towerRecord) && $u.isNumber(towerRecord.clericDamage) && towerRecord.clericDamage > maxDamage + 1000 && towerRecord.clericHealthNum > 0) {
-						maxDamage = towerRecord.clericDamage;
+					tR = fR[fwhich].towers[fTower];
+					if ($u.isObject(tR) && $u.isNumber(tR.clericDamage) && tR.clericDamage > maxDamage + 1000 && tR.clericHealthNum > 0) {
+						maxDamage = tR.clericDamage;
 						maxTower = fTower;
 					}
 				});
 				fR[fwhich].seal = maxTower;
 			});
 			
-			con.log(2, "Current Record", fR);
+			con.log(2, "Current Record", fR, sealedTowers, fR.easy, fR.simtis);
 			guild_battle.setItem(gf, fR);
 			session.setItem(gf.label + "DashUpdate", true);
-//            caap.updateDashboard(true);
+            caap.updateDashboard(true);
 			if (collect) {
 				caap.click(collectDiv);
 			}
@@ -1048,6 +1090,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				caap.stats.battleIdle = false;
 			}
+			con.log(5,'1', gf.page);
 
 			// Work around for faulty storage of caap.stats
 			if (caap.stats.indicators.api == 0) {
@@ -1055,8 +1098,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			
             for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
-				con.log(5,'Pre  battle page',caap.stats.reviewPagesGB[i].page, gf, schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60));
-				// For now, this looks at both festival and GB pages that are due for review
                 if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
 					con.log(5,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
 					result = caap.navigate2(caap.stats.reviewPagesGB[i].path);
@@ -1096,7 +1137,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					return false;
 				}
 				
-				con.log(2, 'ATTACKING', t.team, t.tower, t.name, t.attack, t);
+				caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
+				con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
 				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
 				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
 			}
