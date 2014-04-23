@@ -1967,6 +1967,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 }  
             }
 */
+			// Clean out some old bad entries for pages
+			for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
+				if (caap.stats.reviewPages[i].path.indexOf('monster_slot') >= 0) {
+					con.log(1, 'Deleted conquest monster that slipped into review pages list.', caap.stats.reviewPages[i], caap.stats.reviewPages)
+					monster.deleterPage('path',caap.stats.reviewPages[i].path)
+				}
+			}
+			monster.deleterPage('page','guildv2_monster_list');
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
 			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
 			monster.togglerPage('festival_tower', caap.stats.level > 6 && config.getItem("festivalTower", false));

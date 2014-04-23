@@ -15,7 +15,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
-			var args = 'dispel[base:-100,poly:20100,confuse:20100,!active:-100000@Loadout Heal],cduel[base:10000,cleric:800,seal:400,active:200,guardian:-100@Loadout Dawn],heal[healed:-10000,cleric:800,seal:400,active:200,guardian:100@Loadout Heal]'.match(new RegExp('(!?)active:(\\D?)([^,]+)'));
+			var args = 'dispel[!active:*-100,poly:20100,confuse:20100,!active:-100000@Loadout Heal],cduel[base:10000,cleric:800,seal:400,active:200,guardian:-100@Loadout Dawn],heal[healed:-10000,cleric:800,seal:400,active:200,guardian:100@Loadout Heal]'.match(new RegExp('\\W(!?)active:(\\D?)([^,]+)'));
 			var score = args[2] == '-' ? -args[3].parseFloat() : args[3].parseFloat();
 
 			
