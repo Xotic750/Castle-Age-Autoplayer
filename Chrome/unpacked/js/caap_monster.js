@@ -236,11 +236,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempText = $j("div[style*='.jpg']", monsterRow).eq(0).attr("style").regex(new RegExp(".*\\/(.*\\.jpg)"));
                     monsterText = $u.setContent(monster.getListName(tempText), monsterText);
                     mName = userName + ' ' + monsterText;
-                    con.log(2, "Conquest Monster Name", mName);
                     userId = $u.setContent(url.regex(/guild_creator_id=(\d+)/) + '_' + url.regex(/&slot=(\d+)/) + '_' + url.regex(/&monster_slot=(\d+)/), 0);
                     md5 = (userId + ' ' + monsterText + ' guildv2_battle_monster').toLowerCase().MD5();
                     monsterReviewed = monster.getItem(md5);
                     monsterReviewed.name = mName;
+                    con.log(2, "Conquest Monster Name " + mName, md5, monsterReviewed);
                     monsterReviewed.userName = userName;
                     monsterReviewed.monster = monsterText;
                     monsterReviewed.userId = userId;
@@ -1155,7 +1155,7 @@ con.log (1, "after button check:", monster, cM);
 
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-					con.log(4,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
+					con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
 					return caap.navigateTo(caap.stats.reviewPages[i].path);
 				}
             }
@@ -1243,7 +1243,7 @@ con.log (1, "after button check:", monster, cM);
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
-                    con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name);
+                    con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM);
                     session.setItem('ReleaseControl', true);
                     link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
 
@@ -1667,7 +1667,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             cM.fImg = $u.setContent(fMonstStyle, '');
             cM.type = $u.setContent(cM.type, '');
             monsterInfo = monster.getInfo(cM);
-            con.log(2, "On Monster info" + mName, cM.monster, monsterInfo);
+            con.log(2, "On Monster info" + mName, md5, cM, cM.monster, monsterInfo, caap.stats.reviewPages);
             if ($u.hasContent(monsterInfo) && $u.hasContent(monsterInfo.levels)) {
                 for (it = 0; it < monsterInfo.levels.length; it += 1) {
                     groupMatch = false;

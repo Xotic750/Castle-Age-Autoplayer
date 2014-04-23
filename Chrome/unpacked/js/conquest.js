@@ -1197,7 +1197,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             conquestLands.setItem(landRecord);
         });
-		
+/*		
 		// Clear out monster conquest lands that no longer exist
 		for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
 			if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
@@ -1212,7 +1212,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 			}
 		}
-		// Clear out monsters in conquest lands that no longer exist
+*/		// Clear out monsters in conquest lands that no longer exist
 		for (var ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
 			if (monster.records[ii].page == 'guildv2_monster_list') {
 				monsterFound = false;

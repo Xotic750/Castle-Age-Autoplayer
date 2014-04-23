@@ -567,7 +567,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	// Default is to multiply, if +/- not present
     guild_battle.parse = function(key, tf, text, score) {
         try {
-			var args = text.match(new RegExp('(!?)' + key + ':(\\D?)([^,]+)'));
+			var args = text.match(new RegExp('\\W(!?)' + key + ':(\\D?)([^,]+)'));
 			
 			con.log(5,'scoringtext match',key, text, args);
 			if (args && args.length == 4 && (tf != false) !== (args[1] == '!')) { // Deliberate avoidance of "tf !==" to catch 0 or undefined, etc.
@@ -924,6 +924,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
 						if (isMe) {
 							fR.me.tower = tower;
+							fR.me.shout = mR.shout;
 						}
 						
 						// for testing
@@ -962,6 +963,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							score = guild_battle.parse('simtis', 	fR.simtis,							text, score);
 							score = guild_battle.parse(mR.target_id,true,								text, score);
 							score = guild_battle.parse('unstunned',	mR.healthNum > 200,					text, score);
+							score = guild_battle.parse('meshout',	fR.me.shout,						text, score);
 
 							mR.scores[att.name] = {};
 							con.log(5,'record check', score, att.base,mR[att.base], mR.scoreDamage);
