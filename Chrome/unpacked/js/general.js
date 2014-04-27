@@ -59,9 +59,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             general.BuildLists();
             general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
-            con.log(2, "general.load Hbest", general.hbest);
+            con.log(5, "general.load Hbest", general.hbest);
             session.setItem("GeneralsDashUpdate", true);
-            con.log(2, "general.load", general.records);
+            con.log(5, "general.load", general.records);
             return true;
         } catch (err) {
             con.error("ERROR in general.load: " + err);
@@ -258,38 +258,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     general.List = [];
-
     general.GeneralsList = [];
-
     general.LoadoutsList = [];
-
-    general.AltList = [];
-
     general.LoadoutList = [];
-
     general.BuyList = [];
-
     general.IncomeList = [];
-
     general.BankingList = [];
-
     general.CollectList = [];
-
     general.SubQuestList = [];
-
     general.coolDownList = [];
-
-    general.StandardList = [
-        'Idle',
-        'Monster',
-        'Fortify',
-        'GuildMonster',
-        'Invade',
-        'Duel',
-        'War'
-        //'Arena'
-        //'Festival'
-    ];
+    general.StandardList = [];
 
     general.coolStandardList = [
         'Monster',
@@ -298,6 +276,70 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Invade',
         'Duel',
         'War'];
+
+	general.info = [
+        'Idle' : {
+			'cool' : false,
+			'lFilter' : false
+		},
+        'Monster' : {
+			'cool' : true,
+			'lFilter' : false
+		},
+        'Fortify' : {
+			'cool' : false,
+			'lFilter' : false
+		},
+        'GuildMonster' : {
+			'cool' : true,
+			'lFilter' : false
+		},
+        'Invade' : {
+			'cool' : true,
+			'lFilter' : false
+		},
+        'Duel' : {
+			'cool' : true,
+			'lFilter' : false
+		},
+        'War' : {
+			'cool' : true,
+			'lFilter' : false
+		}
+        'Arena' : {
+			'cool' : true,
+			'lFilter' : false
+		}
+		'Buy'  : {
+			'cool' : true,
+			'lFilter' : [
+				'Darius',
+				'Lucius',
+				'Garlan',
+				'Penelope']
+		'Income' : {
+			'cool' : true,
+			'lFilter' : [
+				'Scarlett',
+				'Mercedes',
+				'Cid']
+		'Banking' : {
+			'cool' : true,
+			'lFilter' : [
+				'Aeris']
+		'Collect' : {
+			'cool' : true,
+			'lFilter' : [
+				'Angelica',
+				'Morrigan',
+				'Valiant']
+		'SubQuest' : {
+			'cool' : true,
+			'lFilter' : [
+				'Under Level',
+				'Sano',
+				'Titania']
+	};
 
 	general.isLoadout = function (name) {
         try {
@@ -318,10 +360,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 fullList = [],
 			 	filterList = config.getItem("filterGeneral", true),
                 crossList = function (checkItem) {
-                    return general.List.hasIndexOf(checkItem);
+                    return general.List.hasIndexOf(checkItem) >= 0;
                 };
 
-			con.log(3, 'Building Generals Lists');
+			con.log(2, 'Building Generals Lists');
+
+            general.LoadoutsList = ['Use Current'];
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
 				if (!general.isLoadout(general.records[it].name)) {
@@ -330,50 +374,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					general.LoadoutsList.push(general.records[it].name);
 				}	
             }
-			general.GeneralsList=general.GeneralsList.sort();
+			general.GeneralsList = general.GeneralsList.sort();
 
-			con.log(2, 'general.LoadoutsList',general.LoadoutsList);
+			con.log(3, 'general.LoadoutsList',general.LoadoutsList);
 			
 			fullList = general.LoadoutsList.concat(general.GeneralsList);
 
-			general.List = [
-                'Use Current',
-                'Under Level'].concat(fullList);
+			general.List = ['Use Current', 'Under Level'].concat(fullList);
 
-            general.AltList = [
-                'Use Current'].concat(fullList);
-            
-            general.LoadoutList = filterList ? ['Use Current'].concat(general.LoadoutsList) : general.AltList;
 			con.log(2, 'general.LoadoutList',general.LoadoutList);
 
-            general.BuyList = filterList ? [
-                'Use Current',
-                'Darius',
-                'Lucius',
-                'Garlan',
-                'Penelope'].filter(crossList) : general.AltList;
-
-            general.IncomeList = filterList ? [
-                'Use Current',
-                'Scarlett',
-                'Mercedes',
-                'Cid'].filter(crossList) : general.AltList;
-
-            general.BankingList = filterList ? [
-                'Use Current',
-                'Aeris'].filter(crossList) : general.AltList;
-
-            general.CollectList = filterList ? [
-                'Use Current',
-                'Angelica',
-                'Morrigan',
-                'Valiant'].filter(crossList) : general.AltList;
-
-            general.SubQuestList = filterList ? [
-                'Use Current',
-                'Under Level',
-                'Sano',
-                'Titania'].filter(crossList) : general.List;
+			general.info.forEach(function(listInfo) {
+				var filterPlusUC = ['Use Current'].concat($u.isString(listInfo.lFilter) ? listInfo.lFilter : []);
+				listInfo.list = filterList && listInfo.filter ? filterPlusUC.filter(crossList) : general.List;
+			});
 
             general.coolDownList = [
                 ''].concat(general.getCoolDownNames());
@@ -792,10 +806,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
 
            if (general.coolStandardList.indexOf(generalType) >= 0) {
-				con.log('Cool General',generalType, whichGeneral);
+				con.log(5,'Cool General',generalType, whichGeneral);
 				return generalType + "CoolGeneral";
             }
-			con.log('NO Cool General',generalType, whichGeneral);
+			con.log(5,'NO Cool General',generalType, whichGeneral);
 
             return '';
         } catch (err) {
@@ -983,6 +997,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
             }
+			if (general.timedLoadout()) {
+				con.log(4,'Pausing general review while equipping timed general');
+				return false;
+			}
 
 			for (var it = 0, len = general.records.length; it < len; it += 1) {
                 if (schedule.since(general.records[it].last || 0, (general.isLoadout(general.records[it].name) ? 1 : 7) * 24 * 3600)) {
@@ -991,11 +1009,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
 			if (it < len) {
-				if (general.timedLoadout()) {
-					con.log(2,'Pausing general review while equipping timed general');
-					return false;
-				}
-					
 				if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
 					((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
 					con.log(4, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
@@ -1009,7 +1022,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					return true;
 				}
 				// Go to the keep to force a page refresh to display actual max energy/stamina
-				con.log(2, "Checking keep stats for general #" + it + ' of ' + len, general.records[it].name);
+				con.log(2, "Checking keep stats for Loadout #" + (it + 1) + ' of ' +  (len + 1), general.records[it].name);
 				return caap.navigateTo('keep');
 			}
 
