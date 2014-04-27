@@ -20,8 +20,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.log(5,"Idle Check paused",timedLoadoutCheck);
 				return timedLoadoutCheck === 'change';
 			}
-			con.log(5,"Idle Check equipped",timedLoadoutCheck);
-			return caap.stats.battleIdle ? general.Select('GFightGeneral') : general.Select('IdleGeneral');
+			con.log(5,"Idle Check equipped",timedLoadoutCheck, caap.stats.battleIdle, general.Select('GFightGeneral'));
+			return caap.stats.battleIdle ? general.Select(caap.stats.battleIdle) : general.Select('IdleGeneral');
         } catch (err) {
             con.error("ERROR in passiveGeneral: " + err);
             return false;

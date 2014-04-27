@@ -189,7 +189,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
 			if (!quiet) {
-				con.warn("Unable to find 'General' record", generalName);
+				con.warn("GetRecord: Unable to find 'General' record", generalName);
 			}
 
 			return false;
@@ -427,7 +427,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 temptext = '';
 
             if (generalName === 'Use Current' || !generalRecord) {
-                con.warn("Unable to find 'General' record", generalName);
+                con.warn("Get Equipped Stats: Unable to find 'General' record", generalName);
                 return false;
             }
 
@@ -937,10 +937,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
 
-				// Although loadout fast switch possible, do loadout switch on generals page to capture stats.
-				if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-					return true;
-				}
 				general.clickedLoadout = lRecord.value-1;
 				caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
 				return true;
@@ -1004,6 +1000,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
 					con.log(4, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
 					return false;
+				}
+				if (session.getItem("page", "") != 'generals') {
+					caap.navigateTo('mercenary,generals', 'tab_generals_on.gif');
 				}
 				if (general.selectSpecific(general.records[it].name)) {
 					con.log(2, "Loading general #" + (it + 1) + ' of ' + (len + 1), general.records[it].name);
