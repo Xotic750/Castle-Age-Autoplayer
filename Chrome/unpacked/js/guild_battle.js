@@ -1092,7 +1092,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				caap.stats.battleIdle = false;
 			}
-			con.log(5,'1', gf.page);
 
 			// Work around for faulty storage of caap.stats
 			if (caap.stats.indicators.api == 0) {
@@ -1102,6 +1101,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
                 if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
 					con.log(5,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
+					if (caap.stats.battleIdle && general.Select(caap.stats.battleIdle)) {
+						return true;
+					}
 					result = caap.navigate2(caap.stats.reviewPagesGB[i].path);
 					if (result == 'fail') {
 						guild_battle.deleterPage('path', caap.stats.reviewPagesGB[i].path);
