@@ -258,6 +258,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     general.List = [];
+	general.usedGenerals = [];
     general.GeneralsList = [];
     general.LoadoutsList = [];
     general.LoadoutList = [];
@@ -269,7 +270,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     general.coolDownList = [];
     general.StandardList = [];
 
-    general.coolStandardList = [
+    general.coolList = [
         'Monster',
         'Fortify',
         'GuildMonster',
@@ -277,68 +278,44 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Duel',
         'War'];
 
-	general.info = [
-        'Idle' : {
-			'cool' : false,
-			'lFilter' : false
-		},
-        'Monster' : {
-			'cool' : true,
-			'lFilter' : false
-		},
-        'Fortify' : {
-			'cool' : false,
-			'lFilter' : false
-		},
-        'GuildMonster' : {
-			'cool' : true,
-			'lFilter' : false
-		},
-        'Invade' : {
-			'cool' : true,
-			'lFilter' : false
-		},
-        'Duel' : {
-			'cool' : true,
-			'lFilter' : false
-		},
-        'War' : {
-			'cool' : true,
-			'lFilter' : false
-		}
-        'Arena' : {
-			'cool' : true,
-			'lFilter' : false
-		}
-		'Buy'  : {
-			'cool' : true,
-			'lFilter' : [
-				'Darius',
-				'Lucius',
-				'Garlan',
-				'Penelope']
-		'Income' : {
-			'cool' : true,
-			'lFilter' : [
-				'Scarlett',
-				'Mercedes',
-				'Cid']
-		'Banking' : {
-			'cool' : true,
-			'lFilter' : [
-				'Aeris']
-		'Collect' : {
-			'cool' : true,
-			'lFilter' : [
-				'Angelica',
-				'Morrigan',
-				'Valiant']
-		'SubQuest' : {
-			'cool' : true,
-			'lFilter' : [
-				'Under Level',
-				'Sano',
-				'Titania']
+	general.menuList = [
+        'Monster',
+        'Fortify',
+        'GuildMonster',
+        'Invade',
+        'Duel',
+        'War',
+        //'Arena',
+        'Buy',
+        'Income',
+        'Banking',
+        'Collect',
+        'SubQuest',
+        'Level Up',
+        'Guild Class',
+        'Guild/Festival Battle Idle'];
+	
+		
+	general.filters = {
+		'Buy' : [
+			'Darius',
+			'Lucius',
+			'Garlan',
+			'Penelope'],
+		'Income' : [
+			'Scarlett',
+			'Mercedes',
+			'Cid'],
+		'Banking' : [
+			'Aeris'],
+		'Collect' : [
+			'Angelica',
+			'Morrigan',
+			'Valiant'],
+		'SubQuest' : [
+			'Under Level',
+			'Sano',
+			'Titania']
 	};
 
 	general.isLoadout = function (name) {
@@ -365,7 +342,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			con.log(2, 'Building Generals Lists');
 
-            general.LoadoutsList = ['Use Current'];
+            general.LoadoutsList = [];
+            general.usedGenerals = [];
 
             for (it = 0, len = general.records.length; it < len; it += 1) {
 				if (!general.isLoadout(general.records[it].name)) {
@@ -380,12 +358,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			fullList = general.LoadoutsList.concat(general.GeneralsList);
 
-			general.List = ['Use Current', 'Under Level'].concat(fullList);
+			general.List = ['Under Level'].concat(fullList);
 
 			con.log(2, 'general.LoadoutList',general.LoadoutList);
 
 			general.info.forEach(function(listInfo) {
-				var filterPlusUC = ['Use Current'].concat($u.isString(listInfo.lFilter) ? listInfo.lFilter : []);
+				
 				listInfo.list = filterList && listInfo.filter ? filterPlusUC.filter(crossList) : general.List;
 			});
 
@@ -805,7 +783,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
 
-           if (general.coolStandardList.indexOf(generalType) >= 0) {
+           if (general.coolList.indexOf(generalType) >= 0) {
 				con.log(5,'Cool General',generalType, whichGeneral);
 				return generalType + "CoolGeneral";
             }
@@ -1015,7 +993,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					return false;
 				}
 				if (session.getItem("page", "") != 'generals') {
-					caap.navigateTo('mercenary,generals', 'tab_generals_on.gif');
+					return caap.navigateTo('generals');
 				}
 				if (general.selectSpecific(general.records[it].name)) {
 					con.log(2, "Loading general #" + (it + 1) + ' of ' + (len + 1), general.records[it].name);
