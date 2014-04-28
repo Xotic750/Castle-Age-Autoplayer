@@ -132,16 +132,20 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		// Put code to be run once to upgrade an old version's variables to
 		// new format or such here.
 		/////////////////////////////////////////////////////////////////////
-
+		
 		if (devVersion !== '0') {
 			if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
-			state.setItem('LastVersion', caapVersion);
-			state.setItem('LastDevVersion', devVersion);
+				if (devVersion > 226) {
+					con.log(1,'Clearing monster list since names have changed since Dev 226', devVersion);
+					monster.clear();
+				}
+				state.setItem('LastVersion', caapVersion);
+				state.setItem('LastDevVersion', devVersion);
 			}
 		} else {
 			if (state.getItem('LastVersion', '0') !== caapVersion) {
-			state.setItem('LastVersion', caapVersion);
-			state.setItem('LastDevVersion', '0');
+				state.setItem('LastVersion', caapVersion);
+				state.setItem('LastDevVersion', '0');
 			}
 		}
 

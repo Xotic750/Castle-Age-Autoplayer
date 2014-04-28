@@ -133,8 +133,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).children().eq(0).text().trim();
                     tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename().trim();
-                    tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
-                    monsterText = tempText.replace(/,.*/,'').trim();
+					monsterText = monster.getListName(tempText);
+					if (monsterText == '') {
+						tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
+						monsterText = tempText.replace(/,.*/,'').trim();
+					}
                     mName = userName + ' ' + monsterText;
                     con.log(2, "Monster Name", userName, mName);
                     md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
