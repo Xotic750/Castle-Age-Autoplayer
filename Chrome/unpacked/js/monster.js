@@ -1149,7 +1149,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			mClass: 'Epic World',
 			mpool: 3,
 			newbg_img: ['monster_alpha_kraken_header.jpg'],
-			list_img: ['monster_kraken_list.jpg'],
+			// Commented out since not unique, falls through to text name
+			//list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
 		"Kraken": {
@@ -1177,7 +1178,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			mClass: 'Epic World',
 			mpool: 3,
 			newbg_img: ['monster_kraken_header.jpg'], 
-			list_img: ['monster_kraken_list.jpg'],
+			// Commented out since not unique, falls through to text name
+			//list_img: ['monster_kraken_list.jpg'],
 			cta_img: ['cta_kraken.gif']
 		},
         "Fenix": {
@@ -1679,7 +1681,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts : 2,
             partOrder : [2,1]
         },
-        "Leviathan of the Dee..." : {
+        "Levi - Deep" : {
             alpha : true,
             duration : 168,
             hp : 600000000,
@@ -1704,7 +1706,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_deep_list.jpg'],
             cta_img : ['cta_leviathan_deep.gif']
         },
-        "Leviathan of the Gro..." : {
+        "Levi - Grove" : {
             alpha : true,
             duration : 168,
             hp : 675000000,
@@ -1729,7 +1731,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_grove_list.jpg'],
             cta_img : ['cta_leviathan_grove.gif']
         },
-        "Leviathan of the Voi..." : {
+        "Levi - Void" : {
             alpha : true,
             duration : 168,
             hp : 750000000,
@@ -1754,7 +1756,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_void_list.jpg'],
             cta_img : ['cta_leviathan_void.gif']
         },
-        "Leviathan of Wrath" : {
+        "Levi - Wrath" : {
             alpha : true,
             duration : 168,
             hp : 825000000,
@@ -2225,6 +2227,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.clear = function() {
         try {
             monster.records = [];
+            for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+				monster.setrPage(caap.stats.reviewPages[i].path,'review',0);
+            }
             monster.save();
             session.setItem("MonsterDashUpdate", true);
             return true;
