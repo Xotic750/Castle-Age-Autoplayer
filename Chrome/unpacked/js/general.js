@@ -16,6 +16,60 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.records = [];
 
+    general.lists = {};
+	general.usedGenerals = [];
+    general.GeneralsList = [];
+    general.LoadoutsList = [];
+	
+    general.coolList = [
+        'Monster',
+        'Fortify',
+        'GuildMonster',
+        'Invade',
+        'Duel',
+        'War'];
+
+	general.menuList = [
+        'Monster',
+        'Fortify',
+        'GuildMonster',
+        'Invade',
+        'Duel',
+        'War',
+        //'Arena',
+        'Buy',
+        'Income',
+        'Banking',
+        'Collect',
+        'SubQuest',
+        'GB Class',
+        'FB Class',
+        'GB FB Idle',
+        'Level Up'];
+	
+		
+	general.filters = {
+		'Buy' : [
+			'Darius',
+			'Lucius',
+			'Garlan',
+			'Penelope'],
+		'Income' : [
+			'Scarlett',
+			'Mercedes',
+			'Cid'],
+		'Banking' : [
+			'Aeris'],
+		'Collect' : [
+			'Angelica',
+			'Morrigan',
+			'Valiant'],
+		'SubQuest' : [
+			'Under Level',
+			'Sano',
+			'Titania']
+	};
+
     general.record = function () {
         this.data = {
             'name': '',
@@ -257,60 +311,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    general.lists = {};
-	general.usedGenerals = [];
-    general.GeneralsList = [];
-    general.LoadoutsList = [];
-	
-    general.coolList = [
-        'Monster',
-        'Fortify',
-        'GuildMonster',
-        'Invade',
-        'Duel',
-        'War'];
-
-	general.menuList = [
-        'Monster',
-        'Fortify',
-        'GuildMonster',
-        'Invade',
-        'Duel',
-        'War',
-        //'Arena',
-        'Buy',
-        'Income',
-        'Banking',
-        'Collect',
-        'SubQuest',
-        'Level Up',
-        'GB Class',
-        'FB Class',
-        'GB/FB Idle'];
-	
-		
-	general.filters = {
-		'Buy' : [
-			'Darius',
-			'Lucius',
-			'Garlan',
-			'Penelope'],
-		'Income' : [
-			'Scarlett',
-			'Mercedes',
-			'Cid'],
-		'Banking' : [
-			'Aeris'],
-		'Collect' : [
-			'Angelica',
-			'Morrigan',
-			'Valiant'],
-		'SubQuest' : [
-			'Under Level',
-			'Sano',
-			'Titania']
-	};
-
 	general.isLoadout = function (name) {
         try {
 			if (name.indexOf('Loadout ') < 0) {
@@ -352,7 +352,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			generalList = ['Under Level'].concat(fullList);
 
 			general.menuList.forEach(function(item) {
-				usedGen = config.getItem(item + 'general');
+				usedGen = config.getItem(item + 'General');
 				if (['Use Current', 'Under Level', ''].indexOf(usedGen) == -1) {
 					general.usedGenerals.push(usedGen);
 				}
@@ -401,7 +401,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             general.quickSwitch = false;
             var generalName = general.GetCurrentGeneral(),
 				loadoutName = general.GetCurrentLoadout(),
-				loadoutRecord,
+				loadoutRecord = general.getRecord(loadoutName),
 				generalRecord = general.getRecord(generalName),
 				defaultLoadout = config.getItem("DefaultLoadout", 'Use Current'),
                 generalDiv = $j(),
@@ -410,6 +410,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				save = false,
 				eatk, edef,
                 temptext = '';
+
+			// Record the general information if a loadout has been clicked or none if loadout is not defined
+			if (general.clickedLoadout !== false) {
+				general.records[general.clickedLoadout].last = Date.now();
+				if (session.getItem('page','None') === 'player_loadouts') {
+					con.log(2,"Loadout " + general.records[general.clickedLoadout].name + " is not configured.");
+				} else if (loadoutName == general.records[general.clickedLoadout].name && general.records[general.clickedLoadout].general !== generalName) {
+					con.log(2,"Updated general for " + general.records[general.clickedLoadout].name + " is " + general.records[general.clickedLoadout].general, general.records);
+					general.records[general.clickedLoadout].general = generalName;
+				}
+			}
+			general.clickedLoadout = false;
 
             if (generalName === 'Use Current' || !generalRecord) {
                 con.warn("Get Equipped Stats: Unable to find 'General' record", generalName);
@@ -436,7 +448,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (loadoutName === defaultLoadout || defaultLoadout == 'Use Current') {
 						general.assignStats(generalRecord, eatk, edef);
 					}
-					loadoutRecord = general.getRecord(loadoutName);
 					if (loadoutRecord.general === generalName) {
 						general.assignStats(loadoutRecord, eatk, edef);
 					}
@@ -643,6 +654,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             generalData = general.records[general.records.push(new general.record().data) - 1];
                             update = true;
                         }
+						
+						// If we've reviewed before and general level hasn't changed, assume we don't need to review
+						if (generalData.lvl == level && generalData.eatk !== 0) {
+							generalData.last = Date.now();
+						}
 
                         generalData.name = name;
                         generalData.img = img;
@@ -693,16 +709,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.UpdateDropDowns = function () {
         try {
-            var it = 0,
-                len = 0,
+            var len = 0,
                 coolDown = '';
 
             general.BuildLists();
             con.log(3, "Updating 'General' Drop Down Lists");
             caap.changeDropDownList('DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), config.getItem('DefaultLoadout', 'Use Current'));
-            for (it = 0, len = general.menuList.length; it < len; it += 1) {
-                caap.changeDropDownList(general.menuList[it] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), config.getItem(general.menuList[it] + 'General', 'Use Current'));
-                coolDown = general.getCoolDownType(general.menuList[it]);
+            for (var i = 0, len = general.menuList.length; i < len; i += 1) {
+                caap.changeDropDownList(general.menuList[i] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), config.getItem(general.menuList[i] + 'General', 'Use Current'));
+                coolDown = general.getCoolDownType(general.menuList[i]);
                 if (coolDown) {
                     caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
                 }
@@ -889,17 +904,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				general.Clear('DefaultLoadout');
 			}
 
-			if (general.clickedLoadout !== false) {
-				if (session.getItem('page','None') === 'player_loadouts') {
-					con.log(2,"Loadout " + general.records[general.clickedLoadout].name + " is not defined.");
-					general.records[general.clickedLoadout].last = Date.now();
-				} else if (currentLoadout == general.records[general.clickedLoadout].name) {
-					con.log(2,"Updated general for " + general.records[general.clickedLoadout].name + " is " + general.records[general.clickedLoadout].general, general.records);
-					general.records[general.clickedLoadout].general = currentGeneral;
-				}
-			}
-			general.clickedLoadout = false;
-
 			if (!targetGeneral || targetGeneral == 'Use Current') {
 				return false;
 			}
@@ -955,40 +959,57 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var generalImage = '',
 				generalName = '',
-                len = 0;
+				time = 0,
+                len = general.records.length;
 				
 			session.setItem('ReleaseControl', true);
 			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
             }
 			if (general.timedLoadout()) {
-				con.log(4,'Pausing general review while equipping timed general');
+				con.log(2,'Pausing general review while equipping timed general');
 				return false;
 			}
-
-			for (var it = 0, len = general.records.length; it < len; it += 1) {
-                if (schedule.since(general.records[it].last || 0, (general.isLoadout(general.records[it].name) ? 1 : 7) * 24 * 3600)) {
+			if (general.records.length <= 20) {
+				return caap.navigateTo('generals');
+			}
+			
+			for (var i = 0; i < len; i += 1) {
+				time = (general.isLoadout(general.records[i].name) && general.usedGenerals.indexOf(general.records[i].name) >= 0 ? 1 : 7) * 24 * 3600;
+                if (schedule.since(general.records[i].last, time)) {
                     break;
                 }
             }
-
-			if (it < len) {
-				if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
-					((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
-					con.log(4, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
-					return false;
+			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *7) ||
+				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *7)) {
+				con.log(2, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
+			} else if (i < len) {
+				if (caap.stats.lastGeneral == false) {
+					con.log(2, 'Logging current loadout/general before reviewing generals');
+					caap.stats.lastGeneral = GetCurrentGeneral();
+					caap.stats.lastLoadout = GetCurrentLoadout();
 				}
 				if (session.getItem("page", "") != 'generals') {
 					return caap.navigateTo('generals');
 				}
-				if (general.selectSpecific(general.records[it].name)) {
-					con.log(2, "Loading general #" + (it + 1) + ' of ' + (len + 1), general.records[it].name);
+				if (general.selectSpecific(general.records[i].name)) {
+					con.log(2, "Loading general #" + (i + 1) + ' of ' + (len + 1), general.records[i].name);
 					return true;
 				}
 				// Go to the keep to force a page refresh to display actual max energy/stamina
-				con.log(2, "Checking keep stats for Loadout #" + (it + 1) + ' of ' +  (len + 1), general.records[it].name);
+				con.log(2, "Checking keep stats for Loadout #" + (i + 1) + ' of ' +  (len + 1), general.records[i].name);
 				return caap.navigateTo('keep');
 			}
+			if (caap.stats.lastLoadout !== false && general.selectSpecific(caap.stats.lastLoadout)) {
+				con.log(2, 'Resetting last loadout before generals reviewed', caap.stats.lastLoadout);
+				return true;
+			} 
+			if (caap.stats.lastGeneral !== false && general.selectSpecific(caap.stats.lastGeneral)) {
+				con.log(2, 'Resetting last general before generals reviewed', caap.stats.lastGeneral);
+				return true;
+			} 
+			caap.stats.lastLoadout = false;
+			caap.stats.lastLoadout = false;
 
         } catch (err) {
             con.error("ERROR in general.GetAllStats: " + err);

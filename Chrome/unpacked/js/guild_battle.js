@@ -1090,7 +1090,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				caap.stats.priorityGeneral = false;
 			}
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB/FB IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB/FB IdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB FB IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB FB IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = false;
 			}
