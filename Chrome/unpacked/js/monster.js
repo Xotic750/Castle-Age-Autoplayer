@@ -2848,7 +2848,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
                     "Also includes other energy attacks, Strengthen, Deflect and Cripple. NOTE: Setting a high forty% can waste energy and no safety on other types.",
-                dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
@@ -2869,6 +2868,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'Cripple/Deflect will be when 2 hours are left, plus or minus up to 30 min',
                     'Cripple/Deflect will be when 1 hours are left, plus or minus up to 30 min',
                     'Cripple/Deflect is disabled'],
+                siegeList = ['Never', '1', '50', '250'],
+                siegeInst = [
+                    'Never siege monsters',
+                    'Siege monsters only for one point of stamina',
+                    'Siege monsters for up to 50 stamina',
+                    'Siege monsters for up to 250 stamina'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                 monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 demiPtItem = 0,
@@ -2899,9 +2904,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             htmlCode += caap.makeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
             htmlCode += caap.endCheckHide('PowerAttack');
             htmlCode += caap.makeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, powerfortifyMaxInstructions);
-// siege is changed so disable 
-config.setItem('monsterDoSiege', false);
-//            htmlCode += caap.makeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, dosiegeInstructions);
+            htmlCode += caap.makeDropDownTR("Siege up to", 'siegeUpTo', siegeList, siegeInst, '', 'Never', false, false, 62);
             htmlCode += caap.makeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
             htmlCode += caap.makeCheckTR("Battle Conquest Monsters", 'conquestMonsters', false, '');

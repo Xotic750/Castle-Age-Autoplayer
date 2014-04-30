@@ -1149,6 +1149,8 @@ con.log (1, "after button check:", monster, cM);
             var link = '',
                 tempTime = 0,
                 isSiege = false,
+				siegeLimit = '0',
+                doSiege = false,
 				i = 0,
 				cM = {},
                 monsterInfo = {};
@@ -1193,9 +1195,18 @@ con.log (1, "after button check:", monster, cM);
                 }
 
                 tempTime = cM.review || -1;
-                con.log(4, "Review", cM, !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60));
+				siegeLimit = cM.time[0] < 20 && monster.parseCondition("20s", cM.conditions) ? monster.parseCondition("20s", cM.conditions) :
+					cM.time[0] < 24 && monster.parseCondition("24s", cM.conditions) ? monster.parseCondition("24s", cM.conditions) :
+					cM.time[0] < 48 && monster.parseCondition("48s", cM.conditions) ? monster.parseCondition("48s", cM.conditions) :
+					monster.parseCondition("s", cM.conditions) ? monster.parseCondition("s", cM.conditions) :
+					config.getItem('siegeUpTo','Never') === 'Never'? 0 : config.getItem('siegeUpTo','Never');
+				
+				doSiege = config.getItem('siegeUpTo','Never') != 'Never' && (config.getItem('siegeUpTo','Never') <= cM.siegeLevel && caap.stats.stamina.num >= cM.siegeLevel;
+
+				con.log(2, "Review", siegeLimit, doSiege');
+				
                 /*jslint continue: true */
-                if (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
+                if (!doSiege && (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2)) {
 //                    state.setItem('monsterReviewCounter', counter += 1);
                     state.setItem('monsterRepeatCount', 0);
                     continue;
@@ -1252,7 +1263,7 @@ con.log (1, "after button check:", monster, cM);
 
                     con.log(2, "Link", link, cM.md5);
 					monster.lastClick = cM.md5;
-                    caap.clickAjaxLinkSend(link);
+                    caap.navigate2("ajax:" + link + "," + "url:" + link);
 
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                     session.setItem('resetselectMonster', true);
@@ -1326,6 +1337,7 @@ con.log (1, "after button check:", monster, cM);
                 nMonstStyle = '',
                 id = 0,
                 userName = '',
+				siegeLevel = 0,
                 mName = '',
                 feedMonster = '',
                 md5 = '',
@@ -2067,6 +2079,8 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         if ($u.isNaN(cM.phase) || cM.phase < 1) {
                             cM.phase = 1;
                         }
+						cM.siegeLevel = $u.setContent($j("#app_body div[style*='button_cost_stamina_']").attr('style').match(/button_cost_stamina_(\d+)/)[1],false);
+						con.log(2,'SIEGE LEVEL ' + cM.siegeLevel);
                     }
 
                     cM.t2k = monster.t2kCalc(cM);
@@ -2131,7 +2145,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 }
 
                 // Start of Keep On Budget (KOB) code Part 1 -- required variables
-                con.log(2, 'Start of Keep On Budget (KOB) Code');
+                con.log(5, 'Start of Keep On Budget (KOB) Code');
 
                 //default is disabled for everything
                 KOBenable = false;
@@ -2155,7 +2169,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                     KOBenable = true;
                     KOBbiasHours = 0;
                 } else if (KOBtmp === false) {
-                    con.log(2, 'KOB false branch');
+                    con.log(5, 'KOB false branch');
                     KOBenable = false;
                     KOBbiasHours = 0;
                 } else {
