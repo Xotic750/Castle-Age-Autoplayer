@@ -6477,6 +6477,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.maxEnergyQuest = function () {
         try {
+            if (config.getItem('WhenQuest', 'Never') === 'Never') {
+                return false;
+            }
             var maxIdleEnergy = 0,
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
 

@@ -1082,13 +1082,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		
 			con.log(5, 'schedule since ', schedule.since(startTime, 0), schedule.since(startTime,  3 * 60), startTime, fRecord, guild_battle.records);
 			
-			if ((fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) || gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
+			if (fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) {
+				caap.stats.priorityGeneral = config.getItem('FB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('FB ClassGeneral','Use Current');
+			} else if (gRecord.state == 'PreBattle') {
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
 			} else {
 				caap.stats.priorityGeneral = false;
 			}
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GBIdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBIdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB FB IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB FB IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = false;
 			}
@@ -1183,7 +1185,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
