@@ -1146,7 +1146,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
 				con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
 				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
-				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+				result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+				if (result == 'fail') {
+					con.warn('Unable to complete path. Reloading from keep.');
+					return caap.navigateTo('keep');
+				}
+				return result;
 			}
 				
 			if (timedSetting=='Never' || gRecord.state !== 'Start') {

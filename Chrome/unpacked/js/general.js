@@ -916,8 +916,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
 			lRecord = general.getRecord(targetLoadout);
 			targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
-			if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')
-				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
+			if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
+//				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
 				if (lRecord === false) {
 					con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
 					return false;
@@ -978,9 +978,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return caap.navigateTo('generals');
 			}
 			
-			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *7) ||
-				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *7)) {
-				con.log(2, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
+			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
+				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
+				con.log(3, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
 			} else {
 				for (var i = 0; i < len; i += 1) {
 					// Review in one day if a general/loadout set in the menu or a general that has gone up a level. Otherwise, a week.
