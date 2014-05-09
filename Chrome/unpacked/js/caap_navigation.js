@@ -145,7 +145,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 	// Return values are 'true' for moving along the path
 	// 'done' when the last element in the path is clicked
-	//	false when the last element is an image or PageList page and already on the page or unable to find
+	// 'fail' when the last element in the path cannot be found
+	//	false when the last element is an image or PageList page and already on the page
     caap.navigate2 = function (path) {
         try {
             var webslice = $j('#globalcss'),

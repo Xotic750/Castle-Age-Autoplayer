@@ -144,7 +144,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'enterButton' : 'guild_enter_battle_button.gif',
 			'index' : 1,
 			'infoDiv' : '#app_body #current_battle_info',
-			'waitHours' : 3,
+			'waitHours' : 4,
 			'minHealth' : 200,
 			'basePath' : 'festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle',
 			'startText' : 'XXXX',
@@ -481,6 +481,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				otherRecord = guild_battle.getItem(gf.other),
 				nextReview = Date.now(),
 				now = new Date(),
+				nowUTC = new Date(),
+				thenUTC = new Date(),
 				text = '',
 				infoDiv = $j(gf.infoDiv);
 				
@@ -532,7 +534,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				guild_battle.deleterPage('page',gf.page);
 				record.state = 'Collect';
 				con.log(5,'collect button',gf.waitHours, schedule.since(record.collectedTime, gf.waitHours * 60 * 60),gf.options, config.getItem('guild_battle_collect',false), gf.options.indexOf(config.getItem('guild_battle_collect',false)));
-				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && gf.options.indexOf(config.getItem('guild_battle_collect',false)) >= 0) {
+				
+				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 7) * 3600000);
+				
+				// Need to adjust from 7 to 8 when daylight savings time changes
+				thenUTC = new Date(record.lastBattleTime +  (now.getTimezoneOffset() / 60 - 7 + gf.waitHours) * 3600000);
+				con.log(2, 'DATE2 ' + now.getDay(), nowUTC.toLocaleString(), thenUTC.toLocaleString(),!(nowUTC.getDay() == 1 && thenUTC.getDay() == 2));
+				if (schedule.since(record.collectedTime, gf.waitHours * 60 * 60) && gf.options.indexOf(config.getItem('guild_battle_collect',false)) >= 0 && !(nowUTC.getDay() == 1 && thenUTC.getDay() == 2)) {
 					guild_battle.setrPage(gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif','page',gf.page);
 				}
 				nextReview = Math.max($u.setContent(record.lastBattleTime,0) + (gf.waitHours * 60 * 60 - 4 * 60) * 1000, Date.now());
@@ -729,7 +737,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					fR.collectedTime = 0;
 				}
 				guild_battle.setItem(gf, fR);
-				//return true;
+				return true;
 			}
 							
 			if (caap.hasImage(gf.enterButton)) {
@@ -1078,13 +1086,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		
 			con.log(5, 'schedule since ', schedule.since(startTime, 0), schedule.since(startTime,  3 * 60), startTime, fRecord, guild_battle.records);
 			
-			if ((fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) || gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
+			if (fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) {
+				caap.stats.priorityGeneral = config.getItem('FB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('FB ClassGeneral','Use Current');
+			} else if (gRecord.state == 'PreBattle') {
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
 			} else {
 				caap.stats.priorityGeneral = false;
 			}
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GBIdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBIdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB FB IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB FB IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = false;
 			}
@@ -1097,7 +1107,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
                 if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
 					con.log(5,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
-					if (caap.stats.battleIdle && general.Select(caap.stats.battleIdle)) {
+					if (caap.stats.battleIdle && !caap.stats.priorityGeneral && general.Select(caap.stats.battleIdle)) {
 						return true;
 					}
 					result = caap.navigate2(caap.stats.reviewPagesGB[i].path);
@@ -1140,7 +1150,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
 				con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
 				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
-				return caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+				result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+				if (result == 'fail') {
+					con.warn('Unable to complete path. Reloading from keep.');
+					return caap.navigateTo('keep');
+				}
+				return result;
 			}
 				
 			if (timedSetting=='Never' || gRecord.state !== 'Start') {
@@ -1179,7 +1194,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('GBClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GBClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
