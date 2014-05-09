@@ -1198,12 +1198,12 @@ con.log (1, "after button check:", monster, cM);
 				siegeLimit = cM.time[0] < 20 && monster.parseCondition("20s", cM.conditions) ? monster.parseCondition("20s", cM.conditions) :
 					cM.time[0] < 24 && monster.parseCondition("24s", cM.conditions) ? monster.parseCondition("24s", cM.conditions) :
 					cM.time[0] < 48 && monster.parseCondition("48s", cM.conditions) ? monster.parseCondition("48s", cM.conditions) :
-					monster.parseCondition("s", cM.conditions) ? monster.parseCondition("s", cM.conditions) :
+					monster.parseCondition("s", cM.conditions) ? monster.parseCondition("s", cM.conditions) : 
 					config.getItem('siegeUpTo','Never') === 'Never'? 0 : config.getItem('siegeUpTo','Never');
 				
-				doSiege = config.getItem('siegeUpTo','Never') != 'Never' && (config.getItem('siegeUpTo','Never') <= cM.siegeLevel && caap.stats.stamina.num >= cM.siegeLevel;
+				doSiege = config.getItem('siegeUpTo','Never') != 'Never' && config.getItem('siegeUpTo','Never') <= cM.siegeLevel && caap.stats.stamina.num >= cM.siegeLevel;
 
-				con.log(2, "Review", siegeLimit, doSiege');
+				con.log(2, "Review", siegeLimit, doSiege);
 				
                 /*jslint continue: true */
                 if (!doSiege && (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2)) {
@@ -2079,8 +2079,13 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         if ($u.isNaN(cM.phase) || cM.phase < 1) {
                             cM.phase = 1;
                         }
-						cM.siegeLevel = $u.setContent($j("#app_body div[style*='button_cost_stamina_']").attr('style').match(/button_cost_stamina_(\d+)/)[1],false);
-						con.log(2,'SIEGE LEVEL ' + cM.siegeLevel);
+						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
+						if (tempDiv.length) {
+							cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
+							con.log(2,'SIEGE LEVEL ' + cM.siegeLevel);
+						} else {
+							cM.siegeLevel = 0;
+						}
                     }
 
                     cM.t2k = monster.t2kCalc(cM);

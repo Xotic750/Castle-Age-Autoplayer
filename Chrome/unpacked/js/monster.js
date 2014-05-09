@@ -1976,6 +1976,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.deleterPage('path',caap.stats.reviewPages[i].path)
 				}
 			}
+//			caap.stats.reviewPages = [];
 			monster.deleterPage('page','guildv2_monster_list');
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
 			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
