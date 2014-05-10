@@ -418,6 +418,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var button = $j(),
                 noWindowLoad = 0,
                 actionsListCopy = [],
+				releaseControl = true,
                 action = 0,
                 len = 0,
                 dmc = 0;
@@ -521,14 +522,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             actionsListCopy = caap.actionsList.slice();
-            len = session.getItem('ReleaseControl', false) ? session.setItem('ReleaseControl', false) : actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
-            monster.select();
+			releaseControl = session.getItem('ReleaseControl', true)
+			if (!releaseControl) {
+				actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
+			}
             for (action = 0, len = actionsListCopy.indexOf('idle') + 1; action < len; action += 1) {
                 if (caap[actionsListCopy[action]]()) {
                     caap.checkLastAction(actionsListCopy[action]);
                     break;
                 }
             }
+			if (!releaseControl && action > 0) {
+				session.setItem('ReleaseControl', true);
+			}
 
             caap.waitMainLoop();
             return true;

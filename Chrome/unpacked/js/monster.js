@@ -2317,7 +2317,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
             monster.clear();
             schedule.setItem('NotargetFrombattle_monster', 0);
-            session.setItem('ReleaseControl', true);
             caap.updateDashboard(true);
             if (monster.records.length == 0) {
                 localStorage.AFrecentAction = false;
@@ -2346,7 +2345,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.select = function(force) {
         try {
-            if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
+            if (!caap.oneMinuteUpdate('selectMonster', force) || caap.stats.level < 7) {
                 return false;
             }
 

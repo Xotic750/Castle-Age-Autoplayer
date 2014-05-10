@@ -129,7 +129,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         }
-
+		
         try {
             var when = '',
                 record = {},
@@ -244,7 +244,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             caap.setDivContent('guild_monster_mess', '');
-            record = guild_monster.select();
+            record = guild_monster.select(false);
             //record = guild_monster.select(true);
             //record = state.setItem('targetGuildMonster', {});
             //con.log(1, "record", record);

@@ -360,7 +360,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     conquest.click = function(conquestButton) {
         try {
-            session.setItem('ReleaseControl', true);
             conquest.flagResult = true;
             caap.setDomWaiting("conquest_duel.php");
             caap.click(conquestButton);
@@ -1096,6 +1095,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
 
                         if (result === 'victory') {
+							session.setItem('ReleaseControl', false);
                             con.log(1, "Chain check");
                             //Test if we should chain this guy
                             tempTime = $u.setContent(targetRecord.chainTime, 0);

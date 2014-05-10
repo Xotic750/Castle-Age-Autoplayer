@@ -2215,13 +2215,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.oneMinuteUpdate = function (funcName) {
+    caap.oneMinuteUpdate = function (funcName, reset) {
         try {
             if (!$u.isString(funcName) || funcName === '') {
                 throw "Invalid identifying name!";
             }
 
-            if (!state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
+            if (!reset && !state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
                 return false;
             }
 
