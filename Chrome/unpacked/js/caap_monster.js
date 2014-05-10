@@ -98,8 +98,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				monster.setrPage('ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,''),'review',Date.now());
 			} else if (page === 'raid') {
 				monster.setrPage('ajax:raid.php','review',Date.now());
+			} else if (page === 'player_monster_list') {
+				monster.setrPage('player_monster_list','review',Date.now());
 			} else {
-				monster.setrPage(page,'review',Date.now());
+				con.log(2,'caap.checkResults_fightList Unexpected page',page);
 			}
             con.log(5, "list caap.stats.reviewPages", caap.stats.reviewPages, caap.stats.level);
 			
