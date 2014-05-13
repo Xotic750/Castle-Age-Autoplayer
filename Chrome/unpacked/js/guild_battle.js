@@ -29,6 +29,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'easy' : false,
 			'simtis' : false,
 			'firstScanDone' : true,
+			'burn' : true,
 			'me' : {},
             'enemy': {
 				'towers' : {},
@@ -137,7 +138,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'name' : 'Festival',
 			'label' : 'festival',
 			'mess' : 'festival_mess',
-			'messTitle' : 'FB',
+			'messTitle' : 'Festival',
+			'whenTokens' : 'FestivalWhenTokens',
+			'tokenMax' : 'Festivalmax',
+			'tokenMin' : 'Festivalmin',
 			'page' : 'festival_battle_home',
 			'tabs' : '_arena_tab_',
 			'token' : 'festivalTokens',
@@ -146,7 +150,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'enterButton' : 'guild_enter_battle_button.gif',
 			'index' : 1,
 			'infoDiv' : '#app_body #current_battle_info',
-			'waitHours' : 4,
+			'waitHours' : 3.9,
 			'minHealth' : 200,
 			'basePath' : 'festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle',
 			'startText' : 'XXXX',
@@ -159,6 +163,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'label' : 'guildBattle',
 			'mess' : 'guild_battle_mess',
 			'messTitle' : 'GB',
+			'whenTokens' : 'GBWhenTokens',
+			'tokenMax' : 'GBmax',
+			'tokenMin' : 'GBmin',
 			'page' : 'guildv2_battle',
 			'tabs' : '_new_guild_tab_',
 			'token' : 'guildBattleTokens',
@@ -168,7 +175,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'index' : 0,
 			'infoDiv' : '#app_body #guildv2_battle_middle',
 			'IDDiv' : 'special_defense_',
-			'waitHours' : 9,
+			'waitHours' : 8.9,
 			'minHealth' : 1,
 			'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
 			'startText' : 'submit the Guild for Auto-Matching',
@@ -179,7 +186,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	};
 	
 	guild_battle.enemy = {
-		'Mage' : [
+		'mage' : [
 			{'name': 'mduel',
 			'base' : 'duel'},
 			{'name': 'poly',
@@ -187,39 +194,39 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			{'name': 'confuse',
 			'base' : 'confuse'}
 		],
-		'Rogue' : [
+		'rogue' : [
 			{'name': 'rduel',
 			'base' : 'duel'},
 			{'name': 'poison',
 			'base' : 'duel'}
 		],
-		'Warrior' : [
+		'warrior' : [
 			{'name': 'wduel',
 			'base' : 'duel'},
 			{'name': 'whirlwind',
 			'base' : 'duel'}
 		],
-		'Cleric' : [
+		'cleric' : [
 			{'name': 'cduel',
 			'base' : 'duel'}
 		]
 	};
 
 	guild_battle.your = {
-		'Mage' : [],
-		'Rogue' : [
+		'mage' : [],
+		'rogue' : [
 			{'name': 'smokebomb',
 			'self': false,
 			'base' : 'level'}
 		],
-		'Warrior' : [
+		'warrior' : [
 			{'name': 'guardian',
 			'self': false,
 			'base' : 'level'},
 			{'name' : 'sentinel',
 			'base' : 'level'}
 		],
-		'Cleric' : [
+		'cleric' : [
 			{'name': 'revive',
 			'base' : 'rhealth'},
 			{'name' : 'heal',
@@ -328,10 +335,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	
 	guild_battle.setReview = function(gf) {
         try {
-			var fR = guild_battle.getItem(gf);
+			var fR = guild_battle.getItem(gf),
+				filter = false;
 			['your','enemy'].forEach(function(type) {
 				var doPage = !fR.firstScanDone || fR[type].attacks.length;
 				for (var i = 1; i <= 4; i++) {
+					filter = i > 1 || type == 'your';
+					guild_battle.setrPage(guild_battle.makePath(gf, type, i), 'filter', filter);
 					guild_battle.togglerPage(guild_battle.makePath(gf, type, i), doPage, 'page', gf.page);
 				}
 			});
@@ -566,7 +576,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			guild_battle.setItem(gf, record);
 			guild_battle.setrPage(gf.page, 'review', nextReview);
 
-			con.log(2, "guild_battle.onTop", record, record.state, caap.stats.priorityGeneral);
+			con.log(2, "guild_battle.onTop", record, record.state, caap.stats.priorityGeneral, new Date(nextReview).toLocaleString());
 			return true;
 
 			} catch (err) {
@@ -754,8 +764,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			fR.lastBattleTime = Date.now();
 			con.log(5, 'No enter button', caap.hasImage(gf.enterButton), gf.enterButton);
 
-			if (gf.options.indexOf(config.getItem('guild_battle_fight',false)) >= 0) {
-				con.log(5,'Opted out of battle.', config.getItem('guild_battle_fight',false));
+			if (gf.options.indexOf(config.getItem(gf.whenTokens,'Never')) !== 'Never') {
 				guild_battle.setReview(gf);
 			}
 			
@@ -769,7 +778,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				args = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
 				if (args && args.length === 8) {
 					con.log(5, "my stats", args);
-					fR.me.mclass = args[3];
+					fR.me.mclass = args[3].toLowerCase();
 					fR.me.status = args[6] ? args[6].trim() : '';
 					fR.me.healthNum = args[4] ? args[4].parseInt() : 0;
 					fR.me.healthMax = args[5] ? args[5].parseInt() : 1;
@@ -782,7 +791,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				} else {
 					con.warn("args error", args, myStatsTxt);
 				}
-				fR.me.shout = fR.me.shout || $u.hasContent($j("img[src*='effect_shout']", bannerDiv)) ? true : false;
+				fR.me.shout = $u.hasContent($j("img[src*='effect_shout']", bannerDiv)) ? true : false;
 				con.log(2,'Do I have Shout? ' + fR.me.shout);
 
 			}
@@ -794,7 +803,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			timerSpan = $j("#globalContainer span[id='guild_token_time_value']");
 			tStr = $u.hasContent(timerSpan) ? timerSpan.text().trim() : '';
 			fR.tokenTime = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
-			con.log(5,'Tokens', fR.tokens);
+			//con.log(5,'Tokens', fR.tokens);
 			
 			health = $j("#guild_battle_health");
 			if (health && health.length) {
@@ -1065,12 +1074,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-	guild_battle.path = 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle,clickimg:enemy_guild_on.gif,jq:#enemy_guild_tab,clickjq:#enemy_new_guild_tab_4,jq:#enemy_guild_member_list_4,clickjq:#basic_4_100000206587433 input[src*="gb_btn_duel.gif"]';
-
-	guild_battle.path = '@Joan,festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle,clickimg:guild_battle_collectbtn_small.gif';
-	
-	guild_battle.path = false;	
-
  	// Parse the menu item too see if a loadout override should be equipped. If time is during a general override time,
 	// the according general will be equipped, and a value of True will be returned continually to the main loop, so no
 	// other action will be taken until the time is up.
@@ -1081,14 +1084,18 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR = guild_battle.getItem(gf),
 				startTime = $u.setContent(fRecord.startTime, 0),
 				timeBattlesList = config.getList('timed_guild_battles', ''),
+				whenTokens = config.getItem(gf.whenTokens, 'Never'),
+				tokenMax = config.getItem(gf.tokenMax, 8),
 				begin = new Date(),
 				end = new Date(),
 				timeString = '',
 				result = '',
 				button = '',
-				maxTokens = 0,
+				priority = false,
+				wait = false,
 				stun = false,
 				burnTokens = false,
+				doAttack = false,
 				teams = [],
 				button = null,
 				t = { 'score' : 0 },
@@ -1096,26 +1103,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				match = (timedSetting === 'Battle available') ? true : false,
 				now = new Date();
 				
-			// For testing paths
-			if (guild_battle.path) {
-				result = caap.navigate2(guild_battle.path);
-				if (result == 'done' || result == 'fail' || !result) {
-					guild_battle.path = false;
-				}
-				return true;
-			}
-		
 			con.log(5, 'schedule since ', schedule.since(startTime, 0), schedule.since(startTime,  3 * 60), startTime, fRecord, guild_battle.records);
 			
 			if (fRecord.state == 'PreBattle' && schedule.since(startTime, 0) && !schedule.since(startTime, 3 * 60)) {
-				caap.stats.priorityGeneral = config.getItem('FB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('FB ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('Fest ClassGeneral','Use Current');
 			} else if (gRecord.state == 'PreBattle') {
 				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
 			} else {
 				caap.stats.priorityGeneral = false;
 			}
 			if (fRecord.state == 'Active' || gRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB FB IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB FB IdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB Fest IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB Fest IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = false;
 			}
@@ -1125,8 +1123,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				return caap.navigateTo('keep');
 			}
 			
+			priority = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
+			fR.burn = fR.tokens <= config.getItem(gf.tokenMin, 0) ? false :  fR.burn || (whenTokens == 'Between Max/Min' && fR.tokens > tokenMax);
+			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
+			wait = stun == 'stunned' || fR.me.poly || (fR.me.confuse && fR.your.attacks.indexOf('cleanse') < 0 && fR.your.attacks.indexOf('dispel') < 0);
+			burnTokens =  priority ? true : wait ? false : fR.burn;
+			doAttack = fR.state == 'Active' && fR.tokens > (burnTokens ? 0 : Math.max(wait ? 8 : 0, tokenMax));
+
             for (i = 0; i < caap.stats.reviewPagesGB.length; i++) {
-                if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60)) {
+				
+                if (caap.stats.reviewPagesGB[i].path.indexOf(gf.page) >= 0 && schedule.since(caap.stats.reviewPagesGB[i].review, 5 * 60) 
+					&& (!fR.firstScanDone || !caap.stats.reviewPagesGB[i].filter || doAttack)) {
 					con.log(5,'Reviewing battle page',caap.stats.reviewPagesGB[i].path, caap.stats.reviewPagesGB);
 					if (caap.stats.battleIdle && !caap.stats.priorityGeneral && general.Select(caap.stats.battleIdle)) {
 						return true;
@@ -1144,39 +1151,34 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             }
 			con.log(5,'Guild review',caap.stats.reviewPagesGB);
 			
-			if (gf.options.indexOf(config.getItem('guild_battle_fight',false)) < 0 || caap.stats.priorityGeneral) {
-				return false;
-			}
-			
-			burnTokens = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
-			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
-			maxTokens = burnTokens ? 0 : stun == 'stunned' ? 8 : config.getItem('TokenMax', 8);
-			con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, fR.me.healthNum > gf.minHealth);
-			
-			if (fR.tokens > maxTokens && fR.state == 'Active') {
-				teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
-				teams.forEach(function(which) {
-					['1','2','3','4'].forEach(function(tower) {
-						var seal = tower == fR[which].seal ? 'seal' : 'normal';
-						t = fR[which].towers[tower][seal][stun].score > t.score ? fR[which].towers[tower][seal][stun] : t;
-						con.log(5, 'Attack evals:',which, tower, seal, stun, t);
-					});
-				});
-			
-				if (!t.id) {
-					con.log(2, 'No valid target to attack');
-					return false;
-				}
+			if (whenTokens !== 'Never' && !caap.stats.priorityGeneral) {
+				//con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, fR.me.healthNum > gf.minHealth);
 				
-				caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
-				con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
-				button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
-				result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
-				if (result == 'fail') {
-					con.warn('Unable to complete path. Reloading from keep.');
-					return caap.navigateTo('keep');
+				if (doAttack) {
+					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
+					teams.forEach(function(which) {
+						['1','2','3','4'].forEach(function(tower) {
+							var seal = tower == fR[which].seal ? 'seal' : 'normal';
+							t = fR[which].towers[tower][seal][stun].score > t.score ? fR[which].towers[tower][seal][stun] : t;
+							con.log(5, 'Attack evals:',which, tower, seal, stun, t);
+						});
+					});
+				
+					if (!t.id) {
+						con.log(2, 'No valid target to attack');
+						return false;
+					}
+					
+					caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
+					con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
+					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
+					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+					if (result == 'fail') {
+						con.warn('Unable to complete path. Reloading from keep.');
+						return caap.navigateTo('keep');
+					}
+					return result;
 				}
-				return result;
 			}
 				
 			if (timedSetting=='Never' || gRecord.state !== 'Start') {
@@ -1247,6 +1249,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     'At fixed times will allow you to set a schedule of when to start battles',
                     'Never - disables starting guild battles'
                 ],
+                tokenList = ['Over', 'Between Max/Min', 'Never'],
+                tokenInst = [
+                    'Over - attack whenever your tokens are over the max',
+                    'Between Max/Min - burn tokens once over max until just over min',
+                    'Never - disables attacking in this battle'],
+				tokenRange = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
 				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
 				guild_battle_scoring_inst = "List of score adjustments to pick targets",
                 htmlCode = '';
@@ -1254,8 +1262,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
             htmlCode += caap.makeDropDownTR("Auto-collect after", 'guild_battle_collect', gbattleOptions, [], '', 'Never', false, false, 62);
             htmlCode += caap.makeDropDownTR("Auto-join", 'guild_battle_enter', gbattleOptions, [], '', 'Never', false, false, 62);
-            htmlCode += caap.makeDropDownTR("Fight in", 'guild_battle_fight', gbattleOptions, [], '', 'Never', false, false, 62);
-            htmlCode += caap.makeNumberFormTR("Use tokens over", 'TokenMax', 'Tokens over this amount will be used to attack or defend', 8, '', '', true, false);
+
+			['GB','Festival'].forEach(function(t) {
+				htmlCode += caap.makeDropDownTR(t + " Use tokens", t + 'WhenTokens', tokenList, tokenInst, '', 'Never', false, false, 62);
+				htmlCode += caap.startDropHide(t + 'WhenTokens','', 'Never', true);
+				htmlCode += caap.makeDropDownTR("Max", t + 'max', tokenRange, [], '', '8', false, false, 62);
+				htmlCode += caap.startDropHide(t + 'WhenTokens', 'Burn', 'Between Max/Min', false);
+				htmlCode += caap.makeDropDownTR("Min", t + 'min', tokenRange, [], '', '0', false, false, 62);
+				htmlCode += caap.endDropHide(t + 'WhenTokens', 'Burn', 'Between Max/Min', false);
+				htmlCode += caap.endDropHide(t + 'WhenTokens','', 'Never', true);
+			});
+
             htmlCode += caap.makeTD("Rate targets by: <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=830' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('guild_battle_scoring', guild_battle_scoring_inst, 'cduel[],mduel[],wduel[],rduel[]', '');
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);

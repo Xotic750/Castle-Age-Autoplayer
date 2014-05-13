@@ -3985,7 +3985,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
-                if (idName.hasIndexOf('When')) {
+                if (idName.hasIndexOf('WhenTokens') >= 0) {
+                    caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
+                    caap.setDisplay("caapDivObject", idName + 'Burn_hide', value == 'Between Max/Min');
+                } else if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                     if (idName == 'WhenGuildBattle') {
                         caap.setDisplay("caapDivObject", idName + 'FixedTimes_hide', value === 'At fixed times');

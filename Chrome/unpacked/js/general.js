@@ -43,8 +43,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Collect',
         'SubQuest',
         'GB Class',
-        'FB Class',
-        'GB FB Idle',
+        'Fest Class',
+        'GB Fest Idle',
         'Level Up'];
 	
 		
