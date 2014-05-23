@@ -1971,7 +1971,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 */
 			// Clean out some old bad entries for pages
 			for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
-				if (caap.stats.reviewPages[i].path.indexOf('monster_slot') >= 0) {
+				if (caap.stats.reviewPages[i].path.indexOf('monster_slot') >= 0 || caap.stats.reviewPages[i].path == 'battle_monster') {
 					con.log(1, 'Deleted conquest monster that slipped into review pages list.', caap.stats.reviewPages[i], caap.stats.reviewPages)
 					monster.deleterPage('path',caap.stats.reviewPages[i].path)
 				}
@@ -2317,7 +2317,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
             monster.clear();
             schedule.setItem('NotargetFrombattle_monster', 0);
-            session.setItem('ReleaseControl', true);
             caap.updateDashboard(true);
             if (monster.records.length == 0) {
                 localStorage.AFrecentAction = false;
@@ -2325,6 +2324,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 localStorage.AFrecentAction = true;
             }
 			for (var i = 0; i < caap.stats.reviewPages.length; i++) {
+				con.log(2, 'monster.flagFullReview', caap.stats.reviewPages);
 				monster.setrPage(caap.stats.reviewPages[i].path, 'review', -1);
 			}
 
@@ -2345,7 +2345,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.select = function(force) {
         try {
-            if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
+            if (!caap.oneMinuteUpdate('selectMonster', force) || caap.stats.level < 7) {
                 return false;
             }
 
@@ -2798,6 +2798,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     return false;
                 }
                 feedMonster=feedMonster.replace('Baal Stealer Of Souls','BAAL Stealer of Souls');
+                feedMonster=feedMonster.replace('Aspect Of Death','Aspect of Death');
 
                 if (id === caap.stats.FBID.toString()) {
                     con.log(2, "Your monster found", tempText);
@@ -2813,7 +2814,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             mName = userName + ' ' + feedMonster;
             con.log(2, 'monster Name', mName);
             if (monsterName !== mName) {
-                con.log(2, 'Looking for ' + monsterName + ' but on ' + mName + '. Going back to select screen');
+                con.log(2, 'Looking for ' + monsterName + ' but on ' + mName + '. Going back to select screen', monsterName.indexOf(userName), monsterName.indexOf(feedMonster));
                 page = page === 'onMonster' ? 'battle_monster' : (page === 'onRaid' ? 'raid' : page);
                 con.log(4, "monster.confirmRightPage page", page);
                 monsterDiv = null;

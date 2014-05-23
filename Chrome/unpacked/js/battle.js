@@ -318,6 +318,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 };
 
             if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
+				session.setItem('ReleaseControl', false);
                 warWinLoseImg = 'war_win_left.jpg';
                 result.win = true;
             } else if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_defeat.gif']"))) {

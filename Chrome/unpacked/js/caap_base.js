@@ -2215,13 +2215,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.oneMinuteUpdate = function (funcName) {
+    caap.oneMinuteUpdate = function (funcName, reset) {
         try {
             if (!$u.isString(funcName) || funcName === '') {
                 throw "Invalid identifying name!";
             }
 
-            if (!state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
+            if (!reset && !state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
                 return false;
             }
 
@@ -3985,7 +3985,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
-                if (idName.hasIndexOf('When')) {
+                if (idName.hasIndexOf('WhenTokens') >= 0) {
+                    caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
+                    caap.setDisplay("caapDivObject", idName + 'Burn_hide', value == 'Between Max/Min');
+                } else if (idName.hasIndexOf('When')) {
                     caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                     if (idName == 'WhenGuildBattle') {
                         caap.setDisplay("caapDivObject", idName + 'FixedTimes_hide', value === 'At fixed times');
@@ -5730,9 +5733,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = $j("div[style*='keep_top']");
                     backgroundDiv = $j("div[style*='keep_tabheader']");
 
-                    temp = "<div style='background-image:url(\"caaplayer.freeforums.org/post5421.html?hilit=18247#p5421\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
-                    temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
-
+				temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/28590/graphics/keep_midrepeat_lrg.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+				temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
                     row = caap.makeTh({
                         text: '&nbsp;',
                         color: '',

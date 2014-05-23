@@ -30,6 +30,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'War'];
 
 	general.menuList = [
+		'Idle',
         'Monster',
         'Fortify',
         'GuildMonster',
@@ -43,8 +44,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Collect',
         'SubQuest',
         'GB Class',
-        'FB Class',
-        'GB FB Idle',
+        'Fest Class',
+        'GB Fest Idle',
         'Level Up'];
 	
 		
@@ -819,14 +820,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.GetCurrentLoadout = function () {
         try {
-            var loadoutName = $j('select[name="choose_loadout"] option:selected').text().trim(); 
+            var loadoutName = $j('#hot_swap_loadouts_div select[name="choose_loadout"] option:selected').text().trim(); 
 
             if (!loadoutName) {
                 con.warn("Couldn't get current 'loadout'. Using 'Use Current'");
                 return 'Use Current';
             }
 
-            con.log(4, "Current Loadout:", loadoutName);
+            //con.log(2, "Current Loadout:", loadoutName);
             return "Loadout " + loadoutName;
         } catch (err) {
             con.error("ERROR in general.GetCurrentLoadout: " + err);
