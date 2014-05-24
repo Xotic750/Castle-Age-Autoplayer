@@ -2074,7 +2074,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                         searchRes = $j(searchStr, slice);
                         if ($u.hasContent(searchRes)) {
-                            totalCount = cM.monster === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
+                            totalCount = cM.monster === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size();
                         }
 
                         cM.phase = Math.min(totalCount, monsterInfo.siege);
