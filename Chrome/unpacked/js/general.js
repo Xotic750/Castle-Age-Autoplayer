@@ -331,7 +331,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 fullList = [],
 				generalList = [],
 				usedGen = '',
-			 	filterList = config.getItem("filterGeneral", true),
                 crossList = function (checkItem) {
                     return generalList.hasIndexOf(checkItem) >= 0;
                 };
@@ -357,7 +356,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (['Use Current', 'Under Level', ''].indexOf(usedGen) == -1 && general.usedGenerals.indexOf(usedGen) == -1) {
 					general.usedGenerals.push(usedGen);
 				}
-				general.lists[item] = $u.isArray(general.filters[item]) ? general.filters[item].filter(crossList) : generalList;
+				general.lists[item] = ($u.isArray(general.filters[item]) && config.getItem("filterGeneral", true)) ? general.filters[item].filter(crossList) : generalList;
 			});
 			
             general.coolDownList = [''].concat(general.getCoolDownNames());

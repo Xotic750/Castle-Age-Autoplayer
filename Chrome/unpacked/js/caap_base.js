@@ -5712,7 +5712,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = $j("div[style*='keep_top']");
                     backgroundDiv = $j("div[style*='keep_tabheader']");
 
-				temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/28590/graphics/keep_midrepeat_lrg.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+				temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
 				temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
                     row = caap.makeTh({
                         text: '&nbsp;',
