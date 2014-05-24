@@ -694,8 +694,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             hp: 640000000,
             ach: 1000000,
             siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+            siegeClicks: [10, 20, 30, 40, 50],
+            siegeDam: [48000000, 56500000, 64000000, 70400000, 80000000],
             siege_img: [
                 '/graphics/earth_siege_small',
                 '/graphics/castle_siege_small',

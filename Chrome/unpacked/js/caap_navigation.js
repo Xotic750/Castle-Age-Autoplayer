@@ -217,7 +217,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else if (action =='jq' && $u.hasContent($j(text))) {
 					con.log(5, 'Navigate2 look ahead found jquery so skipping ', text, step, path, s);
 				} else if (action =='url' && session.getItem('clickUrl', '').indexOf(text) >= 0) {
-					con.log(5, 'Navigate2 look ahead found jquery so skipping ', text, step, path, s);
+					con.log(5, 'Navigate2 look ahead found a URL so skipping ', text, step, path, s);
 				} else {
 					step = $u.setContent(steps[s], '');
 					action = step.replace(/:.*/,'');
@@ -225,7 +225,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (action =='ajax') {
 						result = caap.clickAjaxLinkSend(text,2000);
 						return s == steps.length - 1 ? 'done' : true;
-					} else if (action =='image') {
+/*					} else if (action =='image') {
 						jq = caap.hasImage(text, $j('#globalcss'));
 						// If the last step in the path, then we're done
 						if (jq) {
@@ -234,7 +234,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						} else {
 							con.log(5,'Navigate2: Passing by confirmation pic', step, s, path, caap.pageList[step]);
 						}
-					} else if (action =='clickimg') {
+*/					} else if (action =='clickimg') {
 						jq = caap.checkForImage(text, $j('#globalcss'));
 						// If the last step in the path, then we're done
 						if ($u.hasContent(jq)) {
@@ -254,7 +254,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						}
 						con.warn('Navigate2: FAIL, unable to find jq', step, path, s, action, text);
 						return 'fail';
-					} else if (action =='image' || action == 'jq') {
+					} else if (action == 'image' || action == 'jq' || action == 'url') {
 						if (s == steps.length - 1) {
 							con.log(2,'Navigate2: Path done',  step, path, s, action, text);
 							return false;
