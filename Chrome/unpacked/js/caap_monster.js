@@ -675,6 +675,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 			
+			monster.select(false);
+			
 			// Inserted here temporarily to prevent multiple page changes for max stamina
 			var maxIdleStamina = caap.stats.stamina.max,
 				theGeneral = config.getItem('IdleGeneral', 'Use Current');
@@ -961,7 +963,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     con.log(1, attackMess);
                     caap.setDivContent('monster_mess', attackMess);
-                    session.setItem('ReleaseControl', true);
                     caap.click(attackButton);
                     // dashboard autorefresh fix
                     localStorage.AFrecentAction = true;
@@ -1157,9 +1158,6 @@ con.log (1, "after button check:", monster, cM);
 				cM = {},
                 monsterInfo = {};
 			
-			session.setItem('ReleaseControl', true);
-			//caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
-
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
 					con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
@@ -1260,7 +1258,6 @@ con.log (1, "after button check:", monster, cM);
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
                     con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM);
-                    session.setItem('ReleaseControl', true);
                     link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
 
                     con.log(2, "Link", link, cM.md5);
@@ -1268,7 +1265,6 @@ con.log (1, "after button check:", monster, cM);
                     caap.navigate2("ajax:" + link + "," + "url:" + link);
 
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
-                    session.setItem('resetselectMonster', true);
                     return true;
                 }
             }
@@ -1277,10 +1273,7 @@ con.log (1, "after button check:", monster, cM);
             All done.  Set timer and tell monster.select and dashboard they need to do their thing.
             We set the monsterReviewCounter to do a full refresh next time through.
             \-------------------------------------------------------------------------------------*/
-			// Reviews will be done as time comes up instead of all in bulk
-			//            schedule.setItem("monsterReview", (gm ? gm.getItem('monsterReviewMins', 60, hiddenVar) : 60) * 60, 300);
-            session.setItem('resetselectMonster', true);
-//            state.setItem('monsterReviewCounter', 0);
+
             caap.setDivContent('monster_mess', '');
             caap.updateDashboard(true);
             if (state.getItem('CollectedRewards', false)) {
@@ -2101,7 +2094,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                 cM.hide = true;
                 cM.joinable = {};
-                session.setItem('resetselectMonster', true);
                 monster.setItem(cM);
                 slice = null;
                 tempDiv = null;
@@ -2127,29 +2119,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 maxToFortify = monster.parseCondition('f%', cM.conditions);
                 maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
                 targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
-                if (cM.md5 === targetFromfortify.md5) {
-                    switch (targetFromfortify.type) {
-                        case 'Fortify':
-                            if (cM.fortify > maxToFortify) {
-                                session.setItem('resetselectMonster', true);
-                            }
-
-                            break;
-                        case 'Strengthen':
-                            if (cM.strength >= 100) {
-                                session.setItem('resetselectMonster', true);
-                            }
-
-                            break;
-                        case 'Stun':
-                            if (!cM.stunDo) {
-                                session.setItem('resetselectMonster', true);
-                            }
-
-                            break;
-                        default:
-                    }
-                }
 
                 // Start of Keep On Budget (KOB) code Part 1 -- required variables
                 con.log(5, 'Start of Keep On Budget (KOB) Code');
@@ -2250,9 +2219,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         con.log(2, 'KOB - max activated');
                     }
 
-                    if (isTarget) {
-                        session.setItem('resetselectMonster', true);
-                    }
                 } else if (cM.fortify !== -1 && cM.fortify < config.getItem('MinFortToAttack', 1)) {
                     cM.color = 'purple';
                     //used with KOB code
@@ -2262,9 +2228,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         con.log(2, 'KOB - MinFort activated');
                     }
 
-                    if (isTarget) {
-                        session.setItem('resetselectMonster', true);
-                    }
                 } else if (cM.damage >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', cM.conditions) !== false)) {
                     cM.color = 'darkorange';
                     cM.over = 'ach';
@@ -2275,9 +2238,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         con.log(2, 'KOB - achievement reached');
                     }
 
-                    if (isTarget && cM.damage < achLevel) {
-                        session.setItem('resetselectMonster', true);
-                    }
                 }
 
                 //Start of KOB code Part 2 begins here
@@ -2291,10 +2251,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         con.log(2, 'KOB - budget reached');
                     }
 
-                    if (isTarget) {
-                        session.setItem('resetselectMonster', true);
-                        con.log(1, 'This monster no longer a target due to kob');
-                    }
                 } else {
                     if (!KOBmax && !KOBminFort && !KOBach) {
                         //the way that the if statements got stacked, if it wasn't kob it was painted black anyway

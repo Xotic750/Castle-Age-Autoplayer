@@ -93,7 +93,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!force && !caap.oneMinuteUpdate('dashboard') && $j('#caap_infoMonster').html()) {
+            if (!caap.oneMinuteUpdate('dashboard', force) && $j('#caap_infoMonster').html()) {
                 if (caap.updateDashboardWaitLog) {
                     con.log(4, "Dashboard update is waiting on oneMinuteUpdate");
                     caap.updateDashboardWaitLog = false;

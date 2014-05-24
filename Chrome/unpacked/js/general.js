@@ -30,6 +30,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'War'];
 
 	general.menuList = [
+		'Idle',
         'Monster',
         'Fortify',
         'GuildMonster',
@@ -43,8 +44,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Collect',
         'SubQuest',
         'GB Class',
-        'FB Class',
-        'GB FB Idle',
+        'Fest Class',
+        'GB Fest Idle',
         'Level Up'];
 	
 		
@@ -330,7 +331,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 fullList = [],
 				generalList = [],
 				usedGen = '',
-			 	filterList = config.getItem("filterGeneral", true),
                 crossList = function (checkItem) {
                     return generalList.hasIndexOf(checkItem) >= 0;
                 };
@@ -356,7 +356,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (['Use Current', 'Under Level', ''].indexOf(usedGen) == -1 && general.usedGenerals.indexOf(usedGen) == -1) {
 					general.usedGenerals.push(usedGen);
 				}
-				general.lists[item] = $u.isArray(general.filters[item]) ? general.filters[item].filter(crossList) : generalList;
+				general.lists[item] = ($u.isArray(general.filters[item]) && config.getItem("filterGeneral", true)) ? general.filters[item].filter(crossList) : generalList;
 			});
 			
             general.coolDownList = [''].concat(general.getCoolDownNames());
@@ -819,14 +819,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.GetCurrentLoadout = function () {
         try {
-            var loadoutName = $j('select[name="choose_loadout"] option:selected').text().trim(); 
+            var loadoutName = $j('#hot_swap_loadouts_div select[name="choose_loadout"] option:selected').text().trim(); 
 
             if (!loadoutName) {
                 con.warn("Couldn't get current 'loadout'. Using 'Use Current'");
                 return 'Use Current';
             }
 
-            con.log(4, "Current Loadout:", loadoutName);
+            //con.log(2, "Current Loadout:", loadoutName);
             return "Loadout " + loadoutName;
         } catch (err) {
             con.error("ERROR in general.GetCurrentLoadout: " + err);

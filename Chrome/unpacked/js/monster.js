@@ -2318,7 +2318,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
             monster.clear();
             schedule.setItem('NotargetFrombattle_monster', 0);
-            session.setItem('ReleaseControl', true);
             caap.updateDashboard(true);
             if (monster.records.length == 0) {
                 localStorage.AFrecentAction = false;
@@ -2347,7 +2346,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.select = function(force) {
         try {
-            if (!(force || caap.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
+            if (!caap.oneMinuteUpdate('selectMonster', force) || caap.stats.level < 7) {
                 return false;
             }
 
@@ -2800,6 +2799,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     return false;
                 }
                 feedMonster=feedMonster.replace('Baal Stealer Of Souls','BAAL Stealer of Souls');
+                feedMonster=feedMonster.replace('Aspect Of Death','Aspect of Death');
 
                 if (id === caap.stats.FBID.toString()) {
                     con.log(2, "Your monster found", tempText);
@@ -2815,7 +2815,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             mName = userName + ' ' + feedMonster;
             con.log(2, 'monster Name', mName);
             if (monsterName !== mName) {
-                con.log(2, 'Looking for ' + monsterName + ' but on ' + mName + '. Going back to select screen');
+                con.log(2, 'Looking for ' + monsterName + ' but on ' + mName + '. Going back to select screen', monsterName.indexOf(userName), monsterName.indexOf(feedMonster));
                 page = page === 'onMonster' ? 'battle_monster' : (page === 'onRaid' ? 'raid' : page);
                 con.log(4, "monster.confirmRightPage page", page);
                 monsterDiv = null;

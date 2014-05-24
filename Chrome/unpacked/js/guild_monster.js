@@ -872,7 +872,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 firstOverAch = {},
                 firstUnderMax = {};
 
-            if (!(force || caap.oneMinuteUpdate('selectGuildMonster'))) {
+            if (!caap.oneMinuteUpdate('selectGuildMonster', force)) {
                 return state.getItem('targetGuildMonster', {});
             }
 
