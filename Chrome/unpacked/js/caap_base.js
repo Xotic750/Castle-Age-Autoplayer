@@ -6458,19 +6458,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.maxEnergyQuest = function () {
         try {
-            if (config.getItem('WhenQuest', 'Never') === 'Never') {
-                return false;
-            }
             var maxIdleEnergy = 0,
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
+
+			if (config.getItem('WhenQuest', 'Never') === 'Never') {
+                return false;
+            }
 
             if (theGeneral !== 'Use Current') {
                 maxIdleEnergy = general.GetStat(theGeneral,'energyMax');
                 if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
-                    con.log(1, "Changing to idle general to get Max energy", theGeneral, maxIdleEnergy);
                     if (general.Select('IdleGeneral')) {
+						con.log(1, "Max energy check: changed to idle general " + theGeneral, maxIdleEnergy);
                         return true;
                     }
+					con.log(1, "Max energy check: Loading keep with idle " + theGeneral + " to get Max energy", maxIdleEnergy);
 					return caap.navigateTo('keep');
                 }
             }

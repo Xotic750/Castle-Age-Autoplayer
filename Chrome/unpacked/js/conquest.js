@@ -470,7 +470,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(tempText)) {
                         caap.stats.guildTokens.max = $u.setContent(tempText.regex(/(\d+)/), 0);
                         if (caap.stats.guildTokens.max < 10){
-                            con.warn("guild_token_current_max ia too low", caap.stats.guildTokens.max);
+                            con.warn("guild_token_current_max is too low", caap.stats.guildTokens.max);
                             passedStats = false;
                         }
                     } else {

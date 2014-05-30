@@ -855,6 +855,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.log(2,'General change to ' + whichGeneral + ' paused while equipping timed general');
 				return (timedResult == 'change') || config.getItem('timedFreeze', true);
 			}
+			
+			if (general.records.length <= (caap.stats.level >= 100 ? 20 : 2)) {
+				con.log(1, "Generals count of " + general.records.length + " <= " + (caap.stats.level >= 100 ? 20 : 2) + ', checking Generals page');
+				return caap.navigateTo('generals');
+			}
 				
             con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
             con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
@@ -973,9 +978,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (general.timedLoadout()) {
 				con.log(2,'Pausing general review while equipping timed general');
 				return false;
-			}
-			if (general.records.length <= 20) {
-				return caap.navigateTo('generals');
 			}
 			
 			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||

@@ -2324,10 +2324,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             } else {
                 localStorage.AFrecentAction = true;
             }
-			for (var i = 0; i < caap.stats.reviewPages.length; i++) {
-				con.log(2, 'monster.flagFullReview', caap.stats.reviewPages);
-				monster.setrPage(caap.stats.reviewPages[i].path, 'review', -1);
-			}
 
             return true;
         } catch (err) {
