@@ -1151,7 +1151,9 @@ con.log (1, "after button check:", monster, cM);
 
             var link = '',
                 tempTime = 0,
-                isSiege = false,
+                isDeathRune = false,
+				siegeLimit = '0',
+                siegeOK = false,
 				i = 0,
 				cM = {},
                 monsterInfo = {};
@@ -1193,9 +1195,11 @@ con.log (1, "after button check:", monster, cM);
                 }
 
                 tempTime = cM.review || -1;
-                con.log(4, "Review", cM, !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60));
+				isDeathRune = cM.monster === 'The Deathrune Siege';
+				siegeOK = cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && !isDeathRune;
+				
                 /*jslint continue: true */
-                if (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
+                if (!siegeOK && (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2)) {
 //                    state.setItem('monsterReviewCounter', counter += 1);
                     state.setItem('monsterRepeatCount', 0);
                     continue;
@@ -1217,17 +1221,18 @@ con.log (1, "after button check:", monster, cM);
                     If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
-                    isSiege = cM.monster === 'The Deathrune Siege' ? true : false;
                     monsterInfo = monster.getInfo(cM);
-                    con.log(4, "Reviewing current monster obj", cM);
+                    link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
+					link = "ajax:" + link + "," + "url:" + link;
+                    
                     if (((cM.conditions && /:ac\b/.test(cM.conditions)) ||
-                            (isSiege && config.getItem('raidCollectReward', false)) || (!isSiege && config.getItem('monsterCollectReward', false))) && cM.status === 'Collect Reward') {
+                            (isDeathRune && config.getItem('raidCollectReward', false)) || (!isDeathRune && config.getItem('monsterCollectReward', false))) && cM.status === 'Collect Reward') {
                         if (general.Select('CollectGeneral')) {
                             return true;
                         }
 
                         link += '&action=collectReward';
-                        if (isSiege) {
+                        if (isDeathRune) {
                             if (cM.rix !== -1) {
                                 link += '&rix=' + cM.rix;
                             } else {
@@ -1237,21 +1242,20 @@ con.log (1, "after button check:", monster, cM);
 
                         link = link.replace('&action=doObjective', '');
                         state.setItem('CollectedRewards', true);
-                    } else if ((cM.conditions && cM.conditions.match(':!s')) ||
-                                (!config.getItem('raidDoSiege', false) && isSiege) || (!config.getItem('monsterDoSiege', false) && !isSiege && monsterInfo && monsterInfo.siege) || caap.stats.stamina.num === 0) {
+                    } else if (siegeOK) {
+                        con.log(2, "Doing siege for " + cM.siegeLevel);
+                        link += ',clickimg:siege_btn.gif';
+                    } else {
                         con.log(2, "Do not siege");
-                        link = link.replace('&action=doObjective', '');
-                    }
+					}
 
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
-                    con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM);
-                    link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
+                    con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
 
-                    con.log(2, "Link", link, cM.md5);
 					monster.lastClick = cM.md5;
-                    caap.clickAjaxLinkSend(link);
+                    caap.navigate2(link);
 
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                     return true;
@@ -1321,6 +1325,8 @@ con.log (1, "after button check:", monster, cM);
                 nMonstStyle = '',
                 id = 0,
                 userName = '',
+				siegeLevel = 0,
+				siegeLimit = 0,
                 mName = '',
                 feedMonster = '',
                 md5 = '',
@@ -2055,13 +2061,26 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                         searchRes = $j(searchStr, slice);
                         if ($u.hasContent(searchRes)) {
-                            totalCount = cM.monster === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
+                            totalCount = cM.monster === "The Deathrune Siege" ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + ($j('#objective_list_section').length ? 0 : 1);
                         }
 
                         cM.phase = Math.min(totalCount, monsterInfo.siege);
                         if ($u.isNaN(cM.phase) || cM.phase < 1) {
                             cM.phase = 1;
                         }
+						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
+						if (tempDiv.length) {
+							cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
+							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
+							
+							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.phase > 1 && caap.hasImage('siege_btn.gif') && cM.damage > 0;
+							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase);
+							
+						} else {
+							cM.doSiege = false;
+							cM.siegeLevel = 1000;
+						}
                     }
 
                     cM.t2k = monster.t2kCalc(cM);
@@ -2102,7 +2121,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
 
                 // Start of Keep On Budget (KOB) code Part 1 -- required variables
-                con.log(2, 'Start of Keep On Budget (KOB) Code');
+                con.log(5, 'Start of Keep On Budget (KOB) Code');
 
                 //default is disabled for everything
                 KOBenable = false;
@@ -2126,7 +2145,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                     KOBenable = true;
                     KOBbiasHours = 0;
                 } else if (KOBtmp === false) {
-                    con.log(2, 'KOB false branch');
+                    con.log(5, 'KOB false branch');
                     KOBenable = false;
                     KOBbiasHours = 0;
                 } else {

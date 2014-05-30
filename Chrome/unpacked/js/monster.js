@@ -694,8 +694,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             hp: 640000000,
             ach: 1000000,
             siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+            siegeClicks: [10, 20, 30, 40, 50],
+            siegeDam: [48000000, 56500000, 64000000, 70400000, 80000000],
             siege_img: [
                 '/graphics/earth_siege_small',
                 '/graphics/castle_siege_small',
@@ -1976,6 +1976,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.deleterPage('path',caap.stats.reviewPages[i].path)
 				}
 			}
+//			caap.stats.reviewPages = [];
 			monster.deleterPage('page','guildv2_monster_list');
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
 			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
@@ -2323,10 +2324,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             } else {
                 localStorage.AFrecentAction = true;
             }
-			for (var i = 0; i < caap.stats.reviewPages.length; i++) {
-				con.log(2, 'monster.flagFullReview', caap.stats.reviewPages);
-				monster.setrPage(caap.stats.reviewPages[i].path, 'review', -1);
-			}
 
             return true;
         } catch (err) {
@@ -2849,7 +2846,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
                     "Also includes other energy attacks, Strengthen, Deflect and Cripple. NOTE: Setting a high forty% can waste energy and no safety on other types.",
-                dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
@@ -2870,6 +2866,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'Cripple/Deflect will be when 2 hours are left, plus or minus up to 30 min',
                     'Cripple/Deflect will be when 1 hours are left, plus or minus up to 30 min',
                     'Cripple/Deflect is disabled'],
+                siegeList = ['Never', '1', '50', '250'],
+                siegeInst = [
+                    'Never siege monsters',
+                    'Siege monsters only for one point of stamina',
+                    'Siege monsters for up to 50 stamina',
+                    'Siege monsters for up to 250 stamina'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                 monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 demiPtItem = 0,
@@ -2900,9 +2902,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             htmlCode += caap.makeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
             htmlCode += caap.endCheckHide('PowerAttack');
             htmlCode += caap.makeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, powerfortifyMaxInstructions);
-// siege is changed so disable 
-config.setItem('monsterDoSiege', false);
-//            htmlCode += caap.makeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, dosiegeInstructions);
+            htmlCode += caap.makeDropDownTR("Siege up to", 'siegeUpTo', siegeList, siegeInst, '', 'Never', false, false, 62);
             htmlCode += caap.makeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
             htmlCode += caap.makeCheckTR("Battle Conquest Monsters", 'conquestMonsters', false, '');

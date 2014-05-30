@@ -5733,7 +5733,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = $j("div[style*='keep_top']");
                     backgroundDiv = $j("div[style*='keep_tabheader']");
 
-				temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/28590/graphics/keep_midrepeat_lrg.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+				temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
 				temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
                     row = caap.makeTh({
                         text: '&nbsp;',
@@ -6479,19 +6479,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.maxEnergyQuest = function () {
         try {
-            if (config.getItem('WhenQuest', 'Never') === 'Never') {
-                return false;
-            }
             var maxIdleEnergy = 0,
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
+
+			if (config.getItem('WhenQuest', 'Never') === 'Never') {
+                return false;
+            }
 
             if (theGeneral !== 'Use Current') {
                 maxIdleEnergy = general.GetStat(theGeneral,'energyMax');
                 if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
-                    con.log(1, "Changing to idle general to get Max energy", theGeneral, maxIdleEnergy);
                     if (general.Select('IdleGeneral')) {
+						con.log(1, "Max energy check: changed to idle general " + theGeneral, maxIdleEnergy);
                         return true;
                     }
+					con.log(1, "Max energy check: Loading keep with idle " + theGeneral + " to get Max energy", maxIdleEnergy);
 					return caap.navigateTo('keep');
                 }
             }
