@@ -792,7 +792,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.warn("args error", args, myStatsTxt);
 				}
 				fR.me.shout = $u.hasContent($j("img[src*='effect_shout']", bannerDiv)) ? true : false;
-				con.log(2,'Do I have Shout? ' + fR.me.shout);
+				//con.log(2,'Do I have Shout? ' + fR.me.shout);
 
 			}
 
@@ -850,12 +850,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.simtis = !$u.isString(fR.me.tower) ? false : towerPops[fR.me.tower - 1] < fR.your.towers[fR.me.tower].players;
 			} else {
 				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2;
-				con.log(2,'EASY',fR.easy, sealedTowers + (fR.guildHealth > fR.enemyHealth + 20), sealedTowers, towerPops);
+				//con.log(2,'EASY',fR.easy, sealedTowers + (fR.guildHealth > fR.enemyHealth + 20), sealedTowers, towerPops);
 			}
 			
 			wl = fR.guildHealth > fR.enemyHealth + 20 || fR.enemyHealth > fR.guildHealth + 20;
 			
-			con.log(2,'SIMTIS',fR.simtis,fR.easy,$u.isString(fR.me.tower),fR.me.tower, towerPops, towerPops[(fR.me.tower || 1) - 1]);
+			//con.log(2,'SIMTIS',fR.simtis,fR.easy,$u.isString(fR.me.tower),fR.me.tower, towerPops, towerPops[(fR.me.tower || 1) - 1]);
 			if (!gate) {
 				con.warn("No gates found");
 			} else {

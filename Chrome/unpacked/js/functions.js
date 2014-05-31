@@ -132,7 +132,7 @@ function caap_DomTimeOut() {
 
 function caap_clickRelogin() {
 	caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
-	$j("input[src*='crusader2_btn_submit.gif']").trigger('click');
+	$j("input[src*='crusader2_btn_submit.gif']").click();
     caap_WaitForData();
 }
 
