@@ -2935,7 +2935,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.startToggle('FestivalOptions', 'FESTIVAL OPTIONS');
             htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
-            htmlCode += caap.makeCheckTR('Enable Tower', 'festivalTower', false, '');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -4757,19 +4756,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'choose_demi.jpg',
             CheckResultsFunction: 'checkResults_index'
         },
-        'battle_monster': {
-            signaturePic: 'tab_monster_active.gif',
-            CheckResultsFunction: 'checkResults_fightList',
-            subpages: ['onMonster']
-        },
-        'guildv2_monster_list': {
-            signaturePic: 'tab_monster_list_on.gif',
-            CheckResultsFunction: 'checkResults_fightList',
-            subpages: ['onMonster']
-        },
         'player_monster_list': {
             signaturePic: 'tab_monster_list_on.gif',
-            CheckResultsFunction: 'checkResults_fightList',
+            CheckResultsFunction: 'checkResults_monsterList',
             subpages: ['onMonster']
         },
         'public_monster_list': {
@@ -4778,24 +4767,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         },
         'onMonster': {
             signaturePic: 'tab_monster_active.gif',
-            CheckResultsFunction: 'checkResults_viewFight'
+            CheckResultsFunction: 'checkResults_viewMonster'
         },
         'guildv2_battle_monster': {
             signaturePic: 'tab_monster_active.gif',
-            CheckResultsFunction: 'checkResults_viewFight'
+            CheckResultsFunction: 'checkResults_viewMonster'
         },
         'battle_expansion_monster': {
             signaturePic: 'tab_monster_active.gif',
-            CheckResultsFunction: 'checkResults_viewFight'
+            CheckResultsFunction: 'checkResults_viewMonster'
         },
         'raid': {
             signaturePic: 'battle_tab_raid_on.jpg',
-            CheckResultsFunction: 'checkResults_fightList',
+            CheckResultsFunction: 'checkResults_monsterList',
             subpages: ['onRaid']
         },
         'onRaid': {
             signaturePic: 'raid_map',
-            CheckResultsFunction: 'checkResults_viewFight'
+            CheckResultsFunction: 'checkResults_viewMonster'
         },
         'land': {
             signaturePic: 'tab_land_on.gif',
@@ -4932,17 +4921,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'festival_rankbarslider.gif',
             CheckResultsFunction: 'festivalBlessResults'
         },
-        'festival_tower': {
-            signaturePic: 'festival_monster_towerlist_button.jpg',
-            CheckResultsFunction: 'checkResults_fightList'
-        },
-        'festival_tower2': {
-            signaturePic: 'festival_monster2_towerlist_button.jpg',
-            CheckResultsFunction: 'checkResults_fightList'
-        },
         'festival_battle_monster': {
             signaturePic: 'festival_achievement_monster_',
-            CheckResultsFunction: 'checkResults_viewFight'
+            CheckResultsFunction: 'checkResults_viewMonster'
         },
         'festival_battle_home': {
             signaturePic: 'festival_button_rewards.gif',
@@ -6485,6 +6466,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.maxEnergyQuest = function() {
 		try {
+			// Putting here instead of adding to each monster, guild_monster, battle, etc.
+			if (caap.maxStatCheck('stamina') === true) {
+				return true;
+			}
+
 			var result = caap.maxStatCheck('energy');
 
 			if (config.getItem('WhenQuest', 'Never') === 'Never') {

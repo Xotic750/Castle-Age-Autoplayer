@@ -1191,44 +1191,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}	
             }
             landRecord.slot = tmp[tmp.length - 1];
-			path = monster.conqMonsterListLink + caap.stats.guild.id + "&slot=" + landRecord.slot;
-			monster.togglerPage(path, landRecord.status == 'attack', 'page', 'guildv2_monster_list');
-			pathList.push(path);
 
             conquestLands.setItem(landRecord);
         });
-/*		
-		// Clear out monster conquest lands that no longer exist
-		for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
-			if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
-				con.log(1,'Conquest: ',caap.stats.reviewPages[i], pathList, monster.records);
-				if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
-					if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
-						con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
-					}
-				} else {
-					con.log(2,'Conquest monster land in slot',caap.stats.reviewPages[i].path);
-					activePathlist.push(caap.stats.reviewPages[i].path);
-				}
-			}
-		}
-*/		// Clear out monsters in conquest lands that no longer exist
-		for (var ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
-			if (monster.records[ii].page == 'guildv2_monster_list') {
-				monsterFound = false;
-				for (var i = 0; i < activePathlist.length; i += 1) {
-					con.log(2,'Conquest: checking monster',monster.records[ii], activePathlist[i]);
-					if (monster.records[ii].link.indexOf(activePathlist[i].replace('ajax:','')) >= 0) {
-						monsterFound = true;
-					}
-				}
-				if (!monsterFound) {
-					monster.deleteItem(monster.records[ii].md5);
-				}
-			}
-		}
-
-        con.log(2, "conquest caap.stats.reviewPages", caap.stats.reviewPages, activePathlist);
     };
 
     // this function appears to have some serious bugs and really needs to be reworked!

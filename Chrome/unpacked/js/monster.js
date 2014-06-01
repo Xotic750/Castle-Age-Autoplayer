@@ -25,7 +25,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	
 	monster.record = function() {
         this.data = {
-            'name': '',
+            'name': false,
             'userName': '',
             'userId': 0,
             'monster': '',
@@ -39,7 +39,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             't2k': -1,
             'phase': '',
             'miss': 0,
-            'feedLink': '',
             'link': '',
             'rix': -1,
             'mpool': '',
@@ -55,7 +54,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'stun': -1,
             'stunTime': -1,
             'stunDo': false,
+            'status': false,
             'stunType': '',
+			'listReviewed' : 0,
             'tip': '',
             'fImg': '',
             'hide': false,
@@ -1961,31 +1962,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 			caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
-/*
-            for (var i = monster.records.length - 1; i >= 0 ; i--) {
-                if (monster.records[i].flag) {
-					var temp = monster.records.splice(i,1);
-					con.log(4,'Load Monster found Reviewpages',monster.records, caap.stats.reviewPages, i, temp);
-                }  
-            }
-*/
-			// Clean out some old bad entries for pages
-			for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
-				if (caap.stats.reviewPages[i].path.indexOf('monster_slot') >= 0 || caap.stats.reviewPages[i].path == 'battle_monster') {
-					con.log(1, 'Deleted conquest monster that slipped into review pages list.', caap.stats.reviewPages[i], caap.stats.reviewPages)
-					monster.deleterPage('path',caap.stats.reviewPages[i].path)
-				}
-			}
-//			caap.stats.reviewPages = [];
+			caap.stats.reviewPages = [];
 			monster.deleterPage('page','guildv2_monster_list');
 			monster.togglerPage('player_monster_list', caap.stats.level > 6);
-			monster.togglerPage(monster.conqLandsLink, caap.stats.level > 6 && config.getItem("conquestMonsters", false));
-			monster.togglerPage('festival_tower', caap.stats.level > 6 && config.getItem("festivalTower", false));
-			monster.togglerPage('festival_tower2', caap.stats.level > 6 && config.getItem("festivalTower", false));
+			monster.togglerPage('ajax:player_monster_list.php?monster_filter=2', caap.stats.level > 6 && config.getItem("conquestMonsters", false));
+			monster.togglerPage('ajax:player_monster_list.php?monster_filter=3', caap.stats.level > 6);
 			monster.togglerPage('ajax:raid.php', caap.stats.level > 7);
 
             session.setItem("MonsterDashUpdate", true);
-			con.log(4,'Load Monster records after',monster.records, caap.stats.reviewPages);
+			//con.log(2,'Load Monster records after',monster.records, caap.stats.reviewPages);
             return true;
         } catch (err) {
             con.error("ERROR in monster.load: " + err);
@@ -2397,29 +2382,25 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             // Next we get our monster objects from the reposoitory and break them into separarte lists
             // for monster or raid.  If we are serializing then we make one list only.
 
-            // current thinking is that continue should not be used as it can cause reader confusion
-            // therefore when linting, it throws a warning
-            /*jslint continue: true */
             for (it = 0, len = monster.records.length; it < len; it += 1) {
-                if (!monster.records[it].joined) {
-                    continue;
-                }
+                if (monster.records[it].joined) {
 
-                monsterInfo = monster.getInfo(monster.records[it]);
-                if (monsterInfo && monsterInfo.alpha) {
-                    if (monster.records[it].damage !== -1 && monster.records[it].color !== 'grey' && schedule.since(monster.records[it].stunTime, 0)) {
-                        con.log(2, "Review monster due to class timer", monster.records[it].name);
-                        monster.records[it].review = -1;
-                    }
-                }
-                monster.records[it].conditions = 'none';
-                if (config.getItem('SerializeRaidsAndMonsters', false)) {
-                    monsterList.any.push(monster.records[it].md5);
-                } else if ((monster.records[it].page === 'raid') || (monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster') === 'battle_monster')) {
-                    monsterList[monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster')].push(monster.records[it].md5);
+					monsterInfo = monster.getInfo(monster.records[it]);
+					if (monsterInfo && monsterInfo.alpha) {
+						if (monster.records[it].damage !== -1 && monster.records[it].color !== 'grey' && schedule.since(monster.records[it].stunTime, 0)) {
+							con.log(2, "Review monster due to class timer", monster.records[it].name);
+							monster.records[it].review = -1;
+						}
+					}
+					monster.records[it].conditions = 'none';
+					if (config.getItem('SerializeRaidsAndMonsters', false)) {
+						monsterList.any.push(monster.records[it].md5);
+					} else if ((monster.records[it].page === 'raid') || (monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster') === 'battle_monster')) {
+						monsterList[monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster')].push(monster.records[it].md5);
+					}
                 }
             }
-            /*jslint continue: false */
+
             monster.save();
 
             //PLEASE NOTE BEFORE CHANGING
@@ -3069,8 +3050,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 head = caap.makeTr(head);
                 values.shift();
                 monster.records.forEach(function(monsterObj) {
+					con.log(2, "MONSTER DASH",monsterObj);
                     row = '';
                     monsterInfo = monster.getInfo(monsterObj);
+						con.log(2, "MONSTER DASH check",1);
                     color = monsterObj.color;
                     if (monsterObj.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
                         color = 'blue';
@@ -3078,12 +3061,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         color = 'green';
                     }
 
+						con.log(2, "MONSTER DASH check",1);
                     monsterConditions = monsterObj.conditions;
                     achLevel = monster.parseCondition('ach', monsterConditions);
                     maxDamage = monster.parseCondition('max', monsterConditions);
                     monsterObjLink = monsterObj.link;
+						con.log(2, "MONSTER DASH check",2);
                     if (monsterObjLink) {
-                        visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
+                        visitMonsterLink = monsterObjLink.replace("&action=doObjective", "");
                         visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
                             text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
@@ -3102,6 +3087,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             title: ''
                         });
                     }
+						con.log(2, "MONSTER DASH check",3);
 
                     values.forEach(function(displayItem) {
                         id = "caap_" + displayItem + "_" + count;
