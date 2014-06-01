@@ -2929,8 +2929,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     maxDamage = 0,
                     title = '',
                     id = '',
-                    monsterObjLink = '',
-                    visitMonsterLink = '',
+                    link = '',
                     visitMonsterInstructions = '',
                     removeLink = '',
                     removeLinkInstructions = '',
@@ -3065,14 +3064,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     monsterConditions = monsterObj.conditions;
                     achLevel = monster.parseCondition('ach', monsterConditions);
                     maxDamage = monster.parseCondition('max', monsterConditions);
-                    monsterObjLink = monsterObj.link;
 						con.log(2, "MONSTER DASH check",2);
-                    if (monsterObjLink) {
-                        visitMonsterLink = monsterObjLink.replace("&action=doObjective", "");
+                    if (monsterObj.link) {
+                        link = caap.domain.altered + '/' + monsterObj.link;
                         visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
                             text: '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
-                                '" rlink="' + visitMonsterLink[1] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
+                                '" rlink="' + link + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -3184,8 +3182,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                     }
 
-                    if (monsterObjLink) {
-                        removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) + (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
+                    if (link) {
+                        removeLink = link.replace("casuser", "remove_list") + (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
                         removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {
                             text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
