@@ -2414,7 +2414,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            con.log(3, 'records/monsterList/selectTypes', monster.records, monsterList, selectTypes);
+            con.log(2, 'records/monsterList/selectTypes', monster.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
 
@@ -2423,7 +2423,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             /*jslint continue: true */
             for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
                 if (!$u.hasContent(monsterList[selectTypes[s]])) {
-                    continue;
+					con.log(2, 'monster select skipping ' + monsterList[selectTypes[s]], s, selectTypes[s]);
+					continue;
                 }
 
                 firstOverAch = '';
@@ -3049,10 +3050,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 head = caap.makeTr(head);
                 values.shift();
                 monster.records.forEach(function(monsterObj) {
-					con.log(2, "MONSTER DASH",monsterObj);
+					//con.log(2, "MONSTER DASH",monsterObj);
                     row = '';
                     monsterInfo = monster.getInfo(monsterObj);
-						con.log(2, "MONSTER DASH check",1);
                     color = monsterObj.color;
                     if (monsterObj.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
                         color = 'blue';
@@ -3060,12 +3060,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         color = 'green';
                     }
 
-						con.log(2, "MONSTER DASH check",1);
                     monsterConditions = monsterObj.conditions;
                     achLevel = monster.parseCondition('ach', monsterConditions);
                     maxDamage = monster.parseCondition('max', monsterConditions);
-						con.log(2, "MONSTER DASH check",2);
-                    if (monsterObj.link) {
+                    if (monsterObj.link.length) {
                         link = caap.domain.altered + '/' + monsterObj.link;
                         visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
@@ -3085,7 +3083,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             title: ''
                         });
                     }
-						con.log(2, "MONSTER DASH check",3);
 
                     values.forEach(function(displayItem) {
                         id = "caap_" + displayItem + "_" + count;
@@ -3144,6 +3141,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                 case 'strength':
                                     title = "Percentage of party strength: " + value + "%";
                                     break;
+                                case 'link':
+                                    value = "<a href='" + link + "'>Link<\a>";
+                                    break;
                                 default:
                                 }
 
@@ -3182,7 +3182,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                     }
 
-                    if (link) {
+                    if (monsterObj.link.length) {
                         removeLink = link.replace("casuser", "remove_list") + (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
                         removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {

@@ -1155,6 +1155,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 targetFromfortify = {},
                 tStr = '',
                 tNum = 0,
+				link = '',
                 tBool = false,
                 fMonstStyle = '',
                 nMonstStyle = '',
@@ -1180,8 +1181,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 groupMatch = false,
                 found = false;
 
-            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
-                (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice);
+            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_']", slice);
 
 			monster.lastClick = null;
 

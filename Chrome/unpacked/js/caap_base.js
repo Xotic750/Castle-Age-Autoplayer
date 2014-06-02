@@ -4769,6 +4769,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'tab_monster_active.gif',
             CheckResultsFunction: 'checkResults_viewMonster'
         },
+        'battle_monster': {
+            signaturePic: 'tab_monster_active.gif',
+            CheckResultsFunction: 'checkResults_viewMonster'
+        },
         'guildv2_battle_monster': {
             signaturePic: 'tab_monster_active.gif',
             CheckResultsFunction: 'checkResults_viewMonster'
