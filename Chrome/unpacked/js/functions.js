@@ -54,10 +54,10 @@ function getFBEnv() {
         (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
 
         if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
-			var kludge = $j("script:contains(handle):contains(id)")[0].innerHTML.match(/{"id":".*?"}/);
+            var kludge = $j("script:contains(handle):contains(id)")[0].innerHTML.match(/{"id":".*}/);
             kludge[0] = '{' + kludge[0].substring(1, kludge[0].indexOf(',')) + '}';
             sessionStorage.setItem('caap_fbEnv', kludge.toString());
-		}
+        }
 
         inject = null;
 }
@@ -132,7 +132,7 @@ function caap_DomTimeOut() {
 
 function caap_clickRelogin() {
 	caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
-	$j("input[src*='crusader2_btn_submit.gif']").trigger('click');
+	$j("input[src*='crusader2_btn_submit.gif']").click();
     caap_WaitForData();
 }
 

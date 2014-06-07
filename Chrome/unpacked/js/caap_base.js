@@ -6477,28 +6477,42 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // Quest function does action, DrawQuest sets up the page and gathers info
     /////////////////////////////////////////////////////////////////////
 
-    caap.maxEnergyQuest = function () {
+	// Returns true if an action was required to check max stat
+	// Returns value of max stat otherwise
+	
+    caap.maxStatCheck = function(stat) {
         try {
-            var maxIdleEnergy = 0,
+            var maxIdleStat = 0,
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
+
+            if (theGeneral !== 'Use Current') {
+                maxIdleStat = general.GetStat(theGeneral,stat + 'Max');
+                if (maxIdleStat <= 0 || $u.isNaN(maxIdleStat)) {
+                    if (general.Select('IdleGeneral')) {
+						con.log(1, "Max " + stat + " check: Changed to idle general " + theGeneral + " to get max " + maxIdleStat);
+                        return true;
+                    }
+					con.log(1, "Max " + stat + " check: Loading keep with idle general " + theGeneral + " to get max " + maxIdleStat);
+					return caap.navigateTo('keep');
+                }
+            }
+
+            return maxIdleStat;
+        } catch (err) {
+            con.error("ERROR in maxStatCheck: " + err);
+            return undefined;
+        }
+    };
+
+    caap.maxEnergyQuest = function() {
+		try {
+			var result = caap.maxStatCheck('energy');
 
 			if (config.getItem('WhenQuest', 'Never') === 'Never') {
                 return false;
             }
 
-            if (theGeneral !== 'Use Current') {
-                maxIdleEnergy = general.GetStat(theGeneral,'energyMax');
-                if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
-                    if (general.Select('IdleGeneral')) {
-						con.log(1, "Max energy check: changed to idle general " + theGeneral, maxIdleEnergy);
-                        return true;
-                    }
-					con.log(1, "Max energy check: Loading keep with idle " + theGeneral + " to get Max energy", maxIdleEnergy);
-					return caap.navigateTo('keep');
-                }
-            }
-
-            return caap.stats.energy.num >= maxIdleEnergy ? caap.quests() : false;
+			return result === true ? true : caap.stats.energy.num >= result ? caap.quests() : false;
         } catch (err) {
             con.error("ERROR in maxEnergyQuest: " + err);
             return undefined;
