@@ -44,10 +44,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'mpool': '',
             'mid': '',
             'over': '',
-            'page': '',
             'color': '',
             'review': -1,
             'type': '',
+			'raid' : false,
             'conditions': '',
             'charClass': '',
             'strength': -1,
@@ -139,7 +139,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_img: ['festival_monsters_top_water_element.jpg'],
             festival_dur: 192,
             festival_ach: 1000000,
-            newbg_img: ['monster_header_ragnorak.jpg', 'monster_header_ragnarok.jpg'],
+            newbg_img: ['monster_header_ragnarok.jpg'],
             list_img: ['water_list.jpg'],
             cta_img: ['ntwitter_ragnarok1.gif']
         },
@@ -1407,7 +1407,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             bodyparts: 5,
             partOrder: [5, 4, 3, 2, 1]
         },
-        "Aspect of Death": {
+        "Aspect Of Death": {
             alpha: true,
             duration: 168,
             hp: 845000000,
@@ -2333,16 +2333,17 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             con.log(3, 'Selecting monster');
             var monsterList = {
-                'battle_monster': [],
-                'raid': [],
-                'any': []
-            },
-            it = 0,
+					'battle_monster': [],
+					'raid': [],
+					'any': []
+				},
+				it = 0,
                 len = 0,
                 len1 = 0,
                 len2 = 0,
                 len3 = 0,
                 s = 0,
+				whichList = 'any',
                 selectTypes = [],
                 maxToFortify = 0,
                 nodeNum = 0,
@@ -2379,7 +2380,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             //state.setItem('targetFromfortify', energyTarget);
             //state.setItem('targetFromraid', '');
 
-            // Next we get our monster objects from the reposoitory and break them into separarte lists
+            // Next we get our monster objects from the repository and break them into separate lists
             // for monster or raid.  If we are serializing then we make one list only.
 
             for (it = 0, len = monster.records.length; it < len; it += 1) {
@@ -2393,11 +2394,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 					}
 					monster.records[it].conditions = 'none';
-					if (config.getItem('SerializeRaidsAndMonsters', false)) {
-						monsterList.any.push(monster.records[it].md5);
-					} else if ((monster.records[it].page === 'raid') || (monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster') === 'battle_monster')) {
-						monsterList[monster.records[it].page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster')].push(monster.records[it].md5);
-					}
+					whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : monster.records[it].raid ? 'raid' : 'battle_monster';
+					monsterList[whichList].push(monster.records[it].md5);
                 }
             }
 
@@ -2408,7 +2406,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
             //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
             //a round hole. Please reconsider before doing so.
-            if (config.getItem('SerializeRaidsAndMonsters', false)) {
+            if (whichList === 'any') {
                 selectTypes = ['any'];
             } else {
                 selectTypes = ['battle_monster', 'raid'];
@@ -2423,7 +2421,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             /*jslint continue: true */
             for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
                 if (!$u.hasContent(monsterList[selectTypes[s]])) {
-					con.log(2, 'monster select skipping ' + monsterList[selectTypes[s]], s, selectTypes[s]);
 					continue;
                 }
 
@@ -2448,9 +2445,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     attackOrderList = config.getList('order' + selectTypes[s], '').concat('your', "'");
                 }
 
-                con.log(3, 'attackOrderList', attackOrderList);
+                con.log(2, 'attackOrderList', attackOrderList);
                 // Next we step through the users list getting the name and conditions
                 for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
+                    con.log(2, 'Current monster being on p', attackOrderList[p]);
                     if (!attackOrderList[p].trim()) {
                         continue;
                     }
@@ -2470,7 +2468,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         // Or if this monster is dead, skip to next one
                         // Or if this monster is not the correct type, skip to next one
                         if (!monster.getItem(monsterList[selectTypes[s]][m]).name.toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) ||
-                            (selectTypes[s] !== 'any' && monsterObj.page.replace('festival_battle_monster', 'battle_monster').replace('guildv2_monster_list', 'battle_monster') !== selectTypes[s])) {
+                            (selectTypes[s] !== 'any' && monsterObj.raid !== (selectTypes[s] == 'raid'))) {
                             continue;
                         }
 
@@ -2483,7 +2481,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             continue;
                         }
 
-                        con.log(3, 'Current monster being checked', monsterObj);
+                        con.log(2, 'Current monster being checked', monsterObj);
                         // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                         // these to see if this is the monster we should select
                         if (!firstUnderMax && monsterObj.color !== 'purple') {

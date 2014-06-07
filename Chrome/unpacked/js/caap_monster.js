@@ -130,7 +130,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                     /*jslint continue: false */
 					
-					link = $j("a[href*='http']", monsterRow.eq(it)).attr("href").replace(/http.*\//,'');
+					link = $j("a[href*='http']", monsterRow.eq(it)).last().attr("href").replace(/http.*\//,'');
 					md5 = link.MD5();
                     mR = monster.getItem(md5);
 					mR.link = link;
@@ -208,9 +208,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR.monster = monsterText;
                     mR.userId = userId;
                     mR.md5 = md5;
-                    mR.page = page.replace(/festival_tower\d*/, "festival_battle_monster");
-                    engageButtonName = (page === 'festival_tower' || page === 'festival_tower2') ?
-                        $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
+					mR.raid = true;
+                    engageButtonName = $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
 
                     switch (engageButtonName) {
                         case 'collectbtn':
@@ -1127,7 +1126,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				stunStart = 0,
                 tempArr = [],
                 counter = 0,
-                monstHealthImg = '',
                 totalCount = 0,
                 ind = 0,
                 len = 0,
@@ -1671,9 +1669,10 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                     cM.rix = cM.monster === "The Deathrune Siege" ? $u.setContent($u.setContent($j("a[href*='&rix=']", slice).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
                 }
             }
-*/          monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' : 'monster_health_background.jpg';
-            monsterDiv = $j("img[src*='" + monstHealthImg + "']", slice).parent();
-            con.log(5, 'monster health',monsterInfo ,monstHealthImg ,monsterDiv);
+*/
+			monsterDiv = $j("img[src*='monster_health_background.jpg']", slice);
+            monsterDiv = $u.hasContent(monsterDiv) ? monsterDiv.parent() : $j("img[src*='nm_red.jpg']", slice).parent();
+            con.log(2, 'monster time', monsterInfo, monsterDiv, monsterDiv, time);
 
             if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                 cM.time = time;
