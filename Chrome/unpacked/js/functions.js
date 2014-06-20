@@ -45,22 +45,21 @@ function fbLog() {
     inject = null;
 }
 
-function getFBEnv() {
-        var inject = document.createElement('script');
+    function getFBEnv() {
+            var inject = document.createElement('script');
 
-        inject.setAttribute('type', 'text/javascript');
-        inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
-        (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
-        (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
+            inject.setAttribute('type', 'text/javascript');
+            inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
+            (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+            (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
 
-        if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
-            var kludge = $j("script:contains(handle):contains(id)")[0].innerHTML.match(/{"id":".*}/);
-            kludge[0] = '{' + kludge[0].substring(1, kludge[0].indexOf(',')) + '}';
-            sessionStorage.setItem('caap_fbEnv', kludge.toString());
-        }
+            if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
+                var kludge = '{"id":"' + $j("[id*='profile_pic_header_']")[0].id.replace('profile_pic_header_', '') + '"}';
+                sessionStorage.setItem('caap_fbEnv', kludge.toString());
+            }
 
-        inject = null;
-}
+            inject = null;
+    }
 
 
 function getFBData() {
