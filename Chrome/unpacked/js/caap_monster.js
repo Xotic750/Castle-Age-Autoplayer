@@ -77,16 +77,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 userName = '',
                 mName = '',
                 md5 = '',
-				lastmd5 = monster.lastClick,
+                lastmd5 = monster.lastClick,
                 pageUserCheck = 0,
                 newInputsDiv = $j();
 
             monster.clean();
-			monster.lastClick = null;
+            monster.lastClick = null;
 
             if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
                 con.log(1, "Deleting monster that has expired",lastmd5);
-				monster.deleteItem(lastmd5);
+                monster.deleteItem(lastmd5);
                 return false;
             }
 
@@ -94,17 +94,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             page = session.getItem('page', 'battle_monster');
 
             con.log(2, "Checking monster list page results", page, session.getItem('clickUrl', ''));
-			if (page === 'guildv2_monster_list') {
-				monster.setrPage('ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,''),'review',Date.now());
-			} else if (page === 'raid') {
-				monster.setrPage('ajax:raid.php','review',Date.now());
-			} else if (page === 'player_monster_list') {
-				monster.setrPage('player_monster_list','review',Date.now());
-			} else {
-				con.log(2,'caap.checkResults_fightList Unexpected page',page);
-			}
+            if (page === 'guildv2_monster_list') {
+                monster.setrPage('ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,''),'review',Date.now());
+            } else if (page === 'raid') {
+                monster.setrPage('ajax:raid.php','review',Date.now());
+            } else if (page === 'player_monster_list' || page === 'festival_tower' || page === 'festival_tower2') {
+                monster.setrPage(page,'review',Date.now());
+            } else {
+                con.log(2,'caap.checkResults_fightList Unexpected page',page);
+            }
             con.log(5, "list caap.stats.reviewPages", caap.stats.reviewPages, caap.stats.level);
-			
+            
             // get all buttons to check monsterObjectList
             if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
                 con.log(2, "No buttons found");
@@ -135,16 +135,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     userName = userId === caap.stats.FBID ? 'Your' : monsterRow.eq(it).children().eq(1).children().eq(0).children().eq(0).text().trim();
                     tempText = $j("img", monsterRow.eq(it)).eq(0).attr("src").basename().trim();
-					monsterText = monster.getListName(tempText);
-					if (monsterText == '') {
-						tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
-						monsterText = tempText.replace(/,.*/,'').trim();
-					}
+                    monsterText = monster.getListName(tempText);
+                    if (monsterText == '') {
+                        tempText = $j("div[style*='bold']", monsterRow.eq(it)).text();
+                        monsterText = tempText.replace(/,.*/,'').trim();
+                    }
                     mName = userName + ' ' + monsterText;
                     con.log(2, "Monster Name", userName, mName);
                     md5 = (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase().MD5();
-					md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5;
-					con.log(5,'Monster list md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase(), md5);
+                    md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5;
+                    con.log(5,'Monster list md5 ' + (userId + ' ' + monsterText + ' ' + "battle_monster").toLowerCase(), md5);
                     monsterReviewed = monster.getItem(md5);
                     monsterReviewed.name = mName;
                     monsterReviewed.userName = userName;
@@ -557,8 +557,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
-					caap.navigateTo('keep', 'tab_stats_on.gif');
-					return true;
+                    caap.navigateTo('keep', 'tab_stats_on.gif');
+                    return true;
                 }
 
                 if (caap.stats.stamina.num >= maxIdleStamina) {
@@ -674,24 +674,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('monster_mess', 'Monster off');
                 return false;
             }
-			
-			monster.select(false);
-			
-			// Inserted here temporarily to prevent multiple page changes for max stamina
-			var maxIdleStamina = caap.stats.stamina.max,
-				theGeneral = config.getItem('IdleGeneral', 'Use Current');
-				
-			if (theGeneral !== 'Use Current') {
-				maxIdleStamina = general.GetStat(theGeneral,'staminaMax');
-			}
+            
+            monster.select(false);
+            
+            // Inserted here temporarily to prevent multiple page changes for max stamina
+            var maxIdleStamina = caap.stats.stamina.max,
+                theGeneral = config.getItem('IdleGeneral', 'Use Current');
+                
+            if (theGeneral !== 'Use Current') {
+                maxIdleStamina = general.GetStat(theGeneral,'staminaMax');
+            }
 
-			if (theGeneral !== 'Use Current' && !maxIdleStamina) {
-				con.log(2, "Changing to idle general to get Max Stamina #1", theGeneral, maxIdleStamina);
-				if (general.Select('IdleGeneral')) {
-					return true;
-				}
-				return caap.navigateTo('keep');
-			}
+            if (theGeneral !== 'Use Current' && !maxIdleStamina) {
+                con.log(2, "Changing to idle general to get Max Stamina #1", theGeneral, maxIdleStamina);
+                if (general.Select('IdleGeneral')) {
+                    return true;
+                }
+                return caap.navigateTo('keep');
+            }
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
             if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && caap.needToHide() && caap.checkStamina('Monster', 1)) {
@@ -727,7 +727,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 monsterName = targetMonster.name,
                 nodeNum = 0,
                 energyRequire = 10,
-				// In the interest of saving bits to be more environmentally friendly, currentMonster has been renamed cM
+                // In the interest of saving bits to be more environmentally friendly, currentMonster has been renamed cM
                 cM = monster.getItem(targetMonster.md5), 
                 monsterInfo = monster.getInfo(cM),
                 attackButton = null,
@@ -887,10 +887,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (monsterInfo && monsterInfo.fortify_img) {
                         buttonList.unshift(monsterInfo.fortify_img[0]);
                     }
-					if (!cM.stunTarget) {
-						con.log(1, "No stun target time set");
-					}
-					
+                    if (!cM.stunTarget) {
+                        con.log(1, "No stun target time set");
+                    }
+                    
                     if (cM && cM.stunDo && cM.stunType !== '') {
                         buttonList.unshift("button_nm_s_" + cM.stunType);
                     } else {
@@ -1152,19 +1152,19 @@ con.log (1, "after button check:", monster, cM);
             var link = '',
                 tempTime = 0,
                 isDeathRune = false,
-				siegeLimit = '0',
+                siegeLimit = '0',
                 siegeOK = false,
-				i = 0,
-				cM = {},
+                i = 0,
+                cM = {},
                 monsterInfo = {};
-			
+
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-					con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
-					return caap.navigateTo(caap.stats.reviewPages[i].path);
-				}
+                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
+                    return caap.navigateTo(caap.stats.reviewPages[i].path);
+                }
             }
-			con.log(5,'monster review',caap.stats.reviewPages);
+            con.log(5,'monster review',caap.stats.reviewPages);
 
             if (monster.records && monster.records.length === 0) {
                 return false;
@@ -1175,7 +1175,7 @@ con.log (1, "after button check:", monster, cM);
             index for the next reiteration since we will be doing a click and return in here.
             \-------------------------------------------------------------------------------------*/
             for (i = 0; i < monster.records.length; i++) {
-				cM = monster.records[i];
+                cM = monster.records[i];
                 /*jslint continue: true */
                 if (!monster.records[i]) {
                     continue;
@@ -1195,9 +1195,9 @@ con.log (1, "after button check:", monster, cM);
                 }
 
                 tempTime = cM.review || -1;
-				isDeathRune = cM.monster === 'The Deathrune Siege';
-				siegeOK = cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && !isDeathRune;
-				
+                isDeathRune = cM.monster === 'The Deathrune Siege';
+                siegeOK = cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && !isDeathRune;
+                
                 /*jslint continue: true */
                 if (!siegeOK && (cM.status === 'Complete' || !schedule.since(tempTime, (gm ? gm.getItem("MonsterLastReviewed", 15, hiddenVar) : 15) * 60) || state.getItem('monsterRepeatCount', 0) > 2)) {
 //                    state.setItem('monsterReviewCounter', counter += 1);
@@ -1223,7 +1223,7 @@ con.log (1, "after button check:", monster, cM);
                     \-------------------------------------------------------------------------------------*/
                     monsterInfo = monster.getInfo(cM);
                     link = link.replace(caap.domain.altered + '/', '').replace('?', '?twt2&');
-					link = "ajax:" + link + "," + "url:" + link;
+                    link = "ajax:" + link + "," + "url:" + link;
                     
                     if (((cM.conditions && /:ac\b/.test(cM.conditions)) ||
                             (isDeathRune && config.getItem('raidCollectReward', false)) || (!isDeathRune && config.getItem('monsterCollectReward', false))) && cM.status === 'Collect Reward') {
@@ -1247,14 +1247,14 @@ con.log (1, "after button check:", monster, cM);
                         link += ',clickimg:siege_btn.gif';
                     } else {
                         con.log(2, "Do not siege");
-					}
+                    }
 
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
                     con.log(1, 'Reviewing ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
 
-					monster.lastClick = cM.md5;
+                    monster.lastClick = cM.md5;
                     caap.navigate2(link);
 
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
@@ -1288,8 +1288,8 @@ con.log (1, "after button check:", monster, cM);
                 time = [],
                 tempDiv = $j(),
                 tempText = '',
-				tempSetting = 0,
-				stunStart = 0,
+                tempSetting = 0,
+                stunStart = 0,
                 tempArr = [],
                 counter = 0,
                 monstHealthImg = '',
@@ -1325,8 +1325,8 @@ con.log (1, "after button check:", monster, cM);
                 nMonstStyle = '',
                 id = 0,
                 userName = '',
-				siegeLevel = 0,
-				siegeLimit = 0,
+                siegeLevel = 0,
+                siegeLimit = 0,
                 mName = '',
                 feedMonster = '',
                 md5 = '',
@@ -1340,7 +1340,7 @@ con.log (1, "after button check:", monster, cM);
                 countJoin = 0,
                 it = 0,
                 jt = 0,
-				lastmd5 = monster.lastClick,
+                lastmd5 = monster.lastClick,
                 groups = {},
                 groupMatch = false,
                 found = false;
@@ -1348,55 +1348,55 @@ con.log (1, "after button check:", monster, cM);
             monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
                 (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), slice);
 
-			monster.lastClick = null;
+            monster.lastClick = null;
 
-			// new monster layout logic
-			if (dleadersDiv.text() === '') {
-				dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+            // new monster layout logic
+            if (dleadersDiv.text() === '') {
+                dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
 
-				maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
-				/* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
-				for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
-					if (dleadersDiv2[ii].children.length > 0) {
-						con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
-					}
-				}*/
-			} else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
-				con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
-				tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
-				if ($u.hasContent(tempDiv)) {
-					tempDiv.each(function (index) {
-						$j(this).parent().attr("id", "mark" + index);
-					});
+                maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
+                /* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
+                for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
+                    if (dleadersDiv2[ii].children.length > 0) {
+                        con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
+                    }
+                }*/
+            } else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
+                con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
+                tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tempDiv.each(function (index) {
+                        $j(this).parent().attr("id", "mark" + index);
+                    });
 
-					tempDiv.each(function (index) {
-						var group = $j(this),
-							levels = $j("b", group).text(),
-							start = levels.regex(/Levels (\d+)/),
-							max = group.text().trim().innerTrim().replace(levels, '').trim(),
-							maxNum = max.regex(/(\d+)/),
-							count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
+                    tempDiv.each(function (index) {
+                        var group = $j(this),
+                            levels = $j("b", group).text(),
+                            start = levels.regex(/Levels (\d+)/),
+                            max = group.text().trim().innerTrim().replace(levels, '').trim(),
+                            maxNum = max.regex(/(\d+)/),
+                            count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
 
-						con.log(3, "groups", index, levels, start, maxNum, count);
-						groups[levels] = {
-							'level': start,
-							'max': maxNum,
-							'count': count
-						};
+                        con.log(3, "groups", index, levels, start, maxNum, count);
+                        groups[levels] = {
+                            'level': start,
+                            'max': maxNum,
+                            'count': count
+                        };
 
-						countJoin += count;
-						if (!feed.isScan && !ajax) {
-							group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
-						}
+                        countJoin += count;
+                        if (!feed.isScan && !ajax) {
+                            group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+                        }
 
-						group = null;
-						levels = null;
-					});
-				} else {
-					tempDiv = $j("table:eq(1) a", dragonDiv);
-					countJoin = tempDiv.length;
-				}
-			}
+                        group = null;
+                        levels = null;
+                    });
+                } else {
+                    tempDiv = $j("table:eq(1) a", dragonDiv);
+                    countJoin = tempDiv.length;
+                }
+            }
 
             groups.total = {
                 'max': maxJoin,
@@ -1535,11 +1535,11 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                     return;
                 }
 
-				feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1').replace(/,.*/,'');
-				userName = tempText.replace(feedMonster, '').trim();
-				feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
+                feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1').replace(/,.*/,'');
+                userName = tempText.replace(feedMonster, '').trim();
+                feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
 
-					if (!$u.hasContent(feedMonster)) {
+                    if (!$u.hasContent(feedMonster)) {
                     con.warn("1:Unable to get monster string!!", tempText);
                 }
 
@@ -1584,8 +1584,8 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             }
 
             md5 = (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase();
-			md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5.MD5();
-			con.log(5,'Monster page md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase(), md5);
+            md5 = (md5.indexOf("null_null_null") >= 0 && lastmd5) ? lastmd5 : md5.MD5();
+            con.log(5,'Monster page md5 ' + (id + ' ' + feedMonster + ' ' + page.replace('battle_expansion_monster', 'guildv2_battle_monster')).toLowerCase(), md5);
             if ((feed.isScan || ajax) && matches && feed.scanRecord.md5 !== md5) {
                 con.warn("MD5 mismatch!", md5, feed.scanRecord.md5);
                 if (config.getItem("DebugLevel", 1) > 1) {
@@ -1881,7 +1881,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 }
             }
             tBool = cM.monster === "The Deathrune Siege" ? true : false;
-			// Need to rework autocollect
+            // Need to rework autocollect
 /*            if (/:ac\b/.test(cM.conditions) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
                 counter = state.getItem('monsterReviewCounter', 0);
                 // Change from using monster name to monster MD5 - need to keep an eye open for any more
@@ -1960,23 +1960,23 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                             tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
                             if ($u.hasContent(tempArr) && tempArr.length === 3) {
                                 cM.stunTime = Date.now() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
-								
-								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
-								// or the WhenStun setting has changed, set a new stun target time.
-								tempSetting = monster.parseCondition("cd", cM.conditions);
-								tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
-								tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
-								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-								con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
-								
-								if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
-									cM.stunSetting = tempSetting;
+                                
+                                // If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
+                                // or the WhenStun setting has changed, set a new stun target time.
+                                tempSetting = monster.parseCondition("cd", cM.conditions);
+                                tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
+                                tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
+                                stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
+                                con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
+                                
+                                if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
+                                    cM.stunSetting = tempSetting;
 
-									// Add +/- 30 min so multiple CAAPs don't all stun at the same time
-									cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
-											: cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
-									con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
-								}
+                                    // Add +/- 30 min so multiple CAAPs don't all stun at the same time
+                                    cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
+                                            : cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
+                                    con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
+                                }
 
                             } else {
                                 con.warn("Can't get statusTime", tempText);
@@ -2015,10 +2015,10 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                             if (cM.charClass && cM.tip && cM.stun !== -1) {
                                 cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
-								if (cM.stunDo) {
-									con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
-								}
-								cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
+                                if (cM.stunDo) {
+                                    con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+                                }
+                                cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
                                 cM.stunType = '';
                                 if (cM.stunDo) {
                                     con.log(2, "Do character specific attack", cM.stunDo);
@@ -2068,19 +2068,19 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         if ($u.isNaN(cM.phase) || cM.phase < 1) {
                             cM.phase = 1;
                         }
-						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
-						if (tempDiv.length) {
-							cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
-							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
-							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
-							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.phase > 1 && caap.hasImage('siege_btn.gif') && cM.damage > 0;
-							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase);
-							
-						} else {
-							cM.doSiege = false;
-							cM.siegeLevel = 1000;
-						}
+                        tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
+                        if (tempDiv.length) {
+                            cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
+                            siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+                            siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
+                            
+                            cM.doSiege = cM.siegeLevel <= siegeLimit && cM.phase > 1 && caap.hasImage('siege_btn.gif') && cM.damage > 0;
+                            con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase);
+                            
+                        } else {
+                            cM.doSiege = false;
+                            cM.siegeLevel = 1000;
+                        }
                     }
 
                     cM.t2k = monster.t2kCalc(cM);
