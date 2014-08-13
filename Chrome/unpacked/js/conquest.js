@@ -1095,7 +1095,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
 
                         if (result === 'victory') {
-							session.setItem('ReleaseControl', false);
+                            session.setItem('ReleaseControl', false);
                             con.log(1, "Chain check");
                             //Test if we should chain this guy
                             tempTime = $u.setContent(targetRecord.chainTime, 0);
@@ -1163,13 +1163,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     conquest.getLands = function() {
         var landCapsules = $j("[style*='conq2_capsule']"),
             timeLeft,
-			path,
-			pathList = [],
-			monsterFound = false,
-			activePathlist = [];
-		
+            path,
+            pathList = [],
+            monsterFound = false,
+            activePathlist = [];
+        
         //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
-		monster.setrPage(monster.conqLandsLink,'review',Date.now());
+        monster.setrPage(monster.conqLandsLink,'review',Date.now());
         landCapsules.each(function() {
             var currentCapsule = $j(this),
                 tmp = '',
@@ -1183,50 +1183,50 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 landRecord.stateTimeLeft = 0;
             } else {
                 tmp = $j("img[src*='conq2_btn']", currentCapsule).parent().eq(0).attr('href').match(/.+slot=(\d+)/)[1];
-    			try{
-					landRecord.timeLeft = $j("[id*='expire_text']", currentCapsule).html().match(/.+forever in (\d+) hours/)[1];
-				} catch (err) {
-					con.error("ERROR in landRecord.timeLeft: " + err);
-					landRecord.timeLeft = 999999;
-				}	
+                try{
+                    landRecord.timeLeft = $j("[id*='expire_text']", currentCapsule).html().match(/.+forever in (\d+) hours/)[1];
+                } catch (err) {
+                    con.error("ERROR in landRecord.timeLeft: " + err);
+                    landRecord.timeLeft = 999999;
+                }	
             }
             landRecord.slot = tmp[tmp.length - 1];
-			path = monster.conqMonsterListLink + caap.stats.guild.id + "&slot=" + landRecord.slot;
-			monster.togglerPage(path, landRecord.status == 'attack', 'page', 'guildv2_monster_list');
-			pathList.push(path);
+            path = monster.conqMonsterListLink + caap.stats.guild.id + "&slot=" + landRecord.slot;
+            monster.togglerPage(path, landRecord.status == 'attack', 'page', 'guildv2_monster_list');
+            pathList.push(path);
 
             conquestLands.setItem(landRecord);
         });
 /*		
-		// Clear out monster conquest lands that no longer exist
-		for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
-			if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
-				con.log(1,'Conquest: ',caap.stats.reviewPages[i], pathList, monster.records);
-				if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
-					if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
-						con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
-					}
-				} else {
-					con.log(2,'Conquest monster land in slot',caap.stats.reviewPages[i].path);
-					activePathlist.push(caap.stats.reviewPages[i].path);
-				}
-			}
-		}
+        // Clear out monster conquest lands that no longer exist
+        for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
+            if (caap.stats.reviewPages[i].page == 'guildv2_monster_list') {
+                con.log(1,'Conquest: ',caap.stats.reviewPages[i], pathList, monster.records);
+                if (pathList.indexOf(caap.stats.reviewPages[i].path) == -1) {
+                    if (monster.deleterPage('path',caap.stats.reviewPages[i].path)) {
+                        con.log(1,'Deleted conquest monster land in slot',caap.stats.reviewPages[i].path);
+                    }
+                } else {
+                    con.log(2,'Conquest monster land in slot',caap.stats.reviewPages[i].path);
+                    activePathlist.push(caap.stats.reviewPages[i].path);
+                }
+            }
+        }
 */		// Clear out monsters in conquest lands that no longer exist
-		for (var ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
-			if (monster.records[ii].page == 'guildv2_monster_list') {
-				monsterFound = false;
-				for (var i = 0; i < activePathlist.length; i += 1) {
-					con.log(2,'Conquest: checking monster',monster.records[ii], activePathlist[i]);
-					if (monster.records[ii].link.indexOf(activePathlist[i].replace('ajax:','')) >= 0) {
-						monsterFound = true;
-					}
-				}
-				if (!monsterFound) {
-					monster.deleteItem(monster.records[ii].md5);
-				}
-			}
-		}
+        for (var ii = monster.records.length - 1; ii >= 0 ; ii += -1) {
+            if (monster.records[ii].page == 'guildv2_monster_list') {
+                monsterFound = false;
+                for (var i = 0; i < activePathlist.length; i += 1) {
+                    con.log(2,'Conquest: checking monster',monster.records[ii], activePathlist[i]);
+                    if (monster.records[ii].link.indexOf(activePathlist[i].replace('ajax:','')) >= 0) {
+                        monsterFound = true;
+                    }
+                }
+                if (!monsterFound) {
+                    monster.deleteItem(monster.records[ii].md5);
+                }
+            }
+        }
 
         con.log(2, "conquest caap.stats.reviewPages", caap.stats.reviewPages, activePathlist);
     };
@@ -1638,18 +1638,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     guilds.rescan = function() {
         try {
-			var i = 0, len = 0;
+            var i = 0, len = 0;
             for (i = 0, len = guilds.records.length; i < len; i += 1) {
-				guilds.records[i].lastCheck = Date.now();
-				guilds.records[i].Attack = -1;
-				guilds.records[i].Defense = -1;
-				guilds.records[i].Damage = -1;
-				guilds.records[i].Health = -1;
-				guilds.records[i].AttackMax = 0;
-				guilds.records[i].DefenseMax = 0;
-				guilds.records[i].DamageMax = 0;
-				guilds.records[i].HealthMax = 0;
-			}
+                guilds.records[i].lastCheck = Date.now();
+                guilds.records[i].Attack = -1;
+                guilds.records[i].Defense = -1;
+                guilds.records[i].Damage = -1;
+                guilds.records[i].Health = -1;
+                guilds.records[i].AttackMax = 0;
+                guilds.records[i].DefenseMax = 0;
+                guilds.records[i].DamageMax = 0;
+                guilds.records[i].HealthMax = 0;
+            }
             guilds.save();
             session.setItem("GuildsDashUpdate", true);
             return true;
@@ -1792,6 +1792,52 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
     };
 
+    guilds.autoEssenceCheck = function (guildRecord) {
+        try {
+            var guildButtonLevel, energyButtonLevel, runeButtonLevel, buttonLevel, essence, n, essenceValue, target, buttonString;
+
+            energyButtonLevel = Math.min ((Math.floor (caap.stats.energy.num - config.getItem('EssenceEnergyMin')) / 25), 4);
+            for (n = 0; n <= 4; n += 1) {
+                essence = config.getItem('Rune' + n, '');
+                if (essence === '') {
+                    con.log(3, "Skipping blank entry: continue");
+                    continue;
+                }
+
+                essenceValue = config.getItem('RuneValue' + n, 0);
+                guildButtonLevel = Math.min (Math.floor ((guildRecord[essence + 'Max'] - guildRecord[essence]) / 200), 4);
+
+                    // update the essence totals
+                caap.stats.essence.Attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
+                caap.stats.essence.Defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
+                caap.stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
+                caap.stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
+
+                runeButtonLevel = Math.min (Math.floor ((caap.stats.essence[essence] - essenceValue) / 200), 800);
+                buttonLevel = Math.min (Math.min (guildButtonLevel, energyButtonLevel), runeButtonLevel);
+
+                if (buttonLevel >= 1) {
+                    switch (essence) {
+                        case 'Attack': target = 1; break;
+                        case 'Defense': target = 2; break;
+                        case 'Damage': target = 3; break;
+                        case 'Health': target = 4; break;
+                        default: continue;
+                    }
+
+                    buttonString = "trade_confirm_pop_" + target.toString() + '_' + (buttonLevel - 1).toString();
+
+                    caap.click ($j('#' + buttonString)[0]);
+                    caap.click(caap.checkForImage('trade_btn_confirm.gif'));
+                }
+
+             }
+        } catch (err) {
+                con.error("ERROR in guilds.autoEssenceCheck: " + err);
+                return false;
+        }
+    };
+
     guilds.guildMarket = function() {
         var storageDivs = $j("[id^='storage_']"),
             guildRecord = new guilds.record();
@@ -1805,6 +1851,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guildRecord[essenceText[1] + 'Max'] = essenceText[6];
         });
         guilds.setItem(guildRecord);
+
+        if (config.getItem('essenceTrade')) {
+            guilds.autoEssenceCheck (guildRecord);
+        }
     };
 
     guilds.nextToCheck = function() {
