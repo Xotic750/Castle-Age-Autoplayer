@@ -2536,6 +2536,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             styleXY = caap.getControlXY();
 */
             caapDiv = $j(caapDiv);
+            if (caap.domain.which != 2) {
             caapDiv.css({
                 width: '220px',
                 background: bgc,
@@ -2546,6 +2547,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 float: 'right',
                 zIndex: state.getItem('caap_div_zIndex', '2')
             });
+            } else {
+                caapDiv.css({
+                    width: '180px',
+                    background: bgc,
+                    opacity: state.getItem('StyleOpacityLight', 1),
+                    color: $u.bestTextColor(bgc),
+                    padding: "4px",
+                    border: "2px solid #444",
+                    top: styleXY.y + 'px',
+                    left: styleXY.x + 'px',
+                    zIndex: state.getItem('caap_div_zIndex', '2'),
+                    position: 'absolute'
+                });
+            }
 
             if (devVersion === '0') {
                 htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
@@ -4910,6 +4925,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'magic': {
             signaturePic: 'fb_tab_magic_on.jpg',
             CheckResultsFunction: 'checkResults_magic'
+        },
+        'tenxten_gb_formation': {
+            signaturePic: 'fb_guild_btn_10_on.jpg',
+            CheckResultsFunction: 'checkResults_tenxten_gb_formation'
         },
         'gift': {
             signaturePic: 'tab_gifts_on.gif',

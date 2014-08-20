@@ -179,7 +179,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             'IDDiv' : 'special_defense_',
             'waitHours' : 8.9,
             'minHealth' : 1,
-            'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
+//            'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
+            'basePath' : 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
             'startText' : 'submit the Guild for Auto-Matching',
             'preGBText' : 'Auto-Match in Progress',
             'activeText' : 'Time Remaining',
@@ -1407,7 +1408,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     head = '';
                     body = '';
                     row = '';
-                    towerHtml = '';
+                    towerHtml = '<table class="caap_table dataTable">';
+
+                    towerHtml += caap.makeTh({text: 'Tower #',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'Players',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'Actives',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'Clerics',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'Act Cleric',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'Cleric Life %',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'T Avg Life',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'C Avg Life',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'T Avg Level',color: '',id: '',title: '', width: ''});
+                    towerHtml += caap.makeTh({text: 'C Avg Level',color: '',id: '',title: '', width: ''});
+
                     headers = [];
                     values = [];
 
@@ -1433,13 +1446,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                         }
 
                         if (tower.players > 0) {
-                            towerHtml += 'Tower #' + pp + ' ' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Cleric Life%: ' + tower.clericLife;
-                            towerHtml += ' T Avg: ' + (tower.towerHealthMax/tower.players).toPrecision(5) + ' C Avg: ' + (tower.clericHealthMax/tower.clerics).toPrecision(5);
-                            towerHtml += ' T Avg Level: ' + (tower.towerLevel/tower.players).toPrecision(5) + ' C Avg Level: ' + (tower.clericLevel/tower.clerics).toPrecision(5) + '<br>';
+                            towerHtml += '<tr><td>' + pp + '</td><td>' + tower.players + '</td><td>' + tower.actives + '</td><td>' + tower.clerics + '</td><td>' + tower.AC + '</td><td>' + tower.clericLife + '</td>';
+                            towerHtml += '<td>' + (tower.towerHealthMax/tower.players).toPrecision(5) + '</td><td>' + (tower.clericHealthMax/tower.clerics).toPrecision(5) + '</td>';
+                            towerHtml += '<td>' + (tower.towerLevel/tower.players).toPrecision(5) + '</td><td>' + (tower.clericLevel/tower.clerics).toPrecision(5) + '</td><tr>';
                         } else {
-                            towerHtml += 'Tower #' + pp + ' 0  Act: 0 Clr: 0 AC: 0 Cleric Life%: 0 Cleric Average: 0<br>';
+                            towerHtml += '<tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><tr>';
                         }
                     }
+                    towerHtml += '</table>';
 
                     for (pp = 0; pp < headers.length; pp += 1) {
                         head += caap.makeTh({
