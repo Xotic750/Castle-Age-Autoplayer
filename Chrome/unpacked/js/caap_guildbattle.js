@@ -33,6 +33,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.checkResults_tenxten_gb_formation = function() {
+        try {
+            con.log(2, "10X10 battle screen");
+			//guild_battle.onBattle(guild_battle.gf.guild_battle);
+        } catch (err) {
+            con.error("ERROR in caap.checkResults_guild_battle: " + err);
+            return false;
+        }
+    };
+
     caap.guild_battle = function() {
         try {
 			if (guild_battle.path) {
