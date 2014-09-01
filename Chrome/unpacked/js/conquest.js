@@ -1168,9 +1168,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			monsterFound = false,
 			activePathlist = [];
 		
-        //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
-		monster.setrPage(monster.conqLandsLink,'review',Date.now());
-        landCapsules.each(function() {
+			landCapsules.each(function() {
             var currentCapsule = $j(this),
                 tmp = '',
                 landRecord = new conquestLands.record();

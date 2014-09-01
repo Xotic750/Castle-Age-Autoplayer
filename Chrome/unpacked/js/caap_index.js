@@ -15,11 +15,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
-			var args = 'dispel[!active:*-100,poly:20100,confuse:20100,!active:-100000@Loadout Heal],cduel[base:10000,cleric:800,seal:400,active:200,guardian:-100@Loadout Dawn],heal[healed:-10000,cleric:800,seal:400,active:200,guardian:100@Loadout Heal]'.match(new RegExp('\\W(!?)active:(\\D?)([^,]+)'));
-			var score = args[2] == '-' ? -args[3].parseFloat() : args[3].parseFloat();
+			var conditions = ':max1m:min500k:!s:stam35:s0';
 
 			
-			//con.log(1, 'TESTING', args, args[1], false !== (args[1] == '!'), score);
+			//con.log(1, 'TESTING', monster.parseCondition('max', conditions), monster.parseCondition('min', conditions), monster.parseCondition('!s', conditions), monster.parseCondition('stam', conditions), monster.parseCondition('s', conditions));
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();

@@ -965,7 +965,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'guildBattle', false);
         //caap.setDisplay("caapTopObject", 'arena', false);
         caap.setDisplay("caapTopObject", 'festival', false);
-        caap.setDisplay("caapTopObject", 'feed', false);
+        caap.setDisplay("caapTopObject", 'infoFeed', false);
         caap.setDisplay("caapTopObject", 'army', false);
         caap.setDisplay("caapTopObject", 'infoTargets1', false);
         caap.setDisplay("caapTopObject", 'infoBattle', false);
@@ -979,6 +979,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'giftStats', false);
         caap.setDisplay("caapTopObject", 'giftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonMonster', false);
+        caap.setDisplay("caapTopObject", 'buttonFeed', false);
         caap.setDisplay("caapTopObject", 'GFDisplay', false);
         caap.setDisplay("caapTopObject", 'buttonGuildMonster', false);
         caap.setDisplay("caapTopObject", 'buttonTargets', false);
@@ -1065,7 +1066,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 break;
             case "Feed":
-                caap.setDisplay("caapTopObject", 'feed', true);
+                caap.setDisplay("caapTopObject", 'infoFeed', true);
+                caap.setDisplay("caapTopObject", 'buttonFeed', true);
 
                 break;
             case "Army":
@@ -1098,7 +1100,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.refreshMonstersListener = function () {
-        monster.flagFullReview();
+        monster.flagFullReview('Monster');
+    };
+
+    caap.refreshFeedListener = function () {
+        monster.flagFullReview('Feed');
     };
 
     caap.refreshGeneralsListener = function () {
@@ -1227,6 +1233,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
             $j('#caap_GFDisplay', caap.caapTopObject).on('change', caap.gfDisplayListener);
             $j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
+            $j('#caap_refreshFeeds', caap.caapTopObject).on('click', caap.refreshFeedListener);
             $j('#caap_refreshGenerals', caap.caapTopObject).on('click', caap.refreshGeneralsListener);
             $j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
             $j('#caap_liveFeed', caap.caapTopObject).on('click', caap.liveFeedButtonListener);

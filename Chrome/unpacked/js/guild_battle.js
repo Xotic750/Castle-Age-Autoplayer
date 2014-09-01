@@ -165,7 +165,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'whenTokens' : 'GBWhenTokens',
 			'tokenMax' : 'GBmax',
 			'tokenMin' : 'GBmin',
-			'page' : 'guildv2_battle',
+			'page' : 'tenxten_gb_formation,guildv2_battle',
 			'tabs' : '_new_guild_tab_',
 			'token' : 'guildBattleTokens',
 			'options' : ['Guild Battles','Both'],
@@ -176,7 +176,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'IDDiv' : 'special_defense_',
 			'waitHours' : 8.9,
 			'minHealth' : 1,
-			'basePath' : 'guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
+			'basePath' : 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
 			'startText' : 'submit the Guild for Auto-Matching',
 			'preGBText' : 'Auto-Match in Progress',
 			'activeText' : 'Time Remaining',
@@ -187,27 +187,32 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	guild_battle.enemy = {
 		'mage' : [
 			{'name': 'mduel',
-			'base' : 'duel'},
+			'base' : 'duel',
+			'image' : 'attack'},
 			{'name': 'poly',
-			'base' : 'poly'},
+			'base' : 'poly',
+			'image' : 'polymoprh'},
 			{'name': 'confuse',
 			'base' : 'confuse'}
 		],
 		'rogue' : [
 			{'name': 'rduel',
-			'base' : 'duel'},
+			'base' : 'duel',
+			'image' : 'attack'},
 			{'name': 'poison',
 			'base' : 'duel'}
 		],
 		'warrior' : [
 			{'name': 'wduel',
-			'base' : 'duel'},
+			'base' : 'duel',
+			'image' : 'attack'},
 			{'name': 'whirlwind',
 			'base' : 'duel'}
 		],
 		'cleric' : [
 			{'name': 'cduel',
-			'base' : 'duel'}
+			'base' : 'duel',
+			'image' : 'attack'}
 		]
 	};
 
@@ -270,7 +275,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 
 			caap.stats.reviewPagesGB.push(rPage);
-			con.log(2,'setrPage',path, entry, value, caap.stats.reviewPagesGB,rPage);
+			//con.log(2,'setrPage',path, entry, value, caap.stats.reviewPagesGB,rPage);
 			return false;
         } catch (err) {
             con.error("ERROR in guild_battle.setrPage: " + err);
@@ -290,9 +295,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             for (var i = caap.stats.reviewPagesGB.length - 1; i >= 0; i += -1) {
                 if (caap.stats.reviewPagesGB[i][entry] === value) {
 					deleted += 1;
-					con.log(2,'GB review pages before',caap.stats.reviewPagesGB, entry, i);
+					//con.log(2,'GB review pages before',caap.stats.reviewPagesGB, entry, i);
 					caap.stats.reviewPagesGB.splice(i,1);
-					con.log(2,'GB review pages after',caap.stats.reviewPagesGB, entry, i, deleted);
+					//con.log(2,'GB review pages after',caap.stats.reviewPagesGB, entry, i, deleted);
                 }
             }
 			return deleted;
@@ -356,7 +361,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
-			guild_battle.setrPage('guildv2_battle');
+			guild_battle.setrPage('tenxten_gb_formation,guildv2_battle');
+			guild_battle.deleterPage('path', 'guildv2_battle');
 			//caap.stats.reviewPagesGB = [];
             session.setItem("guildBattleDashUpdate", true);
             con.log(3, "guild_battle.load", guild_battle.records);
@@ -607,7 +613,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				t.tower = tower;
 				t.id = mR.target_id;
 				t.score = total;
-				t.attack = attack.regex(/duel/) ? 'duel' : attack;
+//				t.attack = attack.regex(/duel/) ? 'duel' : attack;
+				t.attack = attack;
 				t.team = team;
 				t.general = general;
 				t.name = mR.name;
@@ -762,7 +769,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 
 			fR.lastBattleTime = Date.now();
-			con.log(2, 'Enter button cleared');
+			//con.log(2, 'Enter button cleared');
 
 			if (gf.options.indexOf(config.getItem(gf.whenTokens,'Never')) !== 'Never') {
 				guild_battle.setReview(gf);
@@ -861,7 +868,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			} else {
 				con.log(2,'Gate', which, tower);
 				memberDivs = gate.children("div[style*='height']");
-				//con.log(2,'Members found',memberDivs.length,memberDivs);
+				con.log(2,'Members found',memberDivs.length,memberDivs);
 
 				for (var n = 1; n <= 25; n += 1) {
 					delete fR[which].members[tower + '-' + n];
@@ -871,12 +878,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					}
 					member = $j(memberDivs[n-1]);
 					mR = new guild_battle.member().data;
-					text = (which == 'enemy' ? 'basic_' : 'special_defense_') + tower + '_';
-					targetIdDiv = member.find('div[id^="' + text + '"]').eq(0);
+//					text = (which == 'enemy' ? 'basic_' : 'special_defense_') + tower + '_';
+					text = 'action_panel_';
+					targetIdDiv = member.find('div[class^="' + text + '"]').eq(0);
 					if (targetIdDiv && targetIdDiv.length) {
 						//con.log(2,"Target_id for member", targetIdDiv.attr('id'), targetIdDiv);
-						mR.target_id = targetIdDiv.attr('id').replace(text,'');
-						//con.log(2,"Target_id for member", mR.target_id,targetIdDiv.attr('id'), targetIdDiv);
+						mR.target_id = targetIdDiv.attr('class').replace(text,'');
+						//con.log(2,"Target_id for member", mR.target_id, targetIdDiv.attr('id'), targetIdDiv);
 					} else {
 						//con.log(2, "Unable to find target_id for member", tower, n, member, targetIdDiv);
 						continue;
@@ -1003,9 +1011,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 								mR.scores[att.name][seal] = total;
 								general = text.match(new RegExp("@[^,]+"));
 								general = general && general.length > 0 ? general[0] : '@Use Current';
-								tR[seal].unstunned = guild_battle.target(tR[seal].unstunned, total, mR, att.name, general, which, tower);
+								tR[seal].unstunned = guild_battle.target(tR[seal].unstunned, total, mR, att.image || att.name, general, which, tower);
 								if (which == 'enemy' && att.name.regex(/duel/)) {
-									tR[seal].stunned = guild_battle.target(tR[seal].stunned, total, mR, att.name, general, which, tower);
+									tR[seal].stunned = guild_battle.target(tR[seal].stunned, total, mR, att.image || att.name, general, which, tower);
 								}
 							});
 						});
@@ -1147,15 +1155,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					} else if (result) {
 						return true;
 					} else {
-						con.log(2, 'Loading keep page to force page reload');
+						con.log(2, 'Loading keep page to force page reload', caap.stats.reviewPagesGB[i].path, result);
 						return caap.navigateTo('keep');
 					}
 				}
             }
 			//con.log(2,'GUILD REVIEW PAGES',caap.stats.reviewPagesGB);
 			
+			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
 			if (whenTokens !== 'Never' && !caap.stats.priorityGeneral) {
-				//con.log(5,'pre ATTACK!',fR.tokens > maxTokens, fR.state == 'Active' , fR.state, fR.me.healthNum > gf.minHealth);
 				
 				if (doAttack) {
 					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
@@ -1174,8 +1182,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					
 					caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
 					con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
-					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
-					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:#' + button + t.tower + '_' + t.id + ' input[src*="' + t.attack + '.gif"]');
+//					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
+					button = 'special_action';
+					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 					if (result == 'fail') {
 						con.warn('Unable to complete path. Reloading from keep.');
 						return caap.navigateTo('keep');
@@ -1224,7 +1233,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
-				if (caap.navigateTo('guildv2_battle')) {
+				if (caap.navigate2('tenxten_gb_formation,guildv2_battle')) {
 					return true;
 				}
 				button = caap.checkForImage('sort_btn_startbattle.gif');
