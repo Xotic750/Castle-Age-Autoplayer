@@ -1119,7 +1119,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 partsElem = null;
                 return true;
             }
-con.log (1, "after button check:", monster, cM);
+
             schedule.setItem('NotargetFrombattle_monster', 60);
             con.warn('No "Engage" button for ', monsterName);
             attackButton = null;
@@ -1158,6 +1158,7 @@ con.log (1, "after button check:", monster, cM);
                 cM = {},
                 monsterInfo = {};
 
+//caap.stats.reviewPages = {};
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
                     con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
