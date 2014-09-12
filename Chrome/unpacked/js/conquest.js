@@ -1796,7 +1796,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var guildButtonLevel, energyButtonLevel, runeButtonLevel, buttonLevel, essence, n, essenceValue, target, buttonString;
 
-            energyButtonLevel = Math.min ((Math.floor (caap.stats.energy.num - config.getItem('EssenceEnergyMin')) / 25), 4);
+            energyButtonLevel = Math.min ((Math.floor (caap.stats.energy.num - config.getItem('EssenceEnergyMin') / 25)), 4);
             for (n = 0; n <= 4; n += 1) {
                 essence = config.getItem('Rune' + n, '');
                 if (essence === '') {
@@ -1828,7 +1828,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     buttonString = "trade_confirm_pop_" + target.toString() + '_' + (buttonLevel - 1).toString();
 
                     caap.click ($j('#' + buttonString)[0]);
-                    caap.click(caap.checkForImage('trade_btn_confirm.gif'));
+        // yinzanat - this should slow things down by forcing a 3000 milisecond delay.  There's probably a better way to do this.
+                   var currentTime = new Date().getTime();
+                   while (currentTime + 3000 >= new Date().getTime()) {}
+        // end of pause "logic"
+
+                    caap.click(caap.checkForImage('trade_btn_confirm.gif', $j("#single_popup_content")));
                 }
 
              }
@@ -1852,7 +1857,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
         guilds.setItem(guildRecord);
 
-        if (config.getItem('essenceTrade')) {
+                // won't run if paused, essence scan is not check or essence trade is not checked
+        if (config.getItem('EssenceScanCheck') && config.getItem('essenceTrade') && state.getItem('caapPause', 'none') === 'none') {
             guilds.autoEssenceCheck (guildRecord);
         }
     };
