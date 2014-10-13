@@ -306,6 +306,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.guild_battle = null;
                     //window.arena = null;
                     window.festival = null;
+                    window.tenVten = null;
                     window.feed = null;
                     window.battle = null;
                     window.town = null;
@@ -392,6 +393,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
                 con.log(3, "stsPoll scv", num);
             }
+			
+			// Check for lowpoints in energy stamina maxes at every level, for use with max stat checks
+			if (caap.stats.level !== caap.stats.lowpoint.level) {
+				caap.stats.lowpoint.level = caap.stats.level;
+				caap.stats.lowpoint.energy = caap.stats.energy.max > 0 ? caap.stats.energy.max : caap.stats.lowpoint.energy;
+				caap.stats.lowpoint.stamina = caap.stats.stamina.max > 0 ? caap.stats.stamina.max : caap.stats.lowpoint.stamina;
+			}
+			['energy', 'stamina'].forEach( function(stat) {
+				if (caap.stats[stat].max > 0 && caap.stats[stat].max < caap.stats.lowpoint[stat]) {
+					caap.stats.lowpoint[stat] = caap.stats[stat].max;
+				}
+			});
 
             mainSts = null;
             gtv = null;

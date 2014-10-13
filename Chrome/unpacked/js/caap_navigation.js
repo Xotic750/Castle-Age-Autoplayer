@@ -206,7 +206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.warn('steps had no content!', step, path, s);
                 } else {
 					action = step.replace(/:.*/,'');
-					text = step.replace(/.*:/,'');
+					text = step.replace(/[^:]*:/,'');
 					if ($u.hasContent(caap.pageList[step])) {
 						if (session.getItem('page','none') != step) {
 							jq = $j("a[href*='" + step + ".php']").not("a[href*='" + step + ".php?']", $j('#globalcss'));
@@ -254,7 +254,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				// Look ahead to see if we have the checkpoint hit already
 				step = $u.setContent(steps[s+1], '');
 				action = step.replace(/:.*/,'');
-				text = step.replace(/.*:/,'');
+				text = step.replace(/[^:]*:/,'');
 
 				// If the next step doesn't exist or isn't an image or that image is on the page, then do this step
 				if (action =='image' && caap.hasImage(text, $j('#globalcss'))) {
@@ -266,7 +266,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					step = $u.setContent(steps[s], '');
 					action = step.replace(/:.*/,'');
-					text = step.replace(/.*:/,'');
+					text = step.replace(/[^:]*:/,'');
 /*					if (action =='image') {
 						jq = caap.hasImage(text, $j('#globalcss'));
 						// If the last step in the path, then we're done

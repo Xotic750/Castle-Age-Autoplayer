@@ -1798,7 +1798,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	monster.cleanLink = function(link) {
 		var temp;
 		if (!$u.isString(link) || link.length == 0) {
-			link = session.getItem('clickUrl', '');
+			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		}
 		temp = link.replace(/http.*\//,'');
 		link = temp.replace(/\?.*/,'') + '?';
@@ -2200,6 +2200,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.records.splice(it, 1);
 					monster.save();
 					con.log(3, "Deleted monster record", md5, monster.records);
+					caap.updateDashboard(true);
 					return;
 				}
 			}
@@ -2330,7 +2331,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 return false;
             }
 
-            con.log(2, 'SELECTING MONSTER');
+            //con.log(2, 'SELECTING MONSTER');
             var monsterList = {
 					'battle_monster': [],
 					'raid': [],
@@ -2453,7 +2454,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     attackOrderList = config.getList('order' + type, '').concat('your', "'");
                 }
 
-                con.log(2, 'attackOrderList', attackOrderList);
+                //con.log(2, 'attackOrderList', attackOrderList);
                 // Next we step through the users list getting the name and conditions
                 attackOrderList.forEach( function(aoItem) {
                     if (!aoItem.trim()) {
@@ -3115,6 +3116,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
                     //feed.setScanRecord(visitMonsterLink.mmd5);
+					monster.lastClick = visitMonsterLink.mmd5;
                     caap.clickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
@@ -3143,12 +3145,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
                     }
 
-                    //resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
-                    if (resp === true) {
-                        monster.deleteItem(monsterRemove.mmd5);
-                        caap.updateDashboard(true);
+					monster.deleteItem(monsterRemove.mmd5);
                     //    caap.clickGetCachedAjax(monsterRemove.arlink);
-                    }
                 };
 
                 $j("span[id*='caap_remove_']", caap.caapTopObject).off('click', handler).on('click', handler);

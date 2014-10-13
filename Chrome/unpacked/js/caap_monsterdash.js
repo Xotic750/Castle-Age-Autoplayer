@@ -965,6 +965,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'guildBattle', false);
         //caap.setDisplay("caapTopObject", 'arena', false);
         caap.setDisplay("caapTopObject", 'festival', false);
+        caap.setDisplay("caapTopObject", '10v10', false);
         caap.setDisplay("caapTopObject", 'infoFeed', false);
         caap.setDisplay("caapTopObject", 'army', false);
         caap.setDisplay("caapTopObject", 'infoTargets1', false);
@@ -1065,6 +1066,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDisplay("caapTopObject", 'festival', true);
 
                 break;
+            case "10v10":
+				caap.setDisplay("caapTopObject", 'GFDisplay', true);
+                caap.setDisplay("caapTopObject", '10v10', true);
+
+                break;
             case "Feed":
                 caap.setDisplay("caapTopObject", 'infoFeed', true);
                 caap.setDisplay("caapTopObject", 'buttonFeed', true);
@@ -1095,6 +1101,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'yourfestival', value == 'My Guild');
         caap.setDisplay("caapTopObject", 'yourguildBattle', value == 'My Guild');
         caap.setDisplay("caapTopObject", 'enemyfestival', value == 'Opponent');
+        caap.setDisplay("caapTopObject", 'your10v10', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'enemy10v10', value == 'Opponent');
         caap.setDisplay("caapTopObject", 'enemyguildBattle', value == 'Opponent');
 //        caap.updateDashboard(true);
     };

@@ -15,10 +15,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
-			var conditions = ':max1m:min500k:!s:stam35:s0';
+			var text = 'base:40000,active:*7,!confuse:*-8,p200:*10,p240:*15,warrior:*4,mage:*3,rogue:*2,cleric:*1,@Loadout Conf';
 
 			
-			//con.log(1, 'TESTING', monster.parseCondition('max', conditions), monster.parseCondition('min', conditions), monster.parseCondition('!s', conditions), monster.parseCondition('stam', conditions), monster.parseCondition('s', conditions));
+			con.log(1, 'TESTING', text.match(new RegExp('(\\w+:\\D?[^,]+)')));
+			con.log(1, 'TESTING 2', text.match(/(!?\w+:\D?[^,]+)/g));
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();
@@ -34,6 +35,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 time = time < 15 ? 15 : time;
                 schedule.setItem("ajaxGiftCheck", time * 60, 300);
             }
+			
+			guild_battle.onTop(guild_battle.gf.tenVten);
 
             return true;
         } catch (err) {

@@ -45,6 +45,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'SubQuest',
         'GB Class',
         'Fest Class',
+        '10v10 Class',
         'GB Fest Idle',
         'Level Up'];
 	

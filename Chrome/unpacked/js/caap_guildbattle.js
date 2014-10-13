@@ -35,10 +35,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_tenxten_gb_formation = function() {
         try {
-            con.log(2, "10X10 battle screen");
-			//guild_battle.onBattle(guild_battle.gf.guild_battle);
+            con.log(2, "10X10 formation screen");
         } catch (err) {
-            con.error("ERROR in caap.checkResults_guild_battle: " + err);
+            con.error("ERROR in caap.checkResults_tenxten_gb_formation: " + err);
+            return false;
+        }
+    };
+
+    caap.checkResults_ten_battle = function() {
+        try {
+            con.log(2, "10X10 battle screen");
+			guild_battle.onBattle(guild_battle.gf.tenVten);
+        } catch (err) {
+            con.error("ERROR in caap.checkResults_ten_battle: " + err);
             return false;
         }
     };
