@@ -1813,7 +1813,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
                 caap.stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
 
-                runeButtonLevel = Math.min (Math.floor ((caap.stats.essence[essence] - essenceValue) / 200), 800);
+                runeButtonLevel = Math.min (Math.floor ((caap.stats.essence[essence] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
                 buttonLevel = Math.min (Math.min (guildButtonLevel, energyButtonLevel), runeButtonLevel);
 
                 if (buttonLevel >= 1) {
