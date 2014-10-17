@@ -93,7 +93,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!force && !caap.oneMinuteUpdate('dashboard') && $j('#caap_infoMonster').html()) {
+            if (!caap.oneMinuteUpdate('dashboard', force) && $j('#caap_infoMonster').html()) {
                 if (caap.updateDashboardWaitLog) {
                     con.log(4, "Dashboard update is waiting on oneMinuteUpdate");
                     caap.updateDashboardWaitLog = false;
@@ -428,7 +428,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }, {
                         text: 'Generals'
                     }, {
-                        text: caap.stats.generals.total,
+                        text: $u.hasContent(caap.stats.generals) ? caap.stats.generals.total : 'N/A',
                         color: valueCol
                     }],
                     [{
@@ -440,7 +440,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         text: 'Generals When Invade',
                         title: 'For every 5 army members you have, one of your generals will also join the fight.'
                     }, {
-                        text: caap.stats.generals.invade,
+                        text: $u.hasContent(caap.stats.generals) ? caap.stats.generals.invade : 'N/A',
                         color: valueCol
                     }],
                     [{
@@ -962,6 +962,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         e.target.title = title;
         caap.setDisplay("caapTopObject", 'infoMonster', false);
         caap.setDisplay("caapTopObject", 'guildMonster', false);
+        caap.setDisplay("caapTopObject", 'guildBattle', false);
         //caap.setDisplay("caapTopObject", 'arena', false);
         caap.setDisplay("caapTopObject", 'festival', false);
         caap.setDisplay("caapTopObject", 'feed', false);
@@ -978,6 +979,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'giftStats', false);
         caap.setDisplay("caapTopObject", 'giftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonMonster', false);
+        caap.setDisplay("caapTopObject", 'GFDisplay', false);
         caap.setDisplay("caapTopObject", 'buttonGuildMonster', false);
         caap.setDisplay("caapTopObject", 'buttonTargets', false);
         caap.setDisplay("caapTopObject", 'buttonBattle', false);
@@ -1042,6 +1044,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDisplay("caapTopObject", 'buttonGuildMonster', true);
 
                 break;
+            case "Guild Battle":
+				caap.setDisplay("caapTopObject", 'GFDisplay', true);
+                caap.setDisplay("caapTopObject", 'guildBattle', true);
+
+                break;
             case "Monster":
                 caap.setDisplay("caapTopObject", 'infoMonster', true);
                 caap.setDisplay("caapTopObject", 'buttonMonster', true);
@@ -1053,6 +1060,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             */
             case "Festival":
+				caap.setDisplay("caapTopObject", 'GFDisplay', true);
                 caap.setDisplay("caapTopObject", 'festival', true);
 
                 break;
@@ -1069,6 +1077,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         caap.updateDashboard(true);
+    };
+
+    /*-------------------------------------------------------------------------------------\
+    addDBListener creates the listener for guild battle and festival control.
+    \-------------------------------------------------------------------------------------*/
+    caap.gfDisplayListener = function (e) {
+        var idName = e.target.id.stripCaap(),
+            value = e.target.options[e.target.selectedIndex].value,
+            title = e.target.options[e.target.selectedIndex].title;
+
+        con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+        config.setItem(idName, value);
+        e.target.title = title;
+        caap.setDisplay("caapTopObject", 'yourfestival', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'yourguildBattle', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'enemyfestival', value == 'Opponent');
+        caap.setDisplay("caapTopObject", 'enemyguildBattle', value == 'Opponent');
+//        caap.updateDashboard(true);
     };
 
     caap.refreshMonstersListener = function () {
@@ -1199,6 +1225,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             $j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
+            $j('#caap_GFDisplay', caap.caapTopObject).on('change', caap.gfDisplayListener);
             $j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
             $j('#caap_refreshGenerals', caap.caapTopObject).on('click', caap.refreshGeneralsListener);
             $j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);

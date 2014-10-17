@@ -45,21 +45,21 @@ function fbLog() {
     inject = null;
 }
 
-function getFBEnv() {
-        var inject = document.createElement('script');
+    function getFBEnv() {
+            var inject = document.createElement('script');
 
-        inject.setAttribute('type', 'text/javascript');
-        inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
-        (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
-        (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
+            inject.setAttribute('type', 'text/javascript');
+            inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
+            (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+            (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
 
-        if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
-            var kludge = $j("script:contains(handle):contains(id)")[0].innerHTML.match(/{"id":".*?"}/);
-            sessionStorage.setItem('caap_fbEnv', kludge.toString());
-        }
+            if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
+                var kludge = '{"id":"' + $j("[id*='profile_pic_header_']")[0].id.replace('profile_pic_header_', '') + '"}';
+                sessionStorage.setItem('caap_fbEnv', kludge.toString());
+            }
 
-        inject = null;
-}
+            inject = null;
+    }
 
 
 function getFBData() {
@@ -129,9 +129,15 @@ function caap_DomTimeOut() {
     caap_reload();
 }
 
+function caap_clickRelogin() {
+	caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
+	$j("input[src*='crusader2_btn_submit.gif']").click();
+    caap_WaitForData();
+}
+
 function caap_WaitForData() {
     caap.fbData = JSON.parse(sessionStorage.getItem('caap_fbData'));
-    caap.fbEnv = JSON.parse(sessionStorage.getItem('caap_fbEnv'));
+	caap.fbEnv = JSON.parse(sessionStorage.getItem('caap_fbEnv'));
     caap.fbFriends = JSON.parse(sessionStorage.getItem('caap_fbFriends'));
     if (((caap.domain.which === 2 || caap.domain.which === 3) && caap.fbData && caap.fbFriends) || caap.fbEnv) {
         caap_log("data ready ...", caap.fbFriends);
@@ -148,7 +154,11 @@ function caap_WaitForData() {
         caap.start();
     } else {
         caap_log("Waiting for data ...");
-        window.setTimeout(caap_WaitForData, 100);
+		if (caap.hasImage('crusader2_btn_submit.gif')) {
+			window.setTimeout(caap_clickRelogin, 10 * 1000);
+		} else {
+			window.setTimeout(caap_WaitForData, 100);
+		}
     }
 }
 

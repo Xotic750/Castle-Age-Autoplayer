@@ -17,11 +17,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
 			var timedLoadoutCheck = general.timedLoadout();
 			if (timedLoadoutCheck) {
-				con.log(5,"Idle Check paused",timedLoadoutCheck);
+//				con.log(5,"Idle Check paused",timedLoadoutCheck);
 				return timedLoadoutCheck === 'change';
 			}
-			con.log(5,"Idle Check equipped",timedLoadoutCheck);
-			return general.Select('IdleGeneral');
+//			con.log(2,"Idle Check equipped", timedLoadoutCheck, caap.stats.battleIdle);
+			return caap.stats.battleIdle ? general.Select(caap.stats.battleIdle) : general.Select('IdleGeneral');
         } catch (err) {
             con.error("ERROR in passiveGeneral: " + err);
             return false;
