@@ -276,7 +276,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else if (window.hasOwnProperty("history") && window.history.hasOwnProperty("go")) {
                     window.history.go(-1);
                 } else {
-                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+//                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/";
                 }
             }, 60000);
 
@@ -582,7 +583,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (force || (!config.getItem('Disabled') && state.getItem('caapPause') === 'none')) {
                 // better than reload... no prompt on forms!
                 con.log(1, 'Reloading now!');
-                caap.visitUrl(caap.domain.altered + (caap.domain.which === 0 || caap.domain.which === 2 ? "/index.php?bm=1&ref=bookmarks&count=0" : ""));
+//                caap.visitUrl(caap.domain.altered + (caap.domain.which === 0 || caap.domain.which === 2 ? "/index.php?bm=1&ref=bookmarks&count=0" : ""));
+                caap.visitUrl(caap.domain.altered + (caap.domain.which === 0 || caap.domain.which === 2 ? "/index.php" : ""));
             }
         }
 
