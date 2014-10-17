@@ -5598,6 +5598,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 
+                // conquest rank
+                if (caap.stats.level >= 100) {
+                    tempDiv = $j("#app_body img[src*='conquest_rank_']");
+                    if ($u.hasContent(tempDiv)) {
+                        caap.stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+                    } else {
+                        con.warn('Using stored conquestRank.');
+                    }
+                }
+
                 if ($u.hasContent(statCont) && statCont.length >= 6) {
                     if (caap.stats.level >= 10) {
                         // Attack
