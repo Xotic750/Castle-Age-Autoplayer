@@ -2983,6 +2983,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 essenceInstructions2 = "Check to show only space available " + "instead of Stored/Max.",
                 runeInstructions = "Trade essence above this number if there is room.",
                 runeList = ['', 'Attack', 'Damage', 'Defense', 'Health'],
+                limitListInstructions = "Limit how much essence CAAP will trade in one trade",
+                limitList = ['200', '400', '600', '800'],
                 it = 0,
                 htmlCode = '';
 
@@ -2993,7 +2995,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Show as Available Only', 'essenceRoomOnly', true, essenceInstructions2);
             htmlCode += caap.makeCheckTR('Trade Essence', 'essenceTrade', false);
             htmlCode += caap.startCheckHide('essenceTrade');
-            htmlCode += caap.makeNumberFormTR("Min Energy for Trade", 'EssenceEnergyMin', energyInstructions, '', '', '', false, false, 40);
+            htmlCode += caap.makeNumberFormTR("Min Energy for Trade", 'EssenceEnergyMin', energyInstructions, '', '', '', false, false, 30);
+            htmlCode += caap.makeDropDownTR("Max Trade Amount", 'maxEssenceTrade', limitList, limitListInstructions, '', '800', false, false, 30);
             for (it = 0; it < 5; it += 1) {
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD("Trade", false, false, "width: 17%; display: inline-block;");
@@ -5592,6 +5595,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         caap.stats.rank.war = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
                     } else {
                         con.warn('Using stored warRank.');
+                    }
+                }
+
+                // conquest rank
+                if (caap.stats.level >= 100) {
+                    tempDiv = $j("#app_body img[src*='conquest_rank_']");
+                    if ($u.hasContent(tempDiv)) {
+                        caap.stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+                    } else {
+                        con.warn('Using stored conquestRank.');
                     }
                 }
 

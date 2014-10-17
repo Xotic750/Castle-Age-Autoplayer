@@ -500,7 +500,8 @@
                 giftEntry = gifting.getCurrent();
                 if ($j.isEmptyObject(giftEntry)) {
                     con.log(1, 'On FB page with but no gift');
-                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php?bm=1&ref=bookmarks&count=0");
+//                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php?bm=1&ref=bookmarks&count=0");
+                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/index.php");
                     return false;
                 }
 
