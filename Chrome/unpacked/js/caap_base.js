@@ -8168,6 +8168,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if (theGeneral !== 'Use Current') {
                     maxIdleEnergy = general.GetStat(theGeneral, 'energyMax');
+                    maxIdleEnergy = ((maxIdleEnergy==0)?caap.stats.energy.max:maxIdleEnergy);
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleEnergy) {

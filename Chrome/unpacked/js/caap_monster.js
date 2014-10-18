@@ -683,6 +683,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 
             if (theGeneral !== 'Use Current') {
                 maxIdleStamina = general.GetStat(theGeneral,'staminaMax');
+                maxIdleStamina = ((maxIdleStamina==0)? caap.stats.stamina.max:maxIdleStamina);
             }
 
             if (theGeneral !== 'Use Current' && !maxIdleStamina) {
@@ -716,7 +717,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < general.GetStat(config.getItem('IdleGeneral', 'Use Current'),'staminaMax')) {
+                if (caap.stats.stamina.num < maxIdleStamina) {
                     caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                     return false;
                 }

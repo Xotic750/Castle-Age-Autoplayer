@@ -2416,7 +2416,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 attackOrderList = [],
                 theGeneral = config.getItem('MonsterGeneral', 'Use Current');
 
-            theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+            theGeneral = ((theGeneral === "Under Level") ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral);
             // First we forget everything about who we already picked.
             //state.setItem('targetFrombattle_monster', '');
             //state.setItem('targetFromfortify', energyTarget);

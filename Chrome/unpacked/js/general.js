@@ -257,7 +257,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // Look up a stat for a general.
     general.GetStat = function (generalName, stat) {
         try {
-           var generalRecord = general.getRecord(generalName);
+           var generalRecord = general.getRecord(generalName,false);
 
             if (generalRecord === false) {
                 con.warn("Unable to find 'General' " + generalName + " stat " + stat);
@@ -400,8 +400,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             general.quickSwitch = false;
             var generalName = general.GetCurrentGeneral(),
                 loadoutName = general.GetCurrentLoadout(),
-                loadoutRecord = general.getRecord(loadoutName),
-                generalRecord = general.getRecord(generalName),
+                loadoutRecord = general.getRecord(loadoutName,false),
+                generalRecord = general.getRecord(generalName,false),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current'),
                 generalDiv = $j(),
                 tempObj = $j(),
@@ -883,7 +883,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop();
             }
 
-            if (!general.getRecord(targetGeneral)) {
+            if (!general.getRecord(targetGeneral,false)) {
                 con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '.  Changing setting to "Use Current"');
                 general.Clear(whichGeneral);
                 return false;
@@ -906,7 +906,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 currentLoadout = general.GetCurrentLoadout(),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 
-            if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout)) {
+            if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
                 con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
                 general.Clear('DefaultLoadout');
             }
@@ -918,7 +918,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Confirm loadout is ok
             targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
             targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
-            lRecord = general.getRecord(targetLoadout);
+            lRecord = general.getRecord(targetLoadout,false);
             targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
             if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
 //				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
