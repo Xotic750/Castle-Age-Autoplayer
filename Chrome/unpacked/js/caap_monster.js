@@ -1858,6 +1858,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                         cM.hide = !$u.hasContent($j("input[name='Attack Dragon'],input[name='raid_btn']", slice));
                         con.log(2, "Player hasn't done damage yet");
                     } else {
+                        con.log(2, "dleadersDiv2",dleadersDiv2);
                         if (monsterInfo && monsterInfo.defense) {
                             tempArr = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML).trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
                             if ($u.hasContent(tempArr) && tempArr.length === 2) {
@@ -1873,8 +1874,15 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                             cM.damage = cM.attacked;
                         */
                         } else {
-                            cM.attacked = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
-                            cM.damage = cM.attacked;
+                            tempArr = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML).trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+)/);
+							con.log(2, "dleadersDiv2.parent().parent()[0].children[4].innerHTML",dleadersDiv2.parent().parent()[0].children[4].innerHTML);
+                            if ($u.hasContent(tempArr) && tempArr.length >0) {
+                                cM.attacked = $u.setContent(tempArr[0], '0').numberOnly();
+								cM.damage = cM.attacked;
+                            } else {
+								cM.attacked = $u.setContent(dleadersDiv2.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
+								cM.damage = cM.attacked;
+                            }
                         }
                         if (!feed.isScan && !ajax) {
                             dleadersDiv2.parent().parent().eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
@@ -1938,7 +1946,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                 if (($u.hasContent(damageDiv) || damageDivNew) && monsterInfo && monsterInfo.alpha) {
                     // Character type stuff
-                    monsterDiv = $j("div[style*='nm_bottom']", slice);
+                    monsterDiv = $j("div[style*='nm_bottom'],div[style*='stance_plate_bottom']", slice);
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                         if (tempText) {
@@ -1948,6 +1956,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 cM.charClass = tStr;
                                 con.log(4, "character", cM.charClass);
                             } else {
+                                cM.charClass = 'Cleric';
                                 con.warn("Can't get character", tempText);
                             }
 
@@ -1956,6 +1965,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 cM.tip = tStr;
                                 con.log(4, "tip", cM.tip);
                             } else {
+								cM.tip = 'fortify';
                                 con.warn("Can't get tip", tempText);
                             }
 
@@ -1981,6 +1991,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 }
 
                             } else {
+                                cM.stunTime = Date.now() + (cM.time[0] * 60 * 60 * 1000) + (cM.time[1] * 60 * 1000) + (cM.time[2] * 1000);
                                 con.warn("Can't get statusTime", tempText);
                             }
 
@@ -1998,11 +2009,13 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 tempArr = cM.tip.split(" ");
                                 if ($u.hasContent(tempArr)) {
                                     tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                    tempArr = ["strengthen", "heal"];
+                                    tempArr = ["strengthen", "heal","fortify"];
                                     if (tempText && tempArr.hasIndexOf(tempText)) {
                                         if (tempText === tempArr[0]) {
                                             cM.stun = cM.strength;
                                         } else if (tempText === tempArr[1]) {
+                                            cM.stun = cM.health;
+                                        } else if (tempText === tempArr[2]) {
                                             cM.stun = cM.health;
                                         } else {
                                             con.warn("Expected strengthen or heal to match!", tempText);
@@ -2027,7 +2040,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                     tempArr = cM.tip.split(" ");
                                     if ($u.hasContent(tempArr)) {
                                         tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                        tempArr = ["strengthen", "cripple", "heal", "deflection"];
+                                        tempArr = ["strengthen", "cripple", "heal", "deflection","fortify"];
                                         if (tempText && tempArr.hasIndexOf(tempText)) {
                                             cM.stunType = tempText.replace("ion", '');
                                             con.log(2, "Character specific attack type", cM.stunType);

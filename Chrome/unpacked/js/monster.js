@@ -737,14 +737,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             staLvl: [0, 100, 200, 500],
             staMax: [10, 20, 50, 100, 200],
             nrgMax: [20, 40, 100, 200],
-            defense_img: ['nm_green.jpg'],
+            defense_img: 'nm_green.jpg',
             levels: [1, 150, 300],
             join: [20, 30, 60],
             mClass: 'Epic World',
             mpool: 101,
             newbg_img: ['monster_cronus_ice_title.jpg'],
             list_img: ['monster_cronus_ice_list.jpg'],
-            cta_img: ['cta_cronus_ice.gif'],
+            cta_img: ['cta_cronus_ice.gif']
         },
         'Valhalla': {
             alpha: true,
@@ -1808,6 +1808,36 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             newbg_img : ['monster_leviathan_wrath_title.jpg'],
             list_img : ['monster_leviathan_wrath_list.jpg'],
             cta_img : ['cta_leviathan_wrath.gif']
+        },
+        'Cronus Astaroth': {
+            alpha: true,
+            duration: 168,
+            hp: 1125000000,
+            ach: 1000000,
+            siege: 5,
+            siegeClicks: [10, 20, 30, 40, 50],
+            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small1.gif',
+                '/graphics/castle_siege_small2.gif',
+                '/graphics/death_siege_small2.gif',],
+            fort: true,
+            staUse: 20,
+            staLvl: [0, 100, 200, 500],
+            staMax: [20, 50, 100, 200],
+            nrgMax: [10, 20, 40, 100],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 150, 300],
+            join: [20, 30, 60],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_header_cronus_rainbow.jpg'],
+            list_img: ['monster_cronus_rainbow_list.jpg'],
+            cta_img: ['cta_cronus_ice.gif'],
+            bodyparts : 3,
+            partOrder : [3,2,1]
         }
     };
 
