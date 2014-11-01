@@ -654,6 +654,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
             htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
             htmlCode += caap.endCheckHide('ArmyIndicators');
+/*
             htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
             htmlCode += caap.startCheckHide('AutoElite');
             htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
@@ -664,8 +665,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
             htmlCode += caap.endTR;
             htmlCode += caap.endCheckHide('AutoElite');
+*/
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army (FB only)' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endTR;
             htmlCode += caap.endCheckHide('EnableArmy');
             htmlCode += caap.endToggle;
