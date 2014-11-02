@@ -412,6 +412,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				eatk, edef,
                 temptext = '';
 
+			con.log(2, 'Getequipped stats', generalName, loadoutName);
 			// Record the general information if a loadout has been clicked or none if loadout is not defined
 			if (general.clickedLoadout !== false) {
 				if (session.getItem('page','None') === 'player_loadouts') {
@@ -439,7 +440,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     eatk = $u.setContent(temptext.regex(/\s+(\d+)\s+\d+/i), 0);
                     edef = $u.setContent(temptext.regex(/\s+\d+\s+(\d+)/i), 0);
                     if ($u.isNumber(eatk) && $u.isNumber(edef)) {
-                        con.log(4, "General equipped atk/def", eatk, edef);
+                        con.log(2, "General equipped atk/def", eatk, edef);
                         success = true;
                     } else {
                         con.warn("Unable to get 'General' attack or defense", temptext);
@@ -584,7 +585,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         container = $j(this),
                         it = 0,
                         len = 0,
-                        tempObj = $j("div.general_name_div3", container);
+                        tempObj = $j("div.general_name_div3_padding", container);
 
                     if ($u.hasContent(tempObj)) {
                         name = tempObj.text().trim(); // save all generals with complete name (eg Corvintheus**) // 2011-09-27 d11
@@ -912,6 +913,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
 				general.Clear('DefaultLoadout');
 			}
+			
+			con.log(2, "selectSpecific", currentGeneral, currentLoadout, targetGeneral);
 
 			if (!targetGeneral || targetGeneral == 'Use Current') {
 				return false;
@@ -971,7 +974,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				generalName = '',
 				time = 0,
                 len = general.records.length;
-				
+			
+			return false;
 			session.setItem('ReleaseControl', true);
 			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
                 return false;
@@ -1003,7 +1007,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						return caap.navigateTo('generals');
 					}
 					if (general.selectSpecific(general.records[i].name)) {
-						con.log(2, "Loading general #" + (i + 1) + ' of ' + (len + 1), general.records[i].name);
+						con.log(2, "Loading general #" + (i + 1) + ' of ' + (len + 1), general.records[i].name, general.getCurrentGeneral());
 						return true;
 					}
 					// Go to the keep to force a page refresh to display actual max energy/stamina

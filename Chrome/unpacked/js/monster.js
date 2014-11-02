@@ -2999,7 +2999,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     title = "Percentage of monster life remaining: " + value + "%";
                                     break;
                                 case 'phase':
-                                    value = value + "/" + monsterInfo.siege + " need " + monsterObj.miss;
+                                    value = value + "/" + (monsterInfo ? monsterInfo.siege : 0)+ " need " + monsterObj.miss;
                                     title = "Siege Phase: " + value + " more clicks";
                                     break;
                                 case 'fortify':

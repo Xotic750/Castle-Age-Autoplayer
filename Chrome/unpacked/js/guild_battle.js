@@ -940,9 +940,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					//con.log(2, 'member args', args);
 					if (args && args.length === 8) {
 						// mR.position = args[1] || '';
-						mR.mclass = member.children().attr('class').match(classRegEx)[1];
+						//mR.mclass = member.children().attr('class').match(classRegEx)[1];
+						mR.mclass = $j("img[src*='class_']", member).attr("title").match(/(\w+)/)[1].toLowerCase();
+						//con.log(2, "Class", mR.mclass);
 						tR.clerics += mR.mclass == 'cleric' ? 1 : 0;
-						mR.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
+						//mR.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
+						mR.points = 160; // No longer available in the DOM
 						mR.name = args[2] || '';
 						mR.level = args[3] ? args[3].parseInt() : 0;
 						mR.status = args[4] || '';
@@ -1279,7 +1282,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					button = 'special_action';
 					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 					if (result == 'fail') {
-						con.warn('Unable to complete path. Reloading page.');
+						con.warn('Unable to complete path. Reloading page.', general.GetCurrentGeneral(), general.GetCurrentLoadout());
 						return caap.navigateTo(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
 					}
 					return result;
