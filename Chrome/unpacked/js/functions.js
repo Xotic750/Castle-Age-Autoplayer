@@ -45,6 +45,7 @@ function fbLog() {
     inject = null;
 }
 
+<<<<<<< HEAD
 function getFBEnv() {
         var inject = document.createElement('script');
 
@@ -57,9 +58,23 @@ function getFBEnv() {
             var kludge = '{"id":"' + $j("[id*='profile_pic_header_']")[0].id.replace('profile_pic_header_', '') + '"}';
             sessionStorage.setItem('caap_fbEnv', kludge.toString());
         }
+=======
+    function getFBEnv() {
+            var inject = document.createElement('script');
+>>>>>>> origin/master
 
-        inject = null;
-}
+            inject.setAttribute('type', 'text/javascript');
+            inject.textContent = "(function () {sessionStorage.setItem('caap_fbEnv', JSON.stringify(Env));}());";
+            (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+            (document.head || document.getElementsByTagName('head')[0]).removeChild(inject);
+
+            if (sessionStorage.getItem('caap_fbEnv') == 'undefined') {
+                var kludge = '{"id":"' + $j("[id*='profile_pic_header_']")[0].id.replace('profile_pic_header_', '') + '"}';
+                sessionStorage.setItem('caap_fbEnv', kludge.toString());
+            }
+
+            inject = null;
+    }
 
 
 function getFBData() {

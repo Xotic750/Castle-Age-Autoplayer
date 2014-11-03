@@ -1095,7 +1095,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
 
                         if (result === 'victory') {
-							session.setItem('ReleaseControl', false);
+                            session.setItem('ReleaseControl', false);
                             con.log(1, "Chain check");
                             //Test if we should chain this guy
                             tempTime = $u.setContent(targetRecord.chainTime, 0);
@@ -1168,7 +1168,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			monsterFound = false,
 			activePathlist = [];
 		
-			landCapsules.each(function() {
+		landCapsules.each(function() {
             var currentCapsule = $j(this),
                 tmp = '',
                 landRecord = new conquestLands.record();
@@ -1181,12 +1181,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 landRecord.stateTimeLeft = 0;
             } else {
                 tmp = $j("img[src*='conq2_btn']", currentCapsule).parent().eq(0).attr('href').match(/.+slot=(\d+)/)[1];
-    			try{
-					landRecord.timeLeft = $j("[id*='expire_text']", currentCapsule).html().match(/.+forever in (\d+) hours/)[1];
-				} catch (err) {
-					con.error("ERROR in landRecord.timeLeft: " + err);
-					landRecord.timeLeft = 999999;
-				}	
+                try{
+                    landRecord.timeLeft = $j("[id*='expire_text']", currentCapsule).html().match(/.+forever in (\d+) hours/)[1];
+                } catch (err) {
+                    con.error("ERROR in landRecord.timeLeft: " + err);
+                    landRecord.timeLeft = 999999;
+                }	
             }
             landRecord.slot = tmp[tmp.length - 1];
 
@@ -1601,18 +1601,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     guilds.rescan = function() {
         try {
-			var i = 0, len = 0;
+            var i = 0, len = 0;
             for (i = 0, len = guilds.records.length; i < len; i += 1) {
-				guilds.records[i].lastCheck = Date.now();
-				guilds.records[i].Attack = -1;
-				guilds.records[i].Defense = -1;
-				guilds.records[i].Damage = -1;
-				guilds.records[i].Health = -1;
-				guilds.records[i].AttackMax = 0;
-				guilds.records[i].DefenseMax = 0;
-				guilds.records[i].DamageMax = 0;
-				guilds.records[i].HealthMax = 0;
-			}
+                guilds.records[i].lastCheck = Date.now();
+                guilds.records[i].Attack = -1;
+                guilds.records[i].Defense = -1;
+                guilds.records[i].Damage = -1;
+                guilds.records[i].Health = -1;
+                guilds.records[i].AttackMax = 0;
+                guilds.records[i].DefenseMax = 0;
+                guilds.records[i].DamageMax = 0;
+                guilds.records[i].HealthMax = 0;
+            }
             guilds.save();
             session.setItem("GuildsDashUpdate", true);
             return true;
@@ -1755,6 +1755,57 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
     };
 
+    guilds.autoEssenceCheck = function (guildRecord) {
+        try {
+            var guildButtonLevel, energyButtonLevel, runeButtonLevel, buttonLevel, essence, n, essenceValue, target, buttonString;
+
+            energyButtonLevel = Math.min ((Math.floor (caap.stats.energy.num - config.getItem('EssenceEnergyMin') / 25)), 4);
+            for (n = 0; n <= 4; n += 1) {
+                essence = config.getItem('Rune' + n, '');
+                if (essence === '') {
+                    con.log(3, "Skipping blank entry: continue");
+                    continue;
+                }
+
+                essenceValue = config.getItem('RuneValue' + n, 0);
+                guildButtonLevel = Math.min (Math.floor ((guildRecord[essence + 'Max'] - guildRecord[essence]) / 200), 4);
+
+                    // update the essence totals
+                caap.stats.essence.Attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
+                caap.stats.essence.Defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
+                caap.stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
+                caap.stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
+
+                runeButtonLevel = Math.min (Math.floor ((caap.stats.essence[essence] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
+                buttonLevel = Math.min (Math.min (guildButtonLevel, energyButtonLevel), runeButtonLevel);
+
+                if (buttonLevel >= 1) {
+                    switch (essence) {
+                        case 'Attack': target = 1; break;
+                        case 'Defense': target = 2; break;
+                        case 'Damage': target = 3; break;
+                        case 'Health': target = 4; break;
+                        default: continue;
+                    }
+
+                    buttonString = "trade_confirm_pop_" + target.toString() + '_' + (buttonLevel - 1).toString();
+
+                    caap.click ($j('#' + buttonString)[0]);
+        // yinzanat - this should slow things down by forcing a 3000 milisecond delay.  There's probably a better way to do this.
+                   var currentTime = new Date().getTime();
+                   while (currentTime + 3000 >= new Date().getTime()) {}
+        // end of pause "logic"
+
+                    caap.click(caap.checkForImage('trade_btn_confirm.gif', $j("#single_popup_content")));
+                }
+
+             }
+        } catch (err) {
+                con.error("ERROR in guilds.autoEssenceCheck: " + err);
+                return false;
+        }
+    };
+
     guilds.guildMarket = function() {
         var storageDivs = $j("[id^='storage_']"),
             guildRecord = new guilds.record();
@@ -1768,6 +1819,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guildRecord[essenceText[1] + 'Max'] = essenceText[6];
         });
         guilds.setItem(guildRecord);
+
+                // won't run if paused, essence scan is not check or essence trade is not checked
+        if (config.getItem('EssenceScanCheck') && config.getItem('essenceTrade') && state.getItem('caapPause', 'none') === 'none') {
+            guilds.autoEssenceCheck (guildRecord);
+        }
     };
 
     guilds.nextToCheck = function() {

@@ -27,7 +27,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
 			try {
-			caap.ajax('party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf', null, responseCallback, responseCallback);
+			caap.ajax('index.php?tp=cht&lka=' + id, null, responseCallback, responseCallback);
 			return true;
 			} catch (err) {
 			con.error("ERROR in addFriend(" + id + "): " + err);
