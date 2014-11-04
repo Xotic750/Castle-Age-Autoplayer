@@ -411,8 +411,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 eatk, edef,
                 temptext = '';
 
-<<<<<<< HEAD
-			con.log(2, 'Getequipped stats', generalName, loadoutName);
 			// Record the general information if a loadout has been clicked or none if loadout is not defined
 			if (general.clickedLoadout !== false) {
 				if (session.getItem('page','None') === 'player_loadouts') {
@@ -427,22 +425,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 			}
 			general.clickedLoadout = false;
-=======
-            // Record the general information if a loadout has been clicked or none if loadout is not defined
-            if (general.clickedLoadout !== false) {
-                if (session.getItem('page','None') === 'player_loadouts') {
-                    general.records[general.clickedLoadout].last = Date.now();
-                    con.log(2, general.records[general.clickedLoadout].name + " is not configured.");
-                } else if (general.clickedLoadout == loadoutRecord.value - 1) {
-                    general.records[general.clickedLoadout].last = Date.now();
-                    if (loadoutName == general.records[general.clickedLoadout].name && general.records[general.clickedLoadout].general !== generalName) {
-                        con.log(2,"Updated general for " + general.records[general.clickedLoadout].name + " is " + general.records[general.clickedLoadout].general, general.records);
-                        general.records[general.clickedLoadout].general = generalName;
-                    }
-                }
-            }
-            general.clickedLoadout = false;
->>>>>>> origin/master
 
             if (generalName === 'Use Current' || !generalRecord) {
                 con.warn("Get Equipped Stats: Unable to find 'General' record", generalName);
@@ -924,26 +906,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 currentGeneral = general.GetCurrentGeneral(),
                 currentLoadout = general.GetCurrentLoadout(),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
-<<<<<<< HEAD
-				
-			if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout)) {
-				con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
-				general.Clear('DefaultLoadout');
-			}
-			
-			con.log(2, "selectSpecific", currentGeneral, currentLoadout, targetGeneral);
-
-			if (!targetGeneral || targetGeneral == 'Use Current') {
-				return false;
-			}
-			
-			// Confirm loadout is ok
-			targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
-			targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
-			lRecord = general.getRecord(targetLoadout);
-			targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
-			if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
-=======
 
             if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
                 con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
@@ -960,7 +922,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             lRecord = general.getRecord(targetLoadout,false);
             targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
             if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
->>>>>>> origin/master
 //				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
                 if (lRecord === false) {
                     con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
@@ -1009,59 +970,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 generalName = '',
                 time = 0,
                 len = general.records.length;
-<<<<<<< HEAD
-			
-			return false;
-			session.setItem('ReleaseControl', true);
-			if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
-                return false;
-            }
-			if (general.timedLoadout()) {
-				con.log(2,'Pausing general review while equipping timed general');
-				return false;
-			}
-			
-			if (((caap.stats.energy.max || 0) > 0 && caap.stats.energy.num > caap.stats.energy.max *.7) ||
-				((caap.stats.stamina.max || 0) > 0 && caap.stats.stamina.num > caap.stats.stamina.max *.7)) {
-				con.log(3, "Delaying general stats review while high sta/ene ", caap.stats.energy.max, caap.stats.energy.num, caap.stats.stamina.max, caap.stats.stamina.num);
-			} else {
-				for (var i = 0; i < len; i += 1) {
-					// Review in one day if a general/loadout set in the menu or a general that has gone up a level. Otherwise, a week.
-					time = (general.usedGenerals.indexOf(general.records[i].name) >= 0 || !general.isLoadout(general.records[i].name) ? 1 : 7) * 24 * 3600;
-					if (schedule.since(general.records[i].last, time)) {
-						break;
-					}
-				}
-				if (i < len) {
-					if (caap.stats.lastGeneral == false || caap.stats.lastLoadout == false) {
-						con.log(2, 'Logging current loadout/general before reviewing generals');
-						caap.stats.lastGeneral = general.GetCurrentGeneral();
-						caap.stats.lastLoadout = general.GetCurrentLoadout();
-						con.log(2, 'Logging current loadout/general before reviewing generals', caap.stats.lastLoadout, caap.stats.lastGeneral);
-					}
-					if (session.getItem("page", "") != 'generals') {
-						return caap.navigateTo('generals');
-					}
-					if (general.selectSpecific(general.records[i].name)) {
-						con.log(2, "Loading general #" + (i + 1) + ' of ' + (len + 1), general.records[i].name, general.getCurrentGeneral());
-						return true;
-					}
-					// Go to the keep to force a page refresh to display actual max energy/stamina
-					con.log(2, "Checking keep stats for Loadout #" + (i + 1) + ' of ' +  (len + 1), general.records[i].name);
-					return caap.navigateTo('keep');
-				}
-			}
-			if (caap.stats.lastLoadout !== false && general.selectSpecific(caap.stats.lastLoadout)) {
-				con.log(2, 'Resetting last loadout before generals reviewed', caap.stats.lastLoadout);
-				return true;
-			} 
-			caap.stats.lastLoadout = false;
-			if (caap.stats.lastGeneral !== false && general.selectSpecific(caap.stats.lastGeneral)) {
-				con.log(2, 'Resetting last general before generals reviewed', caap.stats.lastGeneral);
-				return true;
-			} 
-			caap.stats.lastGeneral = false;
-=======
 
             session.setItem('ReleaseControl', true);
             if (!config.getItem('enableCheckAllGenerals', false) || !schedule.check("allGenerals")) {
@@ -1112,7 +1020,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
             caap.stats.lastGeneral = false;
->>>>>>> origin/master
 
         } catch (err) {
             con.error("ERROR in general.GetAllStats: " + err);
