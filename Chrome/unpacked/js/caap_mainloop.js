@@ -19,7 +19,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.actionDescTable = {
         'autoIncome': 'Awaiting Income',
         'autoStat': 'Upgrade Skill Points',
-        'maxEnergyQuest': 'At Max Energy Quest',
+        'maxStatsCheck': 'At Max Energy Quest',
         'passiveGeneral': 'Setting Idle General',
         'idle': 'Idle Tasks',
         'immediateBanking': 'Immediate Banking',
@@ -49,9 +49,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'ajaxGiftCheck': 'Gift Check',
         'ajaxCheckFeed': 'Feed Check',
         'ajaxCheckGuild': 'Guild Check',
-        'ajaxCheckPublic1': 'Public Check 1',
-        'ajaxCheckPublic2': 'Public Check 2',
-        'ajaxCheckPublic3': 'Public Check 3',
+        'ajaxCheckPublic': 'Check Public Monsters',
         'feedScan': 'Scanning Monsters',
         'checkAchievements': 'Achievements',
         'reconPlayers': 'Player Recon',
@@ -95,7 +93,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x02: 'guildBattle',
         0x03: 'immediateBanking',
         0x04: 'immediateAutoStat',
-        0x05: 'maxEnergyQuest',
+        0x05: 'maxStatsCheck',
         0x06: 'festivalReview',
         0x07: 'guildMonsterReview',
         0x08: 'monsterReview',
@@ -133,9 +131,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x28: 'festivalBless',
         0x29: 'ajaxCheckFeed',
         0x2A: 'ajaxCheckGuild',
-        0x2B: 'ajaxCheckPublic1',
-        0x2C: 'ajaxCheckPublic2',
-        0x2D: 'ajaxCheckPublic3',
+        0x2B: 'ajaxCheckPublic',
         0x2E: 'feedScan',
         0x2F: 'collectConquest',
         0x30: 'collectConquestCrystal',
@@ -310,6 +306,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.guild_battle = null;
                     //window.arena = null;
                     window.festival = null;
+                    window.tenVten = null;
                     window.feed = null;
                     window.battle = null;
                     window.town = null;
@@ -381,21 +378,33 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
+                caap.stats.energy.num = num;
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
+                caap.stats.health.num = num;
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
+                caap.stats.stamina.num = num;
                 con.log(3, "stsPoll scv", num);
             }
+			
+			// Check for lowpoints in energy stamina maxes at every level, for use with max stat checks
+			if (caap.stats.level !== caap.stats.lowpoint.level) {
+				caap.stats.lowpoint.level = caap.stats.level;
+				caap.stats.lowpoint.energy = caap.stats.energy.max > 0 ? caap.stats.energy.max : caap.stats.lowpoint.energy;
+				caap.stats.lowpoint.stamina = caap.stats.stamina.max > 0 ? caap.stats.stamina.max : caap.stats.lowpoint.stamina;
+			}
+			['energy', 'stamina'].forEach( function(stat) {
+				if (caap.stats[stat].max > 0 && caap.stats[stat].max < caap.stats.lowpoint[stat]) {
+					caap.stats.lowpoint[stat] = caap.stats[stat].max;
+				}
+			});
 
             mainSts = null;
             gtv = null;

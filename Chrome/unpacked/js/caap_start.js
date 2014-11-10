@@ -136,8 +136,8 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		if (devVersion !== '0') {
 			if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
 				if (devVersion > 226) {
-					con.log(1,'Clearing monster list since names have changed since Dev 226', devVersion);
-					monster.clear();
+					con.log(1,'Clearing monster list since names have changed since Dev 226', devVersion, gm.getItem('monster.records', 'default'));
+					gm.setItem('monster.records', 'default');
 				}
 				state.setItem('LastVersion', caapVersion);
 				state.setItem('LastDevVersion', devVersion);

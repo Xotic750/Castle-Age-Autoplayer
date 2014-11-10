@@ -130,9 +130,23 @@ function caap_DomTimeOut() {
 }
 
 function caap_clickRelogin() {
-	caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
-	$j("input[src*='crusader2_btn_submit.gif']").click();
-    caap_WaitForData();
+	window.login = new $u.StorageHelper({
+		'namespace': caap.namespace,
+		'storage_id': 'login',
+		'storage_type': 'localStorage'
+	});
+	
+	//login.setItem('logons', [{'player_email' : 'xxx@mailinator.com', 'password' : 'Red!Snapper1'}]);
+	var logonArray = login.getItem('logons', []);
+	if (logonArray != []) {
+		$j("input[name='player_email'").val(logonArray[0].player_email);
+		$j("input[name='player_password'").val(logonArray[0].password);
+		con.log(1, "login", login, logonArray, logonArray[0].player_email, logonArray[0].password);
+
+		caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
+		$j("input[src*='crusader2_btn_submit.gif']").click();
+		caap_WaitForData();
+	}
 }
 
 function caap_WaitForData() {
