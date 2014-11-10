@@ -1002,12 +1002,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             for (i = 0; i < monster.records.length; i++) {
                 cM = monster.records[i];
                 /*jslint continue: true */
-                if (cM.status == 'Join') {
+				
+				// Skip monsters we haven't joined, unless in conquest lands
+                if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
                     continue;
                 }
-                /*-------------------------------------------------------------------------------------\
-                If we looked at this monster more recently than an hour ago, skip it
-                \-------------------------------------------------------------------------------------*/
                 if (cM.color === 'grey' && cM.life !== -1) {
                     cM.life = -1;
                     cM.fortify = -1;
@@ -1018,6 +1017,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monster.save();
                 }
 
+                /*-------------------------------------------------------------------------------------\
+                If we looked at this monster more recently than an hour ago, skip it
+                \-------------------------------------------------------------------------------------*/
 				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 60) * 60;
 				//con.log(2,'PRE MONSTER REVIEW', cM.name, schedule.since(cM.review, time),  cM, time, monster.parseCondition('mnt', cM.conditions));
 
@@ -1930,7 +1932,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 }
 
                 //Total Time alotted for monster
-                KOBtotalMonsterTime = monsterInfo.duration;
+                KOBtotalMonsterTime = $u.setContent(monsterInfo.duration,196);
                 if (KOBenable) {
                     con.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
 

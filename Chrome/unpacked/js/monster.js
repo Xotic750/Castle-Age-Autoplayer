@@ -1803,6 +1803,36 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img : ['monster_leviathan_wrath_list.jpg'],
             cta_img : ['cta_leviathan_wrath.gif']
         },
+        'Thanatos Reborn': {
+            alpha: true,
+            duration: 168,
+            hp: 1030000000,
+            ach: 1000000,
+            siege: 5,
+            siegeClicks: [15, 30, 45, 60, 65],
+            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small1.gif',
+                '/graphics/castle_siege_small2.gif',
+                '/graphics/death_siege_small2.gif',],
+            fort: true,
+            staUse: 20,
+            staLvl: [0, 100, 200, 500],
+            staMax: [20, 50, 100, 200],
+            nrgMax: [10, 20, 40, 100],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 150, 300],
+            join: [20, 30, 60],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_thanatos_title.jpg'],
+            list_img: ['monster_thanatos_list.jpg'],
+            cta_img: ['cta_thanatos.gif'],
+            bodyparts : 3,
+            partOrder : [3,2,1]
+        },
         'Cronus Astaroth': {
             alpha: true,
             duration: 168,
@@ -2049,7 +2079,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             session.setItem("MonsterDashUpdate", true);
             session.setItem("FeedDashUpdate", true);
-			//con.log(2,'Load Monster records after',monster.records, caap.stats.reviewPages, caap.stats.level);
+			//con.log(2,'Load Monster records after load',monster.records, caap.stats.reviewPages, caap.stats.level);
             return true;
         } catch (err) {
             con.error("ERROR in monster.load: " + err);

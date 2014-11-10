@@ -189,8 +189,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 jq = $j(),
                 step = '';
 			
-			
-			
 			if (list && list.length == 2) {
 				con.log(2, "Setting GENERAL",list[1]);
 				if (general.Select(list[1])) {

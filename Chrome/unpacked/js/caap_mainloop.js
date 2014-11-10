@@ -19,7 +19,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.actionDescTable = {
         'autoIncome': 'Awaiting Income',
         'autoStat': 'Upgrade Skill Points',
-        'maxEnergyQuest': 'At Max Energy Quest',
+        'maxStatsCheck': 'At Max Energy Quest',
         'passiveGeneral': 'Setting Idle General',
         'idle': 'Idle Tasks',
         'immediateBanking': 'Immediate Banking',
@@ -93,7 +93,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x02: 'guildBattle',
         0x03: 'immediateBanking',
         0x04: 'immediateAutoStat',
-        0x05: 'maxEnergyQuest',
+        0x05: 'maxStatsCheck',
         0x06: 'festivalReview',
         0x07: 'guildMonsterReview',
         0x08: 'monsterReview',
@@ -378,19 +378,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
+                caap.stats.energy.num = num;
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
+                caap.stats.health.num = num;
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
+                caap.stats.stamina.num = num;
                 con.log(3, "stsPoll scv", num);
             }
 			
