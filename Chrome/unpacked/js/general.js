@@ -872,7 +872,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			//Check what target general should be
             targetGeneral = zinReady && zinFirst && (zinAction.hasIndexOf(thisAction)) ? "Zin" : (useCool ? coolName : config.getItem(whichGeneral, whichGeneral));
-            con.log(5, 'Select General ', whichGeneral, targetGeneral, coolName);
+            con.log(2, 'Select General ', whichGeneral, targetGeneral, coolName);
 			
 			if (targetGeneral == 'Use Current') {
 				return false;

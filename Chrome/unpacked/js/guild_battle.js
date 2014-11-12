@@ -1283,7 +1283,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 					if (result == 'fail') {
 						con.warn('Unable to complete path. Reloading page.', general.GetCurrentGeneral(), general.GetCurrentLoadout());
-						return caap.navigateTo(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
+						return caap.navigate2(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
 					}
 					return result;
 				}

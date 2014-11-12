@@ -357,7 +357,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						if (path.replace(/:.*/,'')=='ajax') {
 							return caap.clickAjaxLinkSend(path.replace(/.*:/,''),2000);
 						} else {
-							con.warn(1,'Unknown caap.navigateTo parameter', path, pathList);
+							con.warn('Unknown caap.navigateTo parameter', path, pathList);
 							return false;
 						}
 					}
