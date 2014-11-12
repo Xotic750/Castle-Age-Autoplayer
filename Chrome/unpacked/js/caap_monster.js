@@ -80,14 +80,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 pageUserCheck = 0,
                 newInputsDiv = $j(),
 				publicList = page === 'public_monster_list';
-/*
-            if (feed.isScan && $u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
-                con.log(2, "No monster");
-                //feed.checked(monster.getItem(''));
-                return false;
-            }
-*/
-			monster.lastClick = null;
+
+				monster.lastClick = null;
 
             //con.log(2, "Checking monster list page results", page, pageURL, monsterRow);
 			if (!publicList) {
@@ -567,7 +561,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < general.GetStat(config.getItem('IdleGeneral', 'Use Current'),'staminaMax')) {
+                if (caap.stats.stamina.num < maxIdleStamina) {
                     caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                     return false;
                 }
@@ -736,10 +730,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (monsterInfo && monsterInfo.fortify_img) {
                         buttonList.unshift(monsterInfo.fortify_img[0]);
                     }
-					if (!cM.stunTarget) {
-						con.log(1, "No stun target time set");
-					}
-					
+                    if (!cM.stunTarget) {
+                        con.log(1, "No stun target time set");
+                    }
+                    
                     if (cM && cM.stunDo && cM.stunType !== '') {
                         buttonList.unshift("button_nm_s_" + cM.stunType);
                     } else {
@@ -987,13 +981,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cM = {},
 				message = 'Reviewing ',
                 monsterInfo = {};
-			
+
+//caap.stats.reviewPages = {};
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-					con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
-					return caap.navigateTo(caap.stats.reviewPages[i].path);
-				}
+                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
+                    return caap.navigateTo(caap.stats.reviewPages[i].path);
+                }
             }
+            //con.log(5,'monster review',caap.stats.reviewPages);
 
             if (monster.records.length === 0) {
                 return false;
@@ -1004,14 +1000,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             index for the next reiteration since we will be doing a click and return in here.
             \-------------------------------------------------------------------------------------*/
             for (i = 0; i < monster.records.length; i++) {
-				cM = monster.records[i];
+                cM = monster.records[i];
                 /*jslint continue: true */
-                if (cM.status == 'Join') {
+				
+				// Skip monsters we haven't joined, unless in conquest lands
+                if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
                     continue;
                 }
-                /*-------------------------------------------------------------------------------------\
-                If we looked at this monster more recently than an hour ago, skip it
-                \-------------------------------------------------------------------------------------*/
                 if (cM.color === 'grey' && cM.life !== -1) {
                     cM.life = -1;
                     cM.fortify = -1;
@@ -1022,6 +1017,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monster.save();
                 }
 
+                /*-------------------------------------------------------------------------------------\
+                If we looked at this monster more recently than an hour ago, skip it
+                \-------------------------------------------------------------------------------------*/
 				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 60) * 60;
 				//con.log(2,'PRE MONSTER REVIEW', cM.name, schedule.since(cM.review, time),  cM, time, monster.parseCondition('mnt', cM.conditions));
 
@@ -1111,8 +1109,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 time = [],
                 tempDiv = $j(),
                 tempText = '',
-				tempSetting = 0,
-				stunStart = 0,
+                tempSetting = 0,
+                stunStart = 0,
                 tempArr = [],
                 counter = 0,
                 totalCount = 0,
@@ -1147,8 +1145,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 nMonstStyle = '',
                 id = 0,
                 userName = '',
-				siegeLevel = 0,
-				siegeLimit = 0,
+                siegeLevel = 0,
+                siegeLimit = 0,
                 mName = '',
                 feedMonster = '',
                 md5 = '',
@@ -1162,7 +1160,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 countJoin = 0,
                 it = 0,
                 jt = 0,
-				lastmd5 = monster.lastClick,
+                lastmd5 = monster.lastClick,
                 groups = {},
                 groupMatch = false,
                 found = false;
@@ -1175,55 +1173,55 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_']", slice);
 
-			monster.lastClick = null;
+            monster.lastClick = null;
 
-			// new monster layout logic
-			if (dleadersDiv.text() === '') {
-				dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
+            // new monster layout logic
+            if (dleadersDiv.text() === '') {
+                dleadersDiv2 = $j("div[id*='leaderboard_0']")[0].children;
 
-				maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
-				/* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
-				for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
-					if (dleadersDiv2[ii].children.length > 0) {
-						con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
-					}
-				}*/
-			} else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
-				con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
-				tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
-				if ($u.hasContent(tempDiv)) {
-					tempDiv.each(function (index) {
-						$j(this).parent().attr("id", "mark" + index);
-					});
+                maxJoin = dleadersDiv2[0].children[1].innerHTML.regex(/(\d+)/);
+                /* this is the begining of logic that will loop through the leaders and count them for the X/Y stuff, not really important so I'm skipping it for now
+                for (var ii = 1; ii < dleadersDiv2.length; ii++) {              // start at 1 to skip the title 'Damage Leaders:'
+                    if (dleadersDiv2[ii].children.length > 0) {
+                        con.log (1, "dleadersDiv2 each", ii, dleadersDiv2[ii].children.length, dleadersDiv2[ii], dleadersDiv2[ii].innerHTML);
+                    }
+                }*/
+            } else { // this is for monster still on the old style, Tower 1, Tower 2, Conquest
+                con.log(3, "Damage Leaders", dleadersDiv.text(), maxJoin);
+                tempDiv = $j("td[colspan='2']:contains('Levels'),td[colspan='2']:contains('Allies')", dragonDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tempDiv.each(function (index) {
+                        $j(this).parent().attr("id", "mark" + index);
+                    });
 
-					tempDiv.each(function (index) {
-						var group = $j(this),
-							levels = $j("b", group).text(),
-							start = levels.regex(/Levels (\d+)/),
-							max = group.text().trim().innerTrim().replace(levels, '').trim(),
-							maxNum = max.regex(/(\d+)/),
-							count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
+                    tempDiv.each(function (index) {
+                        var group = $j(this),
+                            levels = $j("b", group).text(),
+                            start = levels.regex(/Levels (\d+)/),
+                            max = group.text().trim().innerTrim().replace(levels, '').trim(),
+                            maxNum = max.regex(/(\d+)/),
+                            count = group.parent().nextUntil("#mark" + (index + 1)).find("a[href*='keep.php']").length;
 
-						con.log(3, "groups", index, levels, start, maxNum, count);
-						groups[levels] = {
-							'level': start,
-							'max': maxNum,
-							'count': count
-						};
+                        con.log(3, "groups", index, levels, start, maxNum, count);
+                        groups[levels] = {
+                            'level': start,
+                            'max': maxNum,
+                            'count': count
+                        };
 
-						countJoin += count;
-						if (!feed.isScan && !ajax) {
-							group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
-						}
+                        countJoin += count;
+                        if (!feed.isScan && !ajax) {
+                            group.html("<div><b>" + levels + "</b> [" + count + "/" + maxNum + " max]</div>");
+                        }
 
-						group = null;
-						levels = null;
-					});
-				} else {
-					tempDiv = $j("table:eq(1) a", dragonDiv);
-					countJoin = tempDiv.length;
-				}
-			}
+                        group = null;
+                        levels = null;
+                    });
+                } else {
+                    tempDiv = $j("table:eq(1) a", dragonDiv);
+                    countJoin = tempDiv.length;
+                }
+            }
 
             groups.total = {
                 'max': maxJoin,
@@ -1352,9 +1350,9 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                     return;
                 }
 
-				feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1').replace(/,.*/,'');
-				userName = tempText.replace(feedMonster, '').trim();
-				feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
+                feedMonster = tempText.replace(new RegExp(".+'s (.+)$"), '$1').replace(/,.*/,'');
+                userName = tempText.replace(feedMonster, '').trim();
+                feedMonster = feedMonster.trim().innerTrim().toLowerCase().ucWords();
 
 				if (!$u.hasContent(feedMonster)) {
                     con.warn("1:Unable to get monster string!!", tempText);
@@ -1690,7 +1688,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                 if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
                     // Character type stuff
-                    monsterDiv = $j("div[style*='nm_bottom']", slice);
+                    monsterDiv = $j("div[style*='nm_bottom'],div[style*='stance_plate_bottom']", slice);
                     if ($u.hasContent(monsterDiv)) {
                         tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                         if (tempText) {
@@ -1700,6 +1698,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 cM.charClass = tStr;
                                 con.log(4, "character", cM.charClass);
                             } else {
+                                cM.charClass = 'Cleric';
                                 con.warn("Can't get character", tempText);
                             }
 
@@ -1708,31 +1707,33 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 cM.tip = tStr;
                                 con.log(4, "tip", cM.tip);
                             } else {
+								cM.tip = 'fortify';
                                 con.warn("Can't get tip", tempText);
                             }
 
                             tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
                             if ($u.hasContent(tempArr) && tempArr.length === 3) {
                                 cM.stunTime = Date.now() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
-								
-								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
-								// or the WhenStun setting has changed, set a new stun target time.
-								tempSetting = monster.parseCondition("cd", cM.conditions);
-								tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
-								tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
-								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-								con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
-								
-								if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
-									cM.stunSetting = tempSetting;
+                                
+                                // If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
+                                // or the WhenStun setting has changed, set a new stun target time.
+                                tempSetting = monster.parseCondition("cd", cM.conditions);
+                                tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
+                                tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
+                                stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
+                                con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
+                                
+                                if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
+                                    cM.stunSetting = tempSetting;
 
-									// Add +/- 30 min so multiple CAAPs don't all stun at the same time
-									cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
-											: cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
-									con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
-								}
+                                    // Add +/- 30 min so multiple CAAPs don't all stun at the same time
+                                    cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
+                                            : cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
+                                    con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
+                                }
 
                             } else {
+                                cM.stunTime = Date.now() + (cM.time[0] * 60 * 60 * 1000) + (cM.time[1] * 60 * 1000) + (cM.time[2] * 1000);
                                 con.warn("Can't get statusTime", tempText);
                             }
 
@@ -1750,11 +1751,13 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                                 tempArr = cM.tip.split(" ");
                                 if ($u.hasContent(tempArr)) {
                                     tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                    tempArr = ["strengthen", "heal"];
+                                    tempArr = ["strengthen", "heal","fortify"];
                                     if (tempText && tempArr.hasIndexOf(tempText)) {
                                         if (tempText === tempArr[0]) {
                                             cM.stun = cM.strength;
                                         } else if (tempText === tempArr[1]) {
+                                            cM.stun = cM.health;
+                                        } else if (tempText === tempArr[2]) {
                                             cM.stun = cM.health;
                                         } else {
                                             con.warn("Expected strengthen or heal to match!", tempText);
@@ -1769,17 +1772,17 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 
                             if (cM.charClass && cM.tip && cM.stun !== -1) {
                                 cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
-								if (cM.stunDo) {
-									con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
-								}
-								cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
+                                if (cM.stunDo) {
+                                    con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+                                }
+                                cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
                                 cM.stunType = '';
                                 if (cM.stunDo) {
                                     con.log(2, "Do character specific attack", cM.stunDo);
                                     tempArr = cM.tip.split(" ");
                                     if ($u.hasContent(tempArr)) {
                                         tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                        tempArr = ["strengthen", "cripple", "heal", "deflection"];
+                                        tempArr = ["strengthen", "cripple", "heal", "deflection","fortify"];
                                         if (tempText && tempArr.hasIndexOf(tempText)) {
                                             cM.stunType = tempText.replace("ion", '');
                                             con.log(2, "Character specific attack type", cM.stunType);
@@ -1929,7 +1932,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 }
 
                 //Total Time alotted for monster
-                KOBtotalMonsterTime = monsterInfo.duration;
+                KOBtotalMonsterTime = $u.setContent(monsterInfo.duration,196);
                 if (KOBenable) {
                     con.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
 

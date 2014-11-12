@@ -738,7 +738,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						return caap.navigate2('player_monster_list');
 					}
 					return result;
-                } 
+                }
 				return false;
 
             } catch (err) {

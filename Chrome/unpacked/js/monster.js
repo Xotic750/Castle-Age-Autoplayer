@@ -75,8 +75,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
-	// Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
-	// No comma allowed in Object names
+    // Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
+    // No comma allowed in Object names
     monster.info = {
         'Skaar Deathrune': {
             duration: 96,
@@ -712,6 +712,34 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             list_img: ['corv_list.jpg'],
             cta_img: ['cta_corv1.gif']
         },
+        'Cronus of Ice': {
+            alpha: true,
+            duration: 72,
+            hp: 600000000,
+            ach: 1000000,
+            siege: 5,
+            siegeClicks: [10, 20, 30, 40, 50],
+            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small1.gif',
+                '/graphics/castle_siege_small2.gif',
+                '/graphics/death_siege_small2.gif',],
+            fort: true,
+            staUse: 10,
+            staLvl: [0, 100, 200, 500],
+            staMax: [10, 20, 50, 100, 200],
+            nrgMax: [20, 40, 100, 200],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 150, 300],
+            join: [20, 30, 60],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_cronus_ice_title.jpg'],
+            list_img: ['monster_cronus_ice_list.jpg'],
+            cta_img: ['cta_cronus_ice.gif']
+        },
         'Valhalla': {
             alpha: true,
             duration: 168,
@@ -1119,63 +1147,63 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 10000000,
             cta_img: ['cta_alexandra.gif']
         },        
-		"Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
-			alpha: true,
-			duration: 168,
-			hp: 650000000,
-			ach: 1000000,
-			siege: 10,
-			siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-			siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-			siege_img: [
-				'/graphics/earth_siege_small',
-				'/graphics/castle_siege_small',
-				'/graphics/skaar_siege_small',
-				'/graphics/death_siege_small'],
-			fort: true,
-			staUse: 10,
-			staLvl: [0, 100, 200, 500],
-			staMax: [10, 20, 50, 100, 200],
-			nrgMax: [20, 40, 100, 200,200],
-			defense_img: 'nm_green.jpg',
-			levels: [1, 50, 100, 150],
-			join: [30, 30, 35, 50],
-			mClass: 'Epic World',
-			mpool: 3,
-			newbg_img: ['monster_alpha_kraken_header.jpg'],
-			// Commented out since not unique, falls through to text name
-			//list_img: ['monster_kraken_list.jpg'],
-			cta_img: ['cta_kraken.gif']
-		},
-		"Kraken": {
-			alpha: true,
-			duration: 168,
-			hp: 300000000,
-			ach: 1000000,
-			siege: 7,
-			siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-			siegeDam: [13750000, 17500000, 20500000, 23375000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-			siege_img: [
-				'/graphics/water_siege_small',
-				'/graphics/earth_siege_small',
-				'/graphics/castle_siege_small',
-				'/graphics/skaar_siege_small',
-				'/graphics/death_siege_small'],
-			fort: true,
-			staUse: 10,
-			staLvl: [0, 100, 200, 500],
-			staMax: [10, 20, 50, 100],
-			nrgMax: [20, 40, 100, 200],
-			defense_img: 'nm_green.jpg',
-			levels: [1, 50, 100, 150],
-			join: [30, 30, 35, 50],
-			mClass: 'Epic World',
-			mpool: 3,
-			newbg_img: ['monster_kraken_header.jpg'], 
-			// Commented out since not unique, falls through to text name
-			//list_img: ['monster_kraken_list.jpg'],
-			cta_img: ['cta_kraken.gif']
-		},
+        "Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
+            alpha: true,
+            duration: 168,
+            hp: 650000000,
+            ach: 1000000,
+            siege: 10,
+            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+            siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
+            fort: true,
+            staUse: 10,
+            staLvl: [0, 100, 200, 500],
+            staMax: [10, 20, 50, 100, 200],
+            nrgMax: [20, 40, 100, 200,200],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 50, 100, 150],
+            join: [30, 30, 35, 50],
+            mClass: 'Epic World',
+            mpool: 3,
+            newbg_img: ['monster_alpha_kraken_header.jpg'],
+            // Commented out since not unique, falls through to text name
+            //list_img: ['monster_kraken_list.jpg'],
+            cta_img: ['cta_kraken.gif']
+        },
+        "Kraken": {
+            alpha: true,
+            duration: 168,
+            hp: 300000000,
+            ach: 1000000,
+            siege: 7,
+            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
+            siegeDam: [13750000, 17500000, 20500000, 23375000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
+            siege_img: [
+                '/graphics/water_siege_small',
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'],
+            fort: true,
+            staUse: 10,
+            staLvl: [0, 100, 200, 500],
+            staMax: [10, 20, 50, 100],
+            nrgMax: [20, 40, 100, 200],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 50, 100, 150],
+            join: [30, 30, 35, 50],
+            mClass: 'Epic World',
+            mpool: 3,
+            newbg_img: ['monster_kraken_header.jpg'], 
+            // Commented out since not unique, falls through to text name
+            //list_img: ['monster_kraken_list.jpg'],
+            cta_img: ['cta_kraken.gif']
+        },
         "Fenix": {
             alpha: true,
             duration: 168,
@@ -1774,6 +1802,66 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             newbg_img : ['monster_leviathan_wrath_title.jpg'],
             list_img : ['monster_leviathan_wrath_list.jpg'],
             cta_img : ['cta_leviathan_wrath.gif']
+        },
+        'Thanatos Reborn': {
+            alpha: true,
+            duration: 168,
+            hp: 1030000000,
+            ach: 1000000,
+            siege: 5,
+            siegeClicks: [15, 30, 45, 60, 65],
+            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small1.gif',
+                '/graphics/castle_siege_small2.gif',
+                '/graphics/death_siege_small2.gif',],
+            fort: true,
+            staUse: 20,
+            staLvl: [0, 100, 200, 500],
+            staMax: [20, 50, 100, 200],
+            nrgMax: [10, 20, 40, 100],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 150, 300],
+            join: [20, 30, 60],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_thanatos_title.jpg'],
+            list_img: ['monster_thanatos_list.jpg'],
+            cta_img: ['cta_thanatos.gif'],
+            bodyparts : 3,
+            partOrder : [3,2,1]
+        },
+        'Cronus Astaroth': {
+            alpha: true,
+            duration: 168,
+            hp: 1125000000,
+            ach: 1000000,
+            siege: 5,
+            siegeClicks: [10, 20, 30, 40, 50],
+            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
+            siege_img: [
+                '/graphics/earth_siege_small1',
+                '/graphics/earth_siege_small2',
+                '/graphics/castle_siege_small1.gif',
+                '/graphics/castle_siege_small2.gif',
+                '/graphics/death_siege_small2.gif',],
+            fort: true,
+            staUse: 20,
+            staLvl: [0, 100, 200, 500],
+            staMax: [20, 50, 100, 200],
+            nrgMax: [10, 20, 40, 100],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 150, 300],
+            join: [20, 30, 60],
+            mClass: 'Epic World',
+            mpool: 101,
+            newbg_img: ['monster_header_cronus_rainbow.jpg'],
+            list_img: ['monster_cronus_rainbow_list.jpg'],
+            cta_img: ['cta_cronus_ice.gif'],
+            bodyparts : 3,
+            partOrder : [3,2,1]
         }
     };
 
@@ -1889,14 +1977,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-	// Add a review page with path, and set 'entry' key to value, if wanted
-	monster.setrPage = function(path, entry, value) {
+    // Add a review page with path, and set 'entry' key to value, if wanted
+    monster.setrPage = function(path, entry, value) {
         try {
-			var rPage = {
-				'path' : path,
-				'review' : 0,
-				'page' : false
-			};
+            var rPage = {
+                'path' : path,
+                'review' : 0,
+                'page' : false
+            };
 
             if (!$u.hasContent(path) || !$u.isString(path)) {
                 con.warn("path", path);
@@ -1906,43 +1994,43 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             for (var it = 0; it < caap.stats.reviewPages.length; it++) {
                 if (caap.stats.reviewPages[it].path === path) {
-					if ($u.hasContent(entry)) {
-						caap.stats.reviewPages[it][entry] = value;
-					}
-					return true;
+                    if ($u.hasContent(entry)) {
+                        caap.stats.reviewPages[it][entry] = value;
+                    }
+                    return true;
                 }
             }
-			if ($u.hasContent(entry)) {
-				rPage[entry] = value;
-			}
+            if ($u.hasContent(entry)) {
+                rPage[entry] = value;
+            }
 
-			caap.stats.reviewPages.push(rPage);
-			con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
-			return false;
+            caap.stats.reviewPages.push(rPage);
+            con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
+            return false;
         } catch (err) {
             con.error("ERROR in monster.setrPage: " + err);
             return false;
         }
     };
 
-	// Delete all review pages where 'entry' = value
-	monster.deleterPage = function(entry, value) {
+    // Delete all review pages where 'entry' = value
+    monster.deleterPage = function(entry, value) {
         try {
             if (!$u.hasContent(entry) || !$u.isString(entry)) {
                 con.warn("Delete entry invalid", entry, value);
                 throw "Invalid identifying entry!";
             }
-			var deleted = 0;
+            var deleted = 0;
 
             for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
                 if (caap.stats.reviewPages[i][entry] === value) {
-					deleted += 1;
-					con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
-					caap.stats.reviewPages.splice(i,1);
-					con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
+                    deleted += 1;
+                    con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
+                    caap.stats.reviewPages.splice(i,1);
+                    con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
                 }
             }
-			return deleted;
+            return deleted;
 
         } catch (err) {
             con.error("ERROR in monster.deleterPage: " + err);
@@ -1950,13 +2038,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-	// Delete or add review page based on if 'tf' is true or false
-	monster.togglerPage = function(path, tf, entry, value) {
+    // Delete or add review page based on if 'tf' is true or false
+    monster.togglerPage = function(path, tf, entry, value) {
         try {
             if (tf) {
                 return monster.setrPage(path, entry, value);
             }
-			return monster.deleterPage('path', path);
+            return monster.deleterPage('path', path);
         } catch (err) {
             con.error("ERROR in monster.togglerPage: " + err);
             return false;
@@ -1969,7 +2057,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             if (monster.records == 'default' || !$j.isArray(monster.records)) {
                 monster.records = gm.setItem('monster.records', []);
             }
-			caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
+            caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
 			var pageList = [
 				'player_monster_list',
@@ -1991,7 +2079,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             session.setItem("MonsterDashUpdate", true);
             session.setItem("FeedDashUpdate", true);
-			//con.log(2,'Load Monster records after',monster.records, caap.stats.reviewPages, caap.stats.level);
+			//con.log(2,'Load Monster records after load',monster.records, caap.stats.reviewPages, caap.stats.level);
             return true;
         } catch (err) {
             con.error("ERROR in monster.load: " + err);
@@ -2003,7 +2091,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
 /*            for (var i = monster.records.length - 1; i >= 0 ; i--) {
                 if (monster.records[i].flag) {
-					monster.records.splice(i,1);
+                    monster.records.splice(i,1);
                 }
             }
 */			if (caap.domain.which === 3) {
@@ -2375,7 +2463,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 attackOrderList = [],
                 theGeneral = config.getItem('MonsterGeneral', 'Use Current');
 
-            theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
+            theGeneral = ((theGeneral === "Under Level") ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral);
             // First we forget everything about who we already picked.
             //state.setItem('targetFrombattle_monster', '');
             //state.setItem('targetFromfortify', energyTarget);
