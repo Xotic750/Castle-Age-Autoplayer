@@ -571,7 +571,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (text.indexOf(gf.startText) >= 0) {
 				fR.paths = [];
 				fR.state = 'Start';
-				nextReview += -3 * 60 * 1000;
+				nextReview += (config.getItem('GB ClassGeneral','Use Current') != 'Use Current' ? -3 : config.getItem('GBjoin',false) || config.getItem('GBwhenTokens',"Never") == 'Never' ? 5: 60) * 60 * 1000;
 			} else if (text.indexOf(gf.preGBText) >= 0 || text.indexOf(' MIN') >= 0) {
 				fR.paths = [];
 				fR.state = 'PreBattle';

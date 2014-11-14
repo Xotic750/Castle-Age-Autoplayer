@@ -189,6 +189,7 @@ function caap_WaitForutility() {
             if (caap.domain.which === 2 || caap.domain.which === 3) {
                 getFBData();
                 getFBFriends();
+				//caap_log('Web3 FBID:' + $j("#app_body a[href*='keep.php?user=']").attr("href").basename().regex(/(\d+)/));
             } else {
                 getFBEnv();
             }
