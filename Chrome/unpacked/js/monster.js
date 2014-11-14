@@ -2797,9 +2797,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 siegeList = ['Never', '1', '50', '250'],
                 siegeInst = [
                     'Never siege monsters',
-                    'Siege monsters only for one point of stamina',
-                    'Siege monsters for up to 50 stamina',
-                    'Siege monsters for up to 250 stamina'],
+                    'Siege monsters only for one point of stamina, will not siege unless 1st siege has been launched',
+                    'Siege monsters for up to 50 stamina, will not siege unless 1st siege has been launched',
+                    'Siege monsters for up to 250 stamina, will not siege unless 1st siege has been launched'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                 monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 demiPtItem = 0,

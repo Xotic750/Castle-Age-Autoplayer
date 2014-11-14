@@ -18,8 +18,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var text = 'base:40000,active:*7,!confuse:*-8,p200:*10,p240:*15,warrior:*4,mage:*3,rogue:*2,cleric:*1,@Loadout Conf';
 
 			
-			con.log(1, 'TESTING', text.match(new RegExp('(\\w+:\\D?[^,]+)')));
-			con.log(1, 'TESTING 2', text.match(/(!?\w+:\D?[^,]+)/g));
+			//con.log(1, 'TESTING', text.match(new RegExp('(\\w+:\\D?[^,]+)')));
+			//con.log(1, 'TESTING 2', text.match(/(!?\w+:\D?[^,]+)/g));
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();
