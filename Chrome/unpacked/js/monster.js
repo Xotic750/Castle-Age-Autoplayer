@@ -51,6 +51,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'status': false,
             'stunType': '',
 			'listReviewed' : 0,
+			'lMissing' : 0,
             'tip': '',
             'fImg': '',
             'hide': false,
@@ -76,7 +77,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
     // Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
-    // No comma allowed in Object names
+    // No commas allowed in Object names
     monster.info = {
         'Skaar Deathrune': {
             duration: 96,
@@ -1997,6 +1998,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     if ($u.hasContent(entry)) {
                         caap.stats.reviewPages[it][entry] = value;
                     }
+					caap.saveStats();
                     return true;
                 }
             }
@@ -2005,7 +2007,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 
             caap.stats.reviewPages.push(rPage);
-            con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
+			caap.saveStats();
+            //con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
             return false;
         } catch (err) {
             con.error("ERROR in monster.setrPage: " + err);
@@ -2030,6 +2033,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
                 }
             }
+			caap.saveStats();
             return deleted;
 
         } catch (err) {
@@ -2125,13 +2129,19 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.parseCondition = function(type, conditions) {
         try {
+			
+			//con.log(2, 'PARSE', type, conditions);
+
+            if (!$u.isString(type) || !$u.isString(conditions)) {
+				con.warn('Invalid data passed to monster.parseCondition', type, conditions);
+				return false;
+            }
+
             var str = conditions.match(new RegExp(':' + type + '(\\d*)(\\w?)'));
 			
-			//con.log(2, 'PARSE', str, type, conditions);
-
-            if (!$u.isString(type) || !$u.isString(conditions) || !str) {
-                return false;
-            }
+			if (!str) {
+				return false;
+			}
 			
             var value = $u.setContent(str[1], 0),
                 first = false,
@@ -2145,7 +2155,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return value;
         } catch (err) {
-            con.error("ERROR in monster.parseCondition: " + err);
+            con.error("ERROR in monster.parseCondition: " + err, type, conditions);
             return false;
         }
     };
@@ -2496,7 +2506,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : mR.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
 						monsterList[whichList].push(mR.md5);
 					}
-                }
+                } else {
+					mR.conditions = feed.addConditions(mR.name) || mR.conditions;
+				}
             }
 
             monster.save();

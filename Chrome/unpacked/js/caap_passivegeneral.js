@@ -21,7 +21,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return timedLoadoutCheck === 'change';
 			}
 //			con.log(2,"Idle Check equipped", timedLoadoutCheck, caap.stats.battleIdle);
-			return caap.stats.battleIdle ? general.Select(caap.stats.battleIdle) : general.Select('IdleGeneral');
+			return caap.stats.battleIdle != 'Use Current' ? general.Select(caap.stats.battleIdle) : general.Select('IdleGeneral');
         } catch (err) {
             con.error("ERROR in passiveGeneral: " + err);
             return false;

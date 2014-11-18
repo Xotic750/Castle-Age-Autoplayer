@@ -682,15 +682,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					
                 for (var i = 0; i < filterList.length; i += 1) {
                     if (!filterList[i].trim()) {
-                        return;
+                        return false;
                     }
 					filterList[i] = filterList[i].toLowerCase();
 					if (filterList[i] == 'all') {
-						return true;
+						return '';
 					}
 					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(new RegExp("^[^:]+")).toString().trim())) {
 						monsterConditions = filterList[i].replace(new RegExp("^[^:]+"), '').toString().trim();
-						return monsterConditions.length ? monsterConditions : true;
+						return monsterConditions.length ? monsterConditions : '';
 					}
 				}
 				return false;
@@ -707,13 +707,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					mR = {},
 					tR = false,
 					result = false,
-                    seconds = 0;
+                    seconds = 0,
+					monsterInfo = {};
 
                 hours = hours >= 1 ? hours : 1;
                 seconds = hours * 3600;
                 for (var i = 0; i < monster.records.length; i += 1) {
 					mR = monster.records[i];
-					//con.log(2, 'SCAN', mR, mR.hide, mR.status, schedule.since(mR.review, seconds));
+					//con.log(2, 'SCAN1', mR, mR.hide, mR.status, schedule.since(mR.review, seconds));
                     if (!mR.hide && mR.status == 'Join' && schedule.since(mR.review, seconds)) {
 						con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + mR.name, mR.link, mR);
 						feed.scanRecord = mR;
@@ -725,15 +726,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 						return true;
                     }
-					//con.log(2, 'SCAN', caap.stats.stamina.num, monster.parseCondition('stam', mR.conditions), caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions));
-					if (!tR && mR.conditions.match(':join') && monster.worldMonsterCount < 30 && caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions)) {
+					//con.log(2, 'SCAN2', mR.name, !tR , mR.conditions, mR.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions));
+					if (!tR && mR.status == 'Join' && mR.conditions.match(':join') && monster.worldMonsterCount < 30 && caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions)) {
 						tR = mR;
 					}
                 }
 				feed.isScan = false;
 				feed.scanRecord = {};
                 if (tR) {
-					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + ',clickimg:button_nm_p_power_attack.gif');
+					monsterInfo = monster.getInfo(tR);
+					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (monsterInfo.alpha ? ',clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]' : ',clickimg:button_nm_p_power_attack.gif'));
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
 					}

@@ -121,20 +121,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                     /*jslint continue: false */
 					monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim();
+					conditions = '';
+					if (publicList) {
+						conditions = feed.addConditions(monsterName);
+						if (conditions === false) {
+							continue;
+						}
+					}
+
 					link = $j("input[id^='share_link_']", monsterRow.eq(it)).attr("value").replace(/http.*\//,'');
 					link = monster.cleanLink(link);
 					md5 = link.MD5();
                     mR = monster.getItem(md5);
-					if (publicList) {
-						conditions = feed.addConditions(monsterName);
-						if (!conditions) {
-							continue;
-						}
-						mR.conditions = conditions === true ? '' : conditions;
-					}
-
 					mR.link = link;
 					mR.lpage = lpage;
+					mR.conditions = conditions;
 
                     mR.name = mR.name || $j("div[style*='20px']", monsterRow.eq(it)).text().trim() + ' ' + monsterName;
                     mR.md5 = md5;
@@ -151,7 +152,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								break;
 							case 'atk':
 								monster.engageButtons[mR.md5] = newInputsDiv;
-								mR.status = monster.damaged(mR)? 'Attack' : 'Join';
+								mR.status = mR.status || (lpage == "ajax:player_monster_list.php?monster_filter=2" ? 'Join' : 'Attack');
 								break;
 							default:
 								con.warn("Unknown engageButtonName status", engageButtonName, newInputsDiv.attr("src"));
@@ -161,16 +162,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(2, "Monster " + mR.name, link, mR.status, mR);
 					monster.setItem(mR);
 				}
-				for (it = monster.records.length - 1; it >= 0; it -= 1) {
-					mR = monster.records[it];
-					if (mR.lpage === lpage) {
-						mR.lMissing = mR.listReviewed < now ? $u.setContent(mR.lMissing, 0) + 1 : 0;
-						monster.setItem(mR);
-					}
-				}
 				
             } else {
 				// Raid page
+				if (lastmd5) {
+					con.log(1, "Deleting raid that has expired",lastmd5);
+					monster.deleteItem(lastmd5);
+				}
 
                 tempText = buttonsDiv.eq(0).parent().attr("href");
                 pageUserCheck = session.getItem('pageUserCheck', 0);
@@ -220,6 +218,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR.userName = userName;
                     mR.monster = monsterText;
                     mR.userId = userId;
+					mR.lpage = lpage;
                     engageButtonName = $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
 					mR.listReviewed = now;
 
@@ -264,6 +263,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
+			for (it = monster.records.length - 1; it >= 0; it -= 1) {
+				mR = monster.records[it];
+				if (mR.lpage === lpage && !publicList) {
+					if (mR.listReviewed < now) {
+						mR.lMissing = $u.setContent(mR.lMissing, 0) + 1;
+						con.warn('Did not see monster ' + mR.name + ' on monster list ' + mR.lMissing + ' times.', mR);
+					} else {
+						mR.lMissing = 0;
+					}
+					monster.setItem(mR);
+				}
+			}
             caap.updateDashboard(true);
             return true;
         } catch (err) {
@@ -568,7 +579,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             var fightMode = '',
-                targetMonster = state.getItem('targetFromfortify', new monster.energyTarget().data),
+                targetMonster = state.getItem('targetFromfortify', new monster.energyTarget()),
                 monsterName = targetMonster.name,
                 nodeNum = 0,
                 energyRequire = 10,
@@ -985,7 +996,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //caap.stats.reviewPages = {};
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages);
+                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages,caap.stats.reviewPages[i].review);
                     return caap.navigateTo(caap.stats.reviewPages[i].path);
                 }
             }
@@ -1247,7 +1258,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if ($u.hasContent(monsterDiv)) {
-                army.eliteCheckImg();
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(5, "fMonstStyle", fMonstStyle);
                 if (!$u.hasContent(fMonstStyle)) {
@@ -1367,7 +1377,6 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             }
 
             mName = userName + ' ' + feedMonster;
-            con.log(5, "Monster name", mName);
 /*            if (feed.isScan || ajax) {
                 if (feed.scanRecord.id !== id) {
                     con.warn("User ID doesn't match!");
@@ -1875,7 +1884,7 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
                 maxDamage = maxDamage === 0 ? 1 : maxDamage;  // Added to prevent max === 0 defaulting to false 
                 maxToFortify = monster.parseCondition('f%', cM.conditions);
                 maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
-                targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
+                targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget());
 
                 // Start of Keep On Budget (KOB) code Part 1 -- required variables
                 //con.log(2, 'Start of Keep On Budget (KOB) Code');
@@ -2043,4 +2052,14 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
             con.error("ERROR in checkResults_onMonster: " + err);
         }
     };
+	
+    caap.checkResults_expansion_monster_class_choose = function (ajax, aslice) {
+        try {
+			// Nothing to see here.
+			return false;
+        } catch (err) {
+            con.error("ERROR in checkResults_onMonster: " + err);
+        }
+    };
+	
 }());

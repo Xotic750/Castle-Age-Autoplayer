@@ -1,3 +1,4 @@
+
 /*jslint white: true, browser: true, devel: true, undef: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
@@ -140,7 +141,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'name' : 'Festival',
 			'label' : 'festival',
 			'mess' : 'festival_mess',
-			'abbrev' : 'Festival',
+			'abbrev' : 'Fest',
 			'onTopPath' : 'festival_battle_home',
 			'tabs' : '_arena_tab_',
 			'token' : 'festivalTokens',
@@ -571,7 +572,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (text.indexOf(gf.startText) >= 0) {
 				fR.paths = [];
 				fR.state = 'Start';
-				nextReview += (config.getItem('GB ClassGeneral','Use Current') != 'Use Current' ? -3 : config.getItem('GBjoin',false) || config.getItem('GBwhenTokens',"Never") == 'Never' ? 5: 60) * 60 * 1000;
+				nextReview += (config.getItem('GB ClassGeneral','Use Current') != 'Use Current' ? -3 : config.getItem('GBwhenTokens',"Never") != 'Never' ? 5: 60) * 60 * 1000;
 			} else if (text.indexOf(gf.preGBText) >= 0 || text.indexOf(' MIN') >= 0) {
 				fR.paths = [];
 				fR.state = 'PreBattle';
@@ -581,6 +582,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					fR = new guild_battle.record().data;					
 				}
 				fR.state = 'Active';
+				nextReview += (config.getItem(gf.abbrev + 'whenTokens',"Never") != 'Never' ? 5: 20) * 60 * 1000;
 				guild_battle.setrPage(fR, gf.basePath);
 			} else if (text.indexOf(gf.collectText) >= 0) {
 				fR.paths = [];
@@ -805,7 +807,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							
 			if (caap.hasImage(gf.enterButton)) {
 				//con.log(2, 'Battle has enter button', config.getItem('guild_battle_enter',false));
-				if (config.getItem(gf.abbrev + 'join',false) && caap.stats.stamina.num >= 20) {
+				if (config.getItem(gf.abbrev + 'whenTokens','Never') != 'Never' && caap.stats.stamina.num >= 20) {
 					fR.paths = [];
 					guild_battle.setrPage(fR, gf.basePath + ',clickimg:' + gf.enterButton);
 				}
@@ -943,8 +945,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						mR.mclass = $j("img[src*='class_']", member).attr("title").match(/(\w+)/)[1].toLowerCase();
 						//con.log(2, "Class", mR.mclass);
 						tR.clerics += mR.mclass == 'cleric' ? 1 : 0;
-						//mR.points = $j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1];
-						mR.points = 160; // No longer available in the DOM
+						mR.points = $u.setContent($j("img[src*='guild_bp_']", member).attr("title").match(/(\d+)/)[1],160);
 						mR.name = args[2] || '';
 						mR.level = args[3] ? args[3].parseInt() : 0;
 						mR.status = args[4] || '';
@@ -1196,26 +1197,26 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				match = (timedSetting === 'Battle available') ? true : false,
 				now = new Date();
 			
+			caap.stats.priorityGeneral = 'Use Current';
 			if (schedule.since($u.setContent(fRecord.startTime, 0), 1 * 60) && !schedule.since($u.setContent(fRecord.startTime, 0), 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('Fest ClassGeneral','Use Current');
-				con.log(2,'FEST PREBATTLE',caap.stats.priorityGeneral);
-			} else if (schedule.since(tStartTime, -8 * 60) && !schedule.since(tStartTime, -0 * 60) && schedule.since(tRecord.lastBattleTime, 30 * 60)) {
-				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('10v10 ClassGeneral','Use Current');
-				con.log(2,'10v10 PREBATTLE',caap.stats.priorityGeneral);
-			} else if (gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
-			} else {
-				caap.stats.priorityGeneral = false;
+				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current');
+				con.log(2,'FEST PREBATTLE general',caap.stats.priorityGeneral);
 			}
-
-			if (caap.stats.priorityGeneral && general.selectSpecific(caap.stats.priorityGeneral)) {
+			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tStartTime, -8 * 60) && !schedule.since(tStartTime, -0 * 60) && schedule.since(tRecord.lastBattleTime, 30 * 60)) {
+				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current');
+				con.log(2,'10v10 PREBATTLE general',caap.stats.priorityGeneral);
+			}
+			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'PreBattle') {
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
+			}
+			if (general.selectSpecific(caap.stats.priorityGeneral)) {
 				return true;
 			}
 
 			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB Fest IdleGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB Fest IdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB Fest IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB Fest IdleGeneral','Use Current');
 			} else {
-				caap.stats.battleIdle = false;
+				caap.stats.battleIdle = 'Use Current';
 			}
 
 			// Work around for faulty storage of caap.stats
@@ -1237,7 +1238,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				//con.log(2, 'PATH REVIEW', gf.name, pgO.path, fR.paths);
                 if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
 					con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-					if (caap.stats.battleIdle && !caap.stats.priorityGeneral && general.Select(caap.stats.battleIdle)) {
+					if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
 						return true;
 					}
 					result = caap.navigate2(pgO.path);
@@ -1254,7 +1255,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			//con.log(2,'GUILD REVIEW PAGES', gf.name, paths);
 			
 			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
-			if (whenTokens !== 'Never' && !caap.stats.priorityGeneral) {
+			if (whenTokens !== 'Never' && caap.stats.priorityGeneral == 'Use Current') {
 				
 				if (doAttack) {
 					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
@@ -1323,7 +1324,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? false : config.getItem('GB ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
@@ -1357,8 +1358,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 ],
                 tokenList = ['Over', 'Between Max/Min', 'Never'],
                 tokenInst = [
-                    'Over - attack whenever your tokens are over the max',
-                    'Between Max/Min - burn tokens once over max until just over min',
+                    'Over - join battles and attack whenever your tokens are over the max',
+                    'Between Max/Min - join battles and burn tokens once over max until just over min',
                     'Never - disables attacking in this battle'],
 				tokenRange = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
 				timed_guild_battles_inst = "List of times when Guild Battles should be started, such as 'Mon 1, Tue 15:30, Wed 8 PM, etc.  Guild battle will be attempted to be started at the listed time and up to two hours after.",
@@ -1368,7 +1369,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.startToggle('GuildBattles', 'GUILD BATTLES');
 
 			[guild_battle.gf.guild_battle.abbrev,guild_battle.gf.festival.abbrev,guild_battle.gf.tenVten.abbrev].forEach(function(t) {
-				htmlCode += caap.makeCheckTR(t + " Auto-join", t + 'join', false, 'Auto-join when these battles start');
 				htmlCode += caap.makeDropDownTR(t + " Use tokens", t + 'whenTokens', tokenList, tokenInst, '', 'Never', false, false, 62);
 				htmlCode += caap.startDropHide(t + 'whenTokens','', 'Never', true);
 				htmlCode += caap.makeDropDownTR(t + " Max", t + 'max', tokenRange, [], '', '8', false, false, 62);

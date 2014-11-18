@@ -130,22 +130,35 @@ function caap_DomTimeOut() {
 }
 
 function caap_clickRelogin() {
-	window.login = new $u.StorageHelper({
+
+	window.hyper = new $u.StorageHelper({
 		'namespace': caap.namespace,
-		'storage_id': 'login',
+		'storage_id': 'hyper',
 		'storage_type': 'localStorage'
 	});
 	
-	//login.setItem('logons', [{'player_email' : 'xxx@mailinator.com', 'password' : 'Red!Snapper1'}]);
-	var logonArray = login.getItem('logons', []);
-	if (logonArray != []) {
-		$j("input[name='player_email'").val(logonArray[0].player_email);
-		$j("input[name='player_password'").val(logonArray[0].password);
-		con.log(1, "login", login, logonArray, logonArray[0].player_email, logonArray[0].password);
+	var logonArray = hyper.getItem('logons', false),
+		logonObj = {},
+		testObj = {'player_email' : 'fakeEmail@mailinator.com',
+			'password' : 'not_a_real_account'};
 
-		caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
-		$j("input[src*='crusader2_btn_submit.gif']").click();
-		caap_WaitForData();
+	if ($u.isArray(logonArray)) {
+		if (logonArray.length > 0) {
+			logonObj = logonArray.shift();
+			logonArray.push(logonObj);
+			if (logonObj != testObj) {
+				hyper.setItem('logons',logonArray);
+				$j("input[name='player_email'").val(logonObj.player_email);
+				$j("input[name='player_password'").val(logonObj.password);
+				//con.log(1, "hyper", hyper, logonArray, logonObj.player_email, logonObj.password);
+
+				caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
+				$j("input[src*='crusader2_btn_submit.gif']").click();
+				caap_WaitForData();
+			}
+		}
+	} else {
+		hyper.setItem('logons',testObj);
 	}
 }
 
@@ -154,7 +167,7 @@ function caap_WaitForData() {
 	caap.fbEnv = JSON.parse(sessionStorage.getItem('caap_fbEnv'));
     caap.fbFriends = JSON.parse(sessionStorage.getItem('caap_fbFriends'));
     if (((caap.domain.which === 2 || caap.domain.which === 3) && caap.fbData && caap.fbFriends) || caap.fbEnv) {
-        caap_log("data ready ...", caap.fbFriends);
+        caap_log("data ready ...", caap.fbData, caap.fbEnv, caap.fbFriends);
 
         sessionStorage.removeItem('caap_fbData');
         sessionStorage.removeItem('caap_fbEnv');
@@ -179,7 +192,7 @@ function caap_WaitForData() {
 function caap_WaitForutility() {
     if (window.utility) {
         caap_log("utility ready ...");
-
+		
         window.session = new $u.VarsHelper();
         window.con = new utility.LogHelper();
         con.log_version = "(" + caap.domain.which + ")" + caapVersion + (devVersion !== '0' ? 'd' + devVersion : '');
@@ -189,7 +202,6 @@ function caap_WaitForutility() {
             if (caap.domain.which === 2 || caap.domain.which === 3) {
                 getFBData();
                 getFBFriends();
-				//caap_log('Web3 FBID:' + $j("#app_body a[href*='keep.php?user=']").attr("href").basename().regex(/(\d+)/));
             } else {
                 getFBEnv();
             }
