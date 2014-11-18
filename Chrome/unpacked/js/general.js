@@ -190,7 +190,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timeStrings = '',
                 now = new Date();
             // Priority generals, such as Guild Battle class generals, outrank timed generals.
-            if (caap.stats.priorityGeneral) {
+            if (caap.stats.priorityGeneral != 'Use Current') {
                 timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
                 timedLoadoutsList.unshift(timeStrings);
                 con.log(2,'Priority gen set', timeStrings, timedLoadoutsList);
@@ -931,7 +931,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 currentLoadout = general.GetCurrentLoadout(),
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 
-			con.log(2, "Select Specific " + targetGeneral);
+			//con.log(2, "Select Specific " + targetGeneral);
             if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
                 con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
                 general.Clear('DefaultLoadout');
@@ -971,6 +971,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             generalImage = general.GetStat(targetGeneral, 'img');
             if (generalImage && caap.hasImage(generalImage, $j('#generalContainerBox2'))) {
+                general.clickedLoadout = false;
                 caap.click(caap.checkForImage(generalImage, $j('#generalContainerBox2')));
                 return true;
             }
