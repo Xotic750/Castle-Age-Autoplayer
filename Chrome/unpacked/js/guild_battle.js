@@ -1199,15 +1199,15 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			
 			caap.stats.priorityGeneral = 'Use Current';
 			if (schedule.since($u.setContent(fRecord.startTime, 0), 1 * 60) && !schedule.since($u.setContent(fRecord.startTime, 0), 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = ((config.getItem('Fest ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current'));
 				con.log(2,'FEST PREBATTLE general',caap.stats.priorityGeneral);
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tStartTime, -8 * 60) && !schedule.since(tStartTime, -0 * 60) && schedule.since(tRecord.lastBattleTime, 30 * 60)) {
-				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = ((config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current'));
 				con.log(2,'10v10 PREBATTLE general',caap.stats.priorityGeneral);
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = ((config.getItem('GB ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current'));
 			}
 			if (general.selectSpecific(caap.stats.priorityGeneral)) {
 				return true;
