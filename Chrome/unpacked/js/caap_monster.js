@@ -1632,8 +1632,16 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 							cM.damage = cM.attacked;
 						*/
 						} else {
-							cM.attacked = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
-							cM.damage = cM.attacked;
+							tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+)/);
+							con.log(2, "damageDiv.parent().parent()[0].children[4].innerHTML",damageDiv.parent().parent()[0].children[4].innerHTML);
+							if ($u.hasContent(tempArr) && tempArr.length >0) {
+								/* Cronus Astaroth damage count */
+								cM.attacked = $u.setContent(tempArr[0], '0').numberOnly();
+								cM.damage = cM.attacked;
+							} else {
+								cM.attacked = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML, '0').numberOnly();
+								cM.damage = cM.attacked;
+							}
 						}
 						if (!feed.isScan && !ajax) {
 							damageDiv.parent().parent().eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
