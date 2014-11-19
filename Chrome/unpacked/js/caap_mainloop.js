@@ -19,7 +19,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.actionDescTable = {
         'autoIncome': 'Awaiting Income',
         'autoStat': 'Upgrade Skill Points',
-        'maxEnergyQuest': 'At Max Energy Quest',
+        'maxStatsCheck': 'At Max Energy Quest',
         'passiveGeneral': 'Setting Idle General',
         'idle': 'Idle Tasks',
         'immediateBanking': 'Immediate Banking',
@@ -28,7 +28,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'monsterReview': 'Review Monsters/Raids',
         'guildMonsterReview': 'Review Guild Monsters',
         'immediateAutoStat': 'Immediate Auto Stats',
-        'autoElite': 'Fill Elite Guard',
         'autoPotions': 'Auto Potions',
         'autoArchives': 'Auto Archives',
         'autoKobo': 'Auto Kobo',
@@ -49,9 +48,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'ajaxGiftCheck': 'Gift Check',
         'ajaxCheckFeed': 'Feed Check',
         'ajaxCheckGuild': 'Guild Check',
-        'ajaxCheckPublic1': 'Public Check 1',
-        'ajaxCheckPublic2': 'Public Check 2',
-        'ajaxCheckPublic3': 'Public Check 3',
+        'ajaxCheckPublic': 'Check Public Monsters',
         'feedScan': 'Scanning Monsters',
         'checkAchievements': 'Achievements',
         'reconPlayers': 'Player Recon',
@@ -90,12 +87,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.masterActionList = {
-        0x00: 'autoElite',
         0x01: 'heal',
         0x02: 'guildBattle',
         0x03: 'immediateBanking',
         0x04: 'immediateAutoStat',
-        0x05: 'maxEnergyQuest',
+        0x05: 'maxStatsCheck',
         0x06: 'festivalReview',
         0x07: 'guildMonsterReview',
         0x08: 'monsterReview',
@@ -113,7 +109,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x14: 'lands',
         0x15: 'autoBless',
         0x16: 'autoStat',
-        0x17: 'checkCoins',
+//        0x17: 'checkCoins', rolled into checkstats
         0x18: 'autoGift',
         0x19: 'checkKeep',
         0x1A: 'autoPotions',
@@ -133,9 +129,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x28: 'festivalBless',
         0x29: 'ajaxCheckFeed',
         0x2A: 'ajaxCheckGuild',
-        0x2B: 'ajaxCheckPublic1',
-        0x2C: 'ajaxCheckPublic2',
-        0x2D: 'ajaxCheckPublic3',
+        0x2B: 'ajaxCheckPublic',
         0x2E: 'feedScan',
         0x2F: 'collectConquest',
         0x30: 'collectConquestCrystal',
@@ -310,6 +304,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.guild_battle = null;
                     //window.arena = null;
                     window.festival = null;
+                    window.tenVten = null;
                     window.feed = null;
                     window.battle = null;
                     window.town = null;
@@ -381,21 +376,33 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.energy = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.energy.max), caap.stats.energy);
+                caap.stats.energy.num = num;
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.health = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.health.max), caap.stats.health);
+                caap.stats.health.num = num;
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats.stamina.max), caap.stats.stamina);;
+                caap.stats.stamina.num = num;
                 con.log(3, "stsPoll scv", num);
             }
+			
+			// Check for lowpoints in energy stamina maxes at every level, for use with max stat checks
+			if (caap.stats.level !== caap.stats.lowpoint.level) {
+				caap.stats.lowpoint.level = caap.stats.level;
+				caap.stats.lowpoint.energy = caap.stats.energy.max > 0 ? caap.stats.energy.max : caap.stats.lowpoint.energy;
+				caap.stats.lowpoint.stamina = caap.stats.stamina.max > 0 ? caap.stats.stamina.max : caap.stats.lowpoint.stamina;
+			}
+			['energy', 'stamina'].forEach( function(stat) {
+				if (caap.stats[stat].max > 0 && caap.stats[stat].max < caap.stats.lowpoint[stat]) {
+					caap.stats.lowpoint[stat] = caap.stats[stat].max;
+				}
+			});
 
             mainSts = null;
             gtv = null;
@@ -568,7 +575,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.reloadCastleAge = function (force) {
         function doit() {
             var rc = session.incItem("reloadCounter"),
-                mc = session.getItem("messageCount", 0);
+                mc = session.getItem("messageCount", 0),
+				logonArray = [],
+				suffix = '';
 
             if (!force && rc < 20 && mc > 0) {
                 con.log(1, 'Reload waiting ' + mc + ' message' + $u.plural(mc) + ' ...', rc);
@@ -582,7 +591,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (force || (!config.getItem('Disabled') && state.getItem('caapPause') === 'none')) {
                 // better than reload... no prompt on forms!
                 con.log(1, 'Reloading now!');
-                caap.visitUrl(caap.domain.altered + (caap.domain.which === 0 || caap.domain.which === 2 ? "/index.php?bm=1&ref=bookmarks&count=0" : ""));
+				if (typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
+					suffix = '/connect_login.php?platform_action=CA_web3_logout';
+				} else if (caap.domain.which === 0 || caap.domain.which === 2) {
+					suffix = '/keep.php';
+				}
+				caap.visitUrl(caap.domain.altered + suffix);
             }
         }
 
@@ -599,7 +613,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var reloadMin = config.getItem('ReloadFrequency', 8);
 
-            reloadMin = !$u.isNumber(reloadMin) || reloadMin < 8 ? 8 : reloadMin;
+            reloadMin = $u.isNumber(reloadMin) ? Math.max(reloadMin, 5) : 5;
             window.setTimeout(function () {
                 if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40) {
                     con.log(1, 'Reloading if not paused after inactivity');

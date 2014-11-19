@@ -15,11 +15,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_index = function () {
         try {
-			var args = 'dispel[!active:*-100,poly:20100,confuse:20100,!active:-100000@Loadout Heal],cduel[base:10000,cleric:800,seal:400,active:200,guardian:-100@Loadout Dawn],heal[healed:-10000,cleric:800,seal:400,active:200,guardian:100@Loadout Heal]'.match(new RegExp('\\W(!?)active:(\\D?)([^,]+)'));
-			var score = args[2] == '-' ? -args[3].parseFloat() : args[3].parseFloat();
+			var text = 'base:40000,active:*7,!confuse:*-8,p200:*10,p240:*15,warrior:*4,mage:*3,rogue:*2,cleric:*1,@Loadout Conf';
 
 			
-			//con.log(1, 'TESTING', args, args[1], false !== (args[1] == '!'), score);
+			//con.log(1, 'TESTING', text.match(new RegExp('(\\w+:\\D?[^,]+)')));
+			//con.log(1, 'TESTING 2', text.match(/(!?\w+:\D?[^,]+)/g));
 			
             if (config.getItem('AutoGift', false)) {
                 gifting.collected();
@@ -35,6 +35,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 time = time < 15 ? 15 : time;
                 schedule.setItem("ajaxGiftCheck", time * 60, 300);
             }
+			
+			guild_battle.onTop(guild_battle.gf.tenVten);
 
             return true;
         } catch (err) {

@@ -88,7 +88,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 festival.cleanWins();
-				guild_battle.setrPage('festival_battle_home');
                 session.setItem("festivalDashUpdate", true);
                 con.log(3, "festival.load", festival.records);
                 return true;
