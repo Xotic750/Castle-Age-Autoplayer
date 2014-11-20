@@ -10,7 +10,7 @@
 
     function log(msg) {
         if (window.console && typeof console.log === 'function') {
-            console.log("141.0.0" + ("7" !== '0' ? 'd7'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+            console.log("141.0.0" + ("8" !== '0' ? 'd8'  : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
 
