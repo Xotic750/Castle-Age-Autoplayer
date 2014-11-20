@@ -135,7 +135,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR = monster.getItem(md5);
 					mR.link = link;
 					mR.lpage = lpage;
-					mR.conditions = conditions;
+					if (publicList) {
+						mR.conditions = conditions;
+					}
 
                     mR.name = mR.name || $j("div[style*='20px']", monsterRow.eq(it)).text().trim() + ' ' + monsterName;
                     mR.md5 = md5;
@@ -540,9 +542,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.monsters = function () {
         try {
+		var whenMonster = config.getItem('WhenMonster', 'Never');
 
-		if (config.getItem('WhenMonster', 'Never') === 'Never') {
-                caap.setDivContent('monster_mess', 'Monster off');
+		if (whenMonster === 'Never' || whenMonster == 'Review Only') {
+                caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
                 return false;
             }
 			
