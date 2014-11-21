@@ -1582,7 +1582,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 			}
 
-			if (hyper.getItem('logons', false) && hyper.getItem('logons', false).length > 1) {
+			if (caap.hyper && hyper.getItem('logons', false) && hyper.getItem('logons', false).length > 1) {
 				caap.hyper = true;
 				schedule.setItem("hyperTimer", 0);
 				con.warn('hyper ok', caap.hyper);
@@ -3177,7 +3177,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
             htmlCode += caap.makeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
             //htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
-            htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 3 minutes.', 8, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 2 minutes.', 8, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
             htmlCode += caap.startTR();
             htmlCode += caap.makeTD("<input type='button' id='caap_ActionList' value='Modify Action Order' style='padding: 0; font-size: 10px; height: 18px' />");

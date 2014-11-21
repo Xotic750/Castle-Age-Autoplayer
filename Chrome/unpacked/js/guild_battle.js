@@ -1539,7 +1539,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 											seal = i.replace(/-.*/,'') == fR[which].seal ? 'seal' : 'normal';
 											value = member.scores[values[pp]][seal];
 										} else {
-											value = 'N/A';
+											value = -1;
 										}
 									} else {
 										value = $u.hasContent(member[values[pp]]) ? member[values[pp]] : ''
