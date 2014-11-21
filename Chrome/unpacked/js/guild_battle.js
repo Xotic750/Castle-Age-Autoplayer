@@ -1204,7 +1204,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = ((config.getItem('GB ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current'));
 			}
 			if (caap.stats.priorityGeneral != 'Use Current') {
 				con.log(2,gf.abbrev + ' PREBATTLE general',caap.stats.priorityGeneral);

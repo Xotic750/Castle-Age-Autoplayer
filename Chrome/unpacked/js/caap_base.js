@@ -2633,7 +2633,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             caap.setDivContent('banner', banner, caapDiv);
-            donate += "<div id='caap_DonateDisplay_hide' style='text-align: center, display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
+            donate += "<div id='caap_DonateDisplay_hide' style='display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
             donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
             donate += "<img src='data:image/gif;base64," + image64.donate + "' alt='Donate' /></a></div>";
             caap.setDivContent('donate', donate, caapDiv);
@@ -3254,7 +3254,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Army',
                     'Battle Stats',
                     'Conquest Stats',
-                    'Feed', 'Festival',
+                    'Feed',
+					'Festival',
                     'Generals Stats',
                     'Gift Queue',
                     'Gifting Stats',
@@ -3270,20 +3271,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'User Stats'
                 ],
                 displayInst = [
-                    'Display your army members, the last time they leveled up and choose priority Elite Guard.',
+                    'Display your Army Members, the last time they leveled up and choose priority Elite Guard.',
                     'Display your Battle history statistics, who you fought and if you won or lost.',
                     'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
-                    'Display the Festival battle in progress.', 'Display information about your Generals.',
-                    'Display your current Gift Queue', 'Display your Gifting history, how many gifts you have received and returned to a user.',
+                    'Display the Festival battle in progress.',
+					'Display information about your Generals.',
+                    'Display your current Gift Queue.',
+					'Display your Gifting history, how many gifts you have received and returned to a user.',
                     'Display Essence Storage space for Guilds that have been scouted.',
-                    'Guild Monster',
+                    'Display information about your Guild Monster.',
+					'Display the Guild battle in progress.',
+					'Display the 10v10 battle in progress.',
                     'Display information about Items seen in your Black Smith page.',
                     'Display information about Magic seen in your Magic page.',
                     'Display your Monster battles.',
                     'Display information about Soldiers seen in your Soldiers page.',
                     'Display information about Targets that you have performed reconnaissance on.',
-                    'Useful informaton about your account and character statistics.'
+                    'Display information about your account and character statistics.'
                     ],
                     styleXY = {
                         x : 0,

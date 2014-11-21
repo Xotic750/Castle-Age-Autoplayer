@@ -190,6 +190,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timeStrings = '',
                 now = new Date();
             // Priority generals, such as Guild Battle class generals, outrank timed generals.
+            if (!caap.stats.priorityGeneral || caap.stats.priorityGeneral == 'false' || caap.stats.priorityGeneral == false) {
+                con.log(2,'Priority gen reset to "Use Current"');
+		caap.stats.priorityGeneral = 'Use Current';
+            }
             if (caap.stats.priorityGeneral != 'Use Current') {
                 timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
                 timedLoadoutsList.unshift(timeStrings);
