@@ -1175,7 +1175,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
-                if (caap.stats.army.capped && (tempRecord.data.armyNum > (caap.stats.army.capped * armyRatio))) {
+                if (config.getItem('BattleType', 'Invade') == 'Invade' && caap.stats.army.capped && (tempRecord.data.armyNum > (caap.stats.army.capped * armyRatio))) {
                     con.log(2, "Greater than armyRatio", {
                         'armyRatio': armyRatio.dp(2),
                         'armyNum': tempRecord.data.armyNum,
