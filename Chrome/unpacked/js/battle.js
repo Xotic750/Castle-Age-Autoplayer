@@ -298,7 +298,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     battle.flagResult = false;
-
+	
+	// Check win/loss of battle
     battle.getResult = function() {
         try {
             var tempDiv = $j(),
@@ -555,6 +556,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	// Check if target is dead
     battle.deadCheck = function() {
         try {
             var battleRecord = {},
@@ -846,11 +848,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 firstId = '',
                 lastBattleID = 0,
                 engageButton = $j(),
-                time = 0,
                 found = 0,
                 entryLimit = 0,
-                noSafeCount = 0,
-                noSafeCountSet = 0;
+                noSafeCount = 0;
 
             if (!$u.hasContent(inputDiv)) {
                 con.warn('Not on battlepage');
@@ -935,11 +935,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     len = 0,
                     tempRecord = type === "recon" ? new battle.reconRecord() : new battle.record();
 
-                tempRecord.data.button = $j(this);
                 if (type === 'Raid') {
                     tr = tempRecord.data.button.parents().eq(4);
                 } else {
-                    tr = tempRecord.data.button.parents("tr").eq(0);
+					tempRecord.data.button = $j(this);
+                    tr = tempRecord.data.button.closest('div[style*="battle_mid.jpg"]');
                 }
 
                 inp = $j("input[name='target_id']", tr);
@@ -1090,6 +1090,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempRecord.data.armyNum = $u.setContent(levelm[5], '').parseInt();
                     }
                 }
+				
+				con.log(2, 'Battle target stats:', tempRecord.data.nameStr, tempRecord.data.levelNum, tempRecord.data.rankStr, tempRecord.data.rankNum, tempRecord.data.armyNum);
 
                 if (battle.hashCheck(tempRecord.data)) {
                     inputDiv = null;
@@ -1437,15 +1439,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             noSafeCount = state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
-            noSafeCountSet = config.getItem("notSafeCount", 20);
-            noSafeCountSet = noSafeCountSet < 1 ? 1 : noSafeCountSet;
-            if (noSafeCount >= noSafeCountSet) {
+            if (noSafeCount >= 2) {
                 caap.setDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
                 con.log(1, 'No safe targets limit reached. Releasing control for other processes: ', noSafeCount);
                 state.setItem("notSafeCount", 0);
-                time = config.getItem("NoTargetDelay", 45);
-                time = time < 10 ? 10 : time;
-                schedule.setItem("NoTargetDelay", time);
+                schedule.setItem("NoTargetDelay", 60);
                 inputDiv = null;
                 inp = null;
                 form = null;
@@ -1574,11 +1572,6 @@ config.setItem('raidDoSiege', false)
             htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
             htmlCode += caap.endDropHide('TargetType', 'UserId');
             htmlCode += caap.endDropHide('WhenBattle');
-            htmlCode += caap.makeCheckTR("Modify Timers", 'battleModifyTimers', false, "Advanced timers for how often Battle functions are performed.");
-            htmlCode += caap.startCheckHide('battleModifyTimers');
-            htmlCode += caap.makeNumberFormTR("Battle retry", 'notSafeCount', "Check the Battle/Raid X times before release and delay for other processes. Minimum 1.", 20, '', '', true);
-            htmlCode += caap.makeNumberFormTR("Battle delay", 'NoTargetDelay', "Check the Battle/Raid every X seconds when no target available. Minimum 10.", 45, '', '', true);
-            htmlCode += caap.endCheckHide('battleModifyTimers');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {

@@ -1582,10 +1582,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 			}
 
-			if (caap.hyper && hyper.getItem('logons', false) && hyper.getItem('logons', false).length > 1) {
+			if (typeof hyper == 'defined' && $u.isArray(hyper.getItem('logons', false)) && hyper.getItem('logons', false).length > 1) {
 				caap.hyper = true;
 				schedule.setItem("hyperTimer", 0);
-				con.warn('hyper ok', caap.hyper);
+				con.log(1, 'Multiple accounts configured, so enabling hyper visor functions!', caap.hyper);
 			}
 			
             if (caap.domain.which === 0) {

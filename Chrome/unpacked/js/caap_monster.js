@@ -542,13 +542,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.monsters = function () {
         try {
-		var whenMonster = config.getItem('WhenMonster', 'Never');
+			var whenMonster = config.getItem('WhenMonster', 'Never');
 
-		if (whenMonster === 'Never' || whenMonster == 'Review Only') {
-                caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
-                return false;
-            }
-			
+			if (whenMonster === 'Never' || whenMonster == 'Review Only') {
+				caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
+				return false;
+			}
+				
 			monster.select(false);
 			
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
@@ -1848,11 +1848,16 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
 						if (tempDiv.length) {
 							cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
-							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+							//siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+
+							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s:') ? 0
+								: !cM.conditions.match(':fs:') ? monster.parseCondition("s", cM.conditions)
+								: caap.stats.stamina.max == caap.stats.stamina.num ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.phase > 1 && caap.hasImage('siege_btn.gif') && cM.damage > 0;
-							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'));
+							cM.doSiege = cM.siegeLevel <= siegeLimit && caap.hasImage('siege_btn.gif') && cM.damage > 0 
+								&& (cM.phase > 1 || (cM.conditions && cM.conditions.match('fs')));
+							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
 							
 						} else {
 							cM.doSiege = false;

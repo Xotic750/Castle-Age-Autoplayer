@@ -139,8 +139,8 @@ function caap_clickRelogin() {
 	
 	var logonArray = hyper.getItem('logons', false),
 		logonObj = {},
-		testObj = {'player_email' : 'fakeEmail@mailinator.com',
-			'password' : 'not_a_real_account'};
+		testObj = [{'player_email' : 'fakeEmail@mailinator.com',
+			'password' : 'not_a_real_account'}];
 
 	if ($u.isArray(logonArray)) {
 		if (logonArray.length > 0) {
