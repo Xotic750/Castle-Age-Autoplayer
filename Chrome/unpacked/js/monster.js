@@ -2574,7 +2574,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
 
                         //Monster is a match so we set the conditions
-                        monsterObj.conditions = monsterConditions;
+                        monsterObj.conditions = ':' + monsterConditions + ':';
                         monsterObj.select = true;
                         monster.setItem(monsterObj, 'monster');
                         // If it's complete or collect rewards, no need to process further

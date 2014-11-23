@@ -690,7 +690,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					}
 					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(new RegExp("^[^:]+")).toString().trim())) {
 						monsterConditions = filterList[i].replace(new RegExp("^[^:]+"), '').toString().trim();
-						return monsterConditions.length ? monsterConditions : '';
+						return monsterConditions.length ? ':' +  monsterConditions + ':' : '';
 					}
 				}
 				return false;
@@ -735,7 +735,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				feed.scanRecord = {};
                 if (tR) {
 					monsterInfo = monster.getInfo(tR);
-					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (monsterInfo.alpha ? ',clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]' : ',clickimg:button_nm_p_power_attack.gif'));
+					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (monsterInfo.alpha ? ',clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]' : ',clickimg:button_nm_p_attack.gif'));
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
 					}

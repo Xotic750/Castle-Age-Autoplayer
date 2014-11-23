@@ -55,7 +55,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 			return;
 		}
 
-		if (caap.domain.which >= 0 && caap.domain.which < 2) {
+		if ([0, 1].indexOf(caap.domain.which) >= 0) {
 			FBID = $u.setContent(caap.fbEnv.id, 0).parseInt();
 			aName = $j('#pageNav .headerTinymanName').text();
 		} else if (caap.domain.which == 2 && caap.hasImage('tab_stats_on.gif') && $j("#app_body a[href*='keep.php?user=']")) {
@@ -106,7 +106,8 @@ caap_timeout,retryDelay,devVersion,caapVersion */
                                     window.caap = null;
                                     window.con = null;
                                     window.conquest = null;
-									if (window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0) {
+									if (window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0 
+										|| window.location.href.indexOf('apps.facebook.com/castle_age') >= 0) {
 										window.location.href = 'https://web3.castleagegame.com/castle_ws/keep.php';
 									} else {
 										$u.reload();

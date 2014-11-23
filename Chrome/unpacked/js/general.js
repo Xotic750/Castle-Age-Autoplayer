@@ -190,10 +190,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timeStrings = '',
                 now = new Date();
             // Priority generals, such as Guild Battle class generals, outrank timed generals.
-            if (!caap.stats.priorityGeneral || caap.stats.priorityGeneral == 'false' || caap.stats.priorityGeneral == false) {
-                con.log(2,'Priority gen reset to "Use Current"');
-		caap.stats.priorityGeneral = 'Use Current';
-            }
             if (caap.stats.priorityGeneral != 'Use Current') {
                 timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
                 timedLoadoutsList.unshift(timeStrings);
@@ -369,11 +365,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					uGR = general.getRecord(usedGen);
 					['energy', 'stamina', 'health'].forEach(function(stat) {
 						if (general.isLoadout(usedGen)) {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else if (defaultLoadout == 'Use Current') {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat] + general.getRecord(defaultLoadout)[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat] + general.getRecord(defaultLoadout)[stat], 0));
 						}
 						//con.log(2, 'Min loadout/general en/sta adjustment calc', uGR, caap.stats[stat].min, caap.stats[stat]);
 					});
@@ -528,6 +524,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.updateDashboard(true);
                     general.UpdateDropDowns();
                 }
+				
+				// Add code to check for a general level up pop-up here?
 
                 con.log(5, "loadoutslist done", general.records);
                 return true;
@@ -974,7 +972,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(2, 'Changing from ' + currentGeneral + ' to ' + targetGeneral);
-            if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.navigateTo('generals')) {
                 return true;
             }
 
