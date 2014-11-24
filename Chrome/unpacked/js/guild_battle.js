@@ -1033,6 +1033,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									case 'confidence' : tf = $u.hasContent($j("img[src*='effect_confidence']", member)); 	break;
 									case 'fortify' : 	tf = $u.hasContent($j("img[src*='effect_fort']", member)); 			break;
 									case 'smokebomb' : 	tf = $u.hasContent($j("img[src*='effect_smoke']", member)); 		break;
+										// yinzanat: added the targetting flags
+									case 'attack' : 	tf = $u.hasContent($j("img[src*='targetting_attack']", member)); 	break;
+									case 'avoid' : 		tf = $u.hasContent($j("img[src*='targetting_avoid']", member)); 	break;
+									case 'defend' : 	tf = $u.hasContent($j("img[src*='targetting_defend']", member));	break;
+									case 'healFlag' : 	tf = $u.hasContent($j("img[src*='targetting_heal']", member)); 		break;
 									case 'me' : 		tf = isMe; 															break;
 									case 'active' : 	tf = mR.battlePoints; 												break;
 									case 'bs' : 		tf = mR.healthNum == mR.healthMax; 									break;
