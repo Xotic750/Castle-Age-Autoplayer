@@ -69,7 +69,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			caap.stats.guildTokens.num = $j('#persistHomeConquestPlateOpen').text().numberOnly();
 			//con.log(2, 'CONQUEST TOKENS ' + caap.stats.guildTokens.num);
 
-//          if (schedule.check("conquest_token")) {
 			if 	(caap.stats.guildTokens.num > caap.stats.guildTokens.max) {
                 con.log(1, 'Checking max conquest coins', $u.setContent(caap.displayTime('conquest_token'), "Unknown"), caap.stats.guildTokens.num, caap.stats.guildTokens.max);
                 caap.setDivContent('conquest_mess', 'Checking coins');

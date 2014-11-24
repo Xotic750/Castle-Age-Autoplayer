@@ -55,9 +55,12 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 			return;
 		}
 
-		if (caap.domain.which >= 0 && caap.domain.which < 2) {
+		if ([0, 1].indexOf(caap.domain.which) >= 0) {
 			FBID = $u.setContent(caap.fbEnv.id, 0).parseInt();
 			aName = $j('#pageNav .headerTinymanName').text();
+		} else if (caap.domain.which == 2 && caap.hasImage('tab_stats_on.gif') && $j("#app_body a[href*='keep.php?user=']")) {
+			FBID = $j("#app_body a[href*='keep.php?user=']").attr("href").basename().regex(/(\d+)/);
+			aName = $j("#app_body #main_bntp").text().regex(/Welcome (.*)\(Logout\)/)
 		} else {
 			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
 			aName = $u.setContent(caap.fbData.me.name, '');
@@ -68,7 +71,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 			idOk = true;
 		}
 
-		if (!idOk && caap.domain.which >= 0 && caap.domain.which < 2) {
+		if (!idOk && caap.domain.which >=0 && caap.domain.which < 3) {
 			// Force reload without retrying
 			con.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
 			window.setTimeout(function () {
@@ -103,8 +106,13 @@ caap_timeout,retryDelay,devVersion,caapVersion */
                                     window.caap = null;
                                     window.con = null;
                                     window.conquest = null;
-                                    $u.reload();
-				}, 60000 + (Math.floor(Math.random() * 60) * 1000));
+									if (window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0 
+										|| window.location.href.indexOf('apps.facebook.com/castle_age') >= 0) {
+										window.location.href = 'https://web3.castleagegame.com/castle_ws/keep.php';
+									} else {
+										$u.reload();
+									}
+				}, (1000 + Math.floor(Math.random() * 1000))* window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0 ? 60 : 1);
 
 				newdiv = null;
 			}, retryDelay);
@@ -114,17 +122,18 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 
 		caap.initDb(FBID);
 		con.log_level = config.getItem('DebugLevel', 1);
+		con.log(2, "config", config);
 		//con.log(3, "config", config);
 		//con.log(3, "state", state);
 		//con.log(3, "schedule", schedule);
 		caap.lsUsed();
 		schedule.setItem("clickedOnSomething", 3600);
 
-        if (caap.domain.which === 0) {
+        if (caap.domain.which === 0 || caap.domain.which == 2) {
             caap.loadStats(FBID, aName);
         }
 
-        caap.saveStats();
+        //caap.saveStats();
 		gifting.init();
 		gifting.loadCurrent();
 
@@ -136,8 +145,8 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		if (devVersion !== '0') {
 			if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
 				if (devVersion > 226) {
-					con.log(1,'Clearing monster list since names have changed since Dev 226', devVersion);
-					monster.clear();
+					con.log(1,'Clearing monster list since names have changed since Dev 226', devVersion, gm.getItem('monster.records', 'default'));
+					gm.setItem('monster.records', 'default');
 				}
 				state.setItem('LastVersion', caapVersion);
 				state.setItem('LastDevVersion', devVersion);

@@ -123,7 +123,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.init = function () {
         army.loadTemp();
         army.load();
-        army.eliteFriendCheck();
     };
 
     army.setItem = function (record) {
@@ -478,167 +477,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    army.getEliteList = function () {
-        try {
-            var it = 0,
-                len = 0,
-                list = [];
-
-            for (it = 0, len = army.records.length; it < len; it += 1) {
-                if ($u.hasContent(army.records[it].userId) && army.records[it].userId > 0 && army.records[it].elite && army.records[it].appUser) {
-                    list.push(army.records[it].userId);
-                }
-            }
-
-            return list;
-        } catch (err) {
-            con.error("ERROR in army.getEliteList: " + err);
-            return [];
-        }
-    };
-
-    army.eliteCheckImg = function () {
-        try {
-            // Check for Elite Guard Add image
-            if (config.getItem("EnableArmy", true) && config.getItem('AutoElite', true) && !config.getItem('AutoEliteIgnore', false) && caap.hasImage('elite_guard_add')) {
-                schedule.setItem('AutoEliteGetList', 0);
-                if (!state.getItem('AutoEliteFew', false)) {
-                    state.setItem('AutoEliteEnd', '');
-                }
-
-                con.log(1, "Detected spaces in Elite Guard: Scheduling");
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in army.eliteCheckImg: " + err);
-            return false;
-        }
-    };
-
-    army.eliteFull = function () {
-        try {
-            var eliteList = state.getItem('MyEliteTodo', []);
-
-            schedule.setItem('AutoEliteGetList', 21600, 300);
-            state.setItem('AutoEliteEnd', 'Full');
-            state.setItem('AutoEliteListFilled', false);
-            state.setItem('MyEliteTodo', army.eliteMerge(eliteList));
-            return true;
-        } catch (err) {
-            con.error("ERROR in army.eliteFull: " + err);
-            return false;
-        }
-    };
-
-    army.eliteResult = function () {
-        try {
-            if (/YOUR Elite Guard is FULL/i.test(caap.resultsText)) {
-                army.eliteFull();
-                con.log(1, "Your Elite Guard is full");
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in army.eliteResult: " + err);
-            return false;
-        }
-    };
-
-    army.eliteMerge = function () {
-        try {
-            var eliteArmyList = config.getList('EliteArmyList', '').concat(army.getEliteList()),
-                getIdList = army.getIdList(),
-                myEliteTodo = $u.setContent(state.getItem('MyEliteTodo', []), getIdList);
-
-            if (eliteArmyList && myEliteTodo && getIdList && eliteArmyList.length >= myEliteTodo.length) {
-                myEliteTodo = getIdList;
-            }
-
-            eliteArmyList = eliteArmyList.concat(myEliteTodo.filter(function (x) {
-                return !eliteArmyList.hasIndexOf(x);
-            }));
-
-            state.setItem('MyEliteTodo', eliteArmyList);
-            con.log(2, "eliteArmyList", eliteArmyList);
-            return eliteArmyList;
-        } catch (err) {
-            con.error("ERROR in army.eliteMerge: " + err);
-            return undefined;
-        }
-    };
-
-    army.eliteFriendCheck = function () {
-        try {
- /*           if (caap.stats.army.actual < 11 || army.getIdList().length < 10) {
-                con.log(1, 'Not enough friends to fill Elite Guard');
-                state.setItem('AutoEliteFew', true);
-            } else {
-                state.setItem('AutoEliteFew', false);
-            }
-*/
-            return true;
-        } catch (err) {
-            con.error("ERROR in army.eliteFriendCheck: " + err);
-            return false;
-        }
-    };
-
-    army.elite = function () {
-        try {
-            var eliteList = state.getItem('MyEliteTodo', []),
-                user = 0;
-
-            if (state.getItem('AutoEliteEnd', 'Full') !== 'Full') {
-                state.getItem('AutoEliteEnd', '');
-            }
-
-            if (!$j.isArray(eliteList) || !$u.hasContent(eliteList) || (state.getItem('AutoEliteFew', false) && !state.getItem('AutoEliteListFilled', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy')) {
-                con.log(1, 'Reset list');
-                eliteList = army.eliteMerge();
-                state.setItem('AutoEliteEnd', '');
-                state.setItem('AutoEliteListFilled', true);
-            }
-
-            if (state.getItem('AutoEliteFew', false) && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
-                con.log(1, "Elite Full");
-                army.eliteFull();
-                return false;
-            }
-
-            if ($j.isArray(eliteList) && $u.hasContent(eliteList)) {
-                user = eliteList.shift();
-                con.log(1, 'Add Elite Guard ID: ', user);
-                state.setItem('MyEliteTodo', eliteList);
-                if (!$u.hasContent(eliteList)) {
-                    con.log(2, 'Army list exhausted');
-                    state.setItem('AutoEliteEnd', 'NoArmy');
-                }
-
-                caap.clickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
-                con.log(1, "Return true");
-                return true;
-            }
-
-            con.log(1, "Return false");
-            return false;
-        } catch (err) {
-            con.error("ERROR in army.elite: " + err);
-            return undefined;
-        }
-    };
-
     army.menu = function () {
         try {
             var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
                 armyScanInstructions = "Scan the army pages every X days.",
-                autoEliteInstructions = "Enable or disable Auto Elite function. If running on web3 url then you must enable Army Functions also.",
-                autoEliteIgnoreInstructions = "Use this option if you have a small army and are unable to fill all 10 Elite positions. This prevents " +
-                    "the script from checking for any empty places and will cause Auto Elite to run on its timer only.",
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
-            htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
+            htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', false, armyInstructions);
             htmlCode += caap.startCheckHide('EnableArmy');
             htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxArmy', true, "Check Army using AJAX rather than page navigation.");
             htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
@@ -654,18 +500,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
             htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
             htmlCode += caap.endCheckHide('ArmyIndicators');
-            htmlCode += caap.makeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
-            htmlCode += caap.startCheckHide('AutoElite');
-            htmlCode += caap.makeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
             htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
-            htmlCode += caap.endTR;
-            htmlCode += caap.startTR();
-            htmlCode += caap.makeTD(caap.makeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
-            htmlCode += caap.endTR;
-            htmlCode += caap.endCheckHide('AutoElite');
-            htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+            htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army (FB only)' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.endTR;
             htmlCode += caap.endCheckHide('EnableArmy');
             htmlCode += caap.endToggle;
