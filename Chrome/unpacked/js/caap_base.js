@@ -1518,32 +1518,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (!$u.isString(name) || !$u.hasContent(name)) {
 					throwError("config.setItem", new TypeError(name + " is an invalid identifier"));
 				}
+				//con.log(2, 'name Default config old result', name, configDefault.getItem(name, 'none'), name in this['vars'] ? this['vars'][name] : 'none', configOld.getItem(name, 'none'), configDefault.getItem(name, name in this['vars'] ? this['vars'][name] : configOld.getItem(name, value)));
 
 				return configDefault.getItem(name, name in this['vars'] ? this['vars'][name] : configOld.getItem(name, value));
 			};
 
 			//con.log(1, 'Config test', config.getItem('AutoArchives', false));
 			
-			if (caap.domain.which == 2) {
-				window.hyper = new $u.StorageHelper({
-					'namespace': caap.namespace,
-					'storage_id': 'hyper',
-					'storage_type': 'localStorage'
-				});
-			}
-
-            if (caap.domain.which === 0) {
-                config.oldSave = config.save;
-                config.save = function () {
-                    config.oldSave();
-                    con.log(3, "config.save", config);
-                    if (caap.messaging.connected.hasIndexOf("caapif")) {
-                        con.log(3, "config.save send");
-                        caap.messaging.setItem('config.options', config.getAll());
-                    }
-                };
-            }
-
             window.state = new $u.ConfigHelper("state.flags", "current", {
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
@@ -1590,6 +1571,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (caap.messaging.connected.hasIndexOf("caapif")) {
                         con.log(3, "schedule.save send");
                         caap.messaging.setItem('schedule.timers', schedule.getAll());
+                    }
+                };
+            }
+			if (caap.domain.which == 2) {
+				window.hyper = new $u.StorageHelper({
+					'namespace': caap.namespace,
+					'storage_id': 'hyper',
+					'storage_type': 'localStorage'
+				});
+			}
+
+			if (typeof hyper == 'defined' && $u.isArray(hyper.getItem('logons', false)) && hyper.getItem('logons', false).length > 1) {
+				caap.hyper = true;
+				schedule.setItem("hyperTimer", 0);
+				con.log(1, 'Multiple accounts configured, so enabling hyper visor functions!', caap.hyper);
+			}
+			
+            if (caap.domain.which === 0) {
+                config.oldSave = config.save;
+                config.save = function () {
+                    config.oldSave();
+                    con.log(3, "config.save", config);
+                    if (caap.messaging.connected.hasIndexOf("caapif")) {
+                        con.log(3, "config.save send");
+                        caap.messaging.setItem('config.options', config.getAll());
                     }
                 };
             }
@@ -2627,7 +2633,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             caap.setDivContent('banner', banner, caapDiv);
-            donate += "<div id='caap_DonateDisplay_hide' style='text-align: center, display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
+            donate += "<div id='caap_DonateDisplay_hide' style='display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
             donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
             donate += "<img src='data:image/gif;base64," + image64.donate + "' alt='Donate' /></a></div>";
             caap.setDivContent('donate', donate, caapDiv);
@@ -3171,7 +3177,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
             htmlCode += caap.makeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
             //htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
-            htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 5 minutes.', 8, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 2 minutes.', 8, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
             htmlCode += caap.startTR();
             htmlCode += caap.makeTD("<input type='button' id='caap_ActionList' value='Modify Action Order' style='padding: 0; font-size: 10px; height: 18px' />");
@@ -4377,6 +4383,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         state.setItem('caapPause', 'none');
+        schedule.setItem("clickedOnSomething", 0);
+		if (caap.hyper) {
+			schedule.setItem("hyperTimer", 0);
+		}
         session.setItem('ReleaseControl', true);
         session.setItem('resetselectMonster', true);
         session.setItem('resetselectGuildMonster', true);
@@ -6588,7 +6598,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.log(2, 'Visiting keep to find base stat ' + stat + ' unaltered by general');
 				return true;
 			}
-            return caap.stats[stat].min + caap.stats[stat].norm;
+			//con.log(2, stat + ' check ', caap.stats[stat].min, caap.stats[stat].norm, caap.stats[stat]);
+            return caap.stats[stat].min + caap.stats[stat].norm - (caap.hyper ? 12 : 0);
         } catch (err) {
             con.error("ERROR in maxStatCheck: " + err);
             return undefined;

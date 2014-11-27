@@ -190,10 +190,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timeStrings = '',
                 now = new Date();
             // Priority generals, such as Guild Battle class generals, outrank timed generals.
-            if (!caap.stats.priorityGeneral || caap.stats.priorityGeneral == 'false' || caap.stats.priorityGeneral == false) {
-                con.log(2,'Priority gen reset to "Use Current"');
-		caap.stats.priorityGeneral = 'Use Current';
-            }
             if (caap.stats.priorityGeneral != 'Use Current') {
                 timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
                 timedLoadoutsList.unshift(timeStrings);
@@ -249,7 +245,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            if (!quiet) {
+            if (!quiet && generalName !== 'Loadouts Unavailable') {
                 con.warn("GetRecord: Unable to find 'General' record", generalName);
             }
 
@@ -369,11 +365,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					uGR = general.getRecord(usedGen);
 					['energy', 'stamina', 'health'].forEach(function(stat) {
 						if (general.isLoadout(usedGen)) {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else if (defaultLoadout == 'Use Current') {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, uGR[stat] + general.getRecord(defaultLoadout)[stat]);
+							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat] + general.getRecord(defaultLoadout)[stat], 0));
 						}
 						//con.log(2, 'Min loadout/general en/sta adjustment calc', uGR, caap.stats[stat].min, caap.stats[stat]);
 					});
@@ -528,13 +524,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.updateDashboard(true);
                     general.UpdateDropDowns();
                 }
+				
+				// Add code to check for a general level up pop-up here?
 
                 con.log(5, "loadoutslist done", general.records);
                 return true;
-            } else {
+            } else if (caap.stats.level > 100) {
                 con.warn("Couldn't get 'loadouts'.");
-                return false;
             }
+            return false;
         } catch (err) {
             con.error("ERROR in general.GetLoadouts: " + err);
             return false;
@@ -850,6 +848,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var loadoutName = $j('#hot_swap_loadouts_div select[name="choose_loadout"] option:selected').text().trim();
 
             if (!loadoutName) {
+				if (caap.stats.level < 101) {
+					return 'Loadouts Unavailable';
+				}
                 con.warn("Couldn't get current 'loadout'. Using 'Use Current'");
                 return 'Use Current';
             }
@@ -884,7 +885,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return (timedResult == 'change') || config.getItem('timedFreeze', true);
             }
 
-            if (general.records.length <= (caap.stats.level >= 100 ? 20 : 2)) {
+            if (general.records.length <= (caap.stats.level >= 100 ? 20 : 1)) {
                 con.log(1, "Generals count of " + general.records.length + " <= " + (caap.stats.level >= 100 ? 20 : 2) + ', checking Generals page');
                 return caap.navigateTo('generals');
             }
@@ -903,7 +904,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (targetGeneral == 'Use Current') {
                 return false;
             }
-
+			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
@@ -946,30 +947,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // Confirm loadout is ok
-            targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
-            targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
-            lRecord = general.getRecord(targetLoadout,false);
-            targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
-            if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
-//				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
-                if (lRecord === false) {
-                    con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
-                    return false;
-                }
-                con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
+			if (caap.stats.level > 100) {
+				targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
+				targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
+				lRecord = general.getRecord(targetLoadout,false);
+				targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
+				if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
+	//				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
+					if (lRecord === false) {
+						con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
+						return false;
+					}
+					con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
 
-                general.clickedLoadout = lRecord.value-1;
-                caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
-                return true;
-            }
-
+					general.clickedLoadout = lRecord.value-1;
+					caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
+					return true;
+				}
+			}
+			
             // Confirm if necessary to load a different general
             if (!targetGeneral || targetGeneral === currentGeneral || targetGeneral === 'Use Current') {
                 return false;
             }
 
             con.log(2, 'Changing from ' + currentGeneral + ' to ' + targetGeneral);
-            if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.navigateTo('generals')) {
                 return true;
             }
 

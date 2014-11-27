@@ -589,10 +589,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.state = 'Collect';
 				//con.log(2,'collect button',gf.waitHours, schedule.since(fR.collectedTime, gf.waitHours * 60 * 60),gf.options, config.getItem('guild_battle_collect',false), gf.options.indexOf(config.getItem('guild_battle_collect',false)));
 				
-				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 7) * 3600000);
+				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 8) * 3600000);
 				
 				// Need to adjust from 7 to 8 when daylight savings time changes
-				thenUTC = new Date(fR.lastBattleTime +  (now.getTimezoneOffset() / 60 - 7 + gf.waitHours) * 3600000);
+				thenUTC = new Date(fR.lastBattleTime +  (now.getTimezoneOffset() / 60 - 8 + gf.waitHours) * 3600000);
 				//con.log(2, 'DATE2 ' + now.getDay(), nowUTC.toLocaleString(), thenUTC.toLocaleString(),!(nowUTC.getDay() == 1 && thenUTC.getDay() == 2));
 				if (schedule.since(fR.collectedTime, gf.waitHours * 60 * 60) && config.getItem(gf.abbrev + 'collect',false) && !(nowUTC.getDay() == 1 && thenUTC.getDay() == 2)) {
 					guild_battle.setrPage(fR, gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif');
@@ -1011,7 +1011,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							sealScore = [0, 0];
 							fullText = args[1];
 							
-							fullText.match(/(!?\w+:\D?[^,]+)/g).forEach( function(text) {
+							$u.setContent(fullText.match(/(!?\w+:\D?[^,]+)/g),[]).forEach( function(text) {
 								var key = text.replace(/:.*/,'').replace('!',''),
 									tf = false;
 								switch (key) {
@@ -1033,6 +1033,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									case 'confidence' : tf = $u.hasContent($j("img[src*='effect_confidence']", member)); 	break;
 									case 'fortify' : 	tf = $u.hasContent($j("img[src*='effect_fort']", member)); 			break;
 									case 'smokebomb' : 	tf = $u.hasContent($j("img[src*='effect_smoke']", member)); 		break;
+										// yinzanat: added the targetting flags
+									case 'attack' : 	tf = $u.hasContent($j("img[src*='targetting_attack']", member)); 	break;
+									case 'avoid' : 		tf = $u.hasContent($j("img[src*='targetting_avoid']", member)); 	break;
+									case 'defend' : 	tf = $u.hasContent($j("img[src*='targetting_defend']", member));	break;
+									case 'healFlag' : 	tf = $u.hasContent($j("img[src*='targetting_heal']", member)); 		break;
 									case 'me' : 		tf = isMe; 															break;
 									case 'active' : 	tf = mR.battlePoints; 												break;
 									case 'bs' : 		tf = mR.healthNum == mR.healthMax; 									break;
@@ -1197,20 +1202,20 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				match = (timedSetting === 'Battle available') ? true : false,
 				now = new Date();
 			
-			caap.stats.priorityGeneral = 'Use Current';
 			if (schedule.since($u.setContent(fRecord.startTime, 0), 1 * 60) && !schedule.since($u.setContent(fRecord.startTime, 0), 4* 60)) {
-				caap.stats.priorityGeneral = ((config.getItem('Fest ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current'));
-				con.log(2,'FEST PREBATTLE general',caap.stats.priorityGeneral);
+				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tStartTime, -8 * 60) && !schedule.since(tStartTime, -0 * 60) && schedule.since(tRecord.lastBattleTime, 30 * 60)) {
-				caap.stats.priorityGeneral = ((config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current'));
-				con.log(2,'10v10 PREBATTLE general',caap.stats.priorityGeneral);
+				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = ((config.getItem('GB ClassGeneral','Use Current') == 'Use Current') ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current'));
+				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
 			}
-			if (general.selectSpecific(caap.stats.priorityGeneral)) {
-				return true;
+			if (caap.stats.priorityGeneral != 'Use Current') {
+				con.log(2,gf.abbrev + ' PREBATTLE general',caap.stats.priorityGeneral);
+				if (general.selectSpecific(caap.stats.priorityGeneral)) {
+					return true;
+				}
 			}
 
 			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
@@ -1220,16 +1225,16 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 
 			// Work around for faulty storage of caap.stats
-			if (caap.stats.indicators.api == 0) {
+			if (caap.stats.indicators.api == 0 && caap.stats.level > 10) {
 				return caap.navigateTo('keep');
 			}
-			
+
 			priority = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
 			fR.burn = fR.tokens <= config.getItem(gf.abbrev + 'min', 0) ? false :  fR.burn || (whenTokens == 'Between Max/Min' && fR.tokens > tokenMax);
 			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
 			wait = stun == 'stunned' || fR.me.poly || (fR.me.confuse && fR.your.attacks.indexOf('cleanse') < 0 && fR.your.attacks.indexOf('dispel') < 0);
 			burnTokens =  priority ? true : wait ? false : fR.burn;
-			doAttack = fR.state == 'Active' && fR.tokens > (burnTokens ? 0 : Math.max(wait ? 7 : 0, tokenMax));
+			doAttack = fR.state == 'Active' && fR.tokens > (burnTokens ? 0 : Math.max(wait ? (caap.hyper ? 5 : 7) : 0, tokenMax));
 			
 			//con.log(2, 'GUILD ' + gf.name, fR, $u.makeTime(fR.onTopTime, caap.timeStr(true)), $u.makeTime(fR.lastBattleTime, caap.timeStr(true)));
 			
@@ -1263,14 +1268,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					teams.forEach(function(which) {
 						towers.forEach(function(tower) {
 							var seal = tower == fR[which].seal ? 'seal' : 'normal';
-							if (fR[which].towers[tower][seal][stun].score > t.score && t.tokens <= fR.tokens) {
+							if (fR[which].towers[tower][seal][stun].score > t.score && fR[which].towers[tower][seal][stun].tokens <= fR.tokens) {
 								t = fR[which].towers[tower][seal][stun];
 							}
 							//con.log(2, 'Attack evals:',which, tower, seal, stun, t, t.tokens, fR.tokens, t.tokens <= fR.tokens);
 						});
 					});
 				
-					if (!t.id) {
+					if (t.score === 0) {
 						con.log(2, gf.name + ': No valid target to attack', fR);
 						return false;
 					}
@@ -1539,7 +1544,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 											seal = i.replace(/-.*/,'') == fR[which].seal ? 'seal' : 'normal';
 											value = member.scores[values[pp]][seal];
 										} else {
-											value = 'N/A';
+											value = -1;
 										}
 									} else {
 										value = $u.hasContent(member[values[pp]]) ? member[values[pp]] : ''

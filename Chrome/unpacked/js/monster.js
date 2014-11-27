@@ -2574,7 +2574,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
 
                         //Monster is a match so we set the conditions
-                        monsterObj.conditions = monsterConditions;
+                        monsterObj.conditions = ':' + monsterConditions + ':';
                         monsterObj.select = true;
                         monster.setItem(monsterObj, 'monster');
                         // If it's complete or collect rewards, no need to process further
@@ -2790,12 +2790,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
                 strengthenTo100Instructions = "Do not wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
-                mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Never'],
+                mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Review Only', 'Never'],
                 mbattleInst = [
                     'Stamina Available will attack whenever you have enough stamina',
                     'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
                     'At X Stamina you can set maximum and minimum stamina to battle',
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                    'Reviews Only will only review, siege, collect, clear etc. according to settings',
                     'Never - disables attacking monsters'],
                 stunList = ['Immediately', '5', '4', '3', '2', '1', 'Never'],
                 stunInst = [

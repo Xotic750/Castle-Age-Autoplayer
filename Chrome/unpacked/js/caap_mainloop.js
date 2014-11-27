@@ -270,7 +270,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else if (window.hasOwnProperty("history") && window.history.hasOwnProperty("go")) {
                     window.history.go(-1);
                 } else {
-                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+//                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/";
                 }
             }, 60000);
 
@@ -613,15 +614,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var reloadMin = config.getItem('ReloadFrequency', 8);
 
-            reloadMin = $u.isNumber(reloadMin) ? Math.max(reloadMin, 5) : 5;
+            reloadMin = $u.isNumber(reloadMin) ? Math.max(reloadMin, 2) : 2;
+			if (state.getItem('caapPause', 'none') == 'none') {
+				if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40
+						|| (caap.hyper && schedule.since("hyperTimer", reloadMin * 60))) {
+					con.log(1, 'Reloading if not paused after inactivity');
+					session.setItem("flagReload", true);
+				} else {
+					con.log(2, 'Checked for reload, but not necessary', schedule.since("clickedOnSomething", 300), session.getItem("pageLoadCounter", 0) > 40, caap.hyper, schedule.since("hyperTimer", reloadMin * 60));
+				}
+			}
             window.setTimeout(function () {
-                if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40) {
-                    con.log(1, 'Reloading if not paused after inactivity');
-                    session.setItem("flagReload", true);
-                }
-
                 caap.reloadOccasionally();
-            }, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
+            }, reloadMin * 60000 * (1 + Math.random()));
 
             return true;
         } catch (err) {

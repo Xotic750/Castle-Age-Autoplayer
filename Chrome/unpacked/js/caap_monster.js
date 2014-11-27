@@ -135,7 +135,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR = monster.getItem(md5);
 					mR.link = link;
 					mR.lpage = lpage;
-					mR.conditions = conditions;
+					if (publicList) {
+						mR.conditions = conditions;
+					}
 
                     mR.name = mR.name || $j("div[style*='20px']", monsterRow.eq(it)).text().trim() + ' ' + monsterName;
                     mR.md5 = md5;
@@ -540,12 +542,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.monsters = function () {
         try {
+			var whenMonster = config.getItem('WhenMonster', 'Never');
 
-		if (config.getItem('WhenMonster', 'Never') === 'Never') {
-                caap.setDivContent('monster_mess', 'Monster off');
-                return false;
-            }
-			
+			if (whenMonster === 'Never' || whenMonster == 'Review Only') {
+				caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
+				return false;
+			}
+				
 			monster.select(false);
 			
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
@@ -1845,11 +1848,16 @@ id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='aj
 						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
 						if (tempDiv.length) {
 							cM.siegeLevel = tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1];
-							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+							//siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s') ? 0 : monster.parseCondition("s", cM.conditions);
+
+							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s:') ? 0
+								: !cM.conditions.match(':fs:') ? monster.parseCondition("s", cM.conditions)
+								: caap.stats.stamina.max == caap.stats.stamina.num ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.phase > 1 && caap.hasImage('siege_btn.gif') && cM.damage > 0;
-							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'));
+							cM.doSiege = cM.siegeLevel <= siegeLimit && caap.hasImage('siege_btn.gif') && cM.damage > 0 
+								&& (cM.phase > 1 || (cM.conditions && cM.conditions.match('fs')));
+							con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
 							
 						} else {
 							cM.doSiege = false;
