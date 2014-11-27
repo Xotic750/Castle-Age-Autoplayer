@@ -1863,6 +1863,33 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             cta_img: ['cta_cronus_ice.gif'],
             bodyparts : 3,
             partOrder : [3,2,1]
+        },
+        'Succubus Of Nightmares': {
+            alpha: true,
+            duration: 72,
+            hp: 1000000000,
+            ach: 12000000,
+            siege: 10,
+            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+            siegeDam: [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
+            siege_img: [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small',
+                '/graphics/skaar_siege_small'],
+            fort: true,
+            staUse: 5,
+            staLvl: [0, 100, 200, 500],
+            staMax : [10, 20, 50, 100, 200],
+            nrgMax : [20, 40, 100, 200, 200],
+            defense_img: 'nm_green.jpg',
+            levels: [1, 50, 100, 150],
+            join: [30, 30, 30, 45],
+            mClass: 'Epic Boss',
+            mpool: 3,
+            newbg_img: ['newmonsterbanner_succubus_nightmare.jpg'],
+            list_img: ['monster_succubus_nightmare_list.jpg'],
+            cta_img: ['cta_succubus_nightmare.gif']
         }
     };
 
