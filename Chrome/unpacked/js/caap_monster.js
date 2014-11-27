@@ -688,7 +688,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // Check if on engage monster page
-            if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header'],div[style*='festival_monsters_top_']"))) {
+            if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='newmonsterbanner'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header'],div[style*='festival_monsters_top_']"))) {
                 singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
 
                 // if the monster has parts, run through them in reverse order until we find one with health and hit it.
@@ -1185,7 +1185,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_']", slice);
+            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='newmonsterbanner'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_']", slice);
 
             monster.lastClick = null;
 
@@ -1264,7 +1264,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                 con.log(5, "fMonstStyle", fMonstStyle);
                 if (!$u.hasContent(fMonstStyle)) {
-                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|monster_\S+\_title.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg|boss_header_\S+\.jpg)/);
+                    nMonstStyle = monsterDiv.attr("style").regex(/(monster_header_\S+\.jpg|newmonsterbanner_\S+\.jpg|monster_\S+\_title.jpg|monster_\S+\_header.jpg|boss_\S+\_header.jpg|boss_header_\S+\.jpg)/);
                 }
 
                 if ($u.hasContent(fMonstStyle) || $u.hasContent(nMonstStyle)) {
