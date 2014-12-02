@@ -2529,13 +2529,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'battle_mess': "",
         'conquest_mess': "",
         'monster_mess': "",
+        '10v10_mess': "",
+        'festival_mess': "",
         'guild_monster_mess': "",
         'guild_battle_mess': "",
-        'festival_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
         'demipoint_mess': "",
         'gifting_mess': "",
+        'army_mess': "",
         'feats_mess': "",
         'demibless_mess': "",
         'archive_mess': "",
@@ -3825,7 +3827,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 case "festivalTower":
-                    monster.flagFullReview();
+                    monster.fullReview();
 
                     break;
                 default:
@@ -4064,7 +4066,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (/AttrValue+/.test(idName)) {
                 state.setItem("statsMatch", true);
             } else if (/MaxToFortify/.test(idName)) {
-                monster.flagFullReview();
+                monster.fullReview();
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
             } else if (idName === 'DebugLevel') {
@@ -4271,7 +4273,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     break;
                 case "orderbattle_monster":
                 case "orderraid":
-                    monster.flagFullReview();
+                    monster.fullReview();
                     break;
                 case "BattleTargets":
                     state.setItem('BattleChainId', 0);
@@ -5121,6 +5123,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults = function () {
         try {
+		
+			// TESTING AREA
+			//var addCode = '123456 '.regex(/.*?(?:^|[^\da-f])([\da-f]{6})(?:$|[^\da-f])/i);
+			//con.log(2, 'Army add', addCode);
+			//con.log(2, 'Army add2', $j("#app_body b").text());
+
+			
             con.log(4, 'caap.checkResults');
             // Check page to see if we should go to a page specific check function
             // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
@@ -5165,7 +5174,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //- reverting back to previous d27 behaviour -- magowiz
 
             if ((monster.records.length === 0) && ((AFrecentAction === true))) {
-                monster.flagFullReview();
+                monster.fullReview();
             }
 
             if (general.quickSwitch) {
@@ -5239,12 +5248,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.setNextLevelMessage = function ()
     {
         if (config.getItem('NextLevelInDays', false)
-        && (config.getItem('NextLevelThreshold', 5) * 24) < caap.stats.indicators.hrtl)
-        {
+        && (config.getItem('NextLevelThreshold', 5) * 24) < caap.stats.indicators.hrtl) {
             caap.setDivContent('level_mess', 'Expected next level: +' + (Math.floor(caap.stats.indicators.hrtl / 24 * 10) / 10) + ' days');
-        }
-        else
-        {
+        } else {
             caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats.indicators.enl, caap.timeStr(true)));
         }
         return;
@@ -9207,6 +9213,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (!done && configSet && guild_battle.work(guild_battle.gf[name])) {
 					done = true;
 				}
+
 				//con.log(2, 'GUILDBATTLE CHECK', config.getItem(guild_battle.gf[name].abbrev + 'whenTokens') != 'Never', 					config.getItem(guild_battle.gf[name].abbrev + ' ClassGeneral', 'Use Current') != 'Use Current',					config.getItem(guild_battle.gf[name].abbrev + 'collect', false));
 			});
 			return done;
@@ -9311,6 +9318,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkArmy = function () {
         try {
+		
+			if (army.add()) {
+				return true;
+			}
+			
             if (!config.getItem("EnableArmy", true) || !schedule.check("army_member")) {
                 return false;
             }

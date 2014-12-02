@@ -18,7 +18,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return true;
         }
 
-        caap.autoFillArmy();
         caap.updateDashboard();
         session.setItem('ReleaseControl', true);
         return true;

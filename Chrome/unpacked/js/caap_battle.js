@@ -247,7 +247,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             case 'raid':
                 if (!schedule.check("NoTargetDelay")) {
                     rejoinSecs = ((schedule.getItem("NoTargetDelay").next - Date.now()) / 1000).dp() + ' secs';
-                    con.log(2, 'Rejoining the raid in', rejoinSecs);
+                    //con.log(4, 'Rejoining the raid in', rejoinSecs);
                     caap.setDivContent('battle_mess', 'Joining the Raid in ' + rejoinSecs);
                     button = null;
                     return false;
@@ -343,7 +343,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             case 'freshmeat':
                 if (!schedule.check("NoTargetDelay")) {
                     rejoinSecs = ((schedule.getItem("NoTargetDelay").next - Date.now()) / 1000).dp() + ' secs';
-                    con.log(2, 'Rejoining battles in', rejoinSecs);
+                    //con.log(2, 'Rejoining battles in', rejoinSecs);
                     caap.setDivContent('battle_mess', 'Joining battles in ' + rejoinSecs);
                     button = null;
                     return false;

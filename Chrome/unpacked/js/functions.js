@@ -148,8 +148,8 @@ function caap_clickRelogin() {
 			logonArray.push(logonObj);
 			if (logonObj != testObj) {
 				hyper.setItem('logons',logonArray);
-				$j("input[name='player_email'").val(logonObj.player_email);
-				$j("input[name='player_password'").val(logonObj.password);
+				$j("input[name='player_email']").val(logonObj.player_email);
+				$j("input[name='player_password']").val(logonObj.password);
 				//con.log(1, "hyper", hyper, logonArray, logonObj.player_email, logonObj.password);
 
 				caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));

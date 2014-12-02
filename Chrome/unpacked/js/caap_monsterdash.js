@@ -1108,11 +1108,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.refreshMonstersListener = function () {
-        monster.flagFullReview('Monster');
+        monster.fullReview('Monster');
     };
 
     caap.refreshFeedListener = function () {
-        monster.flagFullReview('Feed');
+        monster.fullReview('Feed');
     };
 
     caap.refreshGeneralsListener = function () {

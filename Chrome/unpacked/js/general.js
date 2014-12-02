@@ -121,7 +121,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(5, "general.load", general.records);
             return true;
         } catch (err) {
-            con.error("ERROR in general.load: " + err);
+            con.error("ERROR in general.load: " + err.stack);
             return false;
         }
     };
@@ -149,7 +149,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.save: " + err);
+            con.error("ERROR in general.save: " + err.stack);
             return false;
         }
     };
@@ -227,7 +227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return false;
         } catch (err) {
-            con.error("ERROR in general.timedLoadout: " + err);
+            con.error("ERROR in general.timedLoadout: " + err.stack);
             return false;
         }
     };
@@ -252,7 +252,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
 
         } catch (err) {
-            con.error("ERROR in general.getRecord: " + err);
+            con.error("ERROR in general.getRecord: " + err.stack);
             return false;
         }
     };
@@ -271,7 +271,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return generalRecord[stat];
         } catch (err) {
-            con.error("ERROR in general.GetStat: " + err);
+            con.error("ERROR in general.GetStat: " + err.stack);
             return false;
         }
     };
@@ -290,7 +290,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return names;
         } catch (err) {
-            con.error("ERROR in general.GetLevelUpNames: " + err);
+            con.error("ERROR in general.GetLevelUpNames: " + err.stack);
             return false;
         }
     };
@@ -309,7 +309,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return names.sort();
         } catch (err) {
-            con.error("ERROR in general.getCoolDownNames: " + err);
+            con.error("ERROR in general.getCoolDownNames: " + err.stack);
             return false;
         }
     };
@@ -321,7 +321,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return name.replace('Loadout ','');
         } catch (err) {
-            con.error("ERROR in general.isLoadout: " + err);
+            con.error("ERROR in general.isLoadout: " + err.stack);
             return false;
         }
     }
@@ -383,7 +383,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.BuildLists: " + err);
+            con.error("ERROR in general.BuildLists: " + err.stack);
             return false;
         }
     };
@@ -413,7 +413,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
             return true;
         } catch (err) {
-            con.error("ERROR in general.assignStats: " + err);
+            con.error("ERROR in general.assignStats: " + err.stack);
             return false;
         }
     }
@@ -488,7 +488,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return generalRecord;
         } catch (err) {
-            con.error("ERROR in general.GetEquippedStats: " + err);
+            con.error("ERROR in general.GetEquippedStats: " + err.stack);
             return false;
         }
     };
@@ -534,7 +534,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return false;
         } catch (err) {
-            con.error("ERROR in general.GetLoadouts: " + err);
+            con.error("ERROR in general.GetLoadouts: " + err.stack);
             return false;
         }
     };
@@ -556,7 +556,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             generalBox = null;
         } catch (err) {
-            con.error("ERROR in general.shrink: " + err);
+            con.error("ERROR in general.shrink: " + err.stack);
         }
     };
 
@@ -574,7 +574,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return owned;
         } catch (err) {
-            con.error("ERROR in general.owned: " + err);
+            con.error("ERROR in general.owned: " + err.stack);
             return undefined;
         }
     };
@@ -731,7 +731,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             generalsDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in general.checkResults_onGenerals: " + err);
+            con.error("ERROR in general.checkResults_onGenerals: " + err.stack);
             return false;
         }
     };
@@ -760,7 +760,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return true;
         } catch (err) {
-            con.error("ERROR in general.UpdateDropDowns: " + err);
+            con.error("ERROR in general.UpdateDropDowns: " + err.stack);
             return false;
         }
     };
@@ -772,7 +772,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             general.UpdateDropDowns();
             return true;
         } catch (err) {
-            con.error("ERROR in general.Clear: " + err);
+            con.error("ERROR in general.Clear: " + err.stack);
             return false;
         }
     };
@@ -804,7 +804,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return use;
         } catch (err) {
-            con.error("ERROR in general.LevelUpCheck: " + err);
+            con.error("ERROR in general.LevelUpCheck: " + err.stack);
             return undefined;
         }
     };
@@ -821,7 +821,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return '';
         } catch (err) {
-            con.error("ERROR in general.getCoolDownType: " + err);
+            con.error("ERROR in general.getCoolDownType: " + err.stack);
             return undefined;
         }
     };
@@ -838,7 +838,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return generalName;
         } catch (err) {
-            con.error("ERROR in general.GetCurrentGeneral: " + err);
+            con.error("ERROR in general.GetCurrentGeneral: " + err.stack);
             return 'Use Current';
         }
     };
@@ -858,7 +858,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //con.log(2, "Current Loadout:", loadoutName);
             return "Loadout " + loadoutName;
         } catch (err) {
-            con.error("ERROR in general.GetCurrentLoadout: " + err);
+            con.error("ERROR in general.GetCurrentLoadout: " + err.stack);
             return 'Use Current';
         }
     };
@@ -921,7 +921,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return general.selectSpecific(targetGeneral);
         } catch (err) {
-            con.error("ERROR in general.Select: " + err);
+            con.error("ERROR in general.Select: " + err.stack);
             return false;
         }
     };
@@ -991,7 +991,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in general.selectSpecific: " + err);
+            con.error("ERROR in general.selectSpecific: " + err.stack);
             return false;
         }
     };
@@ -1055,7 +1055,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.stats.lastGeneral = false;
 
         } catch (err) {
-            con.error("ERROR in general.GetAllStats: " + err);
+            con.error("ERROR in general.GetAllStats: " + err.stack);
             return false;
         }
     };
@@ -1128,7 +1128,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in general.menu: " + err);
+            con.error("ERROR in general.menu: " + err.stack);
             return '';
         }
     };
@@ -1287,7 +1287,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.dashboard: " + err);
+            con.error("ERROR in general.dashboard: " + err.stack);
             return false;
         }
     };

@@ -31,6 +31,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'simtis' : false,
 			'firstScanDone' : false,
 			'burn' : false,
+			't' : false,
 			'paths' : [],
 			'onTopTime' : 0,
 			'me' : {},
@@ -308,7 +309,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			//con.log(2,'setrPage',path, entry, value, fR.paths,rPage);
 			return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.setrPage: " + err);
+            con.error("ERROR in guild_battle.setrPage: " + err.stack);
             return false;
         }
     };
@@ -333,7 +334,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			return deleted;
 
         } catch (err) {
-            con.error("ERROR in guild_battle.deleterPage: " + err);
+            con.error("ERROR in guild_battle.deleterPage: " + err.stack);
             return false;
         }
     };
@@ -349,7 +350,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			return gf.basePath + ',clickimg:' + type + '_guild_off.gif,jq:#' + type + '_guild_tab,clickjq:#' + type + '_new_guild_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
         } catch (err) {
-            con.error("ERROR in guild_battle.makePath: " + err);
+            con.error("ERROR in guild_battle.makePath: " + err.stack);
             return false;
         }
     };
@@ -371,7 +372,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			});
         } catch (err) {
-            con.error("ERROR in guild_battle.setReview: " + err);
+            con.error("ERROR in guild_battle.setReview: " + err.stack);
             return false;
         }
     };
@@ -392,7 +393,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.log(3, "guild_battle.load", guild_battle.records);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.load: " + err);
+            con.error("ERROR in guild_battle.load: " + err.stack);
             return false;
         }
     };
@@ -417,7 +418,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.save: " + err);
+            con.error("ERROR in guild_battle.save: " + err.stack);
             return false;
         }
     };
@@ -443,7 +444,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.log(5, "New guild_battle record #"+gf.index, newRecord.data, guild_battle.records);
             return newRecord.data;
         } catch (err) {
-            con.error("ERROR in guild_battle.getItem: " + err);
+            con.error("ERROR in guild_battle.getItem: " + err.stack);
             return false;
         }
     };
@@ -467,7 +468,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             guild_battle.save();
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.setItem: " + err);
+            con.error("ERROR in guild_battle.setItem: " + err.stack);
             return false;
         }
     };
@@ -500,7 +501,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.warn("Unable to delete guild_battle record", slot, guild_battle.records);
             return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.deleteItem: " + err);
+            con.error("ERROR in guild_battle.deleteItem: " + err.stack);
             return false;
         }
     };
@@ -516,7 +517,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             session.setItem("10v10DashUpdate", true);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.clear: " + err);
+            con.error("ERROR in guild_battle.clear: " + err.stack);
             return false;
         }
     };
@@ -564,7 +565,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				
 			} else if (gf.name == '10v10') {
 				text=infoDiv.text().trim(); //tenvtenremaining
-				con.log(2, gf.name + ' TOP', text, $j('#app_body #tenvtenremaining').attr('value'));
+				//con.log(2, gf.name + ' TOP', text, $j('#app_body #tenvtenremaining').attr('value'));
 			} else { // GBorFest == guild_battle
 				text = $u.setContent(infoDiv.text().trim().innerTrim(), '');
 			}
@@ -627,7 +628,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			return true;
 
 			} catch (err) {
-				con.error("ERROR in guild_battle.onTop: " + err);
+				con.error("ERROR in guild_battle.onTop: " + err.stack);
             return false;
         }
     };
@@ -659,7 +660,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			return t;
         } catch (err) {
-            con.error("ERROR in guild_battle.team: " + err);
+            con.error("ERROR in guild_battle.team: " + err.stack);
             return false;
         }
     };
@@ -735,8 +736,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			myStatsTxt = $u.setContent(bannerDiv.text().trim().innerTrim(), '');
 			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			notMyBattle = myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/);
-			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
-			//con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
+			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/i) || myStatsTxt.regex(/your team .* was (defeated|victorious)/i);
+			con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
 			if (notMyBattle) {
 				return true;
 			}
@@ -1140,7 +1141,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.onBattle: " + err);
+            con.error("ERROR in guild_battle.onBattle: " + err.stack);
             return false;
         }
     };
@@ -1160,7 +1161,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
             return guild_battle.records[it];
         } catch (err) {
-            con.error("ERROR in guild_battle.getReview: " + err);
+            con.error("ERROR in guild_battle.getReview: " + err.stack);
             return undefined;
         }
     };
@@ -1187,6 +1188,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				wait = false,
 				stun = false,
 				burnTokens = false,
+				targetTokens = 0,
+				nextReview = Date.now() + 24 * 3600 * 1000,
 				doAttack = false,
 				teams = [],
 				pgO = {},
@@ -1208,6 +1211,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			if (caap.stats.priorityGeneral != 'Use Current') {
 				con.log(2,gf.abbrev + ' PREBATTLE general',caap.stats.priorityGeneral);
+				caap.setDivContent(gf.mess, gf.abbrev + ': Setting Class General');
 				if (general.selectSpecific(caap.stats.priorityGeneral)) {
 					return true;
 				}
@@ -1229,29 +1233,34 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
 			wait = stun == 'stunned' || fR.me.poly || (fR.me.confuse && fR.your.attacks.indexOf('cleanse') < 0 && fR.your.attacks.indexOf('dispel') < 0);
 			burnTokens =  priority ? true : wait ? false : fR.burn;
-			doAttack = fR.state == 'Active' && fR.tokens > (burnTokens ? 0 : Math.max(wait ? (caap.hyper ? 5 : 7) : 0, tokenMax));
+			targetTokens = burnTokens ? 0 : Math.max(wait ? (caap.hyper ? 5 : 7) : 0, tokenMax);
+			doAttack = fR.state == 'Active' && fR.tokens >= targetTokens;
 			
 			//con.log(2, 'GUILD ' + gf.name, fR, $u.makeTime(fR.onTopTime, caap.timeStr(true)), $u.makeTime(fR.lastBattleTime, caap.timeStr(true)));
 			
-            for (i = 0; i < paths.length; i++) {
-				pgO = paths[i];
-				//con.log(2, 'PATH REVIEW', gf.name, pgO.path, fR.paths);
-                if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
-					con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-					if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
-						return true;
-					}
-					result = caap.navigate2(pgO.path);
-					if (result == 'fail') {
-						guild_battle.deleterPage(fR, 'path', pgO.path);
-					} else if (result) {
-						return true;
-					} else {
-						con.log(2, 'Loading keep page to force page reload', pgO.path, result);
-						return caap.navigateTo('keep');
+			if (!fR.t) {
+				for (i = 0; i < paths.length; i++) {
+					pgO = paths[i];
+					//con.log(2, 'PATH REVIEW', gf.name, pgO.path, fR.paths);
+					if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
+						con.log(2,'Reviewing battle page',pgO.path, fR.paths);
+						if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
+							return true;
+						}
+						caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 Reviewing towers');
+						result = caap.navigate2(pgO.path);
+						if (result == 'fail') {
+							guild_battle.deleterPage(fR, 'path', pgO.path);
+						} else if (result) {
+							return true;
+						} else {
+							con.log(2, 'Loading keep page to force page reload', pgO.path, result);
+							return caap.navigateTo('keep');
+						}
+						nextReview = Math.min(nextReview, pgO.review);
 					}
 				}
-            }
+			}
 			//con.log(2,'GUILD REVIEW PAGES', gf.name, paths);
 			
 			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
@@ -1271,20 +1280,31 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					});
 				
 					if (t.score === 0) {
+						caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 No valid target');
 						con.log(2, gf.name + ': No valid target to attack', fR);
 						return false;
 					}
 					
-					caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
-					con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
+					if (fR.t !== t) {
+						caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
+						fR.t = t;
+					}
+					con.log(2,  'Tokens ' + fR.tokens + '/10 ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
 //					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
 					button = 'special_action';
 					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 					if (result == 'fail') {
 						con.warn('Unable to complete path. Reloading page.', general.GetCurrentGeneral(), general.GetCurrentLoadout());
+						caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 failed to ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check general has guild power');
 						return caap.navigate2(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
+					} else if (result == 'done') {
+						fR.t = false;
 					}
 					return result;
+				} else if (fR.state == 'Active') {
+					caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 Waiting for ' + targetTokens);
+				} else {
+					caap.setDivContent(gf.mess, gf.abbrev + ': No battle, next check: ' + $u.makeTime(nextReview + 5 * 60 * 1000, caap.timeStr(true)));
 				}
 			}
 				
@@ -1392,7 +1412,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in guild_battle.menu: " + err);
+            con.error("ERROR in guild_battle.menu: " + err.stack);
             return '';
         }
     };
@@ -1627,7 +1647,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.dashboard: " + err);
+            con.error("ERROR in guild_battle.dashboard: " + err.stack);
             return false;
         }
     };

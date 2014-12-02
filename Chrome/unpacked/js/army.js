@@ -295,6 +295,65 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+   army.add = function () {
+        try {
+			var armyCodes = config.getItem('army_codes', ''),
+				addCode = armyCodes.regex(/\b([\da-f]{6})\b/i),
+				armyCodesLeft = $u.setContent(armyCodes.match(/\b[\da-f]{6}\b/gi), []).length,
+				invites = 0,
+				inviteButton;
+			
+			if (!schedule.check('lastArmyAdd')) {
+				caap.setDivContent('army_mess', 'Army Add: ' + armyCodesLeft + ' codes left. No invites, check again: ' + $u.setContent(caap.displayTime('lastArmyAdd'), "Unknown"));
+				return false;
+			}
+
+			if (!addCode) {
+				//caap.setDivContent('army_mess', 'Army Add: No army codes to add');
+				return false;
+			}
+
+			if (caap.navigateTo('army')) {
+				caap.setDivContent('army_mess', 'Army Add: ' + armyCodesLeft + ' codes left. Checking for invites');
+				return true;
+			}
+
+			invites = $j("#app_body b").text();
+			if (!invites || !$u.isNumber(invites.parseInt()) || invites.parseInt() == 0) {
+				con.log(1, 'Army Add: No invites available', invites);
+				schedule.setItem('lastArmyAdd', 3 * 3600);
+				return false;
+			}
+				
+			if (!$j("input[name='army_code']")) {
+				con.warn('Army Add: no text field to enter army code', $j("input[name='army_code']").val(), addCode);
+				schedule.setItem('lastArmyAdd', 300);
+				return false;
+			} else if ($j("input[name='army_code']").val() != addCode) {
+				$j("input[name='army_code']").val(addCode);
+				return true;
+			}
+			
+			inviteButton = caap.checkForImage('request_pa_army.gif');
+			if (!inviteButton) {
+				con.warn('Army Add: no invite button');
+				schedule.setItem('lastArmyAdd', 300);
+				return false;
+			}
+			caap.click(inviteButton);
+			armyCodes = armyCodes.replace(new RegExp('\s*' + addCode + '\s*'), '').trim();
+			con.log(1, 'Army Add: Invited ' + addCode + ', ' + invites + ' invites, and ' + armyCodesLeft + ' codes left',armyCodes);
+			config.setItem('army_codes',armyCodes);
+			$j('#caap_army_codes').val(armyCodes); 
+			caap.setDivContent('army_mess', 'Army Add: ' + (armyCodesLeft - 1) + ' codes and ' + $u.setContent($j("#app_body b").text(), 0) + ' invites left.');
+			return true;
+        } catch (err) {
+            con.error("ERROR in army.add: " + err);
+            return false;
+        }
+    };
+	
+	
     army.run = function () {
         function onError(XMLHttpRequest, textStatus, errorThrown) {
             con.error("army.run", [XMLHttpRequest, textStatus, errorThrown]);
@@ -481,10 +540,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
                 armyScanInstructions = "Scan the army pages every X days.",
+				armyCodeInstructions = 'A list of army codes, separated by commas or any non-alphabetic characters. As army codes are invited, they will automatically be deleted from the list.',
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
-            htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', false, armyInstructions);
+            htmlCode += caap.makeCheckTR('Enable Army Scan', 'EnableArmy', false, armyInstructions);
             htmlCode += caap.startCheckHide('EnableArmy');
             htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxArmy', true, "Check Army using AJAX rather than page navigation.");
             htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
@@ -500,10 +560,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
             htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
             htmlCode += caap.endCheckHide('ArmyIndicators');
-            htmlCode += caap.startTR();
-            htmlCode += caap.makeTD("<input type='button' id='caap_FillArmy' value='Fill Army (FB only)' style='padding: 0; font-size: 10px; height: 18px' />");
-            htmlCode += caap.endTR;
             htmlCode += caap.endCheckHide('EnableArmy');
+            htmlCode += caap.makeTD("Add these army codes to my army");
+            htmlCode += caap.makeTextBox('army_codes', armyCodeInstructions, '', '');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {

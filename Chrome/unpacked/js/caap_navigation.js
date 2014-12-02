@@ -311,7 +311,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.warn('Navigate2: Unable to Navigate2', step, path, s);
             return false;
         } catch (err) {
-            con.error("ERROR in caap.navigate2: " + err, path, step, s);
+            con.error("ERROR in caap.navigate2: " + err.stack, path, step, s);
             return undefined;
         }
     };

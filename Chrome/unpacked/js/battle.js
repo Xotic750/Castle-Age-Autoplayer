@@ -119,7 +119,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "battle.load", battle.records);
             return true;
         } catch (err) {
-            con.error("ERROR in battle.load: " + err);
+            con.error("ERROR in battle.load: " + err.stack);
             return false;
         }
     };
@@ -144,7 +144,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in battle.save: " + err);
+            con.error("ERROR in battle.save: " + err.stack);
             return false;
         }
     };
@@ -156,7 +156,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             session.setItem("BattleDashUpdate", true);
             return true;
         } catch (err) {
-            con.error("ERROR in battle.clear: " + err);
+            con.error("ERROR in battle.clear: " + err.stack);
             return false;
         }
     };
@@ -191,7 +191,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "New battle record", userId, newRecord.data);
             return newRecord.data;
         } catch (err) {
-            con.error("ERROR in battle.getItem: " + err);
+            con.error("ERROR in battle.getItem: " + err.stack);
             return false;
         }
     };
@@ -263,7 +263,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.warn("Unable to delete battle record", userId, battle.records);
             return false;
         } catch (err) {
-            con.error("ERROR in battle.deleteItem: " + err);
+            con.error("ERROR in battle.deleteItem: " + err.stack);
             return false;
         }
     };
@@ -292,7 +292,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             hash = (record.userId.toString().SHA1() + record.nameStr).SHA1();
             return (hashes.hasIndexOf(hash));
         } catch (err) {
-            con.error("ERROR in battle.hashCheck: " + err);
+            con.error("ERROR in battle.hashCheck: " + err.stack);
             return false;
         }
     };
@@ -551,7 +551,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             tempDiv = null;
             return result;
         } catch (err) {
-            con.error("ERROR in battle.getResult: " + err);
+            con.error("ERROR in battle.getResult: " + err.stack);
             return false;
         }
     };
@@ -599,7 +599,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return dead;
         } catch (err) {
-            con.error("ERROR in battle.deadCheck: " + err);
+            con.error("ERROR in battle.deadCheck: " + err.stack);
             return undefined;
         }
     };
@@ -687,7 +687,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             battle.setItem(battleRecord);
             return true;
         } catch (err) {
-            con.error("ERROR in battle.checkResults: " + err);
+            con.error("ERROR in battle.checkResults: " + err.stack);
             return false;
         }
     };
@@ -761,7 +761,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return targets[battleUpto];
         } catch (err) {
-            con.error("ERROR in battle.getTarget: " + err);
+            con.error("ERROR in battle.getTarget: " + err.stack);
             return false;
         }
     };
@@ -774,7 +774,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.click(battleButton);
             return true;
         } catch (err) {
-            con.error("ERROR in battle.click: " + err);
+            con.error("ERROR in battle.click: " + err.stack);
             return false;
         }
     };
@@ -817,7 +817,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return demiPointsDone;
         } catch (err) {
-            con.error("ERROR in battle.selectedDemisDone: " + err);
+            con.error("ERROR in battle.selectedDemisDone: " + err.stack);
             return undefined;
         }
     };
@@ -1004,18 +1004,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
 
-                    tNum = $u.setContent($j("img[src*='symbol_']", tr).attr("src"), '').regex(/(\d+)\.jpg/i);
-                    if ($u.hasContent(tNum)) {
-                        tempRecord.data.deityNum = tNum - 1;
-                        if (tempRecord.data.deityNum >= 0 && tempRecord.data.deityNum <= 4) {
-                            tempRecord.data.deityStr = caap.demiTable[tempRecord.data.deityNum];
-                        } else {
-                            con.warn("Demi number is not between 0 and 4", tempRecord.data.deityNum);
-                            tempRecord.data.deityNum = 0;
-                            tempRecord.data.deityStr = caap.demiTable[tempRecord.data.deityNum];
-                        }
+                    tempTxt = $u.setContent($j("img[src*='iphone_']", tr).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
+                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.demiTableStat[tempTxt])) {
+                        tempRecord.data.deityNum = caap.demiTableStat[tempTxt];
+						tempRecord.data.deityStr = caap.demiTable[tempRecord.data.deityNum];
                     } else {
-                        con.warn("Unable to match demi number in tempTxt");
+                        con.warn("Unable to match demi number in tempTxt", tempTxt);
                     }
 
                     // If looking for demi points, and already full, continue
@@ -1470,7 +1464,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             engageButton = null;
             return true;
         } catch (err) {
-            con.error("ERROR in battle.freshmeat: " + err);
+            con.error("ERROR in battle.freshmeat: " + err.stack);
             return false;
         }
     };
@@ -1575,7 +1569,7 @@ config.setItem('raidDoSiege', false)
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in battle.menu: " + err);
+            con.error("ERROR in battle.menu: " + err.stack);
             return '';
         }
     };
@@ -1770,7 +1764,7 @@ config.setItem('raidDoSiege', false)
 
             return true;
         } catch (err) {
-            con.error("ERROR in battle.dashboard: " + err);
+            con.error("ERROR in battle.dashboard: " + err.stack);
             return false;
         }
     };
