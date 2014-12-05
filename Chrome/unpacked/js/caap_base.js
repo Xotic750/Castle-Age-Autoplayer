@@ -2614,7 +2614,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
             }
 
-            /*if (devVersion === '0') {
+            if (devVersion === '0') {
                 htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
                 if (caap.newVersionAvailable) {
                     htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>");
@@ -2628,7 +2628,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                         state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version') + "!</a>");
             }
 
-            caap.setDivContent('Version', htmlCode, caapDiv);*/
+            caap.setDivContent('Version', htmlCode, caapDiv);
 
             banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
@@ -2674,7 +2674,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += arena.menu();
             htmlCode += town.menu();
             htmlCode += caap.addOtherOptionsMenu();
-            htmlCode += caap.addFooterMenu();
+            //htmlCode += caap.addFooterMenu();
             caap.setDivContent('control', htmlCode, caapDiv);
             $j("input[type='button']", caapDiv).button();
             caap.makeSliderListener("CustStyleOpacityLight", 0.5, 1, 0.01, 1, true, caapDiv);
@@ -3217,10 +3217,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.addFooterMenu = function () {
         try {
             var htmlCode = '';
-            /*htmlCode += caap.startTR();
+            htmlCode += caap.startTR();
             htmlCode += caap.makeTD("Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "width: 90%, display: inline-block;");
             htmlCode += caap.makeTD("<input type='checkbox' id='unlockMenu' />", false, true, "width: 10%, display: inline-block;");
-            htmlCode += caap.endTR;*/
+            htmlCode += caap.endTR;
 
             if (devVersion === '0') {
                 htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://caaplayer.freeforums.org/' target='_blank'>CAAP Forum</a>");
