@@ -33,7 +33,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Idle',
         'Monster',
         'Fortify',
-        'GuildMonster',
+        'Guild Monster',
         'Invade',
         'Duel',
         'War',
@@ -252,7 +252,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
 
         } catch (err) {
-            con.error("ERROR in general.getRecord: " + err.stack);
+            con.error("ERROR in general.getRecord: " + err.stack, err);
             return false;
         }
     };
@@ -316,7 +316,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.isLoadout = function (name) {
         try {
-            if (name.indexOf('Loadout ') < 0) {
+            if (!$u.isString(name) || name.indexOf('Loadout ') < 0) {
                 return false;
             }
             return name.replace('Loadout ','');
@@ -359,7 +359,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             generalList = ['Under Level'].concat(fullList);
 
             general.menuList.forEach(function(item) {
-                usedGen = config.getItem(item + 'General');
+                usedGen = config.getItem(item + 'General', 'Use Current');
                 if (['Use Current', 'Under Level', ''].indexOf(usedGen) == -1 && general.usedGenerals.indexOf(usedGen) == -1) {
                     general.usedGenerals.push(usedGen);
 					uGR = general.getRecord(usedGen);
@@ -748,8 +748,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.changeDropDownList(general.menuList[i] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), config.getItem(general.menuList[i] + 'General', 'Use Current'));
                 coolDown = general.getCoolDownType(general.menuList[i]);
                 if (coolDown) {
-                    caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
-                }
+					caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
+				}
             }
 
             if (coolDown && general.coolDownList.length > 1) {
@@ -760,7 +760,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return true;
         } catch (err) {
-            con.error("ERROR in general.UpdateDropDowns: " + err.stack);
+            con.error("ERROR in general.UpdateDropDowns: " + err.stack, err);
             return false;
         }
     };
@@ -934,7 +934,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 lRecord = {},
                 currentGeneral = general.GetCurrentGeneral(),
                 currentLoadout = general.GetCurrentLoadout(),
+				cgR = {}, // current general record
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
+			
+			if (!general.getRecord(currentGeneral,false)) {
+				con.warn('Unable to find current general record. Going to generals page to get all general records.');
+				if (caap.navigateTo('generals')) {
+					return true;
+				} else {
+					return caap.navigateTo('keep');
+				}
+			}
 
 			//con.log(2, "Select Specific " + targetGeneral);
             if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
@@ -1099,7 +1109,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);
             for (i = 0; i < general.menuList.length; i += 1) {
-                htmlCode += caap.makeDropDownTR(general.menuList[i], general.menuList[i] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR(general.menuList[i], general.menuList[i].replace(/ /g,'_') + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), '', '', 'Use Current', false, false, 62);
                 coolDown = general.getCoolDownType(general.menuList[i]);
                 htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
             }

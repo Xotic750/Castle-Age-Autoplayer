@@ -1194,49 +1194,44 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         });
     };
 
-    // this function appears to have some serious bugs and really needs to be reworked!
-    // it can try to click all 3 buttons, but the DOM could change after each click
+	conquest.categories = ['Conqueror','Guardian','Hunter','Engineer'];
+	
     conquest.collect = function() {
         try {
-            var button = caap.checkForImage("conq3_btn_collectpower_small.gif"),
-                button2 = caap.checkForImage("conq3_btn_collect.gif"),
-                buttonCrystal = caap.checkForImage("conq3_btn_pray.gif"),
-                landCapsules = $j("[style*='conq2_capsule']"),
-                timeLeft;
-
-                // this should now handle lands in progress because they have the attack button displayed while they're in collect before they produce resources
-            if (landCapsules.length == $j("[src*='conq2_btn_explore'],[src*='conq2_btn_attack']", landCapsules).length) {
-                con.log (1, "There are no lands to collect from");
-            } else {
-                if (config.getItem('doConquestCollect', false)) {
-                    if ($u.hasContent(button)) {
-                        caap.click(button);
-                    }
-
-                    if ($u.hasContent(button2)) {
-                        con.log(1, "button exists");
-                        caap.click(button2);
-                    }
-                }
-
-                if (schedule.check('collectConquestTimer') && $u.hasContent(buttonCrystal)) {
-                    caap.click(buttonCrystal);
-                }
-            }
-
-            timeLeft = $j("div[style*='conq3_mid_notop']")[0].children[0].children[0].children[2].children[0].innerHTML.match(/(\d+)/)[0];
-            schedule.setItem('collectConquestTimer', timeLeft * 60 * 60);
-            schedule.setItem('collectConquestCrystalTimer', timeLeft * 60 * 60);
-
-            button = null;
-            button2 = null;
-            buttonCrystal = null;
+            var check = conquest.categories.some( function(category) {
+				return config.getItem('When' + category, 'Never') !== 'Never';
+			});
+		
+			if (check && schedule.check('conquestCollectPage')) {
+				return caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
+			}
+			
+			
+			if (schedule.check('conquestFail')) {
+				check = conquest.categories.some( function(category) {
+					if (caap.stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
+						con.log(1, category + ' points are ' + caap.stats.conquest[category] + ', which is over ' 
+							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
+						check = caap.navigate2("guildv2_conquest_command,clickjq:input[name*='Report Collect!']");
+						if (!check || check != 'fail') {
+							schedule.setItem('conquestFail',3600);
+							con.warn('Unable to complete conquest points Collect, waiting an hour to try again');
+						} else if (check == 'done') {
+							conquest.categories.forEach( function(category) {
+								caap.stats.conquest[category] = 0;
+							});
+						}
+						return true;
+					}
+				});
+			}
+			return check;
         } catch (err) {
             con.error("ERROR in collect Conquest: " + err);
             return;
         }
     };
-
+	
     conquest.battle = function() {
         try {
             var slice = $j();

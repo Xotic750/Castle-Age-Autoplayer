@@ -554,7 +554,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var fightMode = '',
                 nodeNum = 0,
-                energyRequire = 10,
+                energyRequire = 0,
 				// In the interest of saving bits to be more environmentally friendly, currentMonster has been renamed cM
                 cM = {}, 
                 attackButton = null,
@@ -563,21 +563,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tacticsValue = 0,
                 useTactics = false,
                 attackMess = '',
-                pageUserCheck = 0,
                 it = 0,
                 len = 0,
-                buttonHref = '',
                 theGeneral = config.getItem('FortifyGeneral', 'Use Current'),
-                partsTargets,
-                partsTarget,
-                partsElem,
-                partsElem1,
-                partsElem2,
-                orderPartsArray,
-                max_index = -1,
-                max_value,
-                i = 0,
-                ii = 0, 
 				temp,
 				result = false;
 
@@ -585,15 +573,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (state.getItem('targetFromfortify', '').length) {
 				cM = monster.getItem(state.getItem('targetFromfortify', ''));
-				if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monster.getInfo(cM,'staLvl')) {
-					for (nodeNum = monster.getInfo(cM, 'staLvl').length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
-						if (caap.stats.stamina.max >= monster.getInfo(cM,'staLvl')[nodeNum]) {
-							break;
-						}
-					}
+				if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && $u.hasContent(cM.staLvls)) {
+					nodeNum = cM.nodeMax;
 				}
-
-				energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.getInfo(cM,'nrgMax') ? monster.getInfo(cM,'nrgMax')[nodeNum] : monster.getInfo(cM,'nrgMax') ? monster.getInfo(cM,'nrgMax')[0] : energyRequire;
+				energyRequire = !cM.NrgMax.length ? 10 : config.getItem('PowerAttackMax', false) ? cM.NrgMax[nodeNum] : cM.NrgMax[0];
             }
 
             con.log(4, "Energy Required/Node", energyRequire, nodeNum);
@@ -630,23 +613,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     attackButton = null;
                     singleButtonList = null;
                     buttonList = null;
-                    partsTargets = null;
-                    partsTarget = null;
-                    partsElem = null;
                     return false;
                 }
             }
 
             // Set general and go to monster page
-			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link);
+			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
             if (result !== false) {
 				attackButton = null;
                 singleButtonList = null;
                 buttonList = null;
-                partsTargets = null;
-                partsTarget = null;
-                partsElem = null;
-				if (result == 'fail') {
+                if (result == 'fail') {
 					monster.deleteItem(cM.md5);
 					con.warn('Monster ' + cM.name + ' deleted after five attempts to navigate to it.', cM);
 					return false;
@@ -655,54 +632,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // Check if on engage monster page
-            if ($u.hasContent($j("#app_body div[style*='dragon_title_owner'],div[style*='nm_top'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header'],div[style*='festival_monsters_top_']"))) {
+            if ($u.hasContent($j("#app_body " + monster.onMonsterHeader))) {
                 singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
-
-                // if the monster has parts, run through them in reverse order until we find one with health and hit it.
-                partsTargets = $j("#app_body div[id^='monster_target_']");
-                if ($u.hasContent(partsTargets)) {
-                    con.log(2, "The monster has parts: partsTargets",partsTargets);
-                    // Define if use user or default order parts
-                    orderPartsArray = [];
-                    if (/:po/i.test(cM.conditions)) {
-                        orderPartsArray = cM.conditions.substring(cM.conditions.indexOf('[') + 1, cM.conditions.lastIndexOf(']')).split(".");
-                        if (monster.getInfo(cM, 'bodyparts') != orderPartsArray.length) {
-                            // Wrong number of parts in monster condition.
-                            // Set Default Order parts
-                            orderPartsArray = monster.getInfo(cM, 'partOrder');
-                        }
-                    } else {
-                        orderPartsArray = monster.getInfo(cM, 'partOrder');
-                    }
-
-                    // If minions dead, remove index of minions
-                    if (orderPartsArray.length > partsTargets.length) {
-                        max_index = -1;
-                        max_value = Number.MIN_VALUE;
-                        for (i = 0; i < orderPartsArray.length; i += 1) {
-                            if (orderPartsArray[i] > max_value) {
-                                max_value = orderPartsArray[i];
-                                max_index = i;
-                            }
-                        }
-
-                        if (max_index > -1) {
-                            orderPartsArray.splice(max_index, 1);
-                        }
-                    }
-
-                    // Click first order parts which have health
-                    for (ii = 0; ii < orderPartsArray.length; ii += 1) {
-                        partsTarget = partsTargets[orderPartsArray[ii] - 1];
-                        partsElem = partsTarget.children[0].children[partsTarget.children[0].children.length - 1];
-                        partsElem1 = partsElem.children[0].children[0];
-                        partsElem2 = partsElem.children[1].children[0];
-                        if ($u.hasContent(partsElem1) && $u.setContent($j(partsElem1).getPercent("width"), 0) > 0) {
-                            caap.click(partsElem2);
-                            break;
-                        }
-                    }
-                }
 
                 // Find the attack or fortify button
                 if (fightMode === 'Fortify') {
@@ -760,12 +691,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(4, "monster/button list", cM, buttonList);
                 nodeNum = 0;
                 if (!caap.inLevelUpMode()) {
-                    if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.getInfo(cM, 'staLvl')) {
-                        for (nodeNum = monster.getInfo(cM, 'staLvl').length - 1; nodeNum >= 0; nodeNum = nodeNum - 1) {
-                            if (caap.stats.stamina.max >= monster.getInfo(cM, 'staLvl')[nodeNum]) {
-                                break;
-                            }
-                        }
+                    if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && cM.staLvls.length) {
+                        nodeNum = cM.nodeMax;
                     }
                 }
 
@@ -794,9 +721,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     attackButton = null;
                     singleButtonList = null;
                     buttonList = null;
-                    partsTargets = null;
-                    partsTarget = null;
-                    partsElem = null;
                     return true;
                 }
 
@@ -805,9 +729,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attackButton = null;
                 singleButtonList = null;
                 buttonList = null;
-                partsTargets = null;
-                partsTarget = null;
-                partsElem = null;
                 return false;
             }
 
@@ -817,9 +738,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attackButton = null;
                 singleButtonList = null;
                 buttonList = null;
-                partsTargets = null;
-                partsTarget = null;
-                partsElem = null;
                 return true;
             }
 			con.log (1, "after button check:", monster, cM);
@@ -828,9 +746,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             attackButton = null;
             singleButtonList = null;
             buttonList = null;
-            partsTargets = null;
-            partsTarget = null;
-            partsElem = null;
             return false;
         } catch (err) {
             con.error("ERROR in monsters: " + err.stack);
@@ -980,17 +895,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 time = [],
                 tempDiv = $j(),
                 tempText = '',
-                tempSetting = 0,
                 stunStart = 0,
                 tempArr = [],
-                totalCount = 0,
-                ind = 0,
-                len = 0,
-                searchStr = '',
-                searchRes = $j(),
+                i = 0,
                 monsterDiv = $j(),
                 damageDiv = $j(),
+				partsDiv = $j(),
+				partsElem = $j(),
+				partsElem2 = $j(),
+				partsHealth = [],
                 tStr = '',
+				aliveArray,
+				arms = [],
+				mains = [],
+				minions = [],
                 tNum = 0,
 				link = false,
                 deathRuneSiegetf = false,
@@ -1000,10 +918,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				deleteMon = false,
                 md5 = '',
                 page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id"),
-                matches = true,
-                it = 0,
-                jt = 0,
-                found = false;
+                matches = true;
 
             if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
                 con.log(1, "Deleting monster that has expired",monster.lastClick);
@@ -1012,19 +927,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            monsterDiv = $j("div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']", slice);
+            monsterDiv = $j(monster.onMonsterHeader, slice);
 
             if (visiblePageChangetf) {
                 caap.chatLink(slice, "#chat_log div[style*='hidden'] div[style*='320px']");
             }
 			
 			tempText = monsterDiv.text().trim();
-			con.log(2, 'Header text', tempText);
+			//con.log(2, 'Header text', tempText);
 			if (monsterDiv.text().regex(/Monster Codes?: \w+:\d+/i)) {
 				id = parseInt(tempText.regex(/Monster Codes?: (\w+):\d+/), 36);
 				mpool = tempText.regex(/Monster Codes?: \w+:(\d+)/);
 				link = session.getItem('page', '') + '.php?casuser=' + id + '&mpool=' + mpool;
-				con.log(2, 'Header text2 ', id, mpool, link, tempText);
+				//con.log(2, 'Header text2 ', id, mpool, link, tempText);
 			} else {
 
 				mpool = $j("input[name*='mpool']").eq(0).attr("value");
@@ -1057,7 +972,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			// With id, we look for the monster record
 			link = monster.cleanLink(link, id, mpool);
-			con.log(2, 'CleanLink', link, id, mpool, monster.lastClick);
+			//con.log(2, 'CleanLink', link, id, mpool, monster.lastClick);
             md5 = link.MD5();
             cM = monster.getItem(md5); // In the interest of saving bits to be more environmentally friendly, currentMonster has been renamed cM
             cM.md5 = md5;
@@ -1122,7 +1037,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         con.log(2, "Problem finding raid image! Probably finished.");
                     }
 
-                    //con.log(2, "Raid Type", cM.type);
                 } else {
                     con.warn("Problem finding raid_back");
                     slice = null;
@@ -1132,8 +1046,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
             }
-
-            con.log(2, "On Monster info: " + cM.name, md5, cM, caap.stats.reviewPages);
 
             cM.review = Date.now();
             // Extract info
@@ -1211,11 +1123,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
             // Get damage done to monster
-            damageDiv = $j("#action_logs td[class='dragonContainer']", slice);
+            damageDiv = $j("#action_logs td[class='dragonContainer']:first", slice);
             if ($u.hasContent(damageDiv)) {
-				damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats.FBID + "']:first", damageDiv);
+				//con.log(2, 'Monster dragoncontainer found', damageDiv.text());
+				damageDiv = $j("td[valign='top']:first a[href*='user=" + caap.stats.FBID + "']:first", damageDiv);
 				if ($u.hasContent(damageDiv)) { // Make sure player has done damage.
-					if (cM.fortify != -1) {
+					//con.log(2, 'Monster dragoncontainer player found', damageDiv.text());
+					if (cM.fortify > -1) {
 						tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
 						if ($u.hasContent(tempArr) && tempArr.length === 2) {
 							cM.attacked = $u.setContent(tempArr[0], '0').numberOnly();
@@ -1230,6 +1144,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					} else {
 						cM.attacked = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '0').numberOnly();
 						cM.damage = cM.attacked;
+						//con.log(2, 'Monster dragoncontainer player info read', cM.attacked, damageDiv.parent().parent().siblings(":last").text());
 					}
 
 					if (visiblePageChangetf) {
@@ -1267,9 +1182,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cM.time = time;
 				cM.t2k = monster.t2kCalc(cM);
 				
-				searchRes = $j("#objective_list_section div[style*='mobjective_container']", slice);
-				if ($u.hasContent(searchRes)) {
-					cM.phase = searchRes.length;
+				tempDiv = $j("#objective_list_section div[style*='mobjective_container']", slice);
+				if ($u.hasContent(tempDiv)) {
+					cM.phase = tempDiv.length;
 					cM.miss = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", slice).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
 				}
 				
@@ -1292,6 +1207,68 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					con.warn("Missing nm_bottom to find class");
 				}
+
+                // if the monster has parts, hit the weakest minion first, and then hit the part with the least health next
+                partsDiv = $j("#app_body div[id^='monster_target_']");
+                if ($u.hasContent(partsDiv)) {
+					cM.targetPart = -1;
+					//con.log(2, "The monster has " + partsDiv.length + " parts");
+
+                    // Click first order parts which have health
+                    partsDiv.each( function(index) {
+                        partsElem = $j(this).find('div[style*="multi_smallhealth.jpg"]');
+                        if ($u.hasContent(partsElem)) {
+							//partsElem2 = partsElem.children[1].children[0];
+							tNum = $u.setContent($j(partsElem).getPercent("width"), 0);
+							partsHealth.push(tNum);
+							tempDiv =  $j("#app_body span[id^='target_monster_info_" + (index + 1) + "']");
+							//con.log(2, 'desciptor text: ' + tempDiv.text());
+							if ($u.hasContent(tempDiv)) {
+								if (tempDiv.text().regex(/reduce/)) {
+									arms.push(tNum);
+								} else if (tempDiv.text().regex(/hinder/)) {
+									minions.push(tNum);
+								} else {
+									mains.push(tNum);
+								}
+							} else {
+								con.warn('No info for body part ' + (index + 1), $j(this));
+							}
+						} else {
+							con.warn('No children of body part for health width');
+						}
+                    });
+					//con.log(2, 'parts list', minions, arms, mains);
+					
+					// Return the element of the array with the minimum value that is above 0
+					aliveArray = function(arr) {
+						return arr.filter(function(value) {
+							return value > 0;
+						});
+					};
+
+                    // Define if use user or default order parts
+                    if (/:po/i.test(cM.conditions)) {
+                        tempArr = cM.conditions.substring(cM.conditions.indexOf('[') + 1, cM.conditions.lastIndexOf(']')).split(".");
+						tempArr.some( function(part) {
+							if ($u.setcontent(partsHealth[part],0) > 0) {
+								cM.targetPart = part;
+								return true;
+							}
+						});
+                    } else {
+						cM.targetPart = (partsHealth.lastIndexOf(minions.length ? Math.min.apply(null, aliveArray(minions)) : Math.min((arms.length ? Math.min.apply(null, aliveArray(arms)) : 100), Math.min.apply(null, aliveArray(mains))))) + 1;
+						//con.log(2, 'targetpart calcs', Math.min.apply(null, aliveArray(minions)),  Math.min.apply(null, aliveArray(arms)), Math.min.apply(null, aliveArray(mains)));
+                    }
+
+					// If one of the mains is more damaged that most damaged hinderer and arms > 80% health, assume headless
+					if (arms.length && Math.min.apply(null, aliveArray(mains)) < Math.min.apply(null, aliveArray(arms)) && Math.min.apply(null, arms) > 80) {
+						cM.life = (mains.reduce(function(a, b) { return a + b }, 0) / mains.length).dp(2);
+					} else {
+						cM.life = ((mains.reduce(function(a, b) { return a + b }, 0) + arms.reduce(function(a, b) { return a + b }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
+					}
+					//con.log(2, 'Average life of body parts ' + cM.life + '% and target is part ' + cM.targetPart, partsHealth, arms, mains, mains.reduce(function(a, b) { return a + b }, 0), arms.reduce(function(a, b) { return a + b }, 0), $j("#app_body #expanded_monster_target_1:visible").length, $j("#app_body #expanded_monster_target_2:visible").length);
+                }
 
 				// If it's alive and I've hit it, then check character class stuff and sieges
 				if (monster.damaged(cM)) {
@@ -1317,18 +1294,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							
 							// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
 							// or the WhenStun setting has changed, set a new stun target time.
-							tempSetting = monster.parseCondition("cd", cM.conditions);
-							tempSetting = $u.isNumber(tempSetting) ? tempSetting.toString() : config.getItem('WhenStun','Immediately');
-							tempSetting = tempSetting == 'Immediately' ? 6 : tempSetting == 'Never' ? 0 : tempSetting.parseFloat();
+							tNum = monster.parseCondition("cd", cM.conditions);
+							tNum = $u.isNumber(tNum) ? tNum.toString() : config.getItem('WhenStun','Immediately');
+							tNum = tNum == 'Immediately' ? 6 : tNum == 'Never' ? 0 : tNum.parseFloat();
 							stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-							con.log(5,'Checking stuntarget',tempSetting, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
+							con.log(5,'Checking stuntarget',tNum, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
 							
-							if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tempSetting) {
-								cM.stunSetting = tempSetting;
+							if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tNum) {
+								cM.stunSetting = tNum;
 
 								// Add +/- 30 min so multiple CAAPs don't all stun at the same time
 								cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
-										: cM.stunTime - (tempSetting - 0.5 + Math.random()) * 60 * 60 * 1000;
+										: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
 								con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
 							}
 
@@ -1373,7 +1350,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						if (cM.charClass && cM.tip && cM.stun !== -1) {
 							cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
 							if (cM.stunDo) {
-								con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tempSetting, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+								con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tNum, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
 							}
 							cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
 							cM.stunType = '';
@@ -1400,9 +1377,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						}
 					}
 
-					tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
-					cM.siegeLevel = tempDiv.length ? tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1] : 0;
-					
+					// Find the lowest and highest stamina/energy buttons
+					cM.staLvls = monster.getInfo(cM, 'staMax', []);
+					if (!cM.staLvls.length) {
+						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
+						cM.siegeLevel = tempDiv.length ? tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1] : 0;
+						
+						tempDiv = $j("#app_body img[src*='button_cost_stamina_']");
+						if ($u.hasContent(tempDiv)) {
+							cM.maxNode = tempDiv.length;
+							cM.staLvls = [tempDiv.first().attr('src').regex(/button_cost_stamina_(\d+)/), tempDiv.last().attr('src').regex(/button_cost_stamina_(\d+)/)];
+							tempDiv = $j("#app_body img[src*='button_cost_energy_']");
+							if ($u.hasContent(tempDiv)) {
+								cM.NrgLvls = [tempDiv.first().attr('src').regex(/button_cost_energy_(\d+)/) ,tempDiv.last().attr('src').regex(/button_cost_energy_(\d+)/)];
+							} else {
+								con.warn('Unable to find energy attack buttons');
+							}
+						} else {
+							con.warn('Unable to find stamina attack buttons');
+						}
+					}
+						
 				// It's alive and I haven't hit it
 				} else {
 					cM.status = 'Join';
@@ -1433,9 +1428,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.setDivContent('monster_mess', '');
                 }, 2000);
             }
+            con.log(2, "On Monster info: " + cM.name, md5, cM, caap.stats.reviewPages);
 
             slice = null;
             tempDiv = null;
+			partsDiv = null;
             monsterDiv = null;
             damageDiv = null;
         } catch (err) {

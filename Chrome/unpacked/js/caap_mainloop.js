@@ -29,7 +29,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'guildMonsterReview': 'Review Guild Monsters',
         'immediateAutoStat': 'Immediate Auto Stats',
         'autoPotions': 'Auto Potions',
-        'autoArchives': 'Auto Archives',
         'autoKobo': 'Auto Kobo',
         'autoAlchemy': 'Auto Alchemy',
         'autoBless': 'Auto Bless',
@@ -62,8 +61,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'checkMagic': 'Getting Magic',
         'checkCharacterClasses': 'Character Classes',
         'festivalBless': 'Festival Feats',
-        'collectConquest': 'Collect Conquest Resources',
-        'collectConquestCrystal': 'Collect Conquest Crystals',
+        'collectConquest': 'Collect Conquest Items',
         'scoutGuildEssence': 'Scout Guild Essence',
         'doArenaBattle' : 'Battling in Arena' 
     };
@@ -132,8 +130,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x2B: 'ajaxCheckPublic',
         0x2E: 'feedScan',
         0x2F: 'collectConquest',
-        0x30: 'collectConquestCrystal',
-        0x31: 'autoArchives',
         0x32: 'doArenaBattle',
         0x33: 'autoKobo',
         0x34: 'scoutGuildEssence',

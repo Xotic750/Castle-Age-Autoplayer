@@ -1217,16 +1217,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         army.deleteTemp();
     };
 
-    caap.getCollectConquestButtonListener = function () {
-        schedule.setItem('collectConquestTimer', 0);
-        caap.setDivContent('conquestbless_mess', schedule.check('collectConquestTimer') ? 'Conquest Collect = none' : 'Next Conquest: ' + $u.setContent(caap.displayTime('collectConquestTimer'), "Unknown"));
-    };
-
-    caap.getCollectConquestCrystalButtonListener = function () {
-        schedule.setItem('collectConquestCrystalTimer', 0);
-        caap.setDivContent('conquestcrystalbless_mess', schedule.check('collectConquestCrystalTimer') ? 'Crystal Collect = none' : 'Next Crystal: ' + $u.setContent(caap.displayTime('collectConquestCrystalTimer'), "Unknown"));
-    };
-
     caap.getArenaButtonListener = function() {
         schedule.setItem('arenaTimer', 0);
     };

@@ -42,6 +42,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.ifClick = function (obj) {
+        try {
+            if ($u.hasContent(obj)) {
+				return caap.click(obj);
+            }
+            return false;
+        } catch (err) {
+            con.error("ERROR in caap.ifClick: " + err.stack);
+            return undefined;
+        }
+    };
+
     caap.click = function (obj, loadWaitTime) {
         try {
             if (!$u.hasContent(obj)) {

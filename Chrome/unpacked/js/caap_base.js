@@ -1582,7 +1582,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 			}
 
-			if (typeof hyper == 'defined' && $u.isArray(hyper.getItem('logons', false)) && hyper.getItem('logons', false).length > 1) {
+			if (typeof hyper !== 'undefined' && $u.isArray(hyper.getItem('logons', false)) && hyper.getItem('logons', false).length > 1) {
 				caap.hyper = true;
 				schedule.setItem("hyperTimer", 0);
 				con.log(1, 'Multiple accounts configured, so enabling hyper visor functions!', caap.hyper);
@@ -2417,6 +2417,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.changeDropDownList = function (idName, dropList, option) {
         try {
+			idName = idName;
             if (caap.domain.which === 3) {
                 caap.messaging.changeDropDownList(idName, dropList, option);
             } else {
@@ -2540,10 +2541,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'army_mess': "",
         'feats_mess': "",
         'demibless_mess': "",
-        'archive_mess': "",
         'kobo_mess': "",
-        'conquestbless_mess': "",
-        'conquestcrystalbless_mess': "",
         'essenceScan_mess': "",
         'level_mess': "",
         'exp_mess': "",
@@ -3012,13 +3010,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.addConquestOptionsMenu = function () {
         try {
             // Other controls
-            var htmlCode = '';
+            var htmlCode = '', 
+				catList = ['Never',1000,3000,4500],
+				catInst = 'Conquest points collect will be triggered if any of these conditions are met';
 
             htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
-            htmlCode += caap.makeCheckTR('Enable Conquest Collect', 'doConquestCollect', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_CollectConquestNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
+            htmlCode += caap.makeCheckTR('Enable Resource Collect', 'doConquestCollect', false, '');
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
-            htmlCode += caap.makeTD("<input type='button' id='caap_collectCrystalNow' value='Collect Now' style='padding: 0; font-size: 10px; height: 18px' />");
+			conquest.categories.forEach(function (category) {
+				htmlCode += caap.makeDropDownTR("Collect " + category, 'When' + category, catList, catInst, '', 'Never', false, false, 62);
+			});
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -4190,10 +4191,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     state.getItem('BattleChainId', 0);
                 } else if (idName === 'AutoBless' && value === 'None') {
                     schedule.setItem('BlessingTimer', 0);
-                } else if (idName === 'doConquestCollect' && value === 'None') {
-                    schedule.setItem('collectConquestTimer', 0);
-                } else if (idName === 'doConquestCrystalCollect' && value === 'None') {
-                    schedule.setItem('collectConquestCrystalTimer', 0);
                 } else if(idName === 'doArenaBattle' && value === 'None') {
                     schedule.setItem('arenaTimer', 0);
                 } else if (idName === 'festivalBless' && value === 'None') {
@@ -4713,13 +4710,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.getArmyButtonListener();
             });
 
-            $j('#caap_CollectConquestNow', caap.caapDivObject).click(function () {
-                caap.getCollectConquestButtonListener();
-            });
-
-            $j('#caap_collectCrystalNow', caap.caapDivObject).click(function () {
-                caap.getCollectConquestCrystalButtonListener();
-            });
             $j('#caap_ArenaNow', caap.caapDivObject).click(function(e) {
                 caap.getArenaButtonListener();
             });
@@ -5228,8 +5218,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never') || whenBattle === 'Demi Points Only' ?
                     (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
             caap.setDivContent('demibless_mess', schedule.check('BlessingTimer') ? 'Demi Blessing = none' : 'Next Demi Blessing: ' + $u.setContent(caap.displayTime('BlessingTimer'), "Unknown"));
-            caap.setDivContent('conquestbless_mess', schedule.check('collectConquestTimer') ? 'Conquest Collect = none' : 'Next Conquest: ' + $u.setContent(caap.displayTime('collectConquestTimer'), "Unknown"));
-            caap.setDivContent('conquestcrystalbless_mess', schedule.check('collectConquestCrystalTimer') ? 'Crystal Collect = none' : 'Next Crystal: ' + $u.setContent(caap.displayTime('collectConquestCrystalTimer'), "Unknown"));
             caap.setDivContent('essenceScan_mess', schedule.check('newEssenceListTimer') ? 'Essence Scan = none' : 'Next Scan: ' + $u.setContent(caap.displayTime('newEssenceListTimer'), "Unknown"));
             caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(caap.displayTime('festivalBlessTimer'), "Unknown"));
             if ($u.hasContent(general.List) && general.List.length <= 2) {
@@ -5400,6 +5388,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'resources': {
             'lumber': 0,
             'iron': 0
+        },
+        'conquest': {
+            'Conqueror': 0,
+            'Guardian': 0,
+            'Hunter': 0,
+            'Engineer': 0
         },
         'other': {
             'qc': 0,
@@ -9214,7 +9208,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					done = true;
 				}
 
-				//con.log(2, 'GUILDBATTLE CHECK', config.getItem(guild_battle.gf[name].abbrev + 'whenTokens') != 'Never', 					config.getItem(guild_battle.gf[name].abbrev + ' ClassGeneral', 'Use Current') != 'Use Current',					config.getItem(guild_battle.gf[name].abbrev + 'collect', false));
 			});
 			return done;
         } catch (err) {
@@ -9420,61 +9413,57 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     /////////////////////////////////////////////////////////////////////
     caap.collectConquest = function () {
         try {
-            if (!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) {
-                return false;
-            }
+			var headerDiv = $j('#mainHeaderTabs');
+			if (config.getItem('AutoArchives', false) && caap.ifClick($j("input[src*='header_persist_btn_eneable.gif']", headerDiv))) {
+				return true;
+			} else if (config.getItem('doConquestCollect', false)
+				&& caap.ifClick($j("input[src*='header_persist_btn_collect.gif']", headerDiv))) {
+				return true;
+			} else if (config.getItem('doConquestCrystalCollect', false) 
+				&& caap.ifClick($j("div[style*='header_persist_collect_container_crystal.jpg'] input[src*='header_persist_btn_pray.gif']", headerDiv))) {
+				return true;
+			} 
+			if (conquest.collect()) {
+				return true;
+			}
 
-            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
-
-            return true;
+            return false;
         } catch (err) {
             con.error("ERROR in collectConquest: " + err);
             return false;
         }
     };
 
-    caap.collectConquestCrystal = function () {
-        try {
-            if (!config.getItem('doConquestCrystalCollect', false) || !schedule.check('collectConquestCrystalTimer')) {
-                return false;
-            }
-
-            caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in collectConquest: " + err);
-            return false;
-        }
-    };
-
-    // these conquest functions do not appear to be correct
     caap.checkResults_conquest = function () {
-        var infoDiv = $j("#app_body div[style*='conq3_top.jpg']"),
-            tempText = '';
+		try {
+			var infoDiv = $j("#app_body div[style*='conq3_top.jpg']"),
+				tempText = '';
 
-        if ($u.hasContent(infoDiv)) {
-            tempText = infoDiv.text();
-            if ($u.hasContent(tempText)) {
-                caap.stats.resources.lumber = $u.setContent(tempText.regex(/^\s+(\d+)\s+\d+/i), 0);
-                caap.stats.resources.iron = $u.setContent(tempText.regex(/^\s+\d+\s+(\d+)/i), 0);
-                caap.stats.guild.level = $u.setContent(tempText.regex(/\s+GUILD LEVEL:\s+(\d+)/i), 0);
-                caap.stats.rank.conquestLevel = $u.setContent(tempText.regex(/\s+CONQUEST LV:\s+(\d+)/i), 0);
-            }
+			if ($u.hasContent(infoDiv)) {
+				tempText = infoDiv.text();
+				if ($u.hasContent(tempText)) {
+					caap.stats.resources.lumber = $u.setContent(tempText.regex(/^\s+(\d+)\s+\d+/i), 0);
+					caap.stats.resources.iron = $u.setContent(tempText.regex(/^\s+\d+\s+(\d+)/i), 0);
+					caap.stats.guild.level = $u.setContent(tempText.regex(/\s+GUILD LEVEL:\s+(\d+)/i), 0);
+					caap.stats.rank.conquestLevel = $u.setContent(tempText.regex(/\s+CONQUEST LV:\s+(\d+)/i), 0);
+				}
 
-            con.log(1, "conquest.collect", caap.stats.resources.lumber, caap.stats.resources.iron, caap.stats.guild.level, caap.stats.rank.conquestLevel);
-            conquest.getCommonInfos(infoDiv);
-        }
-        conquest.getLands();
+				con.log(1, "conquest.collect", caap.stats.resources.lumber, caap.stats.resources.iron, caap.stats.guild.level, caap.stats.rank.conquestLevel);
+				conquest.getCommonInfos(infoDiv);
+			}
 
-        if ((!config.getItem('doConquestCollect', false) || !schedule.check('collectConquestTimer')) && (!config.getItem('doConquestCrystalCollect', false) || !schedule.check('collectConquestCrystalTimer'))) {
-            infoDiv = null;
+			conquest.categories.forEach( function(category) {
+				caap.stats.conquest[category] = $j('#app_body #header_report_tab div:contains(' + category + '):last').parent().parent().text().trim().regex(/(\d+)/);
+				con.log(2, category + ' points are ' + caap.stats.conquest[category]);
+			});
+			conquest.getLands();
+			schedule.setItem('conquestCollectPage', 3600);
+			
+			return true;
+        } catch (err) {
+            con.error("ERROR in collectConquest: " + err.stack);
             return false;
         }
-
-        conquest.collect();
-        infoDiv = null;
-        return true;
     };
 
     caap.checkResults_conquestLand = function () {

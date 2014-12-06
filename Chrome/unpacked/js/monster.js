@@ -38,9 +38,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'over': '',
             'color': '',
             'review': -1,
-            'type': '',
+			'nodeMax' : 0,
             'conditions': '',
             'charClass': '',
+			'staLvls' : [],
 			'siegeLevel' : 0,
             'strength': -1,
             'stun': -1,
@@ -48,6 +49,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'stunDo': false,
             'status': false,
             'stunType': '',
+			'targetPart' : -1,
 			'listReviewed' : 0,
 			'lMissing' : 0,
             'tip': '',
@@ -57,6 +59,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     };
 
     monster.engageButtons = {};
+	
+	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']";
 
     monster.completeButton = {
         'battle_monster': {
@@ -69,8 +73,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    // http://castleage.wikidot.com/monster for monster info
-    // http://castleage.wikidot.com/skaar
     // Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
     // No commas allowed in Object names
     monster.info = {
@@ -78,18 +80,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             ach: 1000000,
             festival_ach: 1000000,
 			siege: 5,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
             defense_img: 'nm_green.jpg'
         },
        'Skaar Deathrune': {
             duration: 96,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             reqAtkButton: 'attack_monster_button.jpg',
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
@@ -97,20 +91,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_dur: 120
         },
         'Ragnarok': {
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             reqAtkButton: 'attack_monster_button.jpg',
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif'
         },
         'Genesis': {
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             reqAtkButton: 'attack_monster_button.jpg',
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'attack_monster_button3.jpg',
@@ -119,33 +105,24 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         'Cronus': {
             ach: 500000,
-            staUse: 10,
-            staLvl: [0, 100, 200, 400, 400],
-            staMax: [10, 20, 50, 100, 200],
             festival_ach: 500000
 		},
         'Invading Force': {
 			alias: 'Dark Legion',
             duration: 168,
             ach: 1000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             defense_img: 'seamonster_ship_health.jpg',
             repair_img: 'repair_bar_grey.jpg'
 		},
         'Emerald Dragon': {
             duration: 72,
             ach: 100000,
-            staUse: 5,
             staMax: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif']
         },
         'Frost Dragon': {
             duration: 72,
             ach: 100000,
-            staUse: 5,
             staMax: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
@@ -154,7 +131,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Gold Dragon': {
             duration: 72,
             ach: 100000,
-            staUse: 5,
             staMax: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
@@ -163,7 +139,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ancient Red Dragon': {
             duration: 72,
             ach: 100000,
-            staUse: 5,
             staMax: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
@@ -204,7 +179,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Amethyst Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staUse: 10,
             staMax: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
@@ -215,7 +189,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ancient Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staUse: 10,
             staMax: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
@@ -226,7 +199,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Emerald Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staUse: 10,
             staMax: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
@@ -237,7 +209,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Sapphire Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staUse: 10,
             staMax: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
@@ -261,366 +232,68 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_dur: 89,
             festival_ach: 50000
         },
-        // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
         'War Of The Red Plains': {
             tactics: true,
             duration: 168,
             ach: 10000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100]
         },
-        // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
         'Bahamut': {
             ach: 4000000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100]
         },
-        // http://castleage.wikidot.com/alpha-bahamut
-        // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
         'Alpha Bahamut': {
             ach: 8000000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             festival_ach: 2500000
         },
-        // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
         'Azriel': {
             ach: 8000000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             festival_ach: 4000000
         },
         'Alpha Mephistopheles': {
             ach: 12000000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100]
         },
         'Gehenna': {
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             festival_dur: 96,
             festival_ach: 3500000
         },
         "Aurelius": {
             tactics: true,
             ach: 1000,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100]
         },
         "Corvintheus": {
-            ach: 1000000,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
         },
-        'Cronus Of Ice': {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200]
-        },
         'Valhalla': {
-            ach: 1000000,
-            staUse: 10,
-            staLvl: [0, 50, 100, 200],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
         },
         'Jahanna': {
-            staUse: 10,
-            staLvl: [0, 50, 100, 200],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
             festival_ach: 2500000
         },
         "Agamemnon": {
             festival_ach: 10000000
         },
         "Aurora": {
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             festival_ach: 2500000
         },
         "Ambrosia": {
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             festival_ach: 2500000
         },
         "Kromash": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
         },
         "Glacius": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500, 1000],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
             festival_dur: 120
         },
         "Shardros": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
             festival_dur: 120
         },
         "Magmos": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
         },
         "Typhonus": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
         },
         "Malekus": {
-            staUse: 10,
-            staLvl: [0, 100, 200],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
             festival_ach: 2500000
-        },
-        "Thanatos": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50],
-            nrgMax: [20, 40, 100]
-        },
-        "Vermilion": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200]
-        },
-        "Alexandra": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200]
-        },        
-        "Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200,200]
-        },
-        "Kraken": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200]
-        },
-        "Fenix": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Azeron": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200]
-        },
-        "Kessaran": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Urmek": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 4,
-            partOrder: [4, 3, 2, 1]
-        },
-        "Abomination": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Poseidon": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Vorak": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 4,
-            partOrder: [4, 3, 2, 1]
-        },
-        "Baal": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Aspect Of Death": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Lord Of Darkness": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Cassandra": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 2,
-            partOrder: [2, 1]
-        },
-        "Svarog": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Lothorewyn": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 4,
-            partOrder: [4, 3, 2, 1]
-        },
-        // http://castleage.wikia.com/wiki/Alperon,_the_Corrupted
-        "Alperon": {
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Bonegnasher" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200], 
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Verminarch" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Ogrimus" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Rodenom" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Leviathan Of The Deep" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200]
-        },
-        "Leviathan Of The Grove" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200]
-        },
-        "Leviathan Of The Void" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200]
-        },
-        "Leviathan Of Wrath" : {
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200]
-        },
-        'Thanatos Reborn': {
-            staUse: 20,
-            staLvl: [0, 100, 200, 500],
-            staMax: [20, 50, 100, 200],
-            nrgMax: [10, 20, 40, 100],
-            bodyparts : 3,
-            partOrder : [3,2,1]
-        },
-        'Cronus Astaroth': {
-            staUse: 20,
-            staLvl: [0, 100, 200, 500],
-            staMax: [20, 50, 100, 200],
-            nrgMax: [10, 20, 40, 100],
-            bodyparts : 3,
-            partOrder : [3,2,1]
         }
     };
 
@@ -648,7 +321,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 		if (!$u.isString(link) || link.length == 0) {
 			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		}
-		con.log(2, 'CleanLink', link, casuser, mpool);
+		//con.log(2, 'CleanLink', link, casuser, mpool);
 		temp = link.replace(/http.*\//,'');
 		link = temp.replace(/\?.*/,'') + '?';
 		['casuser=', 'mpool=', 'guild_creator_id=', 'guild_created_at=', 'slot=', 'monster_slot=', 'mid=', 'tower='].forEach( function(piece) {
@@ -722,7 +395,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 throw "Not passed a record";
             }
 			mName = mName.replace(/^The /i,''),
-			defValue = $u.setContent(defValue, monster.info['Default Monster'][value]);
+			defValue = typeof defValue == 'undefined' ? monster.info['Default Monster'][value] : defValue;
             return $u.setContent(monster.info[mName],false) ? $u.setContent(monster.info[mName][value], defValue): defValue;
         } catch (err) {
             con.error("ERROR in monster.getInfo: " + err + ' stack ' + err.stack);
@@ -889,7 +562,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.match(new RegExp(':' + type + '(\\d*)(\\w?)'));
+            var str = conditions.match(new RegExp(':' + type + '([\\d|\\.]*)(\\w?)'));
 			
 			if (!str) {
 				return false;
@@ -1083,45 +756,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 	
-    monster.type = function(name) {
-        try {
-            var words = [],
-                count = 0;
-
-            if (!$u.isString(name)) {
-                con.warn("name", name);
-                throw "Invalid identifying name!";
-            }
-
-            if (name === '') {
-                return '';
-            }
-
-            words = name.split(" ");
-            con.log(3, "Words", words);
-            count = words.length - 1;
-            if (count >= 4) {
-                if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
-                    return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
-                }
-
-                if (words[count - 2] === 'Priestess' && words[count - 1] === 'of' && words[count] === 'Aurora') {
-                    return words[count - 2] + ' ' + words[count - 1] + ' ' + words[count];
-                }
-            }
-
-            if (words[count] === 'Elemental' || words[count] === 'Dragon' || (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
-                (words[count - 1] === "Lion's" && words[count] === 'Rebellion') || (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
-                return words[count - 1] + ' ' + words[count];
-            }
-
-            return words[count];
-        } catch (err) {
-            con.error("ERROR in monster.type: " + err.stack);
-            return false;
-        }
-    };
-
     monster.getItem = function(md5) {
         try {
             var it = 0,
@@ -1590,22 +1224,18 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     target[whichList] = monsterMD5;
                     if (whichList === 'battle_monster') {
                         nodeNum = 0;
-                        if (!caap.inLevelUpMode() && monster.getInfo(cM, 'staLvl')) {
-                            for (nodeNum = monster.getInfo(cM, 'staLvl').length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max >= monster.getInfo(cM, 'staLvl')[nodeNum]) {
-                                    break;
-                                }
-                            }
+                        if (!caap.inLevelUpMode() && cM.staLvls.length) {
+                            nodeNum = cM.nodeMax;
                         }
 
-                        if (!caap.inLevelUpMode() && monster.getInfo(cM, 'staMax') && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                        if (!caap.inLevelUpMode() && cM.staLvls.length && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
                             if (monster.getInfo(cM, 'attack_img')) {
                                 nodeNum = 1;
                             }
 
-                            state.setItem('MonsterStaminaReq', monster.getInfo(cM, 'staMax')[nodeNum]);
-                        } else if (monster.getInfo(cM, 'staUse')) {
-                            state.setItem('MonsterStaminaReq', monster.getInfo(cM, 'staUse'));
+                            state.setItem('MonsterStaminaReq', cM.staLvls[nodeNum]);
+                        } else if (cM.staLvls.length) {
+                            state.setItem('MonsterStaminaReq', cM.staLvls[0]);
                         } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || /:pa/i.test(cM.conditions)) {
                             state.setItem('MonsterStaminaReq', 5);
                         } else if (/:sa/i.test(cM.conditions)) {
@@ -1634,8 +1264,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     } else {
                         if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(cM.conditions)) {
                             state.setItem('RaidStaminaReq', 5);
-                        } else if (monster.getInfo(cM, 'staUse')) {
-                            state.setItem('RaidStaminaReq', monster.getInfo(cM, 'staUse'));
+                        } else if (cM.staLvls.length) {
+                            state.setItem('RaidStaminaReq', cM.staLvls[0]);
                         } else {
                             state.setItem('RaidStaminaReq', 1);
                         }
