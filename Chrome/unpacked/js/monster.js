@@ -483,7 +483,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records == 'default' || !$j.isArray(monster.records)) {
+            if (monster.records == 'default' || !$j.isArray(monster.records) || typeof monster.records[0].staLvls == 'undefined') {
                 monster.records = gm.setItem('monster.records', []);
             }
             caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);

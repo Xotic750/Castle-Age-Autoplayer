@@ -1206,7 +1206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 			}
 			
-			
+			check = false;
 			if (schedule.check('conquestFail')) {
 				check = conquest.categories.some( function(category) {
 					if (caap.stats.conquest[category] >= config.getItem('When' + category, 'Never')) {

@@ -2417,7 +2417,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.changeDropDownList = function (idName, dropList, option) {
         try {
-			idName = idName;
             if (caap.domain.which === 3) {
                 caap.messaging.changeDropDownList(idName, dropList, option);
             } else {
