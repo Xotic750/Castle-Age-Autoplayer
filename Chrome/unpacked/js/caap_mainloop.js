@@ -266,7 +266,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 } else if (window.hasOwnProperty("history") && window.history.hasOwnProperty("go")) {
                     window.history.go(-1);
                 } else {
-                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+//                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/?fb_source=bookmark_apps&ref=bookmarks&count=0&fb_bmpos=2_0";
+                    window.location.href = caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/castle_age/";
                 }
             }, 60000);
 

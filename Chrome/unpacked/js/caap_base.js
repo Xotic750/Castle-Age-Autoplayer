@@ -2611,11 +2611,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caapDiv = $j(caapDiv);
             if (caap.domain.which != 2) {
             caapDiv.css({
-                width: '220px',
+                width: '235px',
                 background: bgc,
                 opacity: state.getItem('StyleOpacityLight', 1),
                 color: $u.bestTextColor(bgc),
-                padding: "4px",
+                padding: "20px",
                 border: "2px solid #444",
                 float: 'right',
                 zIndex: state.getItem('caap_div_zIndex', '2')
@@ -2695,7 +2695,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += arena.menu();
             htmlCode += town.menu();
             htmlCode += caap.addOtherOptionsMenu();
-            htmlCode += caap.addFooterMenu();
+            //htmlCode += caap.addFooterMenu();
             caap.setDivContent('control', htmlCode, caapDiv);
             $j("input[type='button']", caapDiv).button();
             caap.makeSliderListener("CustStyleOpacityLight", 0.5, 1, 0.01, 1, true, caapDiv);
@@ -3177,16 +3177,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Use CA Background', 'backgroundCA', false, '');
-                htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
-                htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
-                htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                //htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
+                //htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
+                //htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
                 //htmlCode += caap.makeCheckTR('Hide Cross Adverts', 'HideCrossAds', false, "Hide CA cross advertising.");
             }
 
             //htmlCode += caap.makeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
-            htmlCode += caap.makeNumberFormTR("Left - Right offset (px)", 'lrOffset', 'Changing this will move the side menu left or right.', 942, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Up - Down offset (px)", 'udOffset', 'Changing this will move the side menu up or down', 44, '', '', true, false);
-            htmlCode += caap.makeTD("<input type='button' id='caap_moveMenu' value='Set Menu Position' style='padding: 0; font-size: 10px; height: 18px' />");
+            //htmlCode += caap.makeNumberFormTR("Left - Right offset (px)", 'lrOffset', 'Changing this will move the side menu left or right.', 942, '', '', true, false);
+            //htmlCode += caap.makeNumberFormTR("Up - Down offset (px)", 'udOffset', 'Changing this will move the side menu up or down', 44, '', '', true, false);
+            //htmlCode += caap.makeTD("<input type='button' id='caap_moveMenu' value='Set Menu Position' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
             htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
             htmlCode += caap.makeTD("Running:");
@@ -3279,14 +3279,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Battle Stats',
                     'Conquest Stats',
                     'Feed',
-					'Festival',
+                    'Festival',
                     'Generals Stats',
                     'Gift Queue',
                     'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
                     'Guild Battle',
-					'10v10',
+                    '10v10',
                     'Item Stats',
                     'Magic Stats',
                     'Monster',
@@ -3300,13 +3300,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
                     'Display the Festival battle in progress.',
-					'Display information about your Generals.',
+                    'Display information about your Generals.',
                     'Display your current Gift Queue.',
-					'Display your Gifting history, how many gifts you have received and returned to a user.',
+                    'Display your Gifting history, how many gifts you have received and returned to a user.',
                     'Display Essence Storage space for Guilds that have been scouted.',
                     'Display information about your Guild Monster.',
-					'Display the Guild battle in progress.',
-					'Display the 10v10 battle in progress.',
+                    'Display the Guild battle in progress.',
+                    'Display the 10v10 battle in progress.',
                     'Display information about Items seen in your Black Smith page.',
                     'Display information about Magic seen in your Magic page.',
                     'Display your Monster battles.',
