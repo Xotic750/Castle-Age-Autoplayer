@@ -48,7 +48,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 session.setItem("FeedDashUpdate", true);
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.load: " + err);
+                con.error("ERROR in feed.load: " + err.stack);
                 return false;
             }
         },
@@ -73,7 +73,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.save: " + err);
+                con.error("ERROR in feed.save: " + err.stack);
                 return false;
             }
         },
@@ -83,7 +83,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 var i = '',
                     save = false,
                     seconds = 0,
-                    mRecord = {};
+                    cM = {};
 
                 // current thinking is that continue should not be used as it can cause reader confusion
                 // therefore when linting, it throws a warning
@@ -97,8 +97,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                         seconds = (monster.records[i].time[0] * 3600) + (monster.records[i].time[1] * 60) + monster.records[i].time[2];
                         seconds = seconds > 0 ? seconds : 86400;
-                        mRecord = monster.getItem(monster.records[i].md5);
-                        if (schedule.since(monster.records[i].review, seconds) && !$u.hasContent(mRecord.monster)) {
+                        cM = monster.getItem(monster.records[i].md5);
+                        if (schedule.since(monster.records[i].review, seconds) && !$u.hasContent(cM.monster)) {
                             con.log(2, "Feed Entry Expired", monster.records[i]);
                             feed.deleteItem(monster.records[i].md5);
                             save = true;
@@ -113,7 +113,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.deleteExpired: " + err);
+                con.error("ERROR in feed.deleteExpired: " + err.stack);
                 return false;
             }
         },
@@ -168,7 +168,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return monster.records[index];
             } catch (err) {
-                con.error("ERROR in feed.setItem: " + err);
+                con.error("ERROR in feed.setItem: " + err.stack);
                 return undefined;
             }
         },
@@ -191,7 +191,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return record;
             } catch (err) {
-                con.error("ERROR in feed.getItem: " + err);
+                con.error("ERROR in feed.getItem: " + err.stack);
                 return undefined;
             }
         },
@@ -211,7 +211,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.deleteItem: " + err);
+                con.error("ERROR in feed.deleteItem: " + err.stack);
                 return false;
             }
         },
@@ -299,7 +299,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 feed.save();
                 return monster.records[currentMonster.md5];
             } catch (err) {
-                con.error("ERROR in feed.checked: " + err);
+                con.error("ERROR in feed.checked: " + err.stack);
                 return undefined;
             }
         },
@@ -318,7 +318,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             .replace(/Horde/, "Battle Of The Dark Legion").toLowerCase().ucWords(),
 
                         img = $u.setContent(type === 'feed' ? $j("img[src*='graphics']", post).attr("src") : $j("img[src*='graphics']", post.parents().eq(3)).attr("src"), '').basename(),
-                        mname = monster.getCtaName(img),
                         fix = false;
 
                     con.log(3, "Item", {
@@ -345,9 +344,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             'link': link,
                             'img': img
                         });
-                        if (config.getItem("DebugLevel", 1) > 1 && !guild_monster.getCtaName(img)) {
-                            $j().alert("Guild Monster missing image<br />" + mon + '<br />' + link + '<br />' + img);
-                        }
 
                         return true;
                     }
@@ -422,7 +418,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.items: " + err);
+                con.error("ERROR in feed.items: " + err.stack);
                 return false;
             }
         },
@@ -504,7 +500,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.publicItems: " + err);
+                con.error("ERROR in feed.publicItems: " + err.stack);
                 return false;
             }
         },
@@ -541,7 +537,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 schedule.setItem("feedMonsterFinder", minutes * 60, 300);
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.ajaxFeed: " + err);
+                con.error("ERROR in feed.ajaxFeed: " + err.stack);
                 return false;
             }
         },
@@ -578,7 +574,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 schedule.setItem("guildMonsterFinder", minutes * 60, 300);
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.ajaxGuild: " + err);
+                con.error("ERROR in feed.ajaxGuild: " + err.stack);
                 return false;
             }
         },
@@ -618,7 +614,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 schedule.setItem("publicMonsterFinder" + tier, minutes * 60, 300);
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.ajaxPublic: " + err);
+                con.error("ERROR in feed.ajaxPublic: " + err.stack);
                 return false;
             }
         },
@@ -646,7 +642,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 caap.ajax(record.url, null, onError, onSuccess);
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.ajaxScan: " + err);
+                con.error("ERROR in feed.ajaxScan: " + err.stack);
                 return false;
             }
         },
@@ -668,7 +664,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.setScanRecord: " + err);
+                con.error("ERROR in feed.setScanRecord: " + err.stack);
                 return false;
             }
         },
@@ -704,47 +700,52 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             try {
                 var done = true,
                     hours = config.getItem("feedMonsterReviewHrs", 6),
-					mR = {},
+					cM = {},
 					tR = false,
 					result = false,
-                    seconds = 0,
-					monsterInfo = {};
+                    seconds = 0;
 
                 hours = hours >= 1 ? hours : 1;
                 seconds = hours * 3600;
                 for (var i = 0; i < monster.records.length; i += 1) {
-					mR = monster.records[i];
-					//con.log(2, 'SCAN1', mR, mR.hide, mR.status, schedule.since(mR.review, seconds));
-                    if (!mR.hide && mR.status == 'Join' && schedule.since(mR.review, seconds)) {
-						con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + mR.name, mR.link, mR);
-						feed.scanRecord = mR;
+					cM = monster.records[i];
+					//con.log(2, 'SCAN1', cM, cM.hide, cM.status, schedule.since(cM.review, seconds));
+                    if (!cM.hide && cM.status == 'Join' && schedule.since(cM.review, seconds)) {
+						con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM.link, cM);
+						feed.scanRecord = cM;
 						if (false && config.getItem("useAjaxMonsterFinder", true)) { // Disabling until I can figure out AJAX load
-							feed.ajaxScan(mR);
+							feed.ajaxScan(cM);
 						} else {
 							feed.isScan = true;
-							caap.navigate2('ajax:' + mR.link);
+							caap.navigate2('ajax:' + cM.link);
 						}
+						monster.lastClick = cM.md5;
 						return true;
                     }
-					//con.log(2, 'SCAN2', mR.name, !tR , mR.conditions, mR.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions));
-					if (!tR && mR.status == 'Join' && mR.conditions.match(':join') && monster.worldMonsterCount < 30 && caap.stats.stamina.num > monster.parseCondition('stam', mR.conditions)) {
-						tR = mR;
+					//con.log(2, 'SCAN2', cM.name, !tR , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions));
+					if (!tR && cM.status == 'Join' && cM.conditions.match(':join') && monster.worldMonsterCount < 30 && caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions)) {
+						tR = cM;
 					}
                 }
 				feed.isScan = false;
 				feed.scanRecord = {};
                 if (tR) {
-					monsterInfo = monster.getInfo(tR);
-					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (monsterInfo.alpha ? ',clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]' : ',clickimg:button_nm_p_attack.gif'));
+					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (!tR.charClass 
+						?  ',clickimg:button_nm_p_power_attack.gif'
+						: (' ,clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen '
+						+ ($u.hasContent($j('#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]')) ? '.banner_warlock' : '.banner_cleric')
+						+ ' input[src*="nm_class_select.gif"]')));
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
+					} else if (result === 'done') {
+						monster.lastClick = tR.md5;
 					}
 					return result;
                 }
 				return false;
 
             } catch (err) {
-                con.error("ERROR in feed.scan: " + err);
+                con.error("ERROR in feed.scan: " + err.stack);
                 return false;
             }
         },
@@ -753,7 +754,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             try {
 				monster.dashboardCommon('Feed');
             } catch (err) {
-                con.error("ERROR in feed.dashboard: " + err);
+                con.error("ERROR in feed.dashboard: " + err.stack);
                 return false;
             }
         },
@@ -808,7 +809,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                con.error("ERROR in feed.menu: " + err);
+                con.error("ERROR in feed.menu: " + err.stack);
                 return '';
             }
         },
@@ -821,7 +822,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 caap.changeDropDownList('JoinMonster4', [''].concat(feed.monsterList), config.getItem('JoinMonster4', ''));
                 return true;
             } catch (err) {
-                con.error("ERROR in feed.updateDropDowns: " + err);
+                con.error("ERROR in feed.updateDropDowns: " + err.stack);
                 return false;
             }
         }

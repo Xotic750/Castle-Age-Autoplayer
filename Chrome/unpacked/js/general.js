@@ -33,7 +33,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Idle',
         'Monster',
         'Fortify',
-        'GuildMonster',
+        'Guild Monster',
         'Invade',
         'Duel',
         'War',
@@ -121,7 +121,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(5, "general.load", general.records);
             return true;
         } catch (err) {
-            con.error("ERROR in general.load: " + err);
+            con.error("ERROR in general.load: " + err.stack);
             return false;
         }
     };
@@ -149,7 +149,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.save: " + err);
+            con.error("ERROR in general.save: " + err.stack);
             return false;
         }
     };
@@ -227,7 +227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return false;
         } catch (err) {
-            con.error("ERROR in general.timedLoadout: " + err);
+            con.error("ERROR in general.timedLoadout: " + err.stack);
             return false;
         }
     };
@@ -252,7 +252,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
 
         } catch (err) {
-            con.error("ERROR in general.getRecord: " + err);
+            con.error("ERROR in general.getRecord: " + err.stack, err);
             return false;
         }
     };
@@ -271,7 +271,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return generalRecord[stat];
         } catch (err) {
-            con.error("ERROR in general.GetStat: " + err);
+            con.error("ERROR in general.GetStat: " + err.stack);
             return false;
         }
     };
@@ -290,7 +290,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return names;
         } catch (err) {
-            con.error("ERROR in general.GetLevelUpNames: " + err);
+            con.error("ERROR in general.GetLevelUpNames: " + err.stack);
             return false;
         }
     };
@@ -309,19 +309,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return names.sort();
         } catch (err) {
-            con.error("ERROR in general.getCoolDownNames: " + err);
+            con.error("ERROR in general.getCoolDownNames: " + err.stack);
             return false;
         }
     };
 
     general.isLoadout = function (name) {
         try {
-            if (name.indexOf('Loadout ') < 0) {
+            if (!$u.isString(name) || name.indexOf('Loadout ') < 0) {
                 return false;
             }
             return name.replace('Loadout ','');
         } catch (err) {
-            con.error("ERROR in general.isLoadout: " + err);
+            con.error("ERROR in general.isLoadout: " + err.stack);
             return false;
         }
     }
@@ -359,7 +359,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             generalList = ['Under Level'].concat(fullList);
 
             general.menuList.forEach(function(item) {
-                usedGen = config.getItem(item + 'General');
+                usedGen = config.getItem(item + 'General', 'Use Current');
                 if (['Use Current', 'Under Level', ''].indexOf(usedGen) == -1 && general.usedGenerals.indexOf(usedGen) == -1) {
                     general.usedGenerals.push(usedGen);
 					uGR = general.getRecord(usedGen);
@@ -383,7 +383,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.BuildLists: " + err);
+            con.error("ERROR in general.BuildLists: " + err.stack);
             return false;
         }
     };
@@ -413,7 +413,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
             return true;
         } catch (err) {
-            con.error("ERROR in general.assignStats: " + err);
+            con.error("ERROR in general.assignStats: " + err.stack);
             return false;
         }
     }
@@ -488,7 +488,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return generalRecord;
         } catch (err) {
-            con.error("ERROR in general.GetEquippedStats: " + err);
+            con.error("ERROR in general.GetEquippedStats: " + err.stack);
             return false;
         }
     };
@@ -534,7 +534,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return false;
         } catch (err) {
-            con.error("ERROR in general.GetLoadouts: " + err);
+            con.error("ERROR in general.GetLoadouts: " + err.stack);
             return false;
         }
     };
@@ -556,7 +556,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             generalBox = null;
         } catch (err) {
-            con.error("ERROR in general.shrink: " + err);
+            con.error("ERROR in general.shrink: " + err.stack);
         }
     };
 
@@ -574,7 +574,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return owned;
         } catch (err) {
-            con.error("ERROR in general.owned: " + err);
+            con.error("ERROR in general.owned: " + err.stack);
             return undefined;
         }
     };
@@ -731,7 +731,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             generalsDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in general.checkResults_onGenerals: " + err);
+            con.error("ERROR in general.checkResults_onGenerals: " + err.stack);
             return false;
         }
     };
@@ -748,8 +748,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.changeDropDownList(general.menuList[i] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), config.getItem(general.menuList[i] + 'General', 'Use Current'));
                 coolDown = general.getCoolDownType(general.menuList[i]);
                 if (coolDown) {
-                    caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
-                }
+					caap.changeDropDownList(coolDown, general.coolDownList, config.getItem(coolDown, ''));
+				}
             }
 
             if (coolDown && general.coolDownList.length > 1) {
@@ -760,7 +760,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return true;
         } catch (err) {
-            con.error("ERROR in general.UpdateDropDowns: " + err);
+            con.error("ERROR in general.UpdateDropDowns: " + err.stack, err);
             return false;
         }
     };
@@ -772,7 +772,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             general.UpdateDropDowns();
             return true;
         } catch (err) {
-            con.error("ERROR in general.Clear: " + err);
+            con.error("ERROR in general.Clear: " + err.stack);
             return false;
         }
     };
@@ -804,7 +804,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return use;
         } catch (err) {
-            con.error("ERROR in general.LevelUpCheck: " + err);
+            con.error("ERROR in general.LevelUpCheck: " + err.stack);
             return undefined;
         }
     };
@@ -821,7 +821,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return '';
         } catch (err) {
-            con.error("ERROR in general.getCoolDownType: " + err);
+            con.error("ERROR in general.getCoolDownType: " + err.stack);
             return undefined;
         }
     };
@@ -838,7 +838,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return generalName;
         } catch (err) {
-            con.error("ERROR in general.GetCurrentGeneral: " + err);
+            con.error("ERROR in general.GetCurrentGeneral: " + err.stack);
             return 'Use Current';
         }
     };
@@ -858,7 +858,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //con.log(2, "Current Loadout:", loadoutName);
             return "Loadout " + loadoutName;
         } catch (err) {
-            con.error("ERROR in general.GetCurrentLoadout: " + err);
+            con.error("ERROR in general.GetCurrentLoadout: " + err.stack);
+            return 'Use Current';
+        }
+    };
+
+	// Provides lookup of a general equipped to a loadout. If general submitted, returns that general. If "Use Current," returns current general
+    general.getLoadoutGeneral = function (name) {
+        try {
+            name = general.isLoadout(name) ? general.GetStat(name, 'general') : name !== "Under Level" ? name : config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().pop() : general.GetLevelUpNames().shift();
+			return name == 'Use Current' ? general.GetCurrentGeneral() : name;
+        } catch (err) {
+            con.error("ERROR in general.GetLoadoutGeneral: " + err.stack);
             return 'Use Current';
         }
     };
@@ -909,8 +920,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
                 }
+				
 
                 targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop();
+				con.log(2, "Level up general", targetGeneral, general.GetLevelUpNames());
             }
 
             if (!general.getRecord(targetGeneral,false)) {
@@ -921,7 +934,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return general.selectSpecific(targetGeneral);
         } catch (err) {
-            con.error("ERROR in general.Select: " + err);
+            con.error("ERROR in general.Select: " + err.stack);
             return false;
         }
     };
@@ -934,7 +947,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 lRecord = {},
                 currentGeneral = general.GetCurrentGeneral(),
                 currentLoadout = general.GetCurrentLoadout(),
+				cgR = {}, // current general record
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
+			
+			if (!general.getRecord(currentGeneral,false)) {
+				con.warn('Unable to find current general record. Going to generals page to get all general records.');
+				if (caap.navigateTo('generals')) {
+					return true;
+				} else {
+					return caap.navigateTo('keep');
+				}
+			}
 
 			//con.log(2, "Select Specific " + targetGeneral);
             if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
@@ -991,7 +1014,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in general.selectSpecific: " + err);
+            con.error("ERROR in general.selectSpecific: " + err.stack);
             return false;
         }
     };
@@ -1055,7 +1078,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.stats.lastGeneral = false;
 
         } catch (err) {
-            con.error("ERROR in general.GetAllStats: " + err);
+            con.error("ERROR in general.GetAllStats: " + err.stack);
             return false;
         }
     };
@@ -1099,7 +1122,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);
             for (i = 0; i < general.menuList.length; i += 1) {
-                htmlCode += caap.makeDropDownTR(general.menuList[i], general.menuList[i] + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR(general.menuList[i], general.menuList[i].replace(/ /g,'_') + 'General', ['Use Current'].concat(general.lists[general.menuList[i]]), '', '', 'Use Current', false, false, 62);
                 coolDown = general.getCoolDownType(general.menuList[i]);
                 htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
             }
@@ -1128,7 +1151,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in general.menu: " + err);
+            con.error("ERROR in general.menu: " + err.stack);
             return '';
         }
     };
@@ -1259,13 +1282,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            changeLink.mname = e.target.attributes[i].nodeValue;
+                            changeLink.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            changeLink.rlink = e.target.attributes[i].nodeValue;
+                            changeLink.rlink = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'itype') {
-                            gen.itype = changeLink.itype = e.target.attributes[i].nodeValue.parseInt();
+                            gen.itype = changeLink.itype = e.target.attributes[i].value.parseInt();
                         } else if (e.target.attributes[i].nodeName === 'item') {
-                            gen.item = changeLink.item = e.target.attributes[i].nodeValue.parseInt();
+                            gen.item = changeLink.item = e.target.attributes[i].value.parseInt();
                         }
                     }
 
@@ -1287,7 +1310,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in general.dashboard: " + err);
+            con.error("ERROR in general.dashboard: " + err.stack);
             return false;
         }
     };

@@ -26,13 +26,16 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'lastBattleTime' : 0,
 			'startTime' : 0,
 			'endTime' : 0,
+			'state' : 'Active',
 			'seal' : '0',
 			'easy' : false,
 			'simtis' : false,
 			'firstScanDone' : false,
 			'burn' : false,
+			't' : false,
+			'tokens' : 10,
 			'paths' : [],
-			'onTopTime' : 0,
+			'nextTopReview' : 0,
 			'me' : {},
             'enemy': {
 				'towers' : {},
@@ -142,62 +145,52 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'label' : 'festival',
 			'mess' : 'festival_mess',
 			'abbrev' : 'Fest',
-			'onTopPath' : 'festival_battle_home',
+			'stamina' : 20,
 			'tabs' : '_arena_tab_',
 			'token' : 'festivalTokens',
 			'bannerDiv' : 'arena_battle_banner_section',
 			'enterButton' : 'guild_enter_battle_button.gif',
 			'index' : 1,
-			'infoDiv' : '#app_body #current_battle_info',
+			'infoDiv' : 'fest_guild_battle',
 			'waitHours' : 3.9,
+			'collectHours' : 1.5,
 			'minHealth' : 200,
-			'basePath' : 'festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle',
-			'startText' : 'XXXX',
-			'preGBText' : 'HOUR',
-			'activeText' : 'BATTLE NOW',
-			'collectText' : 'COLLECT'
+			'basePath' : 'festival_battle_home,clickimg:festival_arena_enter.jpg,festival_guild_battle'
 		},
 		'guild_battle' : {
 			'name' : 'Guild Battle',
 			'label' : 'guildBattle',
 			'mess' : 'guild_battle_mess',
 			'abbrev' : 'GB',
-			'onTopPath' : 'tenxten_gb_formation,guildv2_battle',
+			'stamina' : 20,
 			'tabs' : '_new_guild_tab_',
 			'token' : 'guildBattleTokens',
 			'bannerDiv' : 'guild_battle_banner_section',
 			'enterButton' : 'guild_enter_battle_button2.gif',
 			'index' : 0,
-			'infoDiv' : '#app_body #guildv2_battle_middle',
-			'IDDiv' : 'special_defense_',
+			'infoDiv' : 'guild_achievement',
 			'waitHours' : 8.9,
+			'collectHours' : 8.9,
 			'minHealth' : 1,
-			'basePath' : 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle',
-			'startText' : 'submit the Guild for Auto-Matching',
-			'preGBText' : 'Auto-Match in Progress',
-			'activeText' : 'Time Remaining',
-			'collectText' : 'JOIN NOW!'
+			'startPath' : 'tenxten_gb_formation,clickimg:fb_guild_btn_classic_on.jpg',
+			'basePath' : 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle'
 		},
 		'tenVten' : {
 			'name' : '10v10',
 			'label' : '10v10',
 			'mess' : '10v10_mess',
 			'abbrev' : '10v10',
-			'onTopPath' : 'index',
+			'stamina' : 10,
 			'tabs' : '_new_guild_tab_',
 			'token' : 'tenBattleTokens',
 			'bannerDiv' : 'guild_battle_banner_section',
 			'enterButton' : 'guild_enter_battle_button3.gif',
 			'index' : 3, // 'winlossrecords' is index 2
-			'infoDiv' : '#app_body #newsFeedSection',
-			'IDDiv' : 'special_defense_',
+			'infoDiv' : 'guild_10v10',
 			'waitHours' : 3.9,
+			'collectHours' : 1.5,
 			'minHealth' : 200,
-			'basePath' : 'tenxten_gb_formation,clickjq:.team_content:visible input[src*="fb_guild_btn_joinbattle_small.gif"],ten_battle',
-			'startText' : 'submit the Guild for Auto-Matching',
-			'preGBText' : 'Next 10v10 Battle',
-			'activeText' : 'is active!',
-			'collectText' : 'Battle Over! Collect Reward!'
+			'basePath' : 'tenxten_gb_formation,clickjq:.team_content:visible input[src*="fb_guild_btn_joinbattle_small.gif"],ten_battle'
 		}
 	};
 	
@@ -308,7 +301,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			//con.log(2,'setrPage',path, entry, value, fR.paths,rPage);
 			return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.setrPage: " + err);
+            con.error("ERROR in guild_battle.setrPage: " + err.stack);
             return false;
         }
     };
@@ -333,7 +326,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			return deleted;
 
         } catch (err) {
-            con.error("ERROR in guild_battle.deleterPage: " + err);
+            con.error("ERROR in guild_battle.deleterPage: " + err.stack);
             return false;
         }
     };
@@ -349,7 +342,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			return gf.basePath + ',clickimg:' + type + '_guild_off.gif,jq:#' + type + '_guild_tab,clickjq:#' + type + '_new_guild_tab_' + i + ',jq:#' + type + '_guild_member_list_' + i;
         } catch (err) {
-            con.error("ERROR in guild_battle.makePath: " + err);
+            con.error("ERROR in guild_battle.makePath: " + err.stack);
             return false;
         }
     };
@@ -371,7 +364,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			});
         } catch (err) {
-            con.error("ERROR in guild_battle.setReview: " + err);
+            con.error("ERROR in guild_battle.setReview: " + err.stack);
             return false;
         }
     };
@@ -392,7 +385,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.log(3, "guild_battle.load", guild_battle.records);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.load: " + err);
+            con.error("ERROR in guild_battle.load: " + err.stack);
             return false;
         }
     };
@@ -417,7 +410,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.save: " + err);
+            con.error("ERROR in guild_battle.save: " + err.stack);
             return false;
         }
     };
@@ -443,7 +436,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.log(5, "New guild_battle record #"+gf.index, newRecord.data, guild_battle.records);
             return newRecord.data;
         } catch (err) {
-            con.error("ERROR in guild_battle.getItem: " + err);
+            con.error("ERROR in guild_battle.getItem: " + err.stack);
             return false;
         }
     };
@@ -467,7 +460,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             guild_battle.save();
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.setItem: " + err);
+            con.error("ERROR in guild_battle.setItem: " + err.stack);
             return false;
         }
     };
@@ -500,7 +493,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             con.warn("Unable to delete guild_battle record", slot, guild_battle.records);
             return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.deleteItem: " + err);
+            con.error("ERROR in guild_battle.deleteItem: " + err.stack);
             return false;
         }
     };
@@ -516,7 +509,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             session.setItem("10v10DashUpdate", true);
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.clear: " + err);
+            con.error("ERROR in guild_battle.clear: " + err.stack);
             return false;
         }
     };
@@ -524,110 +517,36 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	guild_battle.onTop = function(gf) {
         try {
 			var fR = guild_battle.getItem(gf),
-				nextReview = Date.now(),
-				now = new Date(),
-				nowUTC = new Date(),
-				thenUTC = new Date(),
-				text = '',
-				remainingTime = 0,
-				infoDiv = $j(gf.infoDiv);
-				
-			if (gf.name == 'Festival') {
-		
-				var tDate = new Date(),
-					next = $u.setContent(infoDiv.children().eq(0).children().eq(0).text(), '').trim().innerTrim(),
-					timer = $u.setContent(infoDiv.children().eq(1).children().eq(0).text(), '').trim().innerTrim(),
-					tz = $u.setContent(timer.regex(/UTC ([\-+]*?\d+);/), 0),
-					ampm = $u.setContent(timer.regex(/\d+:\d+ (AM|PM)/), 'AM'),
-					hour = $u.setContent(timer.regex(/(\d+):\d+/), 0),
-					start = 0;
-
-				hour = ampm === 'AM' && hour === 12 ? 0 : (ampm === 'PM' ? hour + 12 : hour);
-				hour = tz === 0 ? hour : hour - tz;
-				hour = hour < 0 ? hour + 24 : (hour > 24 ? hour - 24 : hour);
-				tDate.setUTCHours(hour, 0, 0, 0);
-				tDate.setUTCDate(tDate.getDate() + (tDate < now ? 1 : 0));
-				fR.reviewed = now.getTime();
-				//con.log(2, "Festival.checkInfo", next, timer, hour, tz);
-				//con.log(2, "When", tDate.toUTCString());
-
-				if (fR.endTime < fR.reviewed) {
-					fR.startTime = tDate.getTime();
-					fR.endTime = fR.startTime + 3600000;
-					schedule.setItem('StartTime', fR.startTime, 20);
-					//con.log(2, "New start time");
-				}
-				tDate.setUTCHours(hour, 0, 0, 0);
-				//con.log(2, "Festival battle start time" + $u.makeTime(tDate, caap.timeStr(true)), tDate);
-				
-				text = next;
-				
-			} else if (gf.name == '10v10') {
-				text=infoDiv.text().trim(); //tenvtenremaining
-				con.log(2, gf.name + ' TOP', text, $j('#app_body #tenvtenremaining').attr('value'));
-			} else { // GBorFest == guild_battle
-				text = $u.setContent(infoDiv.text().trim().innerTrim(), '');
-			}
-
-			if (text.indexOf(gf.startText) >= 0) {
-				fR.paths = [];
-				fR.state = 'Start';
-				nextReview += (config.getItem('GB ClassGeneral','Use Current') != 'Use Current' ? -3 : config.getItem('GBwhenTokens',"Never") != 'Never' ? 5: 60) * 60 * 1000;
-			} else if (text.indexOf(gf.preGBText) >= 0 || text.indexOf(' MIN') >= 0) {
-				fR.paths = [];
-				fR.state = 'PreBattle';
-			} else if (text.indexOf(gf.activeText) >= 0) {
-				if (schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60)) {
-					con.log(2,'Resetting battle data');
-					fR = new guild_battle.record().data;					
-				}
+				now = Date.now(),
+				infoDiv = $j("#app_body #newsFeedSection div[style*='news_topcontainer.jpg']").has("img[src$='achivement_tabicons_" + gf.infoDiv + ".gif']"),
+				text = infoDiv.text().trim();
+			
+			if (gf.abbrev == 'GB' && !$u.hasContent(text)) {
+				fR.state = fR.state == 'Auto-match' ? 'Auto-match' : 'Start';
+			} else if (text.regex(/next/i)) {
+				fR.state = 'No battle';
+				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 5 * 60) * 1000;
+				fR.startTime = $j(infoDiv).find('input.monsterTickerSecs').attr('value') ? fR.nextTopReview : 0;
+			} else if (text.regex(/battle now/i)) {
 				fR.state = 'Active';
-				nextReview += (config.getItem(gf.abbrev + 'whenTokens',"Never") != 'Never' ? 5: 20) * 60 * 1000;
-				guild_battle.setrPage(fR, gf.basePath);
-			} else if (text.indexOf(gf.collectText) >= 0) {
-				fR.paths = [];
+			} else if (text.regex(/remaining/i)) {
+				fR.state = 'Active';
+				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 5 * 60) * 1000;
+			} else if (text.regex(/collect/i)) {
 				fR.state = 'Collect';
-				//con.log(2,'collect button',gf.waitHours, schedule.since(fR.collectedTime, gf.waitHours * 60 * 60),gf.options, config.getItem('guild_battle_collect',false), gf.options.indexOf(config.getItem('guild_battle_collect',false)));
-				
-				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 8) * 3600000);
-				
-				// Need to adjust from 7 to 8 when daylight savings time changes
-				thenUTC = new Date(fR.lastBattleTime +  (now.getTimezoneOffset() / 60 - 8 + gf.waitHours) * 3600000);
-				//con.log(2, 'DATE2 ' + now.getDay(), nowUTC.toLocaleString(), thenUTC.toLocaleString(),!(nowUTC.getDay() == 1 && thenUTC.getDay() == 2));
-				if (schedule.since(fR.collectedTime, gf.waitHours * 60 * 60) && config.getItem(gf.abbrev + 'collect',false) && !(nowUTC.getDay() == 1 && thenUTC.getDay() == 2)) {
-					guild_battle.setrPage(fR, gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif');
-				}
-				nextReview = Math.max($u.setContent(fR.lastBattleTime,0) + (gf.waitHours * 60 * 60 - 4 * 60) * 1000, Date.now());
+				fR.nextTopReview = gf.abbrev == 'GB' ? fR.lastBattleTime + gf.waitHours * 3600 * 1000 : now + 3600 * 1000;
 				
 			} else {
 				con.warn(gf.name + ' Unknown message text', text);
 			}
 
-			if (gf.name == 'Festival' && fR.state != 'Active') {
-				// guild_battle.setReview(gf);
-				hour = fR.state == 'Collect' ? 3 : $u.setContent(text.regex(/(\d+) HOUR/), 0);
-				tDate = new Date();
-				tDate.setHours(tDate.getHours() + hour%6 + 1, -4, 0, 0);
-				fR.startTime = tDate.getTime();
-				nextReview = fR.startTime;
-				con.log(2, "Festival possible start time", hour, tDate, $u.makeTime(tDate, caap.timeStr(true)));
-			} else if (gf.name == '10v10' &&  fR.state != 'Active') {
-				remainingTime = $u.setContent($j('#app_body #tenvtenremaining').attr('value'), 0)
-				nextReview = now.getTime() + (fR.state == 'Collect' ? 30 * 60 : remainingTime - 4 * 60) * 1000;
-				fR.startTime = now.getTime() + (fR.state == 'Collect' ? 10 * 60 : remainingTime - 4 * 60) * 1000;
-			}
-			
-
+			fR.nextTopReview = fR.nextTopReview < now ? now + 5 * 60 * 1000 : fR.nextTopReview
 			guild_battle.setItem(gf, fR);
-
-			fR.onTopTime = nextReview;
-			//guild_battle.setrPage(fR, gf.page, 'review', nextReview);
-
-			con.log(2, "guild_battle.onTop", gf.name, fR, fR.state, caap.stats.priorityGeneral, new Date(nextReview).toLocaleString());
+			con.log(2, gf.name + ' state ' + fR.state + ', next top page review: ' + new Date(fR.nextTopReview + 5 * 60 * 1000).toLocaleString(), fR, caap.stats.priorityGeneral, text);
 			return true;
 
-			} catch (err) {
-				con.error("ERROR in guild_battle.onTop: " + err);
+		} catch (err) {
+			con.error("ERROR in guild_battle.onTop: " + err.stack);
             return false;
         }
     };
@@ -659,7 +578,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 			return t;
         } catch (err) {
-            con.error("ERROR in guild_battle.team: " + err);
+            con.error("ERROR in guild_battle.team: " + err.stack);
             return false;
         }
     };
@@ -729,14 +648,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				sealCheck = false,
 				fullText = '';
 
-			guild_battle.setrPage(fR, gf.basePath, 'review', Date.now());
+			guild_battle.setrPage(fR, gf.basePath, 'review', now);
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             bannerDiv = $j("#globalContainer #" + gf.bannerDiv);
 			myStatsTxt = $u.setContent(bannerDiv.text().trim().innerTrim(), '');
 			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			notMyBattle = myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/);
-			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master And Officers To Initiate More)/);
-			//con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
+			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master .* Initiate More)/i) || myStatsTxt.regex(/your team.*was (defeated|victorious)/i);
+			con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, notMyBattle, battleOver);
 			if (notMyBattle) {
 				return true;
 			}
@@ -793,38 +712,39 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 
+			fR.nextTopReview = Math.max(now + 5 * 60 * 1000, fR.nextTopReview);
+
 			if (battleOver) {
 				if (caap.hasImage('guild_battle_collectbtn_small.gif')) {
 					fR.state = 'Collect';
 				} else {
-					fR.collectedTime = Date.now();
-					fR.paths = [];
+					fR.collectedTime = now;
 				}
-				fR.state = fR.state == 'Active' ? 'PreBattle' : fR.state;
+				fR.state = fR.state != 'Active' ? fR.state : fR.abbrev == 'GB' ? 'Start' : 'No battle';
 				guild_battle.setItem(gf, fR);
 				return true;
 			}
 							
+			fR.state == 'Active';
+			
 			if (caap.hasImage(gf.enterButton)) {
 				//con.log(2, 'Battle has enter button', config.getItem('guild_battle_enter',false));
-				if (config.getItem(gf.abbrev + 'whenTokens','Never') != 'Never' && caap.stats.stamina.num >= 20) {
-					fR.paths = [];
-					guild_battle.setrPage(fR, gf.basePath + ',clickimg:' + gf.enterButton);
-				}
 				guild_battle.setItem(gf, fR);
 				return true;
 			}
 
-			fR.lastBattleTime = Date.now();
+			if (schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60)) {
+				con.log(1,'Resetting battle data');
+				tempTxt = fR.nextTopReview;
+				fR = new guild_battle.record().data;					
+				fR.nextTopReview = tempTxt;
+			}
+
+			fR.lastBattleTime = now;
 			//con.log(2, 'Enter button cleared');
 
-			if (config.getItem(gf.abbrev + 'whenTokens','Never') !== 'Never') {
-				guild_battle.setReview(gf);
-			}
-			
-
 			text = $u.setContent($j("#monsterTicker").text().trim(),'');
-            fR.endTime = Date.now() + text.parseTimer() * 1000;
+            fR.endTime = now + text.parseTimer() * 1000;
 
             myStatsTxt = $u.setContent(bannerDiv.text().trim().innerTrim(), '');
 			args = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) .* Activity Points: (\\d+)"));
@@ -885,7 +805,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			gate = $j("div[id*='_guild_member_list_']");
 			tower = gate.attr('id').match(/_guild_member_list_(\d)/)[1];
 			which = gate.attr('id').match(/(\w+)_guild_member_list_(\d)/)[1];
-			guild_battle.setrPage(fR, guild_battle.makePath(gf, which, tower), 'review', Date.now());
+			guild_battle.setrPage(fR, guild_battle.makePath(gf, which, tower), 'review', now);
 			//con.log(2,'Gate ID',gate.attr('id'),tower, which, fR.paths);
 
 			towerPops = $j("#globalContainer div[id*='" + which + gf.tabs + "']").map(function() {
@@ -1145,155 +1065,21 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.onBattle: " + err);
+            con.error("ERROR in guild_battle.onBattle: " + err.stack);
             return false;
         }
     };
-
-    guild_battle.getReview = function() {
+	
+    guild_battle.checkTimes = function() {
         try {
-            var it = 0,
-                len = 0;
-
-            for (it = 0, len = guild_battle.records.length; it < len; it += 1) {
-                if (guild_battle.records[it].state !== 'Completed') {
-                    if (schedule.since(guild_battle.records[it].reviewed, 30 * 60)) {
-                        break;
-                    }
-                }
-            }
-
-            return guild_battle.records[it];
-        } catch (err) {
-            con.error("ERROR in guild_battle.getReview: " + err);
-            return undefined;
-        }
-    };
-
-	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-	guild_battle.work = function (gf) {
-		try {
-			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
-				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
-				tRecord = guild_battle.getItem(guild_battle.gf.tenVten),
-				tStartTime = $u.setContent(tRecord.startTime, 0),
-				fR = guild_battle.getItem(gf),
-				paths = [{'path' : gf.onTopPath, 'review' : $u.setContent(fR.onTopTime, 0)}].concat($u.setContent(fR.paths, [])),
-				timeBattlesList = config.getList('timed_guild_battles', ''),
-				whenTokens = config.getItem(gf.abbrev + 'whenTokens', 'Never'),
-				tokenMax = config.getItem(gf.abbrev + 'max', 10),
-				begin = new Date(),
+			var begin = new Date(),
 				end = new Date(),
 				timeString = '',
-				result = '',
-				button = '',
-				priority = false,
-				wait = false,
-				stun = false,
-				burnTokens = false,
-				doAttack = false,
-				teams = [],
-				pgO = {},
-				button = null,
-				towers = ['1','2','3','4'],
-				t = { 'score' : 0, 'tokens' : 1 },
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 				match = (timedSetting === 'Battle available') ? true : false,
-				now = new Date();
-			
-			if (schedule.since($u.setContent(fRecord.startTime, 0), 1 * 60) && !schedule.since($u.setContent(fRecord.startTime, 0), 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('Fest ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest ClassGeneral','Use Current');
-			}
-			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tStartTime, -8 * 60) && !schedule.since(tStartTime, -0 * 60) && schedule.since(tRecord.lastBattleTime, 30 * 60)) {
-				caap.stats.priorityGeneral = config.getItem('10v10 ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10 ClassGeneral','Use Current');
-			}
-			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'PreBattle') {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
-			}
-			if (caap.stats.priorityGeneral != 'Use Current') {
-				con.log(2,gf.abbrev + ' PREBATTLE general',caap.stats.priorityGeneral);
-				if (general.selectSpecific(caap.stats.priorityGeneral)) {
-					return true;
-				}
-			}
-
-			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB Fest IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB Fest IdleGeneral','Use Current');
-			} else {
-				caap.stats.battleIdle = 'Use Current';
-			}
-
-			// Work around for faulty storage of caap.stats
-			if (caap.stats.indicators.api == 0 && caap.stats.level > 10) {
-				return caap.navigateTo('keep');
-			}
-
-			priority = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
-			fR.burn = fR.tokens <= config.getItem(gf.abbrev + 'min', 0) ? false :  fR.burn || (whenTokens == 'Between Max/Min' && fR.tokens > tokenMax);
-			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
-			wait = stun == 'stunned' || fR.me.poly || (fR.me.confuse && fR.your.attacks.indexOf('cleanse') < 0 && fR.your.attacks.indexOf('dispel') < 0);
-			burnTokens =  priority ? true : wait ? false : fR.burn;
-			doAttack = fR.state == 'Active' && fR.tokens > (burnTokens ? 0 : Math.max(wait ? (caap.hyper ? 5 : 7) : 0, tokenMax));
-			
-			//con.log(2, 'GUILD ' + gf.name, fR, $u.makeTime(fR.onTopTime, caap.timeStr(true)), $u.makeTime(fR.lastBattleTime, caap.timeStr(true)));
-			
-            for (i = 0; i < paths.length; i++) {
-				pgO = paths[i];
-				//con.log(2, 'PATH REVIEW', gf.name, pgO.path, fR.paths);
-                if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
-					con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-					if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
-						return true;
-					}
-					result = caap.navigate2(pgO.path);
-					if (result == 'fail') {
-						guild_battle.deleterPage(fR, 'path', pgO.path);
-					} else if (result) {
-						return true;
-					} else {
-						con.log(2, 'Loading keep page to force page reload', pgO.path, result);
-						return caap.navigateTo('keep');
-					}
-				}
-            }
-			//con.log(2,'GUILD REVIEW PAGES', gf.name, paths);
-			
-			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
-			if (whenTokens !== 'Never' && caap.stats.priorityGeneral == 'Use Current') {
+				now = Date.now();
 				
-				if (doAttack) {
-					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
-					towers = gf.name == '10v10' ? ['1'] : towers;
-					teams.forEach(function(which) {
-						towers.forEach(function(tower) {
-							var seal = tower == fR[which].seal ? 'seal' : 'normal';
-							if (fR[which].towers[tower][seal][stun].score > t.score && fR[which].towers[tower][seal][stun].tokens <= fR.tokens) {
-								t = fR[which].towers[tower][seal][stun];
-							}
-							//con.log(2, 'Attack evals:',which, tower, seal, stun, t, t.tokens, fR.tokens, t.tokens <= fR.tokens);
-						});
-					});
-				
-					if (t.score === 0) {
-						con.log(2, gf.name + ': No valid target to attack', fR);
-						return false;
-					}
-					
-					caap.setDivContent(gf.mess, 'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
-					con.log(2,  'Tokens ' + fR.tokens + ' ' + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
-//					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
-					button = 'special_action';
-					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
-					if (result == 'fail') {
-						con.warn('Unable to complete path. Reloading page.', general.GetCurrentGeneral(), general.GetCurrentLoadout());
-						return caap.navigate2(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
-					}
-					return result;
-				}
-			}
-				
-			if (timedSetting=='Never' || gRecord.state !== 'Start') {
+			if (timedSetting=='Never') {
 				return false;
 			}
 			//con.log(2, 'checking to see if starting GB', timeBattlesList);
@@ -1329,24 +1115,193 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('GB ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB ClassGeneral','Use Current');
-				if (general.selectSpecific(caap.stats.priorityGeneral)) {
-					return true;
-				}
-				if (caap.navigate2('tenxten_gb_formation,guildv2_battle')) {
-					return true;
-				}
-				button = caap.checkForImage('sort_btn_startbattle.gif');
-				if ($u.hasContent(button)) {
-					con.log(1, 'CLICK GUILD BATTLE START');
-					return caap.click(button);
-				}
+				caap.stats.priorityGeneral = config.getItem('GB_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_ClassGeneral','Use Current');
+				return caap.navigate2((caap.stats.priorityGeneral !== 'Use Current' ? '@' + caap.stats.priorityGeneral + ',' : '') + 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_startbattle.gif');
 			}
 
 			//con.log(5, 'No time match to current time', now);
+        } catch (err) {
+            con.error("ERROR in guild_battle.checkTimes: " + err.stack);
+            return false;
+        }
+    };
+
+	guild_battle.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+	guild_battle.work = function (gf) {
+		try {
+			var fR = guild_battle.getItem(gf),
+				//paths = [{'path' : gf.onTopPath, 'review' : $u.setContent(fR.nextTopReview, 0)}].concat($u.setContent(fR.paths, [])),
+				timeBattlesList = config.getList('timed_guild_battles', ''),
+				whenTokens = config.getItem(gf.abbrev + 'whenTokens', 'Never'),
+				tokenMax = config.getItem(gf.abbrev + 'max', 10),
+				result = '',
+				button = '',
+				priority = false,
+				wait = false,
+				stun = false,
+				burnTokens = false,
+				targetTokens = 0,
+				now = new Date(),
+				nextReview = now + 24 * 3600 * 1000,
+				nowUTC = new Date(),
+				thenUTC = new Date(),
+				doAttack = false,
+				teams = [],
+				pgO = {},
+				button = null,
+				towers = ['1','2','3','4'],
+				t = { 'score' : 0, 'tokens' : 1 },
+				stateMsg = schedule.since(fR.collectedTime, gf.waitHours * 60 * 60) ? 'Uncollected' : 'Collected';
+			
+			wait = fR.t;
+			fR.t = false;
+			// Set paths or reset paths list according to state i
+			if (fR.state == 'Collect') {
+				fR.paths = [];
+				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 8) * 3600000 - 2 * 50 * 1000);
+				
+				// Need to adjust from 7 to 8 when daylight savings time changes
+				thenUTC = new Date((gf.abbrev == 'GB' ? fR.lastBattleTime : fR.endTime) +  (now.getTimezoneOffset() / 60 - 8 + gf.collectHours) * 3600000);
+				//con.log(2, 'DATE2 ' + now.getDay(), nowUTC.toLocaleString(), thenUTC.toLocaleString(),!(nowUTC.getDay() == 1 && thenUTC.getDay() == 2));
+				
+				if (stateMsg == 'Uncollected' && config.getItem(gf.abbrev + 'collect',false)
+					&& !(nowUTC.getDay() == 1 && thenUTC.getDay() == 2)) {
+					guild_battle.setrPage(fR, gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif');
+					stateMsg = 'Collecting'
+				}
+			} else if (fR.state == 'No battle') {
+				fR.paths = [];
+				stateMsg += ', no battle';
+			} else if (fR.state == 'Start') {
+				if (guild_battle.checkTimes()) {
+					caap.setDivContent(gf.mess, gf.abbrev + ': Clicking button for auto-match');
+					return true;
+				} else if (config.getItem('GB_ClassGeneral', 'Use Current') != 'Use Current') {
+					guild_battle.setrPage(fR, gf.startPath);
+					stateMsg += ', checking for auto-match to set general, next check: ' + $u.makeTime(fR.nextTopReview + 5 * 60 * 1000, caap.timeStr(true));
+				} else {
+					stateMsg += ', ready to start next battle';
+				}
+			} else if (fR.state == 'Auto-match') {
+				fR.paths = [];
+				stateMsg += ', and auto-match button pushed!';
+			} else if (fR.state == 'Active') {
+				guild_battle.deleterPage(fR, 'path', gf.startPath);
+				stateMsg = schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60) ? 'Not entered' : 'Entered Battle';
+				if (config.getItem(gf.abbrev + 'whenTokens','Never') != 'Never') {
+					if (stateMsg == 'Not entered') {
+						fR.paths = [];
+						if (caap.stats.stamina.num >= gf.stamina) {
+							stateMsg = 'Entering battle';
+							guild_battle.setrPage(fR, gf.basePath + ',clickimg:' + gf.enterButton);
+						} else {
+							caap.setDivContent(gf.mess, gf.abbrev + ': Unable to enter because of low stamina');
+						}
+					} else {
+						fR.t = wait;
+						guild_battle.setReview(gf);
+						stateMsg = fR.tokens + '/10 ' + fR.me.status + ', reviewing towers';
+					}
+				}
+			}
+
+			// Work around for faulty storage of caap.stats
+			if (caap.stats.indicators.api == 0 && caap.stats.level > 10) {
+				caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 Checking keep for stats');
+				return caap.navigateTo('keep');
+			}
+
+			// Add top page review to paths lists
+			guild_battle.setrPage(fR, 'index', 'review', $u.setContent(fR.nextTopReview, 0));
+			
+			priority = schedule.since(fR.endTime, -8 * 60 ) || fR.guildHealth < 10;
+			fR.burn = fR.tokens <= config.getItem(gf.abbrev + 'min', 0) ? false :  fR.burn || (whenTokens == 'Between Max/Min' && fR.tokens > tokenMax);
+			stun = fR.me.healthNum <= gf.minHealth ? 'stunned' : 'unstunned';
+			wait = stun == 'stunned' || fR.me.poly || (fR.me.confuse && fR.your.attacks.indexOf('cleanse') < 0 && fR.your.attacks.indexOf('dispel') < 0);
+			burnTokens =  priority ? true : wait ? false : fR.burn;
+			targetTokens = burnTokens ? 0 : Math.max(wait ? (caap.hyper ? 5 : 7) : 0, tokenMax);
+			doAttack = fR.state == 'Active' && fR.tokens >= targetTokens;
+			
+			//con.log(2, 'GUILD ' + gf.name, fR, $u.makeTime(fR.nextTopReview, caap.timeStr(true)), $u.makeTime(fR.lastBattleTime, caap.timeStr(true)));
+			//con.log(2, gf.abbrev + 'PATHs', fR.paths);
+			
+			if (!fR.t) {
+				for (var i = 0; i < fR.paths.length; i++) {
+					pgO = fR.paths[i];
+					//con.log(2, gf.abbrev + 'PATH REVIEW', fR.paths, pgO, fR);
+					if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
+						//con.log(2,'Reviewing battle page',pgO.path, fR.paths);
+						if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
+							caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10, setting idle general');
+							return true;
+						}
+						caap.setDivContent(gf.mess, gf.abbrev + ': ' + stateMsg);
+						result = caap.navigate2(pgO.path);
+						if (result == 'fail') {
+							guild_battle.deleterPage(fR, 'path', pgO.path);
+						} else if (result) {
+							return true;
+						} else {
+							con.log(2, 'Loading keep page to force page reload', pgO.path, result);
+							return caap.navigateTo('keep');
+						}
+						nextReview = Math.min(nextReview, pgO.review);
+					}
+				}
+			}
+			//con.log(2,'GUILD REVIEW PAGES', gf.name, paths);
+			
+			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
+			if (whenTokens !== 'Never' && caap.stats.priorityGeneral == 'Use Current') {
+				
+				if (doAttack) {
+					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
+					towers = gf.name == '10v10' ? ['1'] : towers;
+					teams.forEach(function(which) {
+						towers.forEach(function(tower) {
+							var seal = tower == fR[which].seal ? 'seal' : 'normal';
+							if (fR[which].towers[tower][seal][stun].score > t.score && fR[which].towers[tower][seal][stun].tokens <= fR.tokens) {
+								t = fR[which].towers[tower][seal][stun];
+							}
+							//con.log(2, 'Attack evals:',which, tower, seal, stun, t, t.tokens, fR.tokens, t.tokens <= fR.tokens);
+						});
+					});
+					
+					stateMsg = gf.abbrev + ': ' + fR.tokens + '/10 ' + fR.me.status + ', ';
+				
+					if (t.score === 0) {
+						caap.setDivContent(gf.mess, stateMsg + ' no valid target');
+						con.log(2, gf.name + ': No valid target to attack', fR);
+						return false;
+					}
+					
+					if (fR.t !== t) {
+						caap.setDivContent(gf.mess, stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
+						fR.t = t;
+					}
+					con.log(2,  stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
+//					button = t.attack == 'duel' ? 'basic_' : t.team == 'your' ? 'special_defense_' : 'special_';
+					button = 'special_action';
+					result = caap.navigate2(t.general + ',' + guild_battle.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
+					if (result == 'fail') {
+						con.warn(stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.GetCurrentGeneral() + ' has ' + t.attack + ', reloading page', general.GetCurrentGeneral(), general.GetCurrentLoadout());
+						caap.setDivContent(gf.mess, stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.GetCurrentGeneral() + ' has ' + t.attack);
+						return caap.navigate2(guild_battle.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
+					} else if (result == 'done') {
+						fR.t = false;
+					}
+					return result;
+				} else if (fR.state == 'Active') {
+					caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10 ' + fR.me.status + ', ' + 'waiting for ' + targetTokens + ' tokens');
+				} else {
+					caap.setDivContent(gf.mess, gf.abbrev + ': ' + stateMsg + ', next check: ' + $u.makeTime(fR.nextTopReview + 5 * 60 * 1000, caap.timeStr(true)));
+				}
+			}
+				
 			return false;
         } catch (err) {
-            con.error("ERROR in guild_battle.work: " + err, gf.name);
+            con.error("ERROR in guild_battle.work: " + gf.abbrev + ' ' + err.stack);
             return false;
         }
     };
@@ -1397,7 +1352,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in guild_battle.menu: " + err);
+            con.error("ERROR in guild_battle.menu: " + err.stack);
             return '';
         }
     };
@@ -1612,9 +1567,9 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 						for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
 							if (e.target.attributes[i].nodeName === 'mname') {
-								visitBattleLink.mname = e.target.attributes[i].nodeValue;
+								visitBattleLink.mname = e.target.attributes[i].value;
 							} else if (e.target.attributes[i].nodeName === 'rlink') {
-								visitBattleLink.arlink = e.target.attributes[i].nodeValue;
+								visitBattleLink.arlink = e.target.attributes[i].value;
 							}
 						}
 
@@ -1632,7 +1587,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
             return true;
         } catch (err) {
-            con.error("ERROR in guild_battle.dashboard: " + err);
+            con.error("ERROR in guild_battle.dashboard: " + err.stack);
             return false;
         }
     };

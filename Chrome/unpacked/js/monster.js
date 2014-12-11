@@ -22,7 +22,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         this.data = {
             'name': false,
             'userName': '',
-            'userId': 0,
             'monster': '',
             'md5': '',
             'attacked': -1,
@@ -32,36 +31,37 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'fortify': -1,
             'time': [],
             't2k': -1,
-            'phase': '',
+            'phase': -1,
             'miss': 0,
             'link': '',
             'rix': -1,
-            'mpool': '',
-            'mid': '',
             'over': '',
             'color': '',
             'review': -1,
-            'type': '',
             'conditions': '',
             'charClass': '',
+			'staminaList' : [],
+			'energyList' : [],
+			'multiNode' : false,
+			'siegeLevel' : 0,
             'strength': -1,
             'stun': -1,
             'stunTime': -1,
             'stunDo': false,
             'status': false,
             'stunType': '',
+			'targetPart' : -1,
 			'listReviewed' : 0,
 			'lMissing' : 0,
             'tip': '',
-            'fImg': '',
-            'hide': false,
             'save': true,
-            'joinable': {},
             'select': false
         };
     };
 
     monster.engageButtons = {};
+	
+	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']";
 
     monster.completeButton = {
         'battle_monster': {
@@ -74,1822 +74,229 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    // http://castleage.wikidot.com/monster for monster info
-    // http://castleage.wikidot.com/skaar
     // Keep object names short, and remove the ", the World Hydra" parts. Players should know what they're fighting
     // No commas allowed in Object names
     monster.info = {
-        'Skaar Deathrune': {
-            duration: 96,
-            defense: true,
-            hp: 100000000,
+         'Default Monster': {
             ach: 1000000,
-            siege: 5,
-            siegeClicks: [30, 60, 90, 120, 200],
-            siegeDam: [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img: ['/graphics/death_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            reqAtkButton: 'attack_monster_button.jpg',
-            v: 'attack_monster_button2.jpg',
-            defButton: 'button_dispel.gif',
-            defense_img: 'bar_dispel.gif',
-            levels: [1, 30, 60, 90],
-            join: [30, 50, 70, 70],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_skaar_boss.jpg'],
-            festival_dur: 120,
             festival_ach: 1000000,
-            newbg_img: ['monster_header_skaar.jpg'],
-            list_img: ['death_list.jpg'],
-            cta_img: ['ntwitter_deathrune1.gif']
+            staminaList: [1, 5],
+			energyList: [10],
+			siege: 5,
+            defense_img: 'nm_green.jpg'
         },
-        'Ragnarok': {
-            duration: 168,
-            defense: true,
-            hp: 100000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [30, 60, 90, 120, 200],
-            siegeDam: [7260000, 9075000, 10890000, 14520000, 18150000],
-            siege_img: ['/graphics/water_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
+       'Skaar Deathrune': {
+            duration: 96,
             reqAtkButton: 'attack_monster_button.jpg',
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif',
-            levels: [1, 30, 60, 90],
-            join: [30, 50, 70, 70],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_water_element.jpg'],
-            festival_dur: 192,
-            festival_ach: 1000000,
-            newbg_img: ['monster_header_ragnarok.jpg'],
-            list_img: ['water_list.jpg'],
-            cta_img: ['ntwitter_ragnarok1.gif']
+            festival_dur: 120
+        },
+        'Ragnarok': {
+            reqAtkButton: 'attack_monster_button.jpg',
+            pwrAtkButton: 'attack_monster_button2.jpg',
+            defButton: 'button_dispel.gif',
+            defense_img: 'bar_dispel.gif'
         },
         'Genesis': {
-            duration: 168,
-            defense: true,
-            hp: 100000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [30, 60, 90, 120, 200],
-            siegeDam: [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img: ['/graphics/earth_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             reqAtkButton: 'attack_monster_button.jpg',
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'attack_monster_button3.jpg',
             defense_img: 'seamonster_ship_health.jpg',
-            repair_img: 'repair_bar_grey.jpg',
-            levels: [1, 30, 60, 90],
-            join: [30, 30, 30, 40],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_earth_element.jpg'],
-            festival_dur: 192,
-            festival_ach: 1000000,
-            newbg_img: ['monster_header_genesis.jpg'],
-            list_img: ['earth_element_list.jpg'],
-            cta_img: ['ntwitter_genesis1.gif']
+            repair_img: 'repair_bar_grey.jpg'
         },
         'Cronus': {
-            duration: 168,
-            hp: 100000000,
             ach: 500000,
-            siege: 6,
-            siegeClicks: [10, 20, 50, 100, 200, 300],
-            siegeDam: [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
-            siege_img: ['/graphics/monster_siege_small'],
-            staUse: 10,
-            staLvl: [0, 100, 200, 400, 400],
-            staMax: [10, 20, 50, 100, 200],
-            levels: [1, 30, 60, 90],
-            join: [40, 30, 30, 30],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_hydra.jpg'],
-            festival_dur: 192,
-            festival_ach: 500000,
-            newbg_img: ['monster_header_cronus.jpg'],
-            list_img: ['hydra_head.jpg'],
-            cta_img: [
-                'cta_hydra_catapult.gif',
-                'cta_hydra_arrows.gif',
-                'cta_hydra_cannons.gif',
-                'cta_hydra_blizzard.gif',
-                'cta_hydra_firestorm.gif']
-        },
-        'Dark Legion': {
+            festival_ach: 500000
+		},
+        'Invading Force': {
+			alias: 'Dark Legion',
             duration: 168,
-            hp: 100000,
             ach: 1000,
-            siege: 6,
-            siegeClicks: [10, 20, 40, 80, 150, 300],
-            siegeDam: [3000, 4500, 6000, 9000, 12000, 15000],
-            siege_img: ['/graphics/castle_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
             defense_img: 'seamonster_ship_health.jpg',
-            repair_img: 'repair_bar_grey.jpg',
-            levels: [1, 30, 60, 90],
-            join: [30, 30, 30, 40],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_header_defend.jpg'],
-            list_img: ['castle_siege_list.jpg'],
-            cta_img: [
-                'cta_castle_archers.gif',
-                'cta_castle_elves.gif',
-                'cta_castle_dwarves.gif',
-                'cta_castle_knights.gif']
-        },
+            repair_img: 'repair_bar_grey.jpg'
+		},
         'Emerald Dragon': {
             duration: 72,
             ach: 100000,
-            siege: 0,
-            staUse: 5,
-            staMax: [5, 10],
-            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
-            mClass: 'Epic Team',
-            mpool: 2,
-            newbg_img: ['monster_header_emeralddrag.jpg'],
-            list_img: ['dragon_list_green.jpg'],
-            cta_img: ['cta_green_dragon.gif']
+            staminaList: [5, 10],
+            attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif']
         },
         'Frost Dragon': {
             duration: 72,
             ach: 100000,
-            siege: 0,
-            staUse: 5,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_dragon_blue.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_frostdrag.jpg'],
-            list_img: ['dragon_list_blue.jpg'],
-            cta_img: ['cta_blue_dragon.gif']
+            festival_ach: 30000
         },
         'Gold Dragon': {
             duration: 72,
             ach: 100000,
-            siege: 0,
-            staUse: 5,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_dragon_yellow.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_golddrag.jpg'],
-            list_img: ['dragon_list_yellow.jpg'],
-            cta_img: ['cta_yellow_dragon.gif']
+            festival_ach: 30000
         },
         'Ancient Red Dragon': {
             duration: 72,
             ach: 100000,
-            siege: 0,
-            staUse: 5,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_dragon_red.jpg', 'festival_monsters_top_dragon_monster.jpg'],
             festival_dur: 96,
-            festival_ach: 50000,
-            newbg_img: ['monster_header_ancientreddrag.jpg'],
-            list_img: ['dragon_list_red.jpg'],
-            cta_img: ['cta_red_dragon.gif']
+            festival_ach: 50000
         },
         'Karn': {
             duration: 120,
-            ach: 15000,
-            siege: 0,
-            mClass: 'Quest Mini-Boss',
-            mpool: 4,
-            newbg_img: ['monster_header_minotaur.jpg'],
-            list_img: ['monster_minotaur_list.jpg']
+            ach: 15000
         },
         'Gildamesh': {
             duration: 72,
             ach: 15000,
-            siege: 0,
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_orcking.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_gildamesh.jpg'],
-            list_img: ['orc_boss_list.jpg'],
-            cta_img: ['cta_orc_king.gif']
+            festival_ach: 30000
         },
-        'Colossus': {
+        'Colossus Of Terra': {
             duration: 72,
             ach: 20000,
-            siege: 0,
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_stonegiant.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_colossus.jpg'],
-            list_img: ['stone_giant_list.jpg'],
-            cta_img: ['cta_stone.gif']
+            festival_ach: 30000
         },
         'Sylvanas': {
             duration: 48,
             ach: 50000,
-            siege: 1,
-            siegeClicks: [11],
-            siegeDam: [500000],
-            siege_img: ['/graphics/boss_sylvanas_drain_icon.gif'],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_sylvanus.jpg'],
             festival_dur: 72,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_sylvanas.jpg', 'monster_header_sylvana.jpg'],
-            list_img: ['boss_sylvanus_list.jpg'],
-            cta_img: ['cta_sylvanas.gif']
+            festival_ach: 30000
         },
         'Lotus': {
             duration: 48,
-            ach: 500000,
-            siege: 0,
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['monster_header_lotus.jpg'],
-            list_img: ['boss_lotus_list.jpg'],
-            cta_img: ['cta_lotus.gif']
+            ach: 500000
         },
         'Keira': {
             duration: 48,
             ach: 30000,
-            siege: 0,
             reqAtkButton: 'event_attack1.gif',
-            pwrAtkButton: 'event_attack2.gif',
-            //defButton    : null,
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['monster_header_keira.jpg', 'monster_header_keira2.jpg'],
-            list_img: ['boss_keira_list.jpg'],
-            cta_img: ['cta_keira.gif']
+            pwrAtkButton: 'event_attack2.gif'
         },
         'Amethyst Sea Serpent': {
             duration: 72,
-            defense: true,
             ach: 250000,
-            siege: 0,
-            fort: true,
-            staUse: 10,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_seamonster_purple.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_amyserpent.jpg'],
-            list_img: ['seamonster_list_purple.jpg'],
-            cta_img: ['twitter_seamonster_purple_1.jpg']
+            festival_ach: 30000
         },
         'Ancient Sea Serpent': {
             duration: 72,
-            defense: true,
             ach: 250000,
-            siege: 0,
-            fort: true,
-            staUse: 10,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_seamonster_red.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_ancientserpent.jpg'],
-            list_img: ['seamonster_list_red.jpg'],
-            cta_img: ['twitter_seamonster_red_1.jpg']
+            festival_ach: 30000
         },
         'Emerald Sea Serpent': {
             duration: 72,
-            defense: true,
             ach: 250000,
-            siege: 0,
-            fort: true,
-            staUse: 10,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_seamonster_green.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_emeraldserpent.jpg'],
-            list_img: ['seamonster_list_green.jpg'],
-            cta_img: ['twitter_seamonster_green_1.jpg']
+            festival_ach: 30000
         },
         'Sapphire Sea Serpent': {
             duration: 72,
-            defense: true,
             ach: 250000,
-            siege: 0,
-            fort: true,
-            staUse: 10,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
-            mClass: 'Epic Team',
-            mpool: 2,
-            festival_img: ['festival_monsters_top_seamonster_blue.jpg'],
             festival_dur: 96,
-            festival_ach: 30000,
-            newbg_img: ['monster_header_sapphserpent.jpg'],
-            list_img: ['seamonster_list_blue.jpg'],
-            cta_img: ['twitter_seamonster_blue_1.jpg']
+            festival_ach: 30000
         },
-        'The Deathrune Siege': {
-            duration: 232,
-            ach: 100,
-            siege: 2,
-            siegeClicks: [80, 100],
-            siegeDam: [300, 1500],
-            siege_img: ['/graphics/monster_siege_'],
-            staUse: 1,
-            stage1: {
-                duration: 88,
-                ach: 50,
-                siege: 1,
-                siegeClicks: [80],
-                siegeDam: [300],
-                siege_img: ['/graphics/monster_siege_'],
-                staUse: 1
-            },
-            stage2: {
-                duration: 144,
-                ach: 100,
-                siege: 2,
-                siegeClicks: [80, 100],
-                siegeDam: [300, 1500],
-                siege_img: ['/graphics/monster_siege_'],
-                staUse: 1
-            },
-            cta_img: ['ntwitter_raid1.gif']
+        'Deathrune Siege I': {
+			duration: 88,
+			ach: 50,
+			staUse: 1
+		},
+        'Deathrune Siege II': {
+			duration: 144,
+			ach: 100,
+			staUse: 1
         },
         'Mephistopheles': {
             duration: 48,
             ach: 200000,
-            siege: 0,
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_mephistopheles.jpg'],
             festival_dur: 89,
-            festival_ach: 50000,
-            newbg_img: ['monster_header_meph.jpg'],
-            list_img: ['boss_mephistopheles_list.jpg'],
-            cta_img: ['cta_mephi.gif']
+            festival_ach: 50000
         },
-        // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
-        'Red Plains': {
-            alpha: true,
+        'War Of The Red Plains': {
             tactics: true,
             duration: 168,
-            hp: 350000000,
             ach: 10000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_header_warredplains.jpg'],
-            list_img: ['nm_war_list.jpg'],
-            cta_img: ['nm_war_twitter_1.gif']
         },
-        // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
         'Bahamut': {
-            alpha: true,
-            duration: 168,
-            hp: 130000000,
             ach: 4000000,
-            siege: 5,
-            siegeClicks: [30, 60, 90, 120, 200],
-            siegeDam: [7896000, 9982500, 11979000, 15972000, 19965000],
-            siege_img: ['/graphics/water_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 20],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_volcanic_new.jpg'],
-            festival_dur: 192,
-            festival_ach: 1000000,
-            newbg_img: ['monster_header_bahamut.jpg'],
-            list_img: ['nm_volcanic_list.jpg'],
-            cta_img: ['ntwitter_volcanic1.gif']
         },
-        // http://castleage.wikidot.com/alpha-bahamut
-        // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
         'Alpha Bahamut': {
-            alpha: true,
-            duration: 168,
-            hp: 620000000,
             ach: 8000000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 60],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_alpha_volcanic_new.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_alphabahamut.jpg'],
-            list_img: ['nm_volcanic_list_2.jpg'],
-            cta_img: ['ntwitter_volcanic5.gif']
+            festival_ach: 2500000
         },
-        // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
         'Azriel': {
-            alpha: true,
-            duration: 168,
-            hp: 600000000,
             ach: 8000000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_boss_azriel.jpg'],
-            festival_dur: 192,
-            festival_ach: 4000000,
-            newbg_img: ['monster_header_azriel.jpg'],
-            list_img: ['nm_azriel_list.jpg'],
-            cta_img: ['nm_azriel_twitter_1.gif']
+            festival_ach: 4000000
         },
         'Alpha Mephistopheles': {
-            alpha: true,
-            duration: 168,
-            hp: 600000000,
             ach: 12000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/skaar_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic Boss',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_alpha_mephistopheles.jpg'],
-            festival_dur: 192,
-            festival_ach: 1000000,
-            festival_mpool: 1,
-            newbg_img: ['monster_header_alphameph.jpg'],
-            list_img: ['nm_alpha_mephistopheles_list.jpg'],
-            cta_img: ['nm_alpha_mephistopheles_twitter_1.gif']
         },
         'Gehenna': {
-            alpha: true,
-            duration: 168,
-            hp: 350000000,
-            ach: 1000000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_fire_element.jpg'],
             festival_dur: 96,
-            festival_ach: 3500000,
-            newbg_img: ['monster_header_gehenna.jpg'],
-            list_img: ['nm_gehenna_list.jpg'],
-            cta_img: ['nm_gehenna_twitter_1.gif']
+            festival_ach: 3500000
         },
         "Aurelius": {
-            alpha: true,
             tactics: true,
-            duration: 168,
-            hp: 350000000,
             ach: 1000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['monster_header_lionrebellion.jpg'],
-            list_img: ['nm_aurelius_list.jpg'],
-            cta_img: ['twitter_aurelius.gif']
         },
         "Corvintheus": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [10, 20, 30, 40, 50],
-            siegeDam: [48000000, 56500000, 64000000, 70400000, 80000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_corvintheus.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_corvintheus.jpg'],
-            list_img: ['corv_list.jpg'],
-            cta_img: ['cta_corv1.gif']
-        },
-        'Cronus of Ice': {
-            alpha: true,
-            duration: 72,
-            hp: 600000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [10, 20, 30, 40, 50],
-            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small1.gif',
-                '/graphics/castle_siege_small2.gif',
-                '/graphics/death_siege_small2.gif',],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 150, 300],
-            join: [20, 30, 60],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_cronus_ice_title.jpg'],
-            list_img: ['monster_cronus_ice_list.jpg'],
-            cta_img: ['cta_cronus_ice.gif']
+            festival_ach: 2500000
         },
         'Valhalla': {
-            alpha: true,
-            duration: 168,
-            hp: 650000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_2',
-                '/graphics/azriel_siege_inferno_2',
-                '/graphics/war_siege_holy_smite_2'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 50, 100, 200],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic World',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_air_element.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_valhalla.jpg'],
-            list_img: ['monster_valhalla_list.jpg'],
-            cta_img: ['cta_valhalla.gif']
+            festival_ach: 2500000
         },
         'Jahanna': {
-            alpha: true,
-            duration: 168,
-            hp: 650000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/war_siege_holy_smite_2'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 50, 100, 200],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_jahanna.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_jahanna.jpg'],
-            list_img: ['boss_jahanna_list.jpg'],
-            cta_img: ['cta_jahanna.gif']
+            festival_ach: 2500000
         },
         "Agamemnon": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_agamemnon.jpg'],
-            festival_dur: 192,
-            festival_ach: 10000000,
-            cta_img: ['cta_agamemnon.gif']
+            festival_ach: 10000000
         },
         "Aurora": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_aurora.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_aurora.jpg'],
-            list_img: ['boss_aurora_list.jpg'],
-            cta_img: ['cta_aurora.gif']
+            festival_ach: 2500000
         },
         "Ambrosia": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax: [5, 10, 20, 50],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_ambrosia.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            //newbg_img: ['boss_ambrosia_header.jpg'],
-            newbg_img: ['boss_header_ambrosia.jpg'],
-            list_img: ['boss_ambrosia_list.jpg'],
-            cta_img: ['cta_ambrosia.gif']
+            festival_ach: 2500000
         },
         "Kromash": {
-            alpha: true,
-            duration: 168,
-            hp: 500000000,
-            ach: 1000000,
-            siege: 8,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_storm_giant.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_kromash.jpg'],
-            list_img: ['monster_kromash_list.jpg'],
-            cta_img: ['cta_kromash.gif']
+            festival_ach: 2500000
         },
         "Glacius": {
-            alpha: true,
-            duration: 168,
-            hp: 400000000,
-            ach: 1000000,
-            siege: 8,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500, 1000],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [25, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 3,
-            festival_img: ['festival_monsters_top_frost_giant.jpg'],
-            festival_dur: 120,
-            festival_ach: 1000000,
-            newbg_img: ['monster_header_glacius.jpg'],
-            list_img: ['monster_glacius_list.jpg'],
-            cta_img: ['cta_glacius.gif']
+            festival_dur: 120
         },
         "Shardros": {
-            alpha: true,
-            duration: 168,
-            hp: 175000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [30, 60, 90, 120, 200],
-            siegeDam: [9000000, 12600000, 18000000, 23400000, 27000000, 90000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_mountain_giant.jpg'],
-            festival_dur: 120,
-            festival_ach: 1000000,
-            newbg_img: ['monster_header_shardros.jpg'],
-            list_img: ['monster_shardros_list.jpg'],
-            cta_img: ['cta_shardros.gif']
+            festival_dur: 120
         },
         "Magmos": {
-            alpha: true,
-            duration: 168,
-            hp: 500000000,
-            ach: 1000000,
-            siege: 8,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: ['/graphics/earth_siege_small', '/graphics/castle_siege_small', '/graphics/skaar_siege_small', '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_lava_giant.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_magmos.jpg'],
-            list_img: ['monster_magmos_list.jpg'],
-            cta_img: ['cta_magmos.gif']
+            festival_ach: 2500000
         },
         "Typhonus": {
-            alpha: true,
-            duration: 168,
-            hp: 500000000,
-            ach: 1000000,
-            siege: 8,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [10000000, 14000000, 18000000, 22000000, 26000000, 30000000, 38000000, 42000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_chimera.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['monster_header_chimera.jpg'],
-            list_img: ['monster_chimera_list.jpg'],
-            cta_img: ['cta_typhonus.gif']
+            festival_ach: 2500000
         },
         "Malekus": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 45000000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_malekus.jpg'],
-            festival_dur: 192,
-            festival_ach: 2500000,
-            newbg_img: ['boss_header_malekus.jpg'],
-            list_img: ['boss_malekus_list.jpg'],
-            cta_img: ['cta_btn_new.gif']
-        },
-        "Thanatos": {
-            alpha: true,
-            duration: 168,
-            hp: 350000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50],
-            nrgMax: [20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_thanatos2_header.jpg'],
-            list_img: ['monster_thanatos2_list_ca.jpg'],
-            cta_img: ['cta_thanatos2.gif']
-        },
-        "Vermilion": {
-            alpha: true,
-            duration: 168,
-            hp: 350000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [6400000, 7680000, 8920000, 10000000, 11200000, 14800000, 16000000, 18000000, 18200000, 18200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_vermilion_header.jpg'],
-            list_img: ['monster_vermilion_list.jpg'],
-            cta_img: ['cta_vermilion.gif']
-        },
-        "Alexandra": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            festival_img: ['festival_monsters_top_alexandra.jpg'],
-            festival_dur: 192,
-            festival_ach: 10000000,
-            cta_img: ['cta_alexandra.gif']
-        },        
-        "Alpha Kraken": {  // CAAP is unable to distinguish between Krakens and Alphas in the monster list, so ignoring this.
-            alpha: true,
-            duration: 168,
-            hp: 650000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200,200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_alpha_kraken_header.jpg'],
-            // Commented out since not unique, falls through to text name
-            //list_img: ['monster_kraken_list.jpg'],
-            cta_img: ['cta_kraken.gif']
-        },
-        "Kraken": {
-            alpha: true,
-            duration: 168,
-            hp: 300000000,
-            ach: 1000000,
-            siege: 7,
-            siegeClicks: [30, 60, 90, 120, 200, 250, 300],
-            siegeDam: [13750000, 17500000, 20500000, 23375000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/water_siege_small',
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic World',
-            mpool: 3,
-            newbg_img: ['monster_kraken_header.jpg'], 
-            // Commented out since not unique, falls through to text name
-            //list_img: ['monster_kraken_list.jpg'],
-            cta_img: ['cta_kraken.gif']
-        },
-        "Fenix": {
-            alpha: true,
-            duration: 168,
-            hp: 612000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['boss_fenix_header.jpg'],
-            list_img: ['boss_fenix_list.jpg'],
-            cta_img: ['cta_fenix.gif'],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Azeron": {
-            alpha: true,
-            duration: 168,
-            hp: 640000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [16000000, 19200000, 22300000, 25000000, 28000000, 37000000, 40000000, 4500000, 45500000, 52000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100],
-            nrgMax: [20, 40, 100, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['boss_azeron_header.jpg'],
-            list_img: ['boss_azeron_list.jpg'],
-            cta_img: ['cta_azeron.gif']
-        },
-        "Kessaran": {
-            alpha: true,
-            duration: 168,
-            hp: 750000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200],
-            siegeDam: [16000000, 19000000, 22300000, 29000000, 33000000, 37000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_header_kessaran.jpg'],
-            list_img: ['monster_kessaran_list.jpg'],
-            cta_img: ['cta_kessaran.gif'],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Urmek": {
-            alpha: true,
-            duration: 168,
-            hp: 775000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 60],
-            mClass: 'Epic Boss',
-            mpool: 101,
-            newbg_img: ['monster_header_urmek.jpg'],
-            list_img: ['monster_urmek_list.jpg'],
-            cta_img: ['cta_urmek.gif'],
-            bodyparts: 4,
-            partOrder: [4, 3, 2, 1]
-        },
-        "Abomination": {
-            alpha: true,
-            duration: 168,
-            hp: 800000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [9000000, 11000000, 1500000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 4400000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 60],
-            mClass: 'Epic Boss',
-            mpool: 3,
-            newbg_img: ['monster_abomination_header.jpg'],
-            list_img: ['monster_abomination_list.jpg'],
-            cta_img: ['cta_abomination.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Poseidon": {
-            alpha: true,
-            duration: 168,
-            hp: 650000000,
-            ach: 5200000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 50],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['monster_header_poseidon.jpg'],
-            list_img: ['monster_poseidon_list.jpg'],
-            cta_img: ['cta_poseidon.gif'],
-            bodyparts: 3,
-            partOrder: [3, 2, 1]
-        },
-        "Vorak": {
-            alpha: true,
-            duration: 168,
-            hp: 650000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 70, 100, 150, 200, 250, 300],
-            siegeDam: [9000000, 11000000, 15000000, 19000000, 23000000, 27000000, 31000000, 35000000, 39000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 60],
-            mClass: 'Epic Boss',
-            mpool: 1,
-            newbg_img: ['monster_header_vorak.jpg'],
-            list_img: ['monster_vorak_list.jpg'],
-            cta_img: ['cta_vorak.gif'],
-            bodyparts: 4,
-            partOrder: [4, 3, 2, 1]
-        },
-        "Baal": {
-            alpha: true,
-            duration: 168,
-            hp: 830000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: ['/graphics/earth_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 60],
-            mClass: 'Epic Boss',
-            mpool: 101,
-            newbg_img: ['monster_baal_title.jpg'],
-            list_img: ['monster_baal_list.jpg'],
-            cta_img: ['cta_baal.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Aspect Of Death": {
-            alpha: true,
-            duration: 168,
-            hp: 845000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [15, 30, 45, 60, 65],
-            siegeDam: [22000000, 25000000, 28000000, 31000000, 34000000],
-            siege_img: ['/graphics/earth_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 60],
-            mClass: 'Epic Boss',
-            mpool: 101,
-            newbg_img: ['monster_death_title.jpg'],
-            list_img: ['monster_death_list.jpg'],
-            cta_img: ['cta_death.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Lord of Darkness": {
-            alpha: true,
-            duration: 168,
-            hp: 850000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 70],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_darkness_header.jpg'],
-            list_img: ['monster_darkness_list.jpg'],
-            cta_img: ['cta_darkness.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Cassandra": {
-            alpha: true,
-            duration: 168,
-            hp: 900000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [15, 30, 45, 60, 65],
-            siegeDam: [30000000, 35000000, 40000000, 45000000, 50000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 70],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_cassandra_title.jpg'],
-            list_img: ['monster_cassandra_list.jpg'],
-            cta_img: ['cta_cassandra.gif'],
-            bodyparts: 5,
-            partOrder: [2, 1]
-        },
-        "Svarog": {
-            alpha: true,
-            duration: 168,
-            hp: 870000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [10000000, 12000000, 16000000, 20000000, 24000000, 28000000, 32000000, 36000000, 40000000, 44000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 70],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_magmapede_title.jpg'],
-            list_img: ['monster_magmapede_list.jpg'],
-            cta_img: ['cta_magmapede.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Lothorewyn": {
-            alpha: true,
-            duration: 168,
-            hp: 870000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75],
-            siegeDam: [55000000, 61000000, 69000000, 77000000, 85000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 70],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_lothor_title.jpg'],
-            list_img: ['monster_lothor_list.jpg'],
-            cta_img: ['cta_lothor.gif'],
-            bodyparts: 5,
-            partOrder: [4, 3, 2, 1]
-        },
-        // http://castleage.wikia.com/wiki/Alperon,_the_Corrupted
-        "Alperon": {
-            alpha: true,
-            duration: 168,
-            hp: 1010000000,
-            ach: 1000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [20000000, 23000000, 26000000, 29000000, 32000000, 35000000, 38000000, 43000000, 45000000, 48000000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small',
-                '/graphics/death_siege_small'],
-            fort: true,
-            staUse: 10,
-            staLvl: [0, 100, 200, 500],
-            staMax: [10, 20, 50, 100, 200],
-            nrgMax: [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 35, 75],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_alperon_title.jpg'],
-            list_img: ['monster_alperon_list.jpg'],
-            cta_img: ['cta_icon2.gif'],
-            bodyparts: 5,
-            partOrder: [5, 4, 3, 2, 1]
-        },
-        "Bonegnasher" : {
-            alpha : true,
-            duration : 168,
-            hp : 850000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [30000000, 35000000, 40000000, 45000000, 50000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_bonegnasher_title.jpg'],
-            list_img : ['monster_bonegnasher_list.jpg'],
-            cta_img : ['cta_bonegnasher.gif'],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Verminarch" : {
-            alpha : true,
-            duration : 168,
-            hp : 900000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [35000000, 40000000, 45000000, 50000000, 55000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_verminarch_title.jpg'],
-            list_img : ['monster_verminarch_list.jpg'],
-            cta_img : ['cta_verminarch.gif'],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Ogrimus" : {
-            alpha : true,
-            duration : 168,
-            hp : 950000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [40000000, 45000000, 50000000, 55000000, 60000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_ogrimus_title.jpg'],
-            list_img : ['monster_ogrimus_list.jpg'],
-            cta_img : ['cta_ogrimus.gif'],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Rodenom" : {
-            alpha : true,
-            duration : 168,
-            hp : 1000000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [45000000, 50000000, 55000000, 60000000, 65000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_rodenom_title.jpg'],
-            list_img : ['monster_rodenom_list.jpg'],
-            cta_img : ['cta_rodenom.gif'],
-            bodyparts : 2,
-            partOrder : [2,1]
-        },
-        "Levi - Deep" : {
-            alpha : true,
-            duration : 168,
-            hp : 600000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [20000000, 25000000, 30000000, 35000000, 40000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_leviathan_deep_title.jpg'],
-            list_img : ['monster_leviathan_deep_list.jpg'],
-            cta_img : ['cta_leviathan_deep.gif']
-        },
-        "Levi - Grove" : {
-            alpha : true,
-            duration : 168,
-            hp : 675000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [23000000, 28000000, 33000000, 38000000, 43000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_leviathan_grove_title.jpg'],
-            list_img : ['monster_leviathan_grove_list.jpg'],
-            cta_img : ['cta_leviathan_grove.gif']
-        },
-        "Levi - Void" : {
-            alpha : true,
-            duration : 168,
-            hp : 750000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [40000000, 45000000, 50000000, 55000000, 60000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_leviathan_void_title.jpg'],
-            list_img : ['monster_leviathan_void_list.jpg'],
-            cta_img : ['cta_leviathan_void.gif']
-        },
-        "Levi - Wrath" : {
-            alpha : true,
-            duration : 168,
-            hp : 825000000,
-            ach : 1000000,
-            siege : 5,
-            siegeClicks : [10, 20, 30, 40, 50],
-            siegeDam : [40000000, 45000000, 50000000, 55000000, 60000000],
-            siege_img : [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2'],
-            fort : true,
-            staUse : 10,
-            staLvl : [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img : 'nm_green.jpg',
-            levels : [1, 50, 100, 150],
-            join : [30, 30, 35, 70],
-            mClass : 'Epic World',
-            mpool : 101,
-            newbg_img : ['monster_leviathan_wrath_title.jpg'],
-            list_img : ['monster_leviathan_wrath_list.jpg'],
-            cta_img : ['cta_leviathan_wrath.gif']
-        },
-        'Thanatos Reborn': {
-            alpha: true,
-            duration: 168,
-            hp: 1030000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [15, 30, 45, 60, 65],
-            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small1.gif',
-                '/graphics/castle_siege_small2.gif',
-                '/graphics/death_siege_small2.gif',],
-            fort: true,
-            staUse: 20,
-            staLvl: [0, 100, 200, 500],
-            staMax: [20, 50, 100, 200],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 150, 300],
-            join: [20, 30, 60],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_thanatos_title.jpg'],
-            list_img: ['monster_thanatos_list.jpg'],
-            cta_img: ['cta_thanatos.gif'],
-            bodyparts : 3,
-            partOrder : [3,2,1]
-        },
-        'Cronus Astaroth': {
-            alpha: true,
-            duration: 168,
-            hp: 1125000000,
-            ach: 1000000,
-            siege: 5,
-            siegeClicks: [10, 20, 30, 40, 50],
-            siegeDam: [20000000, 25000000, 30000000, 35000000, 40000000],
-            siege_img: [
-                '/graphics/earth_siege_small1',
-                '/graphics/earth_siege_small2',
-                '/graphics/castle_siege_small1.gif',
-                '/graphics/castle_siege_small2.gif',
-                '/graphics/death_siege_small2.gif',],
-            fort: true,
-            staUse: 20,
-            staLvl: [0, 100, 200, 500],
-            staMax: [20, 50, 100, 200],
-            nrgMax: [10, 20, 40, 100],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 150, 300],
-            join: [20, 30, 60],
-            mClass: 'Epic World',
-            mpool: 101,
-            newbg_img: ['monster_header_cronus_rainbow.jpg'],
-            list_img: ['monster_cronus_rainbow_list.jpg'],
-            cta_img: ['cta_cronus_ice.gif'],
-            bodyparts : 3,
-            partOrder : [3,2,1]
-        },
-        'Succubus Of Nightmares': {
-            alpha: true,
-            duration: 72,
-            hp: 1000000000,
-            ach: 12000000,
-            siege: 10,
-            siegeClicks: [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam: [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
-            siege_img: [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/skaar_siege_small'],
-            fort: true,
-            staUse: 5,
-            staLvl: [0, 100, 200, 500],
-            staMax : [10, 20, 50, 100, 200],
-            nrgMax : [20, 40, 100, 200, 200],
-            defense_img: 'nm_green.jpg',
-            levels: [1, 50, 100, 150],
-            join: [30, 30, 30, 45],
-            mClass: 'Epic Boss',
-            mpool: 3,
-            newbg_img: ['newmonsterbanner_succubus_nightmare.jpg'],
-            list_img: ['monster_succubus_nightmare_list.jpg'],
-            cta_img: ['cta_succubus_nightmare.gif']
+            festival_ach: 2500000
         }
     };
 
@@ -1906,42 +313,34 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return list.sort();
         } catch (err) {
-            con.error("ERROR in monster.list: " + err);
+            con.error("ERROR in monster.list: " + err.stack);
             return undefined;
         }
     };
 
-	monster.cleanLink = function(link) {
+	// Cleans a link to put it in a standard order. If no argument passed, uses the last clicked URL
+	monster.cleanLink = function(link, casuser, mpool) {
 		var temp;
 		if (!$u.isString(link) || link.length == 0) {
 			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		}
+		//con.log(2, 'CleanLink', link, casuser, mpool);
 		temp = link.replace(/http.*\//,'');
 		link = temp.replace(/\?.*/,'') + '?';
 		['casuser=', 'mpool=', 'guild_creator_id=', 'guild_created_at=', 'slot=', 'monster_slot=', 'mid=', 'tower='].forEach( function(piece) {
-			if (temp.indexOf(piece) >= 0) {
+			if (piece == 'casuser=' && temp.indexOf(piece) >= 0 && $u.setContent(casuser, 0) > 0) {
+				//con.log(2, 'Cleaning link', piece, link);
+				link += '&casuser=' + casuser;
+			} else if (piece == 'mpool=' && temp.indexOf(piece) >= 0 && $u.setContent(mpool, 0) > 0) {
+				//con.log(2, 'Cleaning link', piece, link);
+				link += '&mpool=' + mpool;
+			} else if (temp.indexOf(piece) >= 0) {
 				//con.log(2, 'Cleaning link', piece, link);
 				link += '&' + temp.match(new RegExp('(' + piece +  '\\w+)'))[1];
 			}
 		});
-		return link.indexOf('=') >=0 ? link.replace('?&', '?') : monster.getItem(monster.lastClick).link;
+		return link.indexOf('=') >= 0 ? link.replace('?&', '?') : monster.getItem(monster.lastClick).link;
 	};
-
-    monster.getFestName = function(img) {
-        return monster.which(img, "festival_img");
-    };
-
-    monster.getNewName = function(img) {
-        return monster.which(img, "newbg_img");
-    };
-
-    monster.getListName = function(img) {
-        return monster.which(img, "list_img");
-    };
-
-    monster.getCtaName = function(img) {
-        return monster.which(img, "cta_img");
-    };
 
     monster.which = function(img, entity) {
         try {
@@ -1986,21 +385,23 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return name;
         } catch (err) {
-            con.error("ERROR in monster.which: " + err);
+            con.error("ERROR in monster.which: " + err.stack);
             return undefined;
         }
     };
 
-    monster.getInfo = function(record) {
+    monster.getInfo = function(mName, value, defValue) {
         try {
-            if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
+			mName = $u.setContent(mName.monster, mName);
+            if (!$u.isString(mName) || mName.length === 0) {
+				con.warn('mName not passed a known monster name', mName);
                 throw "Not passed a record";
             }
-
-            var monsterInfo = monster.info[record.monster];
-            return $u.hasContent(record.type) ? (record.type === "Raid II" ? monsterInfo.stage2 : monsterInfo.stage1) : monsterInfo;
+			mName = mName.replace(/^The /i,''),
+			defValue = typeof defValue == 'undefined' ? monster.info['Default Monster'][value] : defValue;
+            return $u.setContent(monster.info[mName],false) ? $u.setContent(monster.info[mName][value], defValue): defValue;
         } catch (err) {
-            con.error("ERROR in monster.getInfo: " + err);
+            con.error("ERROR in monster.getInfo: " + err + ' stack ' + err.stack);
             return undefined;
         }
     };
@@ -2038,7 +439,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             //con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
             return false;
         } catch (err) {
-            con.error("ERROR in monster.setrPage: " + err);
+            con.error("ERROR in monster.setrPage: " + err.stack);
             return false;
         }
     };
@@ -2064,7 +465,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             return deleted;
 
         } catch (err) {
-            con.error("ERROR in monster.deleterPage: " + err);
+            con.error("ERROR in monster.deleterPage: " + err.stack);
             return false;
         }
     };
@@ -2077,7 +478,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
             return monster.deleterPage('path', path);
         } catch (err) {
-            con.error("ERROR in monster.togglerPage: " + err);
+            con.error("ERROR in monster.togglerPage: " + err.stack);
             return false;
         }
     };
@@ -2085,7 +486,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records == 'default' || !$j.isArray(monster.records)) {
+            if (monster.records == 'default' || !$j.isArray(monster.records) || (monster.records.length && typeof monster.records[0].staminaList == 'undefined')) {
                 monster.records = gm.setItem('monster.records', []);
             }
             caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
@@ -2113,7 +514,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			//con.log(2,'Load Monster records after load',monster.records, caap.stats.reviewPages, caap.stats.level);
             return true;
         } catch (err) {
-            con.error("ERROR in monster.load: " + err);
+            con.error("ERROR in monster.load: " + err.stack);
             return false;
         }
     };
@@ -2142,16 +543,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
             return true;
         } catch (err) {
-            con.error("ERROR in monster.save: " + err);
+            con.error("ERROR in monster.save: " + err.stack);
             return false;
         }
     };
 
-	monster.damaged = function(mR) {
-		if (!$u.isObject(mR)) {
-			con.warn('Invalid monster record passed to scan.joined.', mR);
+	monster.damaged = function(cM) {
+		if (!$u.isObject(cM)) {
+			con.warn('Invalid monster record passed to scan.joined.', cM);
 		}
-		return $u.setContent(mR.damage, 0) > 0;
+		return $u.setContent(cM.damage, 0) > 0;
 	};
 
     monster.parseCondition = function(type, conditions) {
@@ -2164,7 +565,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.match(new RegExp(':' + type + '(\\d*)(\\w?)'));
+            var str = conditions.match(new RegExp(':' + type + '([\\d|\\.]*)(\\w?)'));
 			
 			if (!str) {
 				return false;
@@ -2187,45 +588,177 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-    monster.type = function(name) {
+	// Do KOB parsing and achievement/max damage levels plus colorization
+   monster.parsing = function(cM) {
         try {
-            var words = [],
-                count = 0;
+			// Start of Keep On Budget (KOB) code Part 1 -- required variables
+			//con.log(2, 'Start of Keep On Budget (KOB) Code');
+               var KOBenable = false,
+                KOBbiasHours = 0,
+                KOBach = false,
+                KOBmax = false,
+                KOBminFort = false,
+                KOBtmp = 0,
+                KOBtimeLeft = 0,
+                KOBbiasedTF = 0,
+                KOBPercentTimeRemaining = 0,
+                KOBtotalMonsterTime = 0,
+                isTarget = false,
+				achLevel = monster.parseCondition('ach', cM.conditions),
+				maxDamage = monster.parseCondition('max', cM.conditions),
+				maxToFortify = monster.parseCondition('f%', cM.conditions),
+				targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget());
 
-            if (!$u.isString(name)) {
-                con.warn("name", name);
-                throw "Invalid identifying name!";
-            }
+			maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
+			achLevel = achLevel === 0 ? 1 : achLevel; // Added to prevent ach === 0 defaulting to false 
+			if (achLevel === false) {
+				achLevel = monster.getInfo(cM, 'ach');
+			}
+			maxDamage = maxDamage === 0 ? 1 : maxDamage;  // Added to prevent max === 0 defaulting to false 
 
-            if (name === '') {
-                return '';
-            }
+			//default is disabled for everything
+			KOBenable = false;
 
-            words = name.split(" ");
-            con.log(3, "Words", words);
-            count = words.length - 1;
-            if (count >= 4) {
-                if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
-                    return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
-                }
+			//default is zero bias hours for everything
+			KOBbiasHours = 0;
 
-                if (words[count - 2] === 'Priestess' && words[count - 1] === 'of' && words[count] === 'Aurora') {
-                    return words[count - 2] + ' ' + words[count - 1] + ' ' + words[count];
-                }
-            }
+			//KOB needs to follow achievement mode for this monster so that KOB can be skipped.
+			KOBach = false;
 
-            if (words[count] === 'Elemental' || words[count] === 'Dragon' || (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
-                (words[count - 1] === "Lion's" && words[count] === 'Rebellion') || (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
-                return words[count - 1] + ' ' + words[count];
-            }
+			//KOB needs to follow max mode for this monster so that KOB can be skipped.
+			KOBmax = false;
 
-            return words[count];
+			//KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
+			KOBminFort = false;
+
+			//create a temp variable so we don't need to call parseCondition more than once for each if statement
+			KOBtmp = monster.parseCondition('kob', cM.conditions);
+			if (KOBtmp !== false && $u.isNaN(KOBtmp)) {
+				con.log(2, 'KOB NaN branch');
+				KOBenable = true;
+				KOBbiasHours = 0;
+			} else if (KOBtmp === false) {
+				con.log(5, 'KOB false branch');
+				KOBenable = false;
+				KOBbiasHours = 0;
+			} else {
+				con.log(2, 'KOB passed value branch');
+				KOBenable = true;
+				KOBbiasHours = KOBtmp;
+			}
+
+			//test if user wants kob active globally
+			if (!KOBenable && (gm ? gm.getItem('KOBAllMonters', false, hiddenVar) : false)) {
+				KOBenable = true;
+			}
+
+			//disable kob if in level up mode or if we are within 5 stamina of max potential stamina
+			if (caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.stamina.max - 5) {
+				KOBenable = false;
+			}
+
+			if (KOBenable) {
+				con.log(2, 'Level Up Mode: ', caap.inLevelUpMode());
+				con.log(2, 'Stamina Avail: ', caap.stats.stamina.num);
+				con.log(2, 'Stamina Max: ', caap.stats.stamina.max);
+
+				//log results of previous two tests
+				con.log(2, 'KOBenable: ', KOBenable);
+				con.log(2, 'KOB Bias Hours: ', KOBbiasHours);
+			}
+
+			//Total Time alotted for monster
+			KOBtotalMonsterTime = monster.getInfo(cM.monster, 'duration', cM.page === 'festival_battle_monster' ? 192 : 168);
+			if (KOBenable) {
+				con.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
+
+				//Total Damage remaining
+				con.log(2, 'HP left: ', cM.life);
+			}
+
+			//Time Left Remaining
+			KOBtimeLeft = cM.time[0] + (cM.time[1] * 0.0166);
+			if (KOBenable) {
+				con.log(2, 'TimeLeft: ', KOBtimeLeft);
+			}
+
+			//calculate the bias offset for time remaining
+			KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+
+			//for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
+			// -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
+			if (KOBtotalMonsterTime >= 168) {
+				KOBtotalMonsterTime = KOBtotalMonsterTime - (gm ? gm.getItem('KOBDelayStart', 48, hiddenVar) : 48);
+			}
+
+			//Percentage of time remaining for the currently selected monster
+			KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+			if (KOBenable) {
+				con.log(2, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
+			}
+
+			// End of Keep On Budget (KOB) code Part 1 -- required variables
+
+			isTarget = (cM.name === state.getItem('targetFromraid', '') || cM.name === state.getItem('targetFrombattle_monster', '') || cM.name === targetFromfortify.name);
+
+			//con.log(2, 'MAX DAMAGE', maxDamage, cM.damage);
+			if (maxDamage && cM.damage >= maxDamage) {
+
+				cM.color = 'red';
+				cM.over = 'max';
+				//used with KOB code
+				KOBmax = true;
+				//used with kob debugging
+				if (KOBenable) {
+					con.log(2, 'KOB - max activated');
+				}
+
+			} else if (cM.fortify !== -1 && cM.fortify < config.getItem('MinFortToAttack', 1)) {
+				cM.color = 'purple';
+				//used with KOB code
+				KOBminFort = true;
+				//used with kob debugging
+				if (KOBenable) {
+					con.log(2, 'KOB - MinFort activated');
+				}
+
+			} else if (cM.damage >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', cM.conditions) !== false)) {
+				cM.color = 'darkorange';
+				cM.over = 'ach';
+				//used with KOB code
+				KOBach = true;
+				//used with kob debugging
+				if (KOBenable) {
+					con.log(2, 'KOB - achievement reached');
+				}
+
+			}
+
+			//Start of KOB code Part 2 begins here
+			if (KOBenable && !KOBmax && !KOBminFort && KOBach && cM.life < KOBPercentTimeRemaining) {
+				//kob color
+				cM.color = 'magenta';
+				// this line is required or we attack anyway.
+				cM.over = 'max';
+				//used with kob debugging
+				if (KOBenable) {
+					con.log(2, 'KOB - budget reached');
+				}
+
+			} else {
+				if (!KOBmax && !KOBminFort && !KOBach) {
+					//the way that the if statements got stacked, if it wasn't kob it was painted black anyway
+					//had to jump out the black paint if max, ach or fort needed to paint the entry.
+					cM.color = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+				}
+			}
+			//End of KOB code Part 2 stops here.
         } catch (err) {
-            con.error("ERROR in monster.type: " + err);
+            con.error("ERROR in monster.KOB: " + err, cM);
             return false;
         }
     };
-
+	
     monster.getItem = function(md5) {
         try {
             var it = 0,
@@ -2234,7 +767,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 record = {};
 
             if (!$u.isString(md5)) {
-                con.warn("md5", md5);
                 throw "Invalid identifying md5!";
             }
 
@@ -2259,7 +791,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return record;
         } catch (err) {
-            con.error("ERROR in monster.getItem: " + err, md5, which);
+            con.error("ERROR in monster.getItem: " + err, md5, err.stack);
             return undefined;
         }
     };
@@ -2336,72 +868,22 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return success;
         } catch (err) {
-            con.error("ERROR in monster.deleteItem: " + err);
+            con.error("ERROR in monster.deleteItem: " + err.stack);
             return false;
         }
     };
 
-    monster.t2kCalc = function(record) {
+    monster.t2kCalc = function(cM) {
         try {
-            var boss = monster.getInfo(record),
-                siegeStage = record.phase - 1,
-                timeLeft = record.time[0] + (record.time[1] * 0.0166),
-                duration = record.page === 'festival_battle_monster' ? (boss ? boss.festival_dur : 192) : (boss ? boss.duration : 192),
+            var timeLeft = cM.time[0] + (cM.time[1] * 0.0166),
+                duration = monster.getInfo(cM, 'duration', cM.page === 'festival_battle_monster' ? 192 : 168),
                 timeUsed = duration - timeLeft,
-                T2K = 0,
-                damageDone = 0,
-                hpLeft = 0,
-                totalSiegeDamage = 0,
-                totalSiegeClicks = 0,
-                attackDamPerHour = 0,
-                clicksPerHour = 0,
-                clicksToNextSiege = 0,
-                nextSiegeAttackPlusSiegeDamage = 0,
-                s = 0,
-                len = 0,
-                siegeImpacts = 0;
+                T2K = ((cM.life * timeUsed) / (100 - cM.life)).dp(2);
 
-            if (!boss.siege || !boss.hp) {
-                T2K = ((record.life * timeUsed) / (100 - record.life)).dp(2);
-                con.log(3, 'T2K: ', $u.minutes2hours(T2K));
-                return T2K;
-            }
-
-            damageDone = (100 - record.life) / 100 * boss.hp;
-            hpLeft = boss.hp - damageDone;
-            for (s = 0, len = boss.siegeClicks.length; s < len; s += 1) {
-                con.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
-                if (s < siegeStage || record.miss === 0) {
-                    totalSiegeDamage += boss.siegeDam[s];
-                    totalSiegeClicks += boss.siegeClicks[s];
-                } else if (s === siegeStage) {
-                    attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
-                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record.miss) / timeUsed;
-                    con.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
-                    con.log(5, 'Damage Done: ', damageDone);
-                    con.log(5, 'Total Siege Damage: ', totalSiegeDamage);
-                    con.log(5, 'Time Used: ', timeUsed);
-                    con.log(5, 'Clicks Per Hour: ', clicksPerHour);
-                } else if (s >= siegeStage) {
-                    clicksToNextSiege = (s === siegeStage) ? record.miss : boss.siegeClicks[s];
-                    nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || record.miss === 0) {
-                        T2K += hpLeft / attackDamPerHour;
-                        break;
-                    }
-
-                    T2K += clicksToNextSiege / clicksPerHour;
-                    hpLeft -= nextSiegeAttackPlusSiegeDamage;
-                }
-            }
-
-            siegeImpacts = (record.life / (100 - record.life) * timeLeft).dp(2);
-            T2K = T2K.dp(2);
-            con.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
-            con.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
-            return T2K > 0 ? T2K : siegeImpacts;
+			con.log(3, 'T2K: ', $u.minutes2hours(T2K));
+			return T2K;
         } catch (err) {
-            con.error("ERROR in monster.t2kCalc: " + err);
+            con.error("ERROR in monster.t2kCalc: " + err.stack);
             return 0;
         }
     };
@@ -2415,11 +897,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ranger': ['Strengthen', 'Heal', 'Cripple']
     };
 
-    monster.flagFullReview = function(which) {
+    monster.fullReview = function(which) {
         try {
             for (var it = monster.records.length - 1; it >= 0; it -= 1) {
-                if ((which == 'Feed') !== monster.damaged(monster.records[it])) {
-					con.log(2, 'FlagFullReview deleting', monster.records[it].name, monster.records[it].damage, monster.damaged(monster.records[it]), which);
+                if ((which == 'Feed') === (monster.records[it].status === 'Join')) {
+					con.log(2, 'fullReview deleting', monster.records[it].name, monster.records[it].damage, monster.damaged(monster.records[it]), which);
 					monster.deleteItem(monster.records[it].md5);
 				}
 			}
@@ -2435,7 +917,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in monster.flagFullReview: " + err);
+            con.error("ERROR in monster.fullReview: " + err.stack);
             return false;
         }
     };
@@ -2468,7 +950,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 len2 = 0,
                 len3 = 0,
                 s = 0,
-				mR = {},
+				cM = {},
 				whichList = 'any',
                 selectTypes = [],
 				maxToFortify = 0,
@@ -2485,56 +967,47 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 fortifyTarget = '',
                 stunTarget = '',
                 energyTarget = monster.energyTarget(),
+				siegeLimit,
                 target = {
                     'battle_monster': '',
                     'raid': '',
                     'fortify': monster.energyTarget()
                 },
                 monsterMD5 = '',
-                monsterObj = {},
-                monsterConditions = '',
+                cM = {},
                 //monstType             = '',
-                monsterInfo = {},
                 p = 0,
                 m = 0,
-                attackOrderList = [],
-                theGeneral = config.getItem('MonsterGeneral', 'Use Current');
-
-            theGeneral = ((theGeneral === "Under Level") ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral);
-            // First we forget everything about who we already picked.
-            //state.setItem('targetFrombattle_monster', '');
-            //state.setItem('targetFromfortify', energyTarget);
-            //state.setItem('targetFromraid', '');
+                attackOrderList = [];
 
             // Next we get our monster objects from the repository and break them into separate lists
             // for monster or raid.  If we are serializing then we make one list only.
 
 			monster.worldMonsterCount = 0;
             for (it = monster.records.length - 1; it >= 0; it -= 1) {
-				mR = monster.records[it];
-                if (monster.damaged(mR)) {
-					//con.log(2,'Review timer check', mR.name, mR.lMissing, typeof mR.lpage, typeof mR.lpage == 'undefined', schedule.since($u.setContent(mR.listReviewed, 0), 3 * 3600));
-					if (mR.lMissing > 3 || (typeof mR.lpage == 'undefined' && schedule.since($u.setContent(mR.listReviewed, 0), 3 * 3600))) {
-						con.log(2, 'Deleting monster ' + mR.name + ' since not seen on monster list over three times', mR);
-						monster.deleteItem(mR.md5);
+				cM = monster.records[it];
+                if (monster.damaged(cM)) {
+					//con.log(2,'Review timer check', cM.name, cM.lMissing, typeof cM.lpage, typeof cM.lpage == 'undefined', schedule.since($u.setContent(cM.listReviewed, 0), 3 * 3600));
+					if (cM.lMissing > 3 || (typeof cM.lpage == 'undefined' && cM.listReviewed > 0 && schedule.since($u.setContent(cM.listReviewed, 0), 3 * 3600))) {
+						con.log(2, 'Deleting monster ' + cM.name + ' since not seen on monster list over three times', cM);
+						monster.deleteItem(cM.md5);
 					} else {
-						monsterInfo = monster.getInfo(mR);
-						if (monsterInfo && monsterInfo.alpha) {
-							if (mR.color !== 'grey' && schedule.since(mR.stunTime, 0)) {
-								con.log(2, "Review monster due to class timer", mR.name);
-								mR.review = -1;
+						if (cM.charClass.length) {
+							if (cM.color !== 'grey' && schedule.since(cM.stunTime, 0)) {
+								con.log(2, "Review monster due to class timer", cM.name);
+								cM.review = -1;
 							}
 						}
-						if (mR.link.indexOf('mpool=3') >= 0 && mR.link.indexOf('festival') < 0 && mR.status === 'Attack') {
+						if (cM.link.indexOf('mpool=3') >= 0 && cM.link.indexOf('festival') < 0 && cM.status === 'Attack') {
 							monster.worldMonsterCount += 1;
 						}
-						//con.log(2, 'World Monster Count after ' + mR.name + ' = ' + monster.worldMonsterCount, mR);
-						mR.conditions = 'none';
-						whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : mR.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
-						monsterList[whichList].push(mR.md5);
+						//con.log(2, 'World Monster Count after ' + cM.name + ' = ' + monster.worldMonsterCount, cM);
+						cM.conditions = 'none';
+						whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
+						monsterList[whichList].push(cM.md5);
 					}
                 } else {
-					mR.conditions = feed.addConditions(mR.name) || mR.conditions;
+					cM.conditions = feed.addConditions(cM.name) || cM.conditions;
 				}
             }
 
@@ -2551,7 +1024,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            //con.log(2, 'records/monsterList/selectTypes/worldMonsterCount', monster.records, monsterList, selectTypes, monster.worldMonsterCount);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
 
@@ -2587,87 +1059,101 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     if (!aoItem.trim()) {
                         return;
                     }
-                    monsterConditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
                     // Now we try to match the users name against our list of monsters
                     monsterList[type].forEach(function(thisMon) {
-						monsterObj = monster.getItem(thisMon, 'monster');
+						cM = monster.getItem(thisMon);
                         // If we set conditions on this monster already then we do not reprocess
-                        if (monsterObj.conditions !== 'none') {
+                        if (cM.conditions !== 'none') {
                             return;
                         }
                         // If this monster does not match, skip to next one
-                        if (!monster.getItem(thisMon, 'monster').name.toLowerCase().hasIndexOf(aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
+                        if (!monster.getItem(thisMon).name.toLowerCase().hasIndexOf(aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
                             return;
                         }
 
                         //Monster is a match so we set the conditions
-                        monsterObj.conditions = ':' + monsterConditions + ':';
-                        monsterObj.select = true;
-                        monster.setItem(monsterObj, 'monster');
+                        cM.conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
+
+						cM.select = true;
+
+                        monster.setItem(cM);
                         // If it's complete or collect rewards, no need to process further
-                        if (monsterObj.color === 'grey') {
+                        if (cM.color === 'grey') {
                             return;
                         }
 
+						monster.parsing(cM);
+						
+						if (cM.siegeLevel > 0) {
+							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s:') ? 0
+								: !cM.conditions.match(':fs:') ? monster.parseCondition("s", cM.conditions)
+								: (caap.stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
+							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
+							
+							cM.doSiege = cM.siegeLevel <= siegeLimit && caap.hasImage('siege_btn.gif') && cM.damage > 0 
+								&& (cM.phase > 1 || (cM.conditions && cM.conditions.match('fs')));
+							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
+						} else {
+							cM.doSiege = false;
+							cM.siegeLevel = 1000;
+						}
+
                         // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                         // these to see if this is the monster we should select
-                        if (!firstUnderMax && monsterObj.color !== 'purple') {
-                            if (monsterObj.over === 'ach') {
+                        if (!firstUnderMax && cM.color !== 'purple') {
+                            if (cM.over === 'ach') {
                                 if (!firstOverAch) {
                                     firstOverAch = thisMon;
-                                    con.log(3, 'firstOverAch', firstOverAch, monsterObj.name);
+                                    con.log(3, 'firstOverAch', firstOverAch, cM.name);
                                 }
-                            } else if (monsterObj.over !== 'max') {
+                            } else if (cM.over !== 'max') {
                                 firstUnderMax = thisMon;
-                                con.log(3, 'firstUnderMax', firstUnderMax, monsterObj.name);
+                                con.log(3, 'firstUnderMax', firstUnderMax, cM.name);
                             }
                         }
 
-                        monsterInfo = monster.getInfo(monsterObj);
-                        if (monsterInfo) {
-                            if (!monsterInfo.alpha || (monsterInfo.alpha && monster.characterClass[monsterObj.charClass] && monster.characterClass[monsterObj.charClass].hasIndexOf('Heal'))) {
-                                maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                if (monsterInfo.fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
-                                    if (monsterObj.over === 'ach') {
-                                        if (!firstFortOverAch) {
-                                            firstFortOverAch = thisMon;
-                                            con.log(3, 'firstFortOverAch', firstFortOverAch, monsterObj.name);
-                                        }
-                                    } else if (monsterObj.over !== 'max') {
-                                        firstFortUnderMax = thisMon;
-                                        con.log(3, 'firstFortUnderMax', firstFortUnderMax, monsterObj.name);
-                                    }
-                                }
-                            }
+						if (!cM.charClass.length || (cM.charClass.length && monster.characterClass[cM.charClass] && monster.characterClass[cM.charClass].hasIndexOf('Heal'))) {
+							maxToFortify = (monster.parseCondition('f%', cM.conditions) !== false) ? monster.parseCondition('f%', cM.conditions) : config.getItem('MaxToFortify', 0);
+							if (cM.fortify >= 0 && !firstFortUnderMax && cM.fortify < maxToFortify) {
+								if (cM.over === 'ach') {
+									if (!firstFortOverAch) {
+										firstFortOverAch = thisMon;
+										con.log(3, 'firstFortOverAch', firstFortOverAch, cM.name);
+									}
+								} else if (cM.over !== 'max') {
+									firstFortUnderMax = thisMon;
+									con.log(3, 'firstFortUnderMax', firstFortUnderMax, cM.name);
+								}
+							}
+						}
 
-                            if (monsterInfo.alpha) {
-                                if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj.charClass] && monster.characterClass[monsterObj.charClass].hasIndexOf('Strengthen')) {
-                                    if (!firstStrengthUnderMax && monsterObj.strength < 100) {
-                                        if (monsterObj.over === 'ach') {
-                                            if (!firstStrengthOverAch) {
-                                                firstStrengthOverAch = thisMon;
-                                                con.log(3, 'firstStrengthOverAch', firstStrengthOverAch, monsterObj.name);
-                                            }
-                                        } else if (monsterObj.over !== 'max') {
-                                            firstStrengthUnderMax = thisMon;
-                                            con.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax, monsterObj.name);
-                                        }
-                                    }
-                                }
+						if (cM.charClass.length) {
+							if (config.getItem("StrengthenTo100", true) && monster.characterClass[cM.charClass] && monster.characterClass[cM.charClass].hasIndexOf('Strengthen')) {
+								if (!firstStrengthUnderMax && cM.strength < 100) {
+									if (cM.over === 'ach') {
+										if (!firstStrengthOverAch) {
+											firstStrengthOverAch = thisMon;
+											con.log(3, 'firstStrengthOverAch', firstStrengthOverAch, cM.name);
+										}
+									} else if (cM.over !== 'max') {
+										firstStrengthUnderMax = thisMon;
+										con.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax, cM.name);
+									}
+								}
+							}
 
-                                if (!firstStunUnderMax && monsterObj.stunDo) {
-                                    if (monsterObj.over === 'ach') {
-                                        if (!firstStunOverAch) {
-                                            firstStunOverAch = thisMon;
-                                            con.log(3, 'firstStunOverAch', firstStunOverAch, monsterObj.name);
-                                        }
-//                                    } else if (monsterObj.over !== 'max') {
-                                    } else {
-                                        firstStunUnderMax = thisMon;
-                                        con.log(3, 'firstStunUnderMax', firstStunUnderMax, monsterObj.name);
-                                    }
-                                }
-                            }
+							if (!firstStunUnderMax && cM.stunDo) {
+								if (cM.over === 'ach') {
+									if (!firstStunOverAch) {
+										firstStunOverAch = thisMon;
+										con.log(3, 'firstStunOverAch', firstStunOverAch, cM.name);
+									}
+//                                    } else if (cM.over !== 'max') {
+								} else {
+									firstStunUnderMax = thisMon;
+									con.log(3, 'firstStunUnderMax', firstStunUnderMax, cM.name);
+								}
+							}
                         }
                     });
                 });
@@ -2682,7 +1168,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     if (strengthTarget) {
                         energyTarget.md5 = strengthTarget;
-                        energyTarget.name = monster.getItem(strengthTarget, 'monster').name;
+                        energyTarget.name = monster.getItem(strengthTarget).name;
                         energyTarget.type = 'Strengthen';
                         con.log(3, 'Strengthen target ', energyTarget.name);
                     }
@@ -2694,7 +1180,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     if (fortifyTarget) {
                         energyTarget.md5 = fortifyTarget;
-                        energyTarget.name = monster.getItem(fortifyTarget, 'monster').name;
+                        energyTarget.name = monster.getItem(fortifyTarget).name;
                         energyTarget.type = 'Fortify';
                         con.log(3, 'Fortify replaces strengthen ', energyTarget.name);
                     }
@@ -2706,12 +1192,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     if (stunTarget) {
                         energyTarget.md5 = stunTarget;
-                        energyTarget.name = monster.getItem(stunTarget, 'monster').name;
+                        energyTarget.name = monster.getItem(stunTarget).name;
                         energyTarget.type = 'Stun';
                         con.log(3, 'Stun target replaces fortify ', energyTarget.name);
                     }
 
-                    //state.setItem('targetFromfortify', energyTarget);
                     if (energyTarget.md5) {
                         target.fortify = JSON.copy(energyTarget);
                         con.log(3, 'Energy target', energyTarget);
@@ -2722,77 +1207,24 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 if (!monsterMD5) {
                     monsterMD5 = firstOverAch;
                 }
+				con.log(1, 'MD5', monsterMD5);
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
                 if (monsterMD5) {
-                    monsterObj = monster.getItem(monsterMD5, 'monster');
-                    monsterInfo = monster.getInfo(monsterObj);
-					whichList = monsterObj.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
+					whichList = monster.getItem(monsterMD5).link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
                     target[whichList] = monsterMD5;
-                    if (whichList === 'battle_monster') {
-                        nodeNum = 0;
-                        if (!caap.inLevelUpMode() && monsterInfo && monsterInfo.staLvl) {
-                            for (nodeNum = monsterInfo.staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max >= monsterInfo.staLvl[nodeNum]) {
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!caap.inLevelUpMode() && monsterInfo && monsterInfo.staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                            if (monsterInfo.attack_img) {
-                                nodeNum = 1;
-                            }
-
-                            state.setItem('MonsterStaminaReq', monsterInfo.staMax[nodeNum]);
-                        } else if (monsterInfo && monsterInfo.staUse) {
-                            state.setItem('MonsterStaminaReq', monsterInfo.staUse);
-                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || /:pa/i.test(monsterObj.conditions)) {
-                            state.setItem('MonsterStaminaReq', 5);
-                        } else if (/:sa/i.test(monsterObj.conditions)) {
-                            state.setItem('MonsterStaminaReq', 1);
-                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
-                            state.setItem('MonsterStaminaReq', 5);
-                        } else {
-                            state.setItem('MonsterStaminaReq', 1);
-                        }
-
-                        switch (theGeneral) {
-                        case 'Orc King':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (Math.min(4, general.GetStat('Orc King','lvl')) + 1));
-                            con.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        case 'Barbarus':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetStat('Barbarus','lvl') >= 4 ? 3 : 2));
-                            con.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        case 'Maalvus':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetStat('Maalvus','lvl') >= 3 ? 3 : 2));
-                            con.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        default:
-                        }
-                    } else {
-                        if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj.conditions)) {
-                            state.setItem('RaidStaminaReq', 5);
-                        } else if (monsterInfo && monsterInfo.staUse) {
-                            state.setItem('RaidStaminaReq', monsterInfo.staUse);
-                        } else {
-                            state.setItem('RaidStaminaReq', 1);
-                        }
-                    }
                 }
             });
 
-            state.setItem('targetFrombattle_monster', target.battle_monster);
+            state.setItem('targetFromMonster', target.battle_monster);
             state.setItem('targetFromraid', target.raid);
-            state.setItem('targetFromfortify', target.fortify);
-
+            state.setItem('targetFromFortify', target.fortify);
+			
             caap.updateDashboard(true);
             return true;
         } catch (err) {
-            con.error("ERROR in monster.select: " + err);
+            con.error("ERROR in monster.select: " + err.stack);
             return false;
         }
     };
@@ -2898,7 +1330,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in monster.menu: " + err);
+            con.error("ERROR in monster.menu: " + err.stack);
             return '';
         }
     };
@@ -2937,7 +1369,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     duration = 0,
                     count = 0,
                     handler = null,
-                    monsterInfo = {},
                     head = '',
                     body = '',
                     row = '',
@@ -3041,29 +1472,28 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 head = caap.makeTr(head);
                 values.shift();
-                monster.records.forEach(function(monsterObj) {
-					//con.log(2, "MONSTER DASH",monsterObj);
-					if ((monsterObj.status == 'Join') != (which == 'Feed')) {
+                monster.records.forEach(function(cM) {
+					//con.log(2, "MONSTER DASH",cM);
+					if ((cM.status == 'Join') != (which == 'Feed')) {
 						return;
 					}
                     row = '';
-                    monsterInfo = monster.getInfo(monsterObj);
-                    color = monsterObj.color;
-                    if (monsterObj.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
+                    color = cM.color;
+                    if (cM.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
                         color = 'blue';
-                    } else if (monsterObj.md5 === state.getItem('targetFrombattle_monster', '') || monsterObj.md5 === state.getItem('targetFromraid', '')) {
+                    } else if (cM.md5 === state.getItem('targetFrombattle_monster', '') || cM.md5 === state.getItem('targetFromraid', '')) {
                         color = 'green';
                     }
 
-                    monsterConditions = monsterObj.conditions;
+                    monsterConditions = cM.conditions;
                     achLevel = monster.parseCondition('ach', monsterConditions);
                     maxDamage = monster.parseCondition('max', monsterConditions);
-                    if (monsterObj.link.length) {
-                        link = caap.domain.altered + '/' + monsterObj.link;
-                        visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
+                    if (cM.link.length) {
+                        link = caap.domain.altered + '/' + cM.link;
+                        visitMonsterInstructions = "Clicking this link will take you to " + cM.name;
                         data = {
-                            text: '<span id="caap_' + whichL + '_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
-                                '" rlink="' + link + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
+                            text: '<span id="caap_' + whichL + '_' + count + '" title="' + visitMonsterInstructions + '" mname="' + cM.name + '" mmd5="' + cM.md5 +
+                                '" rlink="' + link + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + cM.name + '</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -3072,7 +1502,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         row += caap.makeTd(data);
                     } else {
                         row += caap.makeTd({
-                            text: monsterObj.name,
+                            text: cM.name,
                             color: color,
                             id: '',
                             title: ''
@@ -3084,13 +1514,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         title = '';
                         if (displayItem === 'phase' && color === 'grey') {
                             row += caap.makeTd({
-                                text: monsterObj.status,
+                                text: cM.status,
                                 color: color,
                                 id: '',
                                 title: ''
                             });
                         } else {
-                            value = monsterObj[displayItem];
+                            value = cM[displayItem];
                             if (value !== '' && (value >= 0 || value.length)) {
                                 if (displayItem !== "time" && displayItem !== "t2k" && !$u.isNaN(value) && value > 999) {
                                     value = value.addCommas();
@@ -3101,8 +1531,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     if (achLevel) {
                                         title = "User Set Monster Achievement: " + achLevel.addCommas();
                                     } else if (config.getItem('AchievementMode', false)) {
-                                        title = $u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.ach) ? "Default Monster Achievement: " + monsterInfo.ach.addCommas() : '';
-                                        title += monsterObj.page === 'festival_battle_monster' ? ($u.hasContent(monsterInfo) && $u.isNumber(monsterInfo.festival_ach) ? " Festival Monster Achievement: " + monsterInfo.festival_ach.addCommas() : '') : '';
+                                        title = "Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
+                                        title += cM.page === 'festival_battle_monster' ? " Festival Monster Achievement: " + monster.getInfo(cM, 'festival_ach').addCommas() : '';
                                     } else {
                                         title = "Achievement Mode Disabled";
                                     }
@@ -3112,7 +1542,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                 case 'time':
                                     if ($u.hasContent(value) && value.length === 3) {
                                         value = value[0] + ":" + value[1].lpad("0", 2);
-                                        duration = monsterObj.page === 'festival_battle_monster' ? (monsterInfo ? monsterInfo.festival_dur : 192) : (monsterInfo ? monsterInfo.duration : 192);
+                                        duration = monster.getInfo(cM, 'duration', cM.page === 'festival_battle_monster' ? 192 : 168);
                                         title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
                                     } else {
                                         value = '';
@@ -3127,7 +1557,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     title = "Percentage of monster life remaining: " + value + "%";
                                     break;
                                 case 'phase':
-                                    value = value + "/" + (monsterInfo ? monsterInfo.siege : 0)+ " need " + monsterObj.miss;
+                                    value = value + "/" + monster.getInfo(cM, 'siege') + " need " + cM.miss;
                                     title = "Siege Phase: " + value + " more clicks";
                                     break;
                                 case 'fortify':
@@ -3177,11 +1607,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                     }
 
-                    if (monsterObj.link.length && which == 'Monster') {
-                        removeLink = link.replace("casuser", "remove_list") + (monsterObj.page === 'festival_battle_monster' ? '&remove_monsterKey=' + monsterObj.mid.replace("&mid=", "") : '');
-                        removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from CAAP. If still on your monster list, it will reappear when CAAP sees it again.";
+                    if (cM.link.length && which == 'Monster') {
+                        removeLink = link.replace("casuser", "remove_list") + (cM.page === 'festival_battle_monster' ? '&remove_monsterKey=' + cM.mid.replace("&mid=", "") : '');
+                        removeLinkInstructions = "Clicking this link will remove " + cM.name + " from CAAP. If still on your monster list, it will reappear when CAAP sees it again.";
                         data = {
-                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" mmd5="' + monsterObj.md5 +
+                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + cM.name + '" mmd5="' + cM.md5 +
                                 '" rlink="' + removeLink + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color: 'blue',
                             id: '',
@@ -3234,12 +1664,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.rlink = e.target.attributes[i].value;
                             visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.altered + "/", "");
                         } else if (e.target.attributes[i].nodeName === 'mmd5') {
-                            visitMonsterLink.mmd5 = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.mmd5 = e.target.attributes[i].value;
                         }
                     }
 
@@ -3264,12 +1694,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            monsterRemove.mname = e.target.attributes[i].nodeValue;
+                            monsterRemove.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                            monsterRemove.rlink = e.target.attributes[i].value;
                             monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.altered + "/", "");
                         } else if (e.target.attributes[i].nodeName === 'mmd5') {
-                            monsterRemove.mmd5 = e.target.attributes[i].nodeValue;
+                            monsterRemove.mmd5 = e.target.attributes[i].value;
                         }
                     }
 
