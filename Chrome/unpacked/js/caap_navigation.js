@@ -195,16 +195,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				action = '',
 				text = '',
 				steps = path.split(","),
-				list = steps[0].match(/@(.*)/),
 				lastStep = steps.length - 1,
 				result = false,
                 jq = $j(),
                 step = '';
 			
-			if (list && list.length == 2) {
-				if (general.Select(list[1])) {
-					return true;
-				}
+			if (general.Select($u.setContent(steps[0].regex(/@(.+)/), 'Use Current'))) {
+				return true;
 			}
 
 			// Start with page links to make sure on right page.

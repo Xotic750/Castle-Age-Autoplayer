@@ -1214,7 +1214,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
 						check = caap.navigate2("guildv2_conquest_command,clickjq:input[name*='Report Collect!']");
 						if (!check || check != 'fail') {
-							schedule.setItem('conquestFail',3600);
+							schedule.setItem('conquestFail', 3600);
 							con.warn('Unable to complete conquest points Collect, waiting an hour to try again');
 						} else if (check == 'done') {
 							conquest.categories.forEach( function(category) {

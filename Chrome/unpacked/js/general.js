@@ -863,6 +863,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	// Provides lookup of a general equipped to a loadout. If general submitted, returns that general. If "Use Current," returns current general
+    general.getLoadoutGeneral = function (name) {
+        try {
+            name = general.isLoadout(name) ? general.GetStat(name, 'general') : name !== "Under Level" ? name : config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().pop() : general.GetLevelUpNames().shift();
+			return name == 'Use Current' ? general.GetCurrentGeneral() : name;
+        } catch (err) {
+            con.error("ERROR in general.GetLoadoutGeneral: " + err.stack);
+            return 'Use Current';
+        }
+    };
+
     // Convert from a role like "IdleGeneral" to a specific general required, and then calls a function to select that general
     general.Select = function (whichGeneral) {
         try {
@@ -909,8 +920,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (!general.GetLevelUpNames().length) {
                     return general.Clear(whichGeneral);
                 }
+				
 
                 targetGeneral = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop();
+				con.log(2, "Level up general", targetGeneral, general.GetLevelUpNames());
             }
 
             if (!general.getRecord(targetGeneral,false)) {
@@ -1269,13 +1282,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            changeLink.mname = e.target.attributes[i].nodeValue;
+                            changeLink.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            changeLink.rlink = e.target.attributes[i].nodeValue;
+                            changeLink.rlink = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'itype') {
-                            gen.itype = changeLink.itype = e.target.attributes[i].nodeValue.parseInt();
+                            gen.itype = changeLink.itype = e.target.attributes[i].value.parseInt();
                         } else if (e.target.attributes[i].nodeName === 'item') {
-                            gen.item = changeLink.item = e.target.attributes[i].nodeValue.parseInt();
+                            gen.item = changeLink.item = e.target.attributes[i].value.parseInt();
                         }
                     }
 

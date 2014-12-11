@@ -338,12 +338,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	// Will return amount of stamina available.
     caap.checkStamina = function (battleOrMonster, attackMinStamina) {
         try {
             con.log(4, "checkStamina", battleOrMonster, attackMinStamina);
-            if (!attackMinStamina) {
-                attackMinStamina = 1;
-            }
+            attackMinStamina = $u.setContent(attackMinStamina, 0);
 
             var when = config.getItem('When' + battleOrMonster, 'Never'),
                 maxIdleStamina = 0,
@@ -381,7 +380,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (when === 'At X Stamina') {
                 if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
                     caap.setDivContent(messDiv, 'Burning stamina to level up');
-                    return true;
+                    return caap.stats.stamina.num;
                 }
 
                 staminaMF = battleOrMonster + 'Stamina';
@@ -392,7 +391,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     state.setItem('BurnMode_' + staminaMF, true);
-                    return true;
+                    return caap.stats.stamina.num - config.getItem('XMin' + staminaMF, 0);
                 }
 
                 state.setItem('BurnMode_' + staminaMF, false);
@@ -406,12 +405,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if (caap.stats.stamina.num >= maxIdleStamina) {
                     caap.setDivContent(messDiv, 'Using max stamina');
-                    return true;
+                    return caap.stats.stamina.num;
                 }
 
                 if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
                     caap.setDivContent(messDiv, 'Burning all stamina to level up');
-                    return true;
+                    return caap.stats.stamina.num;
                 }
 
                 caap.setDivContent(messDiv, 'Waiting for max stamina: ' + caap.stats.stamina.num + "/" + maxIdleStamina);
@@ -419,7 +418,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (caap.stats.stamina.num >= attackMinStamina) {
-                return true;
+                return caap.stats.stamina.num;
             }
 
             caap.setDivContent(messDiv, "Waiting for more stamina: " + caap.stats.stamina.num + "/" + attackMinStamina);
@@ -553,10 +552,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             var fightMode = '',
-                nodeNum = 0,
                 energyRequire = 0,
-				// In the interest of saving bits to be more environmentally friendly, currentMonster has been renamed cM
-                cM = {}, 
+                cM = {},  // current monster
                 attackButton = null,
                 singleButtonList = [],
                 buttonList = [],
@@ -565,57 +562,67 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 attackMess = '',
                 it = 0,
                 len = 0,
-                theGeneral = config.getItem('FortifyGeneral', 'Use Current'),
+				gMult = 1, // General multiplier, like Orc King = 5
+				minMax = 'min',
+                theGeneral = 'Use Current',
 				temp,
+				nodeNum = 0,
+				xpPerPt = 1,
+				statRequire = 0,
+				statRequireBig = 0,
+				statAvailable = 0,
 				result = false;
 
-			
-
-            if (state.getItem('targetFromfortify', '').length) {
-				cM = monster.getItem(state.getItem('targetFromfortify', ''));
-				if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && $u.hasContent(cM.staLvls)) {
-					nodeNum = cM.nodeMax;
-				}
-				energyRequire = !cM.NrgMax.length ? 10 : config.getItem('PowerAttackMax', false) ? cM.NrgMax[nodeNum] : cM.NrgMax[0];
-            }
-
-            con.log(4, "Energy Required/Node", energyRequire, nodeNum);
-            theGeneral = theGeneral === "Under Level" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral;
-            switch (theGeneral) {
-                case 'Orc King':
-                    energyRequire = energyRequire * (Math.min(4, general.GetLevel('Orc King')) + 1);
-                    con.log(3, 'Monsters Fortify:Orc King', energyRequire);
-
-                    break;
-                case 'Barbarus':
-                    energyRequire = energyRequire * (general.GetLevel('Barbarus') >= 4 ? 3 : 2);
-                    con.log(3, 'Monsters Fortify:Barbarus', energyRequire);
-
-                    break;
-                case 'Maalvus':
-                    energyRequire = energyRequire * (general.GetLevel('Maalvus') >= 3 ? 3 : 2);
-                    con.log(2, 'Monsters Fortify:Maalvus', energyRequire);
-
-                    break;
-                default:
-            }
-
             // Check to see if we should fortify or attack monster
-            if ($u.hasContent(cM) && caap.checkEnergy(energyRequire, (gm ? gm.getItem('WhenFortify', 'Energy Available', hiddenVar) : 'Energy Available'), 'fortify_mess')) {
-                fightMode = 'Fortify';
-            } else {
-				temp = state.getItem('targetFrombattle_monster', '')
-				cM = temp.length ? monster.getItem(temp) : null;
-                if ($u.hasContent(cM) && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && cM.link.indexOf('raid') < 0) {
-                    fightMode = 'Monster';
-                } else {
-                    schedule.setItem('NotargetFrombattle_monster', 60);
-                    attackButton = null;
-                    singleButtonList = null;
-                    buttonList = null;
-                    return false;
-                }
-            }
+			['energyList', 'staminaList'].some( function(statList) {
+				fightMode = statList == 'energyList' ? 'Fortify' : 'Monster';
+				theGeneral = general.getLoadoutGeneral(config.getItem(fightMode + 'General', 'Use Current'));
+				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
+				xpPerPt = (statList == 'energyList' ? 3.5 : 5) * gMult;
+				con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
+				if (state.getItem('targetFrom' + fightMode, '').length) {
+					cM = monster.getItem(state.getItem('targetFrom' + fightMode, ''));
+				}
+				if (!$u.hasContent(cM)) {
+					return false;
+				}
+				con.log(2, cM.name + ' ', statList, cM, cM[statList]);
+				statAvailable = statList == 'energyList' ? caap.checkEnergy('fortify_mess', gm.getItem('WhenFortify', 'Energy Available'))
+					: caap.checkStamina('Monster');
+				if (caap.inLevelUpMode()) {  
+					// Check for the biggest hit we can make with our remaining stats
+					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
+					
+					// Is there a smaller power attack that will work?
+					statRequire = caap.minMaxArray(cM[statList], 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult);
+					
+					if (statRequire && statRequire * xpPerPt < caap.stats.exp.dif) {
+						// Ok, small power hit is a go
+					// If power hit won't work, then do single hit
+					} else if (statRequire && cM[statList][0] == 1 && 1 * xpPerPt < caap.stats.exp.dif) {
+						statRequire = 1;
+					} else {
+						// If too close to levelling for a power attack, do max attack to carry over xp
+						statRequire = statRequireBig;
+					}
+				} else if (cM[statList][0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
+					statRequire = 1;
+				} else {
+					minMax = statList == 'energyList' && cM.stunDo ? 'min' : config.getItem('Power' + fightMode + 'Max', false) ? 'max' : 'min';
+					statRequire = caap.minMaxArray(cM[statList], minMax, 1, (statAvailable + 1) / gMult );
+				}
+				if (statRequire && statRequire * gMult <= statAvailable) {
+					nodeNum = !cM.multiNode ? 0 : cM[statList].indexOf(statRequire);
+					return true;
+				} else {
+					statAvailable = 0;
+				}
+			});
+
+			if (!statAvailable) {
+				schedule.setItem('NotargetFrombattle_monster', 60);
+				return false;
+			}
 
             // Set general and go to monster page
 			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
@@ -689,15 +696,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 con.log(4, "monster/button list", cM, buttonList);
-                nodeNum = 0;
-                if (!caap.inLevelUpMode()) {
-                    if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && cM.staLvls.length) {
-                        nodeNum = cM.nodeMax;
-                    }
-                }
 
                 for (it = 0, len = buttonList.length; it < len; it += 1) {
-                    attackButton = caap.checkForImage(buttonList[it], null, null, nodeNum);
+                    attackButton = caap.checkForImage(buttonList[it], null, null, cM.staminaList.length ? cM.staminaList.indexOf(nodeNum) : 0);
                     if ($u.hasContent(attackButton)) {
                         break;
                     }
@@ -1128,7 +1129,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				//con.log(2, 'Monster dragoncontainer found', damageDiv.text());
 				damageDiv = $j("td[valign='top']:first a[href*='user=" + caap.stats.FBID + "']:first", damageDiv);
 				if ($u.hasContent(damageDiv)) { // Make sure player has done damage.
-					//con.log(2, 'Monster dragoncontainer player found', damageDiv.text());
 					if (cM.fortify > -1) {
 						tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
 						if ($u.hasContent(tempArr) && tempArr.length === 2) {
@@ -1157,13 +1157,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(damageDiv)) {
                     damageDiv = $j("a[href*='user=" + caap.stats.FBID + "']", damageDiv[0].children);
 					if ($u.hasContent(damageDiv)) {
-						tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/);
-						if ($u.hasContent(tempArr) && tempArr.length === 3) {
-							cM.attacked = tempArr[1].numberOnly();
-							cM.defended = tempArr[2].numberOnly();
+						tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/g);
+						con.log(2, cM.name + 'Temparr', tempArr);
+						if ($u.hasContent(tempArr) && tempArr.length === 2) {
+							cM.attacked = tempArr[0].numberOnly();
+							cM.defended = tempArr[1].numberOnly();
 							cM.damage = cM.attacked + cM.defended;
-						} else if ($u.hasContent(tempArr) && tempArr.length === 2) {
-							cM.attacked = tempArr[1].numberOnly();
+						} else if ($u.hasContent(tempArr) && tempArr.length === 1) {
+							cM.attacked = tempArr[0].numberOnly();
 							cM.damage = cM.attacked;
 						} else {
 							con.warn("Unable to get attacked and defended damage from Leaderboard", tempArr, (damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim());
@@ -1182,9 +1183,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cM.time = time;
 				cM.t2k = monster.t2kCalc(cM);
 				
+				// new siege style
 				tempDiv = $j("#objective_list_section div[style*='mobjective_container']", slice);
 				if ($u.hasContent(tempDiv)) {
 					cM.phase = tempDiv.length;
+					cM.miss = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", slice).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
+				} else { // old style
+					tempDiv = $j("div[style*='monster_layout_2.jpg'] div[style*='alpha']", slice);
+					if (tempDiv.length) {
+						cM.phase = tempDiv.length;
+					}
+				}
+				if (cM.phase > 0) {
 					cM.miss = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']", slice).text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
 				}
 				
@@ -1240,13 +1250,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     });
 					//con.log(2, 'parts list', minions, arms, mains);
 					
-					// Return the element of the array with the minimum value that is above 0
-					aliveArray = function(arr) {
-						return arr.filter(function(value) {
-							return value > 0;
-						});
-					};
-
                     // Define if use user or default order parts
                     if (/:po/i.test(cM.conditions)) {
                         tempArr = cM.conditions.substring(cM.conditions.indexOf('[') + 1, cM.conditions.lastIndexOf(']')).split(".");
@@ -1257,12 +1260,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							}
 						});
                     } else {
-						cM.targetPart = (partsHealth.lastIndexOf(minions.length ? Math.min.apply(null, aliveArray(minions)) : Math.min((arms.length ? Math.min.apply(null, aliveArray(arms)) : 100), Math.min.apply(null, aliveArray(mains))))) + 1;
+						cM.targetPart = partsHealth.lastIndexOf(minions.length ? caap.minMaxArray(minions, 'min', 0) : Math.min((arms.length ? caap.minMaxArray(arms, 'min', 0) : 100), caap.minMaxArray(mains, 'min', 0))) + 1;
 						//con.log(2, 'targetpart calcs', Math.min.apply(null, aliveArray(minions)),  Math.min.apply(null, aliveArray(arms)), Math.min.apply(null, aliveArray(mains)));
                     }
 
 					// If one of the mains is more damaged that most damaged hinderer and arms > 80% health, assume headless
-					if (arms.length && Math.min.apply(null, aliveArray(mains)) < Math.min.apply(null, aliveArray(arms)) && Math.min.apply(null, arms) > 80) {
+					if (arms.length && caap.minMaxArray(mains, 'min', 0) < caap.minMaxArray(arms, 'min', 0)
+						&& caap.minMaxArray(arms, 'min', 0) > 80) {
 						cM.life = (mains.reduce(function(a, b) { return a + b }, 0) / mains.length).dp(2);
 					} else {
 						cM.life = ((mains.reduce(function(a, b) { return a + b }, 0) + arms.reduce(function(a, b) { return a + b }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
@@ -1378,23 +1382,33 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 
 					// Find the lowest and highest stamina/energy buttons
-					cM.staLvls = monster.getInfo(cM, 'staMax', []);
-					if (!cM.staLvls.length) {
-						tempDiv = $j("#app_body div[style*='button_cost_stamina_']");
-						cM.siegeLevel = tempDiv.length ? tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1] : 0;
-						
-						tempDiv = $j("#app_body img[src*='button_cost_stamina_']");
-						if ($u.hasContent(tempDiv)) {
-							cM.maxNode = tempDiv.length;
-							cM.staLvls = [tempDiv.first().attr('src').regex(/button_cost_stamina_(\d+)/), tempDiv.last().attr('src').regex(/button_cost_stamina_(\d+)/)];
-							tempDiv = $j("#app_body img[src*='button_cost_energy_']");
-							if ($u.hasContent(tempDiv)) {
-								cM.NrgLvls = [tempDiv.first().attr('src').regex(/button_cost_energy_(\d+)/) ,tempDiv.last().attr('src').regex(/button_cost_energy_(\d+)/)];
-							} else {
-								con.warn('Unable to find energy attack buttons');
+					tempDiv = $j("div[style*='button_cost_stamina_']", slice);
+					cM.siegeLevel = tempDiv.length ? tempDiv.attr('style').match(/button_cost_stamina_(\d+)/)[1] : 0;
+					
+					cM.staminaList = [];
+					cM.energyList = [];
+					tempDiv = $j("img[src*='button_cost_stamina_']", slice);
+					if ($u.hasContent(tempDiv)) {
+						cM.multiNode = true;
+						tempDiv.each( function() {
+							tNum = $j(this).attr('src').regex(/button_cost_stamina_(\d+)/);
+							if (cM.staminaList.indexOf(tNum) == -1) {
+								cM.staminaList.push(tNum);
 							}
-						} else {
-							con.warn('Unable to find stamina attack buttons');
+						});
+						tempDiv = $j("img[src*='button_cost_energy_']", slice);
+						if ($u.hasContent(tempDiv)) {
+							tempDiv.each( function() {
+								tNum = $j(this).attr('src').regex(/button_cost_energy_(\d+)/);
+								if (cM.energyList.indexOf(tNum) == -1) {
+									cM.energyList.push(tNum);
+								}
+							});
+						}
+					} else {
+						cM.staminaList = monster.getInfo(cM, 'staminaList');
+						if (!cM.staminaList.length) {
+							con.warn('Unable to find stamina/energy attack buttons');
 						}
 					}
 						

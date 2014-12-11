@@ -2287,6 +2287,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.minMaxArray = function (array, minMax, lowerBound, upperBound) {
+        try {
+			var result;
+            if (!$u.isArray(array)) {
+                throw "caap.minMaxArray: Invalid array";
+            }
+            if (minMax != 'min' && minMax != 'max') {
+                throw "caap.minMaxArray: minMax neither 'min' nor 'max'";
+            }
+
+			array = array.filter(function(value) {
+				return ($u.isNumber(lowerBound) ? value > lowerBound : true) && ($u.isNumber(upperBound) ? value < upperBound : true);
+			});
+			result = Math[minMax].apply(null, array);
+
+            return result == Number.POSITIVE_INFINITY ? undefined : result;
+        } catch (err) {
+            con.error("ERROR in minMaxArray: " + err + ' ' + err.stack);
+            return undefined;
+        }
+    };
+	
     caap.timeStr = function (Short) {
         return config.getItem("use24hr", true) ? (Short ? "D H:i" : "D d M H:i") : (Short ? "D g:i A" : "D d M g:i A");
     };
@@ -3010,7 +3032,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             // Other controls
             var htmlCode = '', 
-				catList = ['Never',1000,3000,4500],
+				catList = ['Never','1000','3000','4500'],
 				catInst = 'Conquest points collect will be triggered if any of these conditions are met';
 
             htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
@@ -5116,7 +5138,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			// TESTING AREA
 			//var addCode = '123456 '.regex(/.*?(?:^|[^\da-f])([\da-f]{6})(?:$|[^\da-f])/i);
 			//con.log(2, 'Army add', addCode);
-			//con.log(2, 'Army add2', $j("#app_body b").text());
+			//con.log(2, 'stat', caap.minMaxArray([100, 101],'min', 5, 6));
 
 			
             con.log(4, 'caap.checkResults');
@@ -7028,7 +7050,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.clearTimeout(caap.qtom);
                 con.log(1, "Searching for quest");
             } else {
-                energyCheck = caap.checkEnergy(state.getItem('AutoQuest', caap.newAutoQuest()).energy, whenQuest, 'quest_mess');
+                energyCheck = caap.checkEnergy('quest_mess', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
                 if (!energyCheck) {
                     return false;
                 }
@@ -8116,21 +8138,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     /*------------------------------------------------------------------------------------\
     caap.checkEnergy gets passed the default energy requirement plus the condition text from
-    caap.the 'Whenxxxxx' setting and the message div name.
+    caap.the 'Whenxxxxx' setting and the message div name. If energy is not defined, returns
+	the total amount of energy available.
     \------------------------------------------------------------------------------------*/
-    caap.checkEnergy = function (energy, condition, msgdiv) {
+    caap.checkEnergy = function (msgdiv, condition, energy) {
         try {
-            if (!caap.stats.energy || !energy) {
+            if (!caap.stats.energy) {
                 return false;
             }
 
             var whichEnergy,
                 maxIdleEnergy,
                 theGeneral;
+				
+			energy = $u.setContent(energy, 0);
 
             if (condition === 'Energy Available' || condition === 'Not Fortifying') {
                 if (caap.stats.energy.num >= energy) {
-                    return true;
+                    return caap.stats.energy.num;
                 }
 
                 if (msgdiv) {
@@ -8150,7 +8175,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         caap.setDivContent(msgdiv, 'Burning all energy to level up');
                     }
 
-                    return true;
+                    return caap.stats.energy.num;
                 }
 
                 whichEnergy = config.getItem('XQuestEnergy', 1);
@@ -8169,7 +8194,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             caap.setDivContent(msgdiv, 'At X energy. Burning to ' + config.getItem('XMinQuestEnergy', 0));
                         }
 
-                        return true;
+                        return caap.stats.energy.num - config.getItem('XMinQuestEnergy', 0);
                     }
 
                     state.setItem('AtXQuestEnergy', false);
@@ -8190,7 +8215,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 maxIdleEnergy = caap.maxStatCheck('energy');
 
                 if (caap.stats.energy.num >= maxIdleEnergy) {
-                    return true;
+                    return caap.stats.energy.num - maxIdleEnergy;
                 }
 
                 if (caap.inLevelUpMode() && caap.stats.energy.num >= energy) {
@@ -8203,7 +8228,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         caap.setDivContent(msgdiv, 'Burning all energy to level up');
                     }
 
-                    return true;
+                    return caap.stats.energy.num;
                 }
 
                 if (msgdiv) {
@@ -8217,7 +8242,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in checkEnergy: " + err);
+            con.error("ERROR in checkEnergy: " + err.stack);
             return false;
         }
     };
@@ -9195,22 +9220,46 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			var done = false,
+			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
+				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
+				tRecord = guild_battle.getItem(guild_battle.gf.tenVten),
 				configSet = false;
+				
 			caap.stats.priorityGeneral = 'Use Current';
-			caap.stats.battleIdle = 'Use Current';
-			['festival', 'tenVten', 'guild_battle'].forEach( function(name) {
+
+			if (schedule.since(fRecord.startTime, 1 * 60) && !schedule.since(fRecord.startTime, 4* 60)) {
+				caap.stats.priorityGeneral = config.getItem('Fest_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest_ClassGeneral','Use Current');
+			}
+			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -8 * 60) && !schedule.since(tRecord.startTime, -0 * 60)) {
+				caap.stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
+			}
+			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
+				caap.stats.priorityGeneral = config.getItem('GB_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_ClassGeneral','Use Current');
+			}
+			if (caap.stats.priorityGeneral != 'Use Current') {
+				con.log(2,' Pre battle class general',caap.stats.priorityGeneral);
+				if (general.selectSpecific(caap.stats.priorityGeneral)) {
+					return true;
+				}
+			}
+				
+			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
+				caap.stats.battleIdle = config.getItem('GB_Fest_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_Fest_IdleGeneral','Use Current');
+			} else {
+				caap.stats.battleIdle = 'Use Current';
+			}
+
+			return ['festival', 'tenVten', 'guild_battle'].some( function(name) {
 				configSet =  config.getItem(guild_battle.gf[name].abbrev + 'whenTokens') != 'Never' ||
 					config.getItem(guild_battle.gf[name].abbrev + ' ClassGeneral', 'Use Current') != 'Use Current' ||
 					config.getItem(guild_battle.gf[name].abbrev + 'collect', false);
-				if (!done && configSet && guild_battle.work(guild_battle.gf[name])) {
-					done = true;
+				if (configSet && guild_battle.work(guild_battle.gf[name])) {
+					return true;
 				}
 
 			});
-			return done;
         } catch (err) {
-            con.error("ERROR in guildBattle: " + err);
+            con.error("ERROR in guildBattle: " + err.stack);
             return false;
         }
     };

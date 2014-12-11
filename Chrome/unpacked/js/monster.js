@@ -38,10 +38,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'over': '',
             'color': '',
             'review': -1,
-			'nodeMax' : 0,
             'conditions': '',
             'charClass': '',
-			'staLvls' : [],
+			'staminaList' : [],
+			'energyList' : [],
+			'multiNode' : false,
 			'siegeLevel' : 0,
             'strength': -1,
             'stun': -1,
@@ -79,6 +80,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
          'Default Monster': {
             ach: 1000000,
             festival_ach: 1000000,
+            staminaList: [1, 5],
+			energyList: [10],
 			siege: 5,
             defense_img: 'nm_green.jpg'
         },
@@ -117,13 +120,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Emerald Dragon': {
             duration: 72,
             ach: 100000,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif']
         },
         'Frost Dragon': {
             duration: 72,
             ach: 100000,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 30000
@@ -131,7 +134,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Gold Dragon': {
             duration: 72,
             ach: 100000,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 30000
@@ -139,7 +142,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ancient Red Dragon': {
             duration: 72,
             ach: 100000,
-            staMax: [5, 10],
+            staminaList: [5, 10],
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 50000
@@ -179,7 +182,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Amethyst Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
@@ -189,7 +192,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Ancient Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
@@ -199,7 +202,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Emerald Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
@@ -209,7 +212,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'Sapphire Sea Serpent': {
             duration: 72,
             ach: 250000,
-            staMax: [10, 20],
+            staminaList: [10, 20],
             attack_img: ['serpent_10stam_attack.gif', 'serpent_20stam_attack.gif'],
             fortify_img: ['seamonster_fortify.gif'],
             defense_img: 'seamonster_ship_health.jpg',
@@ -483,7 +486,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records == 'default' || !$j.isArray(monster.records) || typeof monster.records[0].staLvls == 'undefined') {
+            if (monster.records == 'default' || !$j.isArray(monster.records) || (monster.records.length && typeof monster.records[0].staminaList == 'undefined')) {
                 monster.records = gm.setItem('monster.records', []);
             }
             caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
@@ -972,18 +975,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 },
                 monsterMD5 = '',
                 cM = {},
-                monsterConditions = '',
                 //monstType             = '',
                 p = 0,
                 m = 0,
-                attackOrderList = [],
-                theGeneral = config.getItem('MonsterGeneral', 'Use Current');
-
-            theGeneral = ((theGeneral === "Under Level") ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : general.GetLevelUpNames().pop()) : theGeneral);
-            // First we forget everything about who we already picked.
-            //state.setItem('targetFrombattle_monster', '');
-            //state.setItem('targetFromfortify', energyTarget);
-            //state.setItem('targetFromraid', '');
+                attackOrderList = [];
 
             // Next we get our monster objects from the repository and break them into separate lists
             // for monster or raid.  If we are serializing then we make one list only.
@@ -1029,7 +1024,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            //con.log(2, 'records/monsterList/selectTypes/worldMonsterCount', monster.records, monsterList, selectTypes, monster.worldMonsterCount);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
 
@@ -1065,7 +1059,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     if (!aoItem.trim()) {
                         return;
                     }
-                    monsterConditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
                     // Now we try to match the users name against our list of monsters
                     monsterList[type].forEach(function(thisMon) {
 						cM = monster.getItem(thisMon);
@@ -1079,7 +1072,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
 
                         //Monster is a match so we set the conditions
-                        cM.conditions = ':' + monsterConditions + ':';
+                        cM.conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
 
 						cM.select = true;
 
@@ -1120,7 +1113,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         }
 
 						if (!cM.charClass.length || (cM.charClass.length && monster.characterClass[cM.charClass] && monster.characterClass[cM.charClass].hasIndexOf('Heal'))) {
-							maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
+							maxToFortify = (monster.parseCondition('f%', cM.conditions) !== false) ? monster.parseCondition('f%', cM.conditions) : config.getItem('MaxToFortify', 0);
 							if (cM.fortify >= 0 && !firstFortUnderMax && cM.fortify < maxToFortify) {
 								if (cM.over === 'ach') {
 									if (!firstFortOverAch) {
@@ -1204,7 +1197,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         con.log(3, 'Stun target replaces fortify ', energyTarget.name);
                     }
 
-                    //state.setItem('targetFromfortify', energyTarget);
                     if (energyTarget.md5) {
                         target.fortify = JSON.copy(energyTarget);
                         con.log(3, 'Energy target', energyTarget);
@@ -1215,68 +1207,20 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 if (!monsterMD5) {
                     monsterMD5 = firstOverAch;
                 }
+				con.log(1, 'MD5', monsterMD5);
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
                 if (monsterMD5) {
-                    cM = monster.getItem(monsterMD5);
-					whichList = cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
+					whichList = monster.getItem(monsterMD5).link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
                     target[whichList] = monsterMD5;
-                    if (whichList === 'battle_monster') {
-                        nodeNum = 0;
-                        if (!caap.inLevelUpMode() && cM.staLvls.length) {
-                            nodeNum = cM.nodeMax;
-                        }
-
-                        if (!caap.inLevelUpMode() && cM.staLvls.length && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                            if (monster.getInfo(cM, 'attack_img')) {
-                                nodeNum = 1;
-                            }
-
-                            state.setItem('MonsterStaminaReq', cM.staLvls[nodeNum]);
-                        } else if (cM.staLvls.length) {
-                            state.setItem('MonsterStaminaReq', cM.staLvls[0]);
-                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || /:pa/i.test(cM.conditions)) {
-                            state.setItem('MonsterStaminaReq', 5);
-                        } else if (/:sa/i.test(cM.conditions)) {
-                            state.setItem('MonsterStaminaReq', 1);
-                        } else if ((caap.inLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
-                            state.setItem('MonsterStaminaReq', 5);
-                        } else {
-                            state.setItem('MonsterStaminaReq', 1);
-                        }
-
-                        switch (theGeneral) {
-                        case 'Orc King':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (Math.min(4, general.GetStat('Orc King','lvl')) + 1));
-                            con.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        case 'Barbarus':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetStat('Barbarus','lvl') >= 4 ? 3 : 2));
-                            con.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        case 'Maalvus':
-                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetStat('Maalvus','lvl') >= 3 ? 3 : 2));
-                            con.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
-                            break;
-                        default:
-                        }
-                    } else {
-                        if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(cM.conditions)) {
-                            state.setItem('RaidStaminaReq', 5);
-                        } else if (cM.staLvls.length) {
-                            state.setItem('RaidStaminaReq', cM.staLvls[0]);
-                        } else {
-                            state.setItem('RaidStaminaReq', 1);
-                        }
-                    }
                 }
             });
 
-            state.setItem('targetFrombattle_monster', target.battle_monster);
+            state.setItem('targetFromMonster', target.battle_monster);
             state.setItem('targetFromraid', target.raid);
-            state.setItem('targetFromfortify', target.fortify);
-
+            state.setItem('targetFromFortify', target.fortify);
+			
             caap.updateDashboard(true);
             return true;
         } catch (err) {
@@ -1720,12 +1664,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.rlink = e.target.attributes[i].value;
                             visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.altered + "/", "");
                         } else if (e.target.attributes[i].nodeName === 'mmd5') {
-                            visitMonsterLink.mmd5 = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.mmd5 = e.target.attributes[i].value;
                         }
                     }
 
@@ -1750,12 +1694,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
-                            monsterRemove.mname = e.target.attributes[i].nodeValue;
+                            monsterRemove.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                            monsterRemove.rlink = e.target.attributes[i].value;
                             monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.altered + "/", "");
                         } else if (e.target.attributes[i].nodeName === 'mmd5') {
-                            monsterRemove.mmd5 = e.target.attributes[i].nodeValue;
+                            monsterRemove.mmd5 = e.target.attributes[i].value;
                         }
                     }
 
