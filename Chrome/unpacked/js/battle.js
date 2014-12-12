@@ -1085,7 +1085,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 				
-				con.log(2, 'Battle target stats:', tempRecord.data.nameStr, tempRecord.data.levelNum, tempRecord.data.rankStr, tempRecord.data.rankNum, tempRecord.data.armyNum);
+				con.log(3, 'Battle target stats:', tempRecord.data.nameStr, tempRecord.data.levelNum, tempRecord.data.rankStr, tempRecord.data.rankNum, tempRecord.data.armyNum);
 
                 if (battle.hashCheck(tempRecord.data)) {
                     inputDiv = null;
@@ -1111,7 +1111,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (tempRecord.data.levelNum - caap.stats.level > maxLevel) {
-                    con.log(2, "Exceeds relative maxLevel", {
+                    con.log(3, "Exceeds relative maxLevel", {
                         'level': tempRecord.data.levelNum,
                         'levelDif': tempRecord.data.levelNum - caap.stats.level,
                         'maxLevel': maxLevel
@@ -1126,7 +1126,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (caap.stats.level - tempRecord.data.levelNum > minLevel) {
-                    con.log(2, "Exceeds relative minLevel", {
+                    con.log(3, "Exceeds relative minLevel", {
                         'level': tempRecord.data.levelNum,
                         'levelDif': caap.stats.level - tempRecord.data.levelNum,
                         'minLevel': minLevel
@@ -1142,7 +1142,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
                     if (caap.stats.rank.war && (caap.stats.rank.war - tempRecord.data.warRankNum > minRank)) {
-                        con.log(2, "Greater than war minRank", {
+                        con.log(3, "Greater than war minRank", {
                             'rankDif': caap.stats.rank.war - tempRecord.data.warRankNum,
                             'minRank': minRank
                         });
@@ -1156,7 +1156,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 } else {
                     if (caap.stats.rank.battle && (caap.stats.rank.battle - tempRecord.data.rankNum > minRank)) {
-                        con.log(2, "Greater than battle minRank", {
+                        con.log(3, "Greater than battle minRank", {
                             'rankDif': caap.stats.rank.battle - tempRecord.data.rankNum,
                             'minRank': minRank
                         });
@@ -1172,7 +1172,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (config.getItem('BattleType', 'Invade') == 'Invade' && caap.stats.army.capped && (tempRecord.data.armyNum > (caap.stats.army.capped * armyRatio))) {
-                    con.log(2, "Greater than armyRatio", {
+                    con.log(3, "Greater than armyRatio", {
                         'armyRatio': armyRatio.dp(2),
                         'armyNum': tempRecord.data.armyNum,
                         'armyMax': (caap.stats.army.capped * armyRatio).dp()

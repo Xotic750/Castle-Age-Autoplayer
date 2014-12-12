@@ -44,6 +44,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			'energyList' : [],
 			'multiNode' : false,
 			'siegeLevel' : 0,
+			'spent' : {	'energy' : 0,
+						'stamina' : 0},
             'strength': -1,
             'stun': -1,
             'stunTime': -1,
@@ -486,8 +488,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records == 'default' || !$j.isArray(monster.records) || (monster.records.length && typeof monster.records[0].staminaList == 'undefined')) {
+            if (monster.records == 'default' || !$j.isArray(monster.records) || (monster.records.length && typeof monster.records[0].spent == 'undefined')) {
+				con.warn('Monster records reset', monster.records);
                 monster.records = gm.setItem('monster.records', []);
+				monster.fullReview();
             }
             caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
@@ -565,7 +569,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.match(new RegExp(':' + type + '([\\d|\\.]*)(\\w?)'));
+            var str = conditions.match(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
 			
 			if (!str) {
 				return false;
@@ -607,7 +611,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				achLevel = monster.parseCondition('ach', cM.conditions),
 				maxDamage = monster.parseCondition('max', cM.conditions),
 				maxToFortify = monster.parseCondition('f%', cM.conditions),
-				targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget());
+				maxSta = monster.parseCondition('sta', cM.conditions),
+				targetFromfortify = state.getItem('targetFromFortify', new monster.energyTarget());
 
 			maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
 			achLevel = achLevel === 0 ? 1 : achLevel; // Added to prevent ach === 0 defaulting to false 
@@ -699,10 +704,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 			// End of Keep On Budget (KOB) code Part 1 -- required variables
 
-			isTarget = (cM.name === state.getItem('targetFromraid', '') || cM.name === state.getItem('targetFrombattle_monster', '') || cM.name === targetFromfortify.name);
-
+			isTarget = (cM.name === state.getItem('targetFromraid', '') || cM.name === state.getItem('targetFromMonster', '') || cM.name === targetFromfortify.name);
+			
 			//con.log(2, 'MAX DAMAGE', maxDamage, cM.damage);
-			if (maxDamage && cM.damage >= maxDamage) {
+			if ((maxDamage && cM.damage >= maxDamage) || (maxSta && cM.spent.stamina >= maxSta)) {
 
 				cM.color = 'red';
 				cM.over = 'max';
@@ -1207,7 +1212,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 if (!monsterMD5) {
                     monsterMD5 = firstOverAch;
                 }
-				con.log(1, 'MD5', monsterMD5);
+				//con.log(1, 'MD5', monsterMD5);
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
@@ -1479,9 +1484,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					}
                     row = '';
                     color = cM.color;
-                    if (cM.md5 === state.getItem('targetFromfortify', monster.energyTarget()).md5) {
+                    if (cM.md5 === state.getItem('targetFromFortify', monster.energyTarget()).md5) {
                         color = 'blue';
-                    } else if (cM.md5 === state.getItem('targetFrombattle_monster', '') || cM.md5 === state.getItem('targetFromraid', '')) {
+                    } else if (cM.md5 === state.getItem('targetFromMonster', '') || cM.md5 === state.getItem('targetFromraid', '')) {
                         color = 'green';
                     }
 
@@ -1531,7 +1536,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     if (achLevel) {
                                         title = "User Set Monster Achievement: " + achLevel.addCommas();
                                     } else if (config.getItem('AchievementMode', false)) {
-                                        title = "Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
+                                        title = "Stamina used: " + cM.spent.stamina + " Energy used: " + cM.spent.energy + " Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
                                         title += cM.page === 'festival_battle_monster' ? " Festival Monster Achievement: " + monster.getInfo(cM, 'festival_ach').addCommas() : '';
                                     } else {
                                         title = "Achievement Mode Disabled";

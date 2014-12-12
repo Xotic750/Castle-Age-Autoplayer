@@ -128,7 +128,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								mR.color = 'grey';
 								break;
 							case 'atk':
-								monster.engageButtons[mR.md5] = newInputsDiv;
 								mR.status = mR.status || (lpage == "ajax:player_monster_list.php?monster_filter=2" ? 'Join' : 'Attack');
 								break;
 							default:
@@ -205,14 +204,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             break;
                         case 'engagebtn':
                         case 'dragon_list_btn_3':
-                            monster.engageButtons[mR.md5] = $j(buttonsDiv.eq(it));
 
                             break;
                         case 'viewbtn':
                         case 'dragon_list_btn_4':
                             if (page === 'raid' && !(/!/.test(monsterFull))) {
-                                monster.engageButtons[mR.md5] = $j(buttonsDiv.eq(it));
-
                                 break;
                             }
 
@@ -442,7 +438,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            if (!state.getItem('targetFrombattle_monster', '')) {
+            if (!state.getItem('targetFromMonster', '')) {
                 con.log(1, 'Stay Hidden Mode: No monster to battle');
                 return true;
             }
@@ -579,7 +575,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				theGeneral = general.getLoadoutGeneral(config.getItem(fightMode + 'General', 'Use Current'));
 				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
 				xpPerPt = (statList == 'energyList' ? 3.5 : 5) * gMult;
-				con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
+				//con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
 				if (state.getItem('targetFrom' + fightMode, '').length) {
 					cM = monster.getItem(state.getItem('targetFrom' + fightMode, ''));
 				}
@@ -605,6 +601,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						// If too close to levelling for a power attack, do max attack to carry over xp
 						statRequire = statRequireBig;
 					}
+					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif);
 				} else if (cM[statList][0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
 					statRequire = 1;
 				} else {
@@ -658,7 +655,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     } else {
                         buttonList.unshift("button_nm_s_");
                     }
-                } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
+                } else if (statRequire === 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
@@ -695,10 +692,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 
-                con.log(4, "monster/button list", cM, buttonList);
+                con.log(2, "monster/button list", cM, buttonList, nodeNum);
 
                 for (it = 0, len = buttonList.length; it < len; it += 1) {
-                    attackButton = caap.checkForImage(buttonList[it], null, null, cM.staminaList.length ? cM.staminaList.indexOf(nodeNum) : 0);
+                    attackButton = caap.checkForImage(buttonList[it], null, null, nodeNum);
                     if ($u.hasContent(attackButton)) {
                         break;
                     }
@@ -710,12 +707,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     } else if (useTactics) {
                         attackMess = 'Tactic Attacking ' + cM.name;
                     } else {
-                        attackMess = (state.getItem('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
+                        attackMess = (statRequire >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
                     }
 
                     con.log(1, attackMess);
                     caap.setDivContent('monster_mess', attackMess);
                     caap.click(attackButton);
+					cM.spent[fightMode === 'Fortify' ? 'energy' : 'stamina'] += statRequire;
                     // dashboard autorefresh fix
                     localStorage.AFrecentAction = true;
 
@@ -733,17 +731,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-			if ($u.hasContent(monster.engageButtons[cM.md5])) {
-                caap.setDivContent('monster_mess', 'Opening ' + cM.name);
-                caap.click(monster.engageButtons[cM.md5]);
-                attackButton = null;
-                singleButtonList = null;
-                buttonList = null;
-                return true;
-            }
-			con.log (1, "after button check:", monster, cM);
             schedule.setItem('NotargetFrombattle_monster', 60);
-            con.warn('No "Engage" button for ', cM.name);
+            con.warn('Unable to find top banner for ' + cM.name, cM);
             attackButton = null;
             singleButtonList = null;
             buttonList = null;
@@ -988,7 +977,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				if ($u.hasContent(monsterDiv)) {
 					cM.userName = monsterDiv.text().replace(/Monster Codes: \w+:\w+/, '').trim();
-					cM.userName = monsterDiv.text().regex(/\s*(\S*)\s*summoned/i);
+					cM.userName = monsterDiv.text().replace("'s summoned", ' summoned').regex(/\s*(\S+)\s+summoned/i);
 					if (!cM.userName) {
 						con.warn('Unable to find summoner name in monster div', monsterDiv.text(), monsterDiv);
 					}
@@ -1158,7 +1147,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     damageDiv = $j("a[href*='user=" + caap.stats.FBID + "']", damageDiv[0].children);
 					if ($u.hasContent(damageDiv)) {
 						tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/g);
-						con.log(2, cM.name + 'Temparr', tempArr);
 						if ($u.hasContent(tempArr) && tempArr.length === 2) {
 							cM.attacked = tempArr[0].numberOnly();
 							cM.defended = tempArr[1].numberOnly();

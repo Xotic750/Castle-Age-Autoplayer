@@ -241,7 +241,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 state.setItem("notSafeCount", 0);
             }
 
-            con.log(2, 'Battle Target', target);
+            //con.log(2, 'Battle Target', target);
             targetType = config.getItem('TargetType', 'Invade');
             switch (target) {
             case 'raid':

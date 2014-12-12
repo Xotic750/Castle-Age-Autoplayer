@@ -172,7 +172,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'waitHours' : 8.9,
 			'collectHours' : 8.9,
 			'minHealth' : 1,
-			'startPath' : 'tenxten_gb_formation,clickimg:fb_guild_btn_classic_on.jpg',
+			'startPath' : 'tenxten_gb_formation,guildv2_battle,clickimg:fb_guild_btn_classic_on.jpg',
 			'basePath' : 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_joinbattle.gif,guild_battle'
 		},
 		'tenVten' : {
@@ -356,6 +356,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				for (var i = 1; i <= (gf.name == '10v10' ? 1 : 4); i++) {
 					filter = i > 1 || type == 'your';
 					guild_battle.setrPage(fR, guild_battle.makePath(gf, type, i), 'filter', filter);
+					guild_battle.setrPage(fR, guild_battle.makePath(gf, type, i), 'general', true);
 					if (doPage) {
 						guild_battle.setrPage(fR, guild_battle.makePath(gf, type, i));
 					} else {
@@ -525,13 +526,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.state = fR.state == 'Auto-match' ? 'Auto-match' : 'Start';
 			} else if (text.regex(/next/i)) {
 				fR.state = 'No battle';
-				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 5 * 60) * 1000;
+				fR.nextTopReview = now + $u.setContent(($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60) % (6 * 3600), 0) * 1000;
 				fR.startTime = $j(infoDiv).find('input.monsterTickerSecs').attr('value') ? fR.nextTopReview : 0;
 			} else if (text.regex(/battle now/i)) {
 				fR.state = 'Active';
 			} else if (text.regex(/remaining/i)) {
 				fR.state = 'Active';
-				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 5 * 60) * 1000;
+				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 0) * 1000;
 			} else if (text.regex(/collect/i)) {
 				fR.state = 'Collect';
 				fR.nextTopReview = gf.abbrev == 'GB' ? fR.lastBattleTime + gf.waitHours * 3600 * 1000 : now + 3600 * 1000;
@@ -1075,9 +1076,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			var begin = new Date(),
 				end = new Date(),
 				timeString = '',
+				timeBattlesList = config.getList('timed_guild_battles', ''),
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 				match = (timedSetting === 'Battle available') ? true : false,
-				now = Date.now();
+				now = new Date();
 				
 			if (timedSetting=='Never') {
 				return false;
@@ -1132,7 +1134,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		try {
 			var fR = guild_battle.getItem(gf),
 				//paths = [{'path' : gf.onTopPath, 'review' : $u.setContent(fR.nextTopReview, 0)}].concat($u.setContent(fR.paths, [])),
-				timeBattlesList = config.getList('timed_guild_battles', ''),
 				whenTokens = config.getItem(gf.abbrev + 'whenTokens', 'Never'),
 				tokenMax = config.getItem(gf.abbrev + 'max', 10),
 				result = '',
@@ -1195,6 +1196,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						if (caap.stats.stamina.num >= gf.stamina) {
 							stateMsg = 'Entering battle';
 							guild_battle.setrPage(fR, gf.basePath + ',clickimg:' + gf.enterButton);
+							guild_battle.setrPage(fR,  gf.basePath + ',clickimg:' + gf.enterButton, 'general', true);
 						} else {
 							caap.setDivContent(gf.mess, gf.abbrev + ': Unable to enter because of low stamina');
 						}
@@ -1225,16 +1227,26 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			
 			//con.log(2, 'GUILD ' + gf.name, fR, $u.makeTime(fR.nextTopReview, caap.timeStr(true)), $u.makeTime(fR.lastBattleTime, caap.timeStr(true)));
 			//con.log(2, gf.abbrev + 'PATHs', fR.paths);
-			
+
+            /*jslint continue: true */
+
 			if (!fR.t) {
 				for (var i = 0; i < fR.paths.length; i++) {
 					pgO = fR.paths[i];
 					//con.log(2, gf.abbrev + 'PATH REVIEW', fR.paths, pgO, fR);
 					if (schedule.since(pgO.review, 5 * 60) && (!fR.firstScanDone || !pgO.filter || doAttack)) {
 						//con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-						if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
-							caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10, setting idle general');
-							return true;
+						if (pgO.general) {
+							if (gf.abbrev == 'GB') {
+								state.setItem('GB_Active', true);
+							} else if (state.getItem('GB_Active', false) && !priority) {
+								// If GB is busy doing stuff, then wait until it's done
+								continue;
+							}
+							if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
+								caap.setDivContent(gf.mess, gf.abbrev + ': ' + fR.tokens + '/10, setting idle general');
+								return true;
+							}
 						}
 						caap.setDivContent(gf.mess, gf.abbrev + ': ' + stateMsg);
 						result = caap.navigate2(pgO.path);
@@ -1251,6 +1263,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			//con.log(2,'GUILD REVIEW PAGES', gf.name, paths);
+            /*jslint continue: false */
 			
 			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
 			if (whenTokens !== 'Never' && caap.stats.priorityGeneral == 'Use Current') {
@@ -1273,6 +1286,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					if (t.score === 0) {
 						caap.setDivContent(gf.mess, stateMsg + ' no valid target');
 						con.log(2, gf.name + ': No valid target to attack', fR);
+						state.setItem('GB_Active', gf.abbrev == 'GB' ? false : state.getItem('GB_Active', false));
 						return false;
 					}
 					
@@ -1297,6 +1311,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				} else {
 					caap.setDivContent(gf.mess, gf.abbrev + ': ' + stateMsg + ', next check: ' + $u.makeTime(fR.nextTopReview + 5 * 60 * 1000, caap.timeStr(true)));
 				}
+				state.setItem('GB_Active', gf.abbrev == 'GB' ? false : state.getItem('GB_Active', false));
 			}
 				
 			return false;

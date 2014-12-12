@@ -983,7 +983,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 					con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
 
-					general.clickedLoadout = lRecord.value-1;
+					general.clickedLoadout = lRecord.value - 1;
 					caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
 					return true;
 				}
