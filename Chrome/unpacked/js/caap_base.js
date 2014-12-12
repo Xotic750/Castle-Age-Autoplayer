@@ -2302,7 +2302,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 			result = Math[minMax].apply(null, array);
 
-            return result == Number.POSITIVE_INFINITY ? undefined : result;
+            return result == Number.POSITIVE_INFINITY || result == Number.NEGATIVE_INFINITY ? undefined : result;
         } catch (err) {
             con.error("ERROR in minMaxArray: " + err + ' ' + err.stack);
             return undefined;
@@ -3849,7 +3849,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 case "festivalTower":
-                    monster.fullReview();
+                    monster.select(true);
 
                     break;
                 default:
@@ -4088,7 +4088,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (/AttrValue+/.test(idName)) {
                 state.setItem("statsMatch", true);
             } else if (/MaxToFortify/.test(idName)) {
-                monster.fullReview();
+                monster.select(true);
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
             } else if (idName === 'DebugLevel') {
@@ -4291,7 +4291,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     break;
                 case "orderbattle_monster":
                 case "orderraid":
-                    monster.fullReview();
+                    monster.select(true);
                     break;
                 case "BattleTargets":
                     state.setItem('BattleChainId', 0);
@@ -5185,7 +5185,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //- reverting back to previous d27 behaviour -- magowiz
 
             if ((monster.records.length === 0) && ((AFrecentAction === true))) {
-                monster.fullReview();
+                monster.select(true);
             }
 
             if (general.quickSwitch) {
