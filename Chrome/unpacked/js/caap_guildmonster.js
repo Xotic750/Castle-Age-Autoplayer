@@ -249,7 +249,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //record = state.setItem('targetGuildMonster', {});
             //con.log(1, "record", record);
             if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
-                if (general.Select('GuildMonsterGeneral')) {
+                if (general.Select('Guild_MonsterGeneral')) {
                     form = null;
                     key = null;
                     return true;

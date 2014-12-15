@@ -37,6 +37,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 			
 			guild_battle.onTop(guild_battle.gf.tenVten);
+			guild_battle.onTop(guild_battle.gf.festival);
+			guild_battle.onTop(guild_battle.gf.guild_battle);
 
             return true;
         } catch (err) {

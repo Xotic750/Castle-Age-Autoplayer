@@ -42,6 +42,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.ifClick = function (obj) {
+        try {
+            if ($u.hasContent(obj)) {
+				return caap.click(obj);
+            }
+            return false;
+        } catch (err) {
+            con.error("ERROR in caap.ifClick: " + err.stack);
+            return undefined;
+        }
+    };
+
     caap.click = function (obj, loadWaitTime) {
         try {
             if (!$u.hasContent(obj)) {
@@ -183,16 +195,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				action = '',
 				text = '',
 				steps = path.split(","),
-				list = steps[0].match(/@(.*)/),
 				lastStep = steps.length - 1,
 				result = false,
                 jq = $j(),
                 step = '';
 			
-			if (list && list.length == 2) {
-				if (general.Select(list[1])) {
-					return true;
-				}
+			if (general.Select($u.setContent(steps[0].regex(/@(.+)/), 'Use Current'))) {
+				return true;
 			}
 
 			// Start with page links to make sure on right page.
@@ -311,7 +320,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.warn('Navigate2: Unable to Navigate2', step, path, s);
             return false;
         } catch (err) {
-            con.error("ERROR in caap.navigate2: " + err, path, step, s);
+            con.error("ERROR in caap.navigate2: " + err.stack, path, step, s);
             return undefined;
         }
     };

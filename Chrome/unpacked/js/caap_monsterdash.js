@@ -1108,11 +1108,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.refreshMonstersListener = function () {
-        monster.flagFullReview('Monster');
+        monster.fullReview('Monster');
     };
 
     caap.refreshFeedListener = function () {
-        monster.flagFullReview('Feed');
+        monster.fullReview('Feed');
     };
 
     caap.refreshGeneralsListener = function () {
@@ -1215,16 +1215,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.getArmyButtonListener = function () {
         schedule.setItem("army_member", 0);
         army.deleteTemp();
-    };
-
-    caap.getCollectConquestButtonListener = function () {
-        schedule.setItem('collectConquestTimer', 0);
-        caap.setDivContent('conquestbless_mess', schedule.check('collectConquestTimer') ? 'Conquest Collect = none' : 'Next Conquest: ' + $u.setContent(caap.displayTime('collectConquestTimer'), "Unknown"));
-    };
-
-    caap.getCollectConquestCrystalButtonListener = function () {
-        schedule.setItem('collectConquestCrystalTimer', 0);
-        caap.setDivContent('conquestcrystalbless_mess', schedule.check('collectConquestCrystalTimer') ? 'Crystal Collect = none' : 'Next Crystal: ' + $u.setContent(caap.displayTime('collectConquestCrystalTimer'), "Unknown"));
     };
 
     caap.getArenaButtonListener = function() {
