@@ -2309,6 +2309,38 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
+    caap.fillRecords = function (records, template) {
+        try {
+			var added = ' ',
+				missing = ' ';
+			
+			if (records.length && Object.keys(template).sort() != Object.keys(records[0]).sort()) {
+				Object.keys(template).forEach(function(key) {
+					records.forEach(function(r) {
+						if (typeof r[key] == 'undefined') {
+							r[key] = template[key];
+							added += added.indexOf(' ' + key + ' ') >= 0 ? '' : key + ' ';
+						}
+					});
+				});
+				Object.keys(records[0]).forEach(function(key) {
+					if (typeof template[key] == 'undefined') {
+						missing += key + ' ';
+					}
+				});
+				if (added.length > 1) {
+					con.warn('Records added keys' + added, records, template);
+				}
+				if (added.length > 1) {
+					con.warn('Template missing keys' + missing, records, template);
+				}
+			}
+        } catch (err) {
+            con.error("ERROR in caap.fillRecords: " + err + ' ' + err.stack);
+            return undefined;
+        }
+    };
+	
     caap.timeStr = function (Short) {
         return config.getItem("use24hr", true) ? (Short ? "D H:i" : "D d M H:i") : (Short ? "D g:i A" : "D d M g:i A");
     };
@@ -2845,12 +2877,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Max Experience performs the quest in the specific area that yields the highest experience.',
                     'Manual performs the specific quest that you have chosen.'],
                 questAreaList = ['Quest', 'Demi Quests', 'Atlantis'],
-                questWhenList = ['Energy Available', 'At Max Energy', 'At X Energy', 'Not Fortifying', 'Never'],
+                questWhenList = ['Energy Available', 'At Max Energy', 'At X Energy', 'Not Fortifying', 'Not Covering My Damage', 'Never'],
                 questWhenInst = [
                     'Energy Available - will quest whenever you have enough energy.',
                     'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
                     'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
                     'Not Fortifying - will quest only when your fortify settings are matched.',
+                    'Not Covering My Damage - will keep enough to cover your current stamina, and quest with the rest.',
                     'Never - disables questing.'],
                 stopInstructions = "This will stop and remove the chosen quest and set questing to manual.",
                 autoQuestName = state.getItem('AutoQuest', caap.newAutoQuest()).name,
@@ -4890,10 +4923,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'tab_monster_active.gif',
             CheckResultsFunction: 'checkResults_onMonster'
         },
-        'expansion_monster_class_choose': {
-            signaturePic: 'nm_class_header.jpg',
-            CheckResultsFunction: 'checkResults_expansion_monster_class_choose'
-        },
         'battle_monster': {
             signaturePic: 'tab_monster_active.gif',
             CheckResultsFunction: 'checkResults_onMonster'
@@ -5003,6 +5032,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'view_class_progress': {
             signatureId: 'choose_class_screen',
             //signaturePic: 'tab_monster_class_on.gif',
+            CheckResultsFunction: 'checkResults_view_class_progress'
+        },
+        'expansion_monster_class_choose': {
+            signaturePic: 'nm_class_header.jpg',
+            CheckResultsFunction: 'checkResults_view_class_progress'
+        },
+        'monster_class_choose': {
+            signaturePic: 'nm_class_header.jpg',
             CheckResultsFunction: 'checkResults_view_class_progress'
         },
         'guildv2_home': {
@@ -6581,7 +6618,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if (name) {
                         caap.stats.character[name] = {};
-                        caap.stats.character[name].percent = $u.setContent($j("img[src*='progress']", monsterClass).eq(0).getPercent('width').dp(2), 0);
+                        caap.stats.character[name].percent = $u.setContent($j("[style*='%']:first", monsterClass).getPercent('width').dp(2), 0);
                         caap.stats.character[name].level = $u.setContent(monsterClass.children().eq(2).text().numberOnly(), 0);
                         con.log(2, "Got character class record", name, caap.stats.character[name]);
                         caap.saveStats();
@@ -8141,105 +8178,78 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.the 'Whenxxxxx' setting and the message div name. If energy is not defined, returns
 	the total amount of energy available.
     \------------------------------------------------------------------------------------*/
-    caap.checkEnergy = function (msgdiv, condition, energy) {
+    caap.checkEnergy = function (which, condition, energyRequired) {
         try {
             if (!caap.stats.energy) {
                 return false;
             }
 
+            if (!which) {
+				con.warn('Check Energy not passed an argument to specify quest or fortify');
+                return false;
+            }
+
             var whichEnergy,
-                maxIdleEnergy,
-                theGeneral;
+                maxIdleEnergy = caap.maxStatCheck('energy'),
+                theGeneral,
+				energyMin,
+				msgdiv = which.toLowerCase() + '_mess';
 				
-			energy = $u.setContent(energy, 0);
+			energyRequired = $u.setContent(energyRequired, 0);
+			
+			if (condition == 'Never') {
+				caap.setDivContent(msgdiv, which + ': Never');
+				return 0;
+			}
 
-            if (condition === 'Energy Available' || condition === 'Not Fortifying') {
-                if (caap.stats.energy.num >= energy) {
-                    return caap.stats.energy.num;
+			if (caap.inLevelUpMode() && caap.stats.energy.num >= energyRequired) {
+				if (msgdiv === "quest_mess") {
+					window.clearTimeout(caap.qtom);
+				}
+				caap.setDivContent(msgdiv, which + ': Burning all energy to level up');
+				return caap.stats.energy.num;
+			}
+
+            if (['Energy Available', 'Not Fortifying', 'Not Covering My Damage'].indexOf(condition) >=0) {
+				energyMin = Math.max(0, caap.stats.energy.num - (condition == 'Not Covering My Damage' ? caap.stats.stamina.num * config.getItem('HealPercStam', 20) / 100 : 0));
+                if (energyMin >= energyRequired) {
+                    return energyMin;
                 }
-
-                if (msgdiv) {
-                    if (msgdiv === "quest_mess") {
-                        window.clearTimeout(caap.qtom);
-                    }
-
-                    caap.setDivContent(msgdiv, 'Waiting for more energy: ' + caap.stats.energy.num + "/" + (energy || ""));
+				if (msgdiv === "quest_mess") {
+					window.clearTimeout(caap.qtom);
                 }
+				caap.setDivContent(msgdiv, which + 'Waiting for more energy: ' + caap.stats.energy.num + "/" + energyRequired);
             } else if (condition === 'At X Energy') {
-                if (caap.inLevelUpMode() && caap.stats.energy.num >= energy) {
-                    if (msgdiv) {
-                        if (msgdiv === "quest_mess") {
-                            window.clearTimeout(caap.qtom);
-                        }
 
-                        caap.setDivContent(msgdiv, 'Burning all energy to level up');
-                    }
-
-                    return caap.stats.energy.num;
-                }
-
-                whichEnergy = config.getItem('XQuestEnergy', 1);
+                whichEnergy = config.getItem('X' + which + 'Energy', 1);
 
                 if (caap.stats.energy.num >= whichEnergy) {
-                    state.setItem('AtXQuestEnergy', true);
+                    state.setItem('X' + which + 'Energy', true);
                 }
-
-                if (caap.stats.energy.num >= energy) {
-                    if (state.getItem('AtXQuestEnergy', false) && caap.stats.energy.num >= config.getItem('XMinQuestEnergy', 0)) {
-                        if (msgdiv) {
-                            if (msgdiv === "quest_mess") {
-                                window.clearTimeout(caap.qtom);
-                            }
-
-                            caap.setDivContent(msgdiv, 'At X energy. Burning to ' + config.getItem('XMinQuestEnergy', 0));
-                        }
-
-                        return caap.stats.energy.num - config.getItem('XMinQuestEnergy', 0);
+                if (caap.stats.energy.num >= energyRequired) {
+                    if (state.getItem('X' + which + 'Energy', false) && caap.stats.energy.num >= config.getItem('XMin' + which + 'Energy', 0)) {
+						if (msgdiv === "quest_mess") {
+							window.clearTimeout(caap.qtom);
+						}
+						caap.setDivContent(msgdiv, which + 'At X energy. Burning to ' + config.getItem('XMin' + which + 'Energy', 0));
+                        return caap.stats.energy.num - config.getItem('XMin' + which + 'Energy', 0);
                     }
-
-                    state.setItem('AtXQuestEnergy', false);
+                    state.setItem('X' + which + 'Energy', false);
                 }
-
-                if (energy > whichEnergy) {
-                    whichEnergy = energy;
-                }
-
-                if (msgdiv) {
-                    if (msgdiv === "quest_mess") {
-                        window.clearTimeout(caap.qtom);
-                    }
-
-                    caap.setDivContent(msgdiv, 'Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
-                }
+				whichEnergy = energyRequired > whichEnergy ? energyRequired : whichEnergy;
+				if (msgdiv === "quest_mess") {
+					window.clearTimeout(caap.qtom);
+				}
+				caap.setDivContent(msgdiv, which + 'Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
             } else if (condition === 'At Max Energy') {
-                maxIdleEnergy = caap.maxStatCheck('energy');
-
                 if (caap.stats.energy.num >= maxIdleEnergy) {
                     return caap.stats.energy.num - maxIdleEnergy;
                 }
-
-                if (caap.inLevelUpMode() && caap.stats.energy.num >= energy) {
-                    if (msgdiv) {
-                        if (msgdiv === "quest_mess") {
-                            window.clearTimeout(caap.qtom);
-                        }
-
-                        con.log(1, "Burning all energy to level up");
-                        caap.setDivContent(msgdiv, 'Burning all energy to level up');
-                    }
-
-                    return caap.stats.energy.num;
-                }
-
-                if (msgdiv) {
-                    if (msgdiv === "quest_mess") {
-                        window.clearTimeout(caap.qtom);
-                    }
-
-                    caap.setDivContent(msgdiv, 'Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
-                }
+				if (msgdiv === "quest_mess") {
+					window.clearTimeout(caap.qtom);
+				}
+				caap.setDivContent(msgdiv, which + 'Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
             }
-
             return false;
         } catch (err) {
             con.error("ERROR in checkEnergy: " + err.stack);

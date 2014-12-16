@@ -54,8 +54,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
 			var fR = guild_battle.getItem(guild_battle.gf.tenVten);
 			//con.log(1,'tenv10', !caap.hasImage('fb_guild_btn_joinbattle_small.gif'), fR.state == 'Active', fR);
-            if (!caap.hasImage('fb_guild_btn_joinbattle_small.gif') && fR.state == 'Active') {
-				fR.state = 'Collect';
+            if (!caap.hasImage('fb_guild_btn_joinbattle_small.gif') && (fR.state == 'Active' || fR.state == 'Collect')) {
+				fR.state = 'No battle';
 			}
         } catch (err) {
             con.error("ERROR in caap.checkResults_tenxten_gb_formation: " + err.stack);

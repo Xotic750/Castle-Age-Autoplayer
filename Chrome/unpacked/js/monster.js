@@ -28,6 +28,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'defended': -1,
             'damage': -1,
             'life': -1,
+			'lpage' : '',
             'fortify': -1,
             'time': [],
             't2k': -1,
@@ -37,19 +38,27 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'rix': -1,
             'over': '',
             'color': '',
+			'join' : false,
             'review': -1,
             'conditions': '',
             'charClass': '',
 			'staminaList' : [],
 			'energyList' : [],
 			'multiNode' : false,
+			'partsHealth' : [], // List of health of multi-part monsters, for example [100, 65, 94]
+			'score' : 0, // Used to score monster finder targets to pick one to join
 			'siegeLevel' : 0,
+			'doSiege' : false,
 			'spent' : {	'energy' : 0,
 						'stamina' : 0},
+			'debt' : {	'stamina' : 0,
+						'start' : -1},
             'strength': -1,
             'stun': -1,
             'stunTime': -1,
             'stunDo': false,
+			'stunSetting' : 0,
+			'stunTarget' : 0,
             'status': false,
             'stunType': '',
 			'targetPart' : -1,
@@ -488,11 +497,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.load = function() {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records == 'default' || !$j.isArray(monster.records) || (monster.records.length && typeof monster.records[0].spent == 'undefined')) {
+            if (monster.records == 'default' || !$j.isArray(monster.records)) {
 				con.warn('Monster records reset', monster.records);
                 monster.records = gm.setItem('monster.records', []);
 				monster.fullReview();
             }
+			caap.fillRecords(monster.records, new monster.record().data);
+			monster.save();
             caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
 
 			var pageList = [
@@ -611,8 +622,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				achLevel = monster.parseCondition('ach', cM.conditions),
 				maxDamage = monster.parseCondition('max', cM.conditions),
 				maxToFortify = monster.parseCondition('f%', cM.conditions),
-				maxSta = monster.parseCondition('sta', cM.conditions),
-				targetFromfortify = state.getItem('targetFromFortify', new monster.energyTarget());
+				maxSta = monster.parseCondition('sta', cM.conditions);
 
 			maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
 			achLevel = achLevel === 0 ? 1 : achLevel; // Added to prevent ach === 0 defaulting to false 
@@ -704,7 +714,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 			// End of Keep On Budget (KOB) code Part 1 -- required variables
 
-			isTarget = (cM.name === state.getItem('targetFromraid', '') || cM.name === state.getItem('targetFromMonster', '') || cM.name === targetFromfortify.name);
+			isTarget = (cM.md5 === state.getItem('targetFromraid', '') || cM.md5 === state.getItem('targetFromMonster', '') || cM.md5 === state.getItem('targetFromFortify', ''));
 			
 			//con.log(2, 'MAX DAMAGE', maxDamage, cM.damage);
 			if ((maxDamage && cM.damage >= maxDamage) || (maxSta && cM.spent.stamina >= maxSta)) {
@@ -868,7 +878,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 
             if (!success) {
-                con.warn("Unable to delete monster record", md5, monster.records);
+                con.warn("Couldn't find monster record to delete", md5, monster.records);
             }
 
             return success;
@@ -906,7 +916,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
             for (var it = monster.records.length - 1; it >= 0; it -= 1) {
                 if ((which == 'Feed') === (monster.records[it].status === 'Join')) {
-					con.log(2, 'fullReview deleting', monster.records[it].name, monster.records[it].damage, monster.damaged(monster.records[it]), which);
+					//con.log(2, 'FullReview deleting monster ' + monster.records[it].name, monster.records[it], which);
 					monster.deleteItem(monster.records[it].md5);
 				}
 			}
@@ -925,14 +935,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             con.error("ERROR in monster.fullReview: " + err.stack);
             return false;
         }
-    };
-
-    monster.energyTarget = function() {
-        return JSON.copy({
-            'md5': '',
-            'name': '',
-            'type': ''
-        });
     };
 
 	monster.worldMonsterCount = 0;
@@ -971,12 +973,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 strengthTarget = '',
                 fortifyTarget = '',
                 stunTarget = '',
-                energyTarget = monster.energyTarget(),
 				siegeLimit,
                 target = {
                     'battle_monster': '',
                     'raid': '',
-                    'fortify': monster.energyTarget()
+                    'fortify': ''
                 },
                 monsterMD5 = '',
                 cM = {},
@@ -1012,7 +1013,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monsterList[whichList].push(cM.md5);
 					}
                 } else {
-					cM.conditions = feed.addConditions(cM.name) || cM.conditions;
+					cM.conditions = feed.addConditions(cM) || cM.conditions;
 				}
             }
 
@@ -1048,7 +1049,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 strengthTarget = '';
                 fortifyTarget = '';
                 stunTarget = '';
-                energyTarget = monster.energyTarget();
 
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                 if (type === 'any') {
@@ -1091,11 +1091,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						
 						if (cM.siegeLevel > 0) {
 							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s:') ? 0
-								: !cM.conditions.match(':fs:') ? monster.parseCondition("s", cM.conditions)
+								: !cM.conditions.match(/:fs\b/) ? monster.parseCondition("s", cM.conditions)
 								: (caap.stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && caap.hasImage('siege_btn.gif') && cM.damage > 0 
+							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 
 								&& (cM.phase > 1 || (cM.conditions && cM.conditions.match('fs')));
 							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
 						} else {
@@ -1103,8 +1103,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							cM.siegeLevel = 1000;
 						}
 
-                        // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                        // these to see if this is the monster we should select
+                        // monster.parsing set our 'color' and 'over' values. Check these to see if this is the monster we should select
                         if (!firstUnderMax && cM.color !== 'purple') {
                             if (cM.over === 'ach') {
                                 if (!firstOverAch) {
@@ -1166,56 +1165,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 // Now we use the first under max/under achievement that we found. If we didn't find any under
                 // achievement then we use the first over achievement
                 if (type !== 'raid') {
-                    strengthTarget = firstStrengthUnderMax;
-                    if (!strengthTarget) {
-                        strengthTarget = firstStrengthOverAch;
-                    }
-
-                    if (strengthTarget) {
-                        energyTarget.md5 = strengthTarget;
-                        energyTarget.name = monster.getItem(strengthTarget).name;
-                        energyTarget.type = 'Strengthen';
-                        con.log(3, 'Strengthen target ', energyTarget.name);
-                    }
-
-                    fortifyTarget = firstFortUnderMax;
-                    if (!fortifyTarget) {
-                        fortifyTarget = firstFortOverAch;
-                    }
-
-                    if (fortifyTarget) {
-                        energyTarget.md5 = fortifyTarget;
-                        energyTarget.name = monster.getItem(fortifyTarget).name;
-                        energyTarget.type = 'Fortify';
-                        con.log(3, 'Fortify replaces strengthen ', energyTarget.name);
-                    }
-
-                    stunTarget = firstStunUnderMax;
-                    if (!stunTarget) {
-                        stunTarget = firstStunOverAch;
-                    }
-
-                    if (stunTarget) {
-                        energyTarget.md5 = stunTarget;
-                        energyTarget.name = monster.getItem(stunTarget).name;
-                        energyTarget.type = 'Stun';
-                        con.log(3, 'Stun target replaces fortify ', energyTarget.name);
-                    }
-
-                    if (energyTarget.md5) {
-                        target.fortify = JSON.copy(energyTarget);
-                        con.log(3, 'Energy target', energyTarget);
-                    }
+                    strengthTarget = $u.setContent(firstStrengthUnderMax, firstStrengthOverAch);
+                    fortifyTarget = $u.setContent(firstFortUnderMax, firstFortOverAch);
+                    stunTarget = $u.setContent(firstStunUnderMax, firstStunOverAch);
+					target.fortify = stunTarget || fortifyTarget || strengthTarget;
                 }
-
-                monsterMD5 = firstUnderMax;
-                if (!monsterMD5) {
-                    monsterMD5 = firstOverAch;
-                }
-				//con.log(1, 'MD5', monsterMD5);
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
+                monsterMD5 = $u.setContent(firstUnderMax, firstOverAch);
                 if (monsterMD5) {
 					whichList = monster.getItem(monsterMD5).link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
                     target[whichList] = monsterMD5;
@@ -1236,8 +1194,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.menu = function() {
         try {
-            var XMonsterInstructions = "Start attacking if stamina is above this points",
-                XMinMonsterInstructions = "Don not attack if stamina is below this points",
+            var XMonsterInstructions = "Start attacking if stamina is above this point",
+                XMinMonsterInstructions = "Don not attack if stamina is below this point",
                 attackOrderInstructions = "List of search words that decide which monster to attack first. " + "Use words in player name or in monster name. To specify max damage follow keyword with " +
                     ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " + "To override achievement use the ach: token and specify damage values.",
                 fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",
@@ -1248,12 +1206,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     "Be sure to set battle to Invade or Duel, War does not give you Demi Points.",
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
-                powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
-                    "Also includes other energy attacks, Strengthen, Deflect and Cripple. NOTE: Setting a high forty% can waste energy and no safety on other types.",
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
                 strengthenTo100Instructions = "Do not wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
+                healPercStamInst = "After I hit a monster, heal my damage until the health is at least as high as when I started, or up to this percent of my stamina spent. If energy is not available to heal, monsters will not be hit.",
                 mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Review Only', 'Never'],
                 mbattleInst = [
                     'Stamina Available will attack whenever you have enough stamina',
@@ -1262,6 +1219,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                     'Reviews Only will only review, siege, collect, clear etc. according to settings',
                     'Never - disables attacking monsters'],
+                fortifyList = ['Energy Available', 'At Max Energy', 'At X Energy', 'Never'],
+                fortifyInst = [
+                    'Energy Available will fortify whenever you have enough energy',
+                    'At Max Energy will fortify when energy is at max and will burn down all energy when able to level up',
+                    'At X Energy you can set maximum and minimum energy to fortify',
+                    'Never - disables fortifying monsters'],
                 stunList = ['Immediately', '5', '4', '3', '2', '1', 'Never'],
                 stunInst = [
                     'Cripple/Deflect will be as soon as possible',
@@ -1291,8 +1254,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
             htmlCode += "</div>";
             htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions, 1, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions.replace('stamina','energy'), 1, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions.replace('stamina','energy'), 0, '', '', true, false);
             htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
             htmlCode += caap.startDropHide('WhenMonster', 'DelayStayHidden', 'Stay Hidden', false);
             htmlCode += caap.makeCheckTR("Delay hide if \"safe\"", 'delayStayHidden', true, delayStayHiddenInstructions, true);
@@ -1306,7 +1269,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             htmlCode += caap.startCheckHide('PowerAttack');
             htmlCode += caap.makeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
             htmlCode += caap.endCheckHide('PowerAttack');
-            htmlCode += caap.makeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, powerfortifyMaxInstructions);
             htmlCode += caap.makeDropDownTR("Siege up to", 'siegeUpTo', siegeList, siegeInst, '', 'Never', false, false, 62);
             htmlCode += caap.makeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
@@ -1323,8 +1285,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             htmlCode += caap.makeTD(subCode, false, false, "white-space: nowrap;");
             htmlCode += caap.endCheckHide('DemiPointsFirst');
+            htmlCode += caap.makeNumberFormTR("Heal My Damage Up to % of Stamina Used", 'HealPercStam', healPercStamInst, 20, '', '');
+            htmlCode += caap.makeDropDownTR("Fortify for Others When", 'WhenFortify', fortifyList, fortifyInst, '', 'Never', false, false, 62);
+            htmlCode += caap.startDropHide('WhenFortify', '', 'Never', true);
+            htmlCode += caap.startDropHide('WhenFortify', 'XEnergy', 'At X Energy', false);
+            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XFortifyEnergy', XMonsterInstructions, 1, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinFortifyEnergy', XMinMonsterInstructions, 0, '', '', true, false);
+            htmlCode += caap.endDropHide('WhenFortify', 'XEnergy', 'At X Energy', false);
             htmlCode += caap.makeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '');
             htmlCode += caap.makeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '');
+            htmlCode += caap.endDropHide('WhenFortify');
             htmlCode += caap.makeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '');
             htmlCode += caap.makeDropDownTR("Cripple/Deflect when", 'WhenStun', stunList, stunInst, '', 'Immediately', false, false, 62);
             htmlCode += caap.makeCheckTR("Do not Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
@@ -1379,6 +1349,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     row = '',
 					whichL = which.toLowerCase();
 
+				if (which == 'Feed') {
+					headers[1] = 'Score';
+					values[1]= 'score';
+				}
+					
                 for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     switch (headers[pp]) {
                     case 'Name':
@@ -1391,6 +1366,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                         break;
                     case 'Damage':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '13%'
+                        });
+                        break;
+                    case 'Score':
                         head += caap.makeTh({
                             text: headers[pp],
                             color: '',
@@ -1484,7 +1468,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					}
                     row = '';
                     color = cM.color;
-                    if (cM.md5 === state.getItem('targetFromFortify', monster.energyTarget()).md5) {
+                    if (cM.md5 === state.getItem('targetFromFortify', '')) {
                         color = 'blue';
                     } else if (cM.md5 === state.getItem('targetFromMonster', '') || cM.md5 === state.getItem('targetFromraid', '')) {
                         color = 'green';
@@ -1566,7 +1550,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     title = "Siege Phase: " + value + " more clicks";
                                     break;
                                 case 'fortify':
-                                    title = "Percentage of party health/monster defense: " + value + "%";
+                                    title = (config.getItem('HealPercStam', 20) && cM.debt.stamina > 0 ? 'Stamina debt: ' + cM.debt.stamina + ' or until Fort % > ' + cM.debt.start + ' ' : '') +"Percentage of party health/monster defense: " + value + "%";
                                     break;
                                 case 'strength':
                                     title = "Percentage of party strength: " + value + "%";
@@ -1719,7 +1703,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in monster.dashboard: " + err, which);
+            con.error("ERROR in monster.dashboard: " + err.stack, which);
             return false;
         }
     };
