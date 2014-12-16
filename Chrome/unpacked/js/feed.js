@@ -824,7 +824,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (cM.conditions.regex(/:j\[([^\]]*)\]/)) {
 						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[([^\]]*)\]/), 0)).dp(2);
 						cM.join = eval(cM.conditions.regex(/:j\[([^\]]*)\]/));
-						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[([^\]]*)\]/), cM.conditions.regex(/:j\[([^\]]*)\]/), );
+						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[([^\]]*)\]/), cM.conditions.regex(/:j\[([^\]]*)\]/));
 						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
 					}
 					if (cM.conditions.regex(/:c\[([^\]]*)\]/)) {

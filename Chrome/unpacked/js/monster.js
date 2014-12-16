@@ -1195,7 +1195,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.menu = function() {
         try {
             var XMonsterInstructions = "Start attacking if stamina is above this point",
-                XMinMonsterInstructions = "Don not attack if stamina is below this point",
+                XMinMonsterInstructions = "Do not attack if stamina is below this point",
                 attackOrderInstructions = "List of search words that decide which monster to attack first. " + "Use words in player name or in monster name. To specify max damage follow keyword with " +
                     ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " + "To override achievement use the ach: token and specify damage values.",
                 fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",

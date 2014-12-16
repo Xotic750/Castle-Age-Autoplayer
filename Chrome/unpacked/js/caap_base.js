@@ -9475,7 +9475,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (config.getItem('AutoArchives', false) && caap.ifClick($j("input[src*='header_persist_btn_eneable.gif']", headerDiv))) {
 				return true;
 			} else if (config.getItem('doConquestCollect', false)
-				&& caap.ifClick($j("input[src*='header_persist_btn_collect.gif']", headerDiv))) {
+				&& caap.ifClick($j("div[style*='header_persist_collect_container_wood.jpg'] input[src*='header_persist_btn_collect.gif']", headerDiv))) {
 				return true;
 			} else if (config.getItem('doConquestCrystalCollect', false) 
 				&& caap.ifClick($j("div[style*='header_persist_collect_container_crystal.jpg'] input[src*='header_persist_btn_pray.gif']", headerDiv))) {
