@@ -671,22 +671,29 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
         isScan: false,
 */		
-		addConditions: function(monsterName) {
+		// Takes either user + monster name or the monster object.
+		// If a match, returns the conditions. If no match, returns false.
+		addConditions: function(cM) {
 			try {
-				var monsterConditions = '',
+				var monsterName = $u.isObject(cM) ? cM.name : cM,
+					monsterConditions = '',
 					filterList = config.getList('feedFilter', 'all');
 					
                 for (var i = 0; i < filterList.length; i += 1) {
                     if (!filterList[i].trim()) {
-                        return false;
+                        return '';
                     }
 					filterList[i] = filterList[i].toLowerCase();
 					if (filterList[i] == 'all') {
 						return '';
 					}
-					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(new RegExp("^[^:]+")).toString().trim())) {
-						monsterConditions = filterList[i].replace(new RegExp("^[^:]+"), '').toString().trim();
-						return monsterConditions.length ? ':' +  monsterConditions + ':' : '';
+					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(/^[^:]+/i).toString().trim())) {
+						monsterConditions = filterList[i].replace(/^[^:]+/i, '').toString().trim();
+						if ($u.isObject(cM)) {
+							cM.conditions = monsterConditions;
+							feed.scoring(cM);
+						}
+						return monsterConditions.length ? monsterConditions + ':' : '';
 					}
 				}
 				return false;
@@ -698,19 +705,31 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 		
         scan: function() {
             try {
-                var done = true,
+                var slice = $j("#app_body"),
+					done = true,
                     hours = config.getItem("feedMonsterReviewHrs", 6),
 					cM = {},
 					tR = false,
-					result = false,
+					link = '@MonsterGeneral,ajax:',
+					hasClass = function(charClass) {
+						return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
+					},
+					result,
+					charStats = caap.stats.character,
+					joinable = function(cM) {
+						return cM.join && cM.status == 'Join';
+					},
                     seconds = 0;
 
                 hours = hours >= 1 ? hours : 1;
                 seconds = hours * 3600;
+				tR = monster.records.filter(joinable).reduce( function(previous, tarM) {
+					return tarM.score > previous.score ? tarM : previous;
+				}, {'score' : 0});
                 for (var i = 0; i < monster.records.length; i += 1) {
 					cM = monster.records[i];
 					//con.log(2, 'SCAN1', cM, cM.hide, cM.status, schedule.since(cM.review, seconds));
-                    if (!cM.hide && cM.status == 'Join' && schedule.since(cM.review, seconds)) {
+                    if (!cM.hide && cM.status == 'Join' && schedule.since(cM.review, tR.score ? 5 * 60 : seconds)) {
 						con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM.link, cM);
 						feed.scanRecord = cM;
 						if (false && config.getItem("useAjaxMonsterFinder", true)) { // Disabling until I can figure out AJAX load
@@ -722,19 +741,37 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monster.lastClick = cM.md5;
 						return true;
                     }
-					//con.log(2, 'SCAN2', cM.name, !tR , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions));
-					if (!tR && cM.status == 'Join' && cM.conditions.match(':join') && monster.worldMonsterCount < 30 && caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions)) {
-						tR = cM;
-					}
+					//con.log(2, 'SCAN2', cM.name, !cM , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions));
                 }
 				feed.isScan = false;
 				feed.scanRecord = {};
-                if (tR) {
-					result = caap.navigate2('@MonsterGeneral,ajax:' + tR.link + (!tR.charClass 
-						?  ',clickimg:button_nm_p_power_attack.gif'
-						: (' ,clickimg:battle_enter_battle.gif,expansion_monster_class_choose,clickjq:#choose_class_screen '
-						+ ($u.hasContent($j('#choose_class_screen .banner_warlock input[src*="nm_class_select.gif"]')) ? '.banner_warlock' : '.banner_cleric')
-						+ ' input[src*="nm_class_select.gif"]')));
+				
+                if (tR.score > 0) {
+					link += tR.link;
+					if (tR.charClass) {
+						if ($j("div[id='choose_class_screen']", slice).length) {
+							if ($u.hasContent(monster.characterClass[cM.charClass.ucWords()]) && hasClass(cM.charClass)) {
+								result = cM.charClass;
+							} else {
+								result = Object.keys(charStats).filter(hasClass).reduce(function(previous, key) {
+									if (charStats[key].percent < 100 && charStats[key].level + charStats[key].percent / 100 
+										> charStats[previous].level + charStats[previous].percent / 100) {
+										return key;
+									}
+									return previous;
+								}, hasClass('Warlock') ? 'Warlock' : 'Cleric');
+							}
+							link = 'clickjq:#choose_class_screen .banner_' + result.toLowerCase() + ' input[src*="nm_class_select.gif"]';
+							con.log(1, 'Joining ' + cM.name + ' with class ' + result, cM, link);
+						} else {
+							link += ",clickimg:battle_enter_battle.gif";
+						}
+					} else {
+						link += ',clickimg:button_nm_p_power_attack.gif';
+					}
+				
+					con.log(1, 'Joining ' + cM.name, cM, link);
+					result = caap.navigate2(link);
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
 					} else if (result === 'done') {
@@ -746,6 +783,57 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             } catch (err) {
                 con.error("ERROR in feed.scan: " + err.stack);
+                return false;
+            }
+        },
+
+        scoring: function(cM) {
+            try {
+				var health = cM.life,
+					t2k = cM.t2k,
+					fortify = cM.fortify,
+					strength = cM.strength,
+					same = monster.records.filter( function(obj) {
+						return obj.monster == cM.monster && obj.status == 'Attack';
+					}).length,
+					sameundermax = monster.records.filter( function(obj) {
+						return obj.monster == cM.monster && obj.status == 'Attack' && obj.over != 'max';
+					}).length,
+					allundermax = monster.records.filter( function(obj) {
+						return obj.status == 'Attack' && obj.over != 'max';
+					}).length,
+					targetpart = cM.targetPart,
+					parts = cM.partsHealth,
+					time = cM.time[0] + cM.time[1]/60,
+					name = cM.name,
+					monstername = cM.monster,
+					rogue = 'Rogue',
+					warlock = 'Warlock',
+					warrior = 'Warrior',
+					mage = 'Mage',
+					cleric = 'Cleric',
+					ranger = 'Ranger',
+					levelup = caap.inLevelUpMode(),
+					energy = caap.stats.energy.num,
+					energymax = caap.checkStats('energy'),
+					staminamax = caap.checkStats('stamina'),
+					stamina = caap.stats.stamina.num,
+					exp = caap.stats.exp.dif,
+					ach = caap.stats.achievements;
+					
+					if (cM.conditions.regex(/:j\[([^\]]*)\]/)) {
+						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[([^\]]*)\]/), 0)).dp(2);
+						cM.join = eval(cM.conditions.regex(/:j\[([^\]]*)\]/));
+						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[([^\]]*)\]/), cM.conditions.regex(/:j\[([^\]]*)\]/), );
+						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+					}
+					if (cM.conditions.regex(/:c\[([^\]]*)\]/)) {
+						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[([^\]]*)\]/), 'Warlock'));
+						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[([^\]]*)\]/));
+					}
+					
+            } catch (err) {
+                con.error("ERROR in feed.scoring: " + err.stack);
                 return false;
             }
         },
@@ -802,7 +890,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     htmlCode += caap.makeDropDownTR("Join", 'JoinMonster4', [''].concat(feed.monsterList), '', '', '', false, false, 80);
                 }
                 */
-				htmlCode += caap.makeTD("Filter monsters according to <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
+				htmlCode += caap.makeTD("Filter and join monsters according to <a href='http://caaplayer.freeforums.org/auto-join-and-monster-finder-configs-t839.html' target='_blank' style='color: blue'>(INFO)</a>");
 				htmlCode += caap.makeTextBox('feedFilter', filterInstructions, 'all');
 
                 htmlCode += caap.endCheckHide('enableMonsterFinder');

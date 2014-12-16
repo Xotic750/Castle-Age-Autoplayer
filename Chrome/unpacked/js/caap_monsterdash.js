@@ -93,7 +93,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!caap.oneMinuteUpdate('dashboard', force) && $j('#caap_infoMonster').html()) {
+            if (!caap.oneMinuteUpdate('dashboard', force)) {
                 if (caap.updateDashboardWaitLog) {
                     con.log(4, "Dashboard update is waiting on oneMinuteUpdate");
                     caap.updateDashboardWaitLog = false;
@@ -1107,10 +1107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //        caap.updateDashboard(true);
     };
 
-    caap.refreshMonstersListener = function () {
-        monster.fullReview('Monster');
-    };
-
+	// Pass through function used to pass arguments that might not be referred from a different context
     caap.refreshFeedListener = function () {
         monster.fullReview('Feed');
     };
@@ -1230,7 +1227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             $j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
             $j('#caap_GFDisplay', caap.caapTopObject).on('change', caap.gfDisplayListener);
-            $j('#caap_refreshMonsters', caap.caapTopObject).on('click', caap.refreshMonstersListener);
+            $j('#caap_refreshMonsters', caap.caapTopObject).on('click', monster.fullReview);
             $j('#caap_refreshFeeds', caap.caapTopObject).on('click', caap.refreshFeedListener);
             $j('#caap_refreshGenerals', caap.caapTopObject).on('click', caap.refreshGeneralsListener);
             $j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
