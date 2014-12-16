@@ -7087,7 +7087,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.clearTimeout(caap.qtom);
                 con.log(1, "Searching for quest");
             } else {
-                energyCheck = caap.checkEnergy('quest_mess', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
+                energyCheck = caap.checkEnergy('Quest', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
                 if (!energyCheck) {
                     return false;
                 }
