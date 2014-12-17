@@ -308,6 +308,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         "Malekus": {
             festival_ach: 2500000
+        },
+        'Cronus Astaroth': {
+            ach: 1000000
         }
     };
 
