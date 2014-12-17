@@ -15,8 +15,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_festival_battle_home = function () {
         try {
+			var fR = guild_battle.getItem(guild_battle.gf.festival);
 			//caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
-			return true;
+			fR.state = !caap.hasImage('festival_arena_enter.jpg') ? 'No battle' : fR.state;
+			guild_battle.setrPage(fR, 'index', 'review', 0);
+			
         } catch (err) {
             con.error("ERROR in checkResults_festival_battle_home: " + err);
             return false;
