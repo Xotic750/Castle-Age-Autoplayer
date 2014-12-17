@@ -244,6 +244,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					monster.setItem(mR);
 				}
 			}
+            session.getItem("FeedDashUpdate", true)
+            session.getItem("MonsterDashUpdate", true)
             caap.updateDashboard(true);
             return true;
         } catch (err) {
@@ -572,7 +574,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				result = false,
 				healPercStam = config.getItem('HealPercStam', 20) / 100,
 				staminaAvailable = Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? caap.stats.energy.num / healPercStam : 10000),
-				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available'));
+				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
+				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available');
 
 			debtcM = healPercStam ? (monster.records.reduce(function(previous, redR) {
 				return redR.debt.stamina > previous.debt.stamina ? redR : previous;
@@ -591,7 +594,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					fightMode = 'Fortify';
 					statList = 'energyList';
 					cM = debtcM;
-					statAvailable = caap.checkEnergy('Fortify', 'Energy Available');
+					// If healing the monster we're fighting, no unlimited energy unless we've damaged it first
+					statAvailable = stat == 'energy' ? 0 : maxEnergy;
 				} else if (!cM.md5) {
 					return false;
 				}
@@ -603,7 +607,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
 				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
 
-				statAvailable = statAvailable || (statList == 'energyList' ? energyAvailable : staminaAvailable);
+				statAvailable = statAvailable || ((cM.stunDo && ['deflect', 'strengthen'].indexOf(cM.stunType) < 0)
+					? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable);
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
@@ -1005,7 +1010,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				if ($u.hasContent(monsterDiv)) {
 					cM.userName = monsterDiv.text().replace(/Monster Codes: \w+:\w+/, '').trim();
-					cM.userName = monsterDiv.text().replace("'s summoned", ' summoned').regex(/\s*(\S+)\s+summoned/i);
+					cM.userName = monsterDiv.text().replace("'s summoned", ' summoned').regex(/\s*(.+)\s+summoned/i);
 					if (!cM.userName) {
 						con.warn('Unable to find summoner name in monster div', monsterDiv.text(), monsterDiv);
 					}
@@ -1388,7 +1393,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								tempArr = cM.tip.split(" ");
 								if ($u.hasContent(tempArr)) {
 									tempText = tempArr[tempArr.length - 1].toLowerCase();
-									tempArr = ["strengthen", "cripple", "heal", "deflection","fortify"];
+									tempArr = ["strengthen", "cripple", "heal", "deflection", "fortify"];
 									if (tempText && tempArr.hasIndexOf(tempText)) {
 										cM.stunType = tempText.replace("ion", '');
 										con.log(2, "Character specific attack type", cM.stunType);
@@ -1467,7 +1472,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				monster.setItem(cM);
 			}
             monster.select(true);
-            caap.updateDashboard(true);
+            session.getItem("FeedDashUpdate", true)
+            session.getItem("MonsterDashUpdate", true)
+			caap.updateDashboard(true);
             if (schedule.check('battleTimer')) {
                 window.setTimeout(function () {
                     caap.setDivContent('monster_mess', '');

@@ -815,21 +815,21 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					ranger = 'Ranger',
 					levelup = caap.inLevelUpMode(),
 					energy = caap.stats.energy.num,
-					energymax = caap.checkStats('energy'),
-					staminamax = caap.checkStats('stamina'),
+					energymax = caap.maxStatCheck('energy'),
+					staminamax = caap.maxStatCheck('stamina'),
 					stamina = caap.stats.stamina.num,
 					exp = caap.stats.exp.dif,
-					ach = caap.stats.achievements;
+					ach = caap.stats.achievements.monster;
 					
-					if (cM.conditions.regex(/:j\[([^\]]*)\]/)) {
-						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[([^\]]*)\]/), 0)).dp(2);
-						cM.join = eval(cM.conditions.regex(/:j\[([^\]]*)\]/));
-						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[([^\]]*)\]/), cM.conditions.regex(/:j\[([^\]]*)\]/));
+					if (cM.conditions.regex(/:j\[(.*)\][:\s,]/)) {
+						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[(.*)\][:\s,]/), 0)).dp(2);
+						cM.join = eval(cM.conditions.regex(/:j\[(.*)\][:\s,]/));
+						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[(.*)\][:\s,]/), cM.conditions.regex(/:j\[(.*)\][:\s,]/));
 						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
 					}
-					if (cM.conditions.regex(/:c\[([^\]]*)\]/)) {
-						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[([^\]]*)\]/), 'Warlock'));
-						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[([^\]]*)\]/));
+					if (cM.conditions.regex(/:c\[(.*)\][:\s,]/)) {
+						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*)\][:\s,]/), 'Warlock'));
+						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[(.*)\][:\s,]/));
 					}
 					
             } catch (err) {
@@ -852,7 +852,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 var htmlCode = '',
 					filterInstructions = "List of filters to decide what monsters to look for. ";
 
-                htmlCode += caap.startToggle('Monster Finder', 'MONSTER FINDER');
+                htmlCode += caap.startToggle('MonsterFinder', 'MONSTER FINDER');
                 htmlCode += caap.makeCheckTR("Enable Monster Finder", 'enableMonsterFinder', false, "Find joinable monsters.");
                 htmlCode += caap.startCheckHide('enableMonsterFinder');
   /*              htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxMonsterFinder', true, "Check Monsters using AJAX rather than page navigation.");
