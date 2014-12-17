@@ -122,7 +122,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 500000
 		},
         'Invading Force': {
-			alias: 'Dark Legion',
+			alias: 'Dark Legion'
+		},
+        'Dark Legion': {
             duration: 168,
             ach: 1000,
             defense_img: 'seamonster_ship_health.jpg',
@@ -624,6 +626,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				maxToFortify = monster.parseCondition('f%', cM.conditions),
 				maxSta = monster.parseCondition('sta', cM.conditions);
 
+			cM.color = '';
+			cM.over = '';
 			maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
 			achLevel = achLevel === 0 ? 1 : achLevel; // Added to prevent ach === 0 defaulting to false 
 			if (achLevel === false) {
@@ -1086,7 +1090,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         if (cM.color === 'grey') {
                             return;
                         }
-
+						
 						monster.parsing(cM);
 						
 						if (cM.siegeLevel > 0) {
@@ -1703,7 +1707,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in monster.dashboard: " + err.stack, which);
+            con.error("ERROR in monster.dashboardCommon: " + err.stack, which);
             return false;
         }
     };

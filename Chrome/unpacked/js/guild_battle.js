@@ -377,12 +377,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
-			guild_battle.records.forEach( function(r) {
-				delete r.data;
-			});
+			if (guild_battle.records.length && $u.hasContent(guild_battle.records[0])) {
+				if ($u.hasContent(guild_battle.records[0].data)) {
+					con.warn('Deleting old nested Guild Battle data structure');
+					guild_battle.records.forEach( function(r) {
+						delete r.data;
+					});
+				}
+				caap.fillRecords(guild_battle.records, new guild_battle.record().data);
+			}
 			delete caap.stats.reviewPagesGB;
 
-			caap.fillRecords(guild_battle.records, new guild_battle.record().data);
 			guild_battle.save();
 
             session.setItem("guildBattleDashUpdate", true);

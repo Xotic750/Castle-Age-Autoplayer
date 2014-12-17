@@ -221,6 +221,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								con.log(2, 'Navigate2: Go to page', jq, step, path, s);
 								caap.click(jq);
 								return caap.navigate2RepeatCheck(true, path, s);
+							} else {
+								con.warn('Unable to find path to page: ' + step, path);
 							}
 							//con.log(2,'Navigate2: Not on page ' + step + ', so going back another step', path, s, caap.pageList[step]);
 						} else if (s == lastStep) {
