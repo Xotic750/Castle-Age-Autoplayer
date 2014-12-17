@@ -8218,7 +8218,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
                 }
-				caap.setDivContent(msgdiv, which + 'Waiting for more energy: ' + caap.stats.energy.num + "/" + energyRequired);
+				caap.setDivContent(msgdiv, which + ': Waiting for more energy: ' + caap.stats.energy.num + "/" + energyRequired);
             } else if (condition === 'At X Energy') {
 
                 whichEnergy = config.getItem('X' + which + 'Energy', 1);
@@ -8231,7 +8231,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						if (msgdiv === "quest_mess") {
 							window.clearTimeout(caap.qtom);
 						}
-						caap.setDivContent(msgdiv, which + 'At X energy. Burning to ' + config.getItem('XMin' + which + 'Energy', 0));
+						caap.setDivContent(msgdiv, which + ': At X energy. Burning to ' + config.getItem('XMin' + which + 'Energy', 0));
                         return caap.stats.energy.num - config.getItem('XMin' + which + 'Energy', 0);
                     }
                     state.setItem('X' + which + 'Energy', false);
@@ -8240,7 +8240,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + 'Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
+				caap.setDivContent(msgdiv, which + ': Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
             } else if (condition === 'At Max Energy') {
                 if (caap.stats.energy.num >= maxIdleEnergy) {
                     return caap.stats.energy.num - maxIdleEnergy;
@@ -8248,7 +8248,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + 'Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
+				caap.setDivContent(msgdiv, which + ': Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
             }
             return false;
         } catch (err) {
