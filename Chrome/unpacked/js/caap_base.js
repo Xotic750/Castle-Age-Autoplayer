@@ -8229,7 +8229,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
             if (['Energy Available', 'Not Fortifying', 'Not Covering My Damage'].indexOf(condition) >=0) {
-				energyMin = Math.max(0, caap.stats.energy.num - (condition == 'Not Covering My Damage' ? caap.stats.stamina.num * config.getItem('HealPercStam', 20) / 100 : 0));
+				energyMin = Math.max(0, caap.stats.energy.num - (condition == 'Not Covering My Damage' ? Math.max( 20, caap.stats.stamina.num * config.getItem('HealPercStam', 20) / 100) : 0));
                 if (energyMin >= energyRequired) {
                     return energyMin;
                 }
@@ -8261,7 +8261,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				caap.setDivContent(msgdiv, which + 'Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
             } else if (condition === 'At Max Energy') {
                 if (caap.stats.energy.num >= maxIdleEnergy) {
-                    return caap.stats.energy.num - maxIdleEnergy;
+                    return caap.stats.energy.num;
                 }
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
@@ -9532,11 +9532,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				myLand = conquestLands.records[myIndex];
 				// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
 				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 3) {
-					result = caap.navigate2('guildv2_conquest_command,click:_smallX.jpg');
+					result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
 					caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
 				}
 			}
-			if (result == 'fail' || result == 'done') {
+			if (result == 'fail') {
 				schedule.setItem('LoMmoveWait', 5 * 60);
 			}
             return result == 'done' || result === true;
