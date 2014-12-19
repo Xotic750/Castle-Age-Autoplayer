@@ -1436,10 +1436,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							});
 						}
 					} else {
-						cM.staminaList = monster.getInfo(cM, 'staminaList');
 						if (!cM.staminaList.length) {
-							con.warn('Unable to find stamina/energy attack buttons');
+							con.log(2, 'Unable to find stamina/energy attack buttons, so using default configuration');
 						}
+						cM.staminaList = monster.getInfo(cM, 'staminaList');
+						cM.energyList = cM.fortify >= 0 ? monster.getInfo(cM, 'energyList') : [];
 					}
 						
 				// It's alive and I haven't hit it

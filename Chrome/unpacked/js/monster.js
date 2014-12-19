@@ -585,7 +585,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.match(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
+            var str = conditions.regex(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
 			
 			if (!str) {
 				return false;
@@ -966,6 +966,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 s = 0,
 				cM = {},
 				whichList = 'any',
+				conditions = '',
                 selectTypes = [],
 				maxToFortify = 0,
                 nodeNum = 0,
@@ -1021,6 +1022,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					}
                 } else {
 					cM.conditions = feed.addConditions(cM) || cM.conditions;
+				}
+				if (cM.status !== 'Attack'){
+					cM.debt.start = -1;
+					cM.debt.stamina = 0;
 				}
             }
 
@@ -1078,13 +1083,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         if (cM.conditions !== 'none') {
                             return;
                         }
+						conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
                         // If this monster does not match, skip to next one
-                        if (!monster.getItem(thisMon).name.toLowerCase().hasIndexOf(aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
+                        if (!monster.getItem(thisMon).name.toLowerCase().hasIndexOf(aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) && (conditions.regex(/(:conq)\b/) != (cM.lpage == "ajax:player_monster_list.php?monster_filter=2"))) {
                             return;
                         }
 
                         //Monster is a match so we set the conditions
-                        cM.conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
+                        cM.conditions = conditions;
+						cM.fullC = aoItem;
 
 						cM.select = true;
 
@@ -1097,13 +1104,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monster.parsing(cM);
 						
 						if (cM.siegeLevel > 0) {
-							siegeLimit = !cM.conditions ? false : cM.conditions.match(':!s:') ? 0
-								: !cM.conditions.match(/:fs\b/) ? monster.parseCondition("s", cM.conditions)
+							siegeLimit = conditions.regex(/:!s\b/) ? 0 : !conditions.regex(/:fs\b/) ? monster.parseCondition("s", cM.conditions) 
 								: (caap.stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
 							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 
-								&& (cM.phase > 1 || (cM.conditions && cM.conditions.match('fs')));
+								&& (cM.phase > 1 || (conditions && conditions.regex(/:fs\b/)));
 							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
 						} else {
 							cM.doSiege = false;
@@ -1587,7 +1593,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                     if (monsterConditions && monsterConditions !== 'none') {
                         data = {
-                            text: '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
+                            text: '<span title="User Set Condition string: ' + cM.fullC + '" class="ui-icon ui-icon-info">i</span>',
                             color: 'blue',
                             id: '',
                             title: ''

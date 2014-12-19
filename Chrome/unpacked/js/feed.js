@@ -690,7 +690,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(/^[^:]+/i).toString().trim())) {
 						monsterConditions = filterList[i].replace(/^[^:]+/i, '').toString().trim();
 						if ($u.isObject(cM)) {
-							cM.conditions = monsterConditions;
+							cM.conditions = monsterConditions + ':';
 							feed.scoring(cM);
 						}
 						return monsterConditions.length ? monsterConditions + ':' : '';
@@ -819,17 +819,18 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					staminamax = caap.maxStatCheck('stamina'),
 					stamina = caap.stats.stamina.num,
 					exp = caap.stats.exp.dif,
-					ach = caap.stats.achievements.monster;
+					ach = caap.stats.achievements.monster,
+					conq = cM.lpage == "ajax:player_monster_list.php?monster_filter=2";
 					
-					if (cM.conditions.regex(/:j\[(.*)\][:\s,]/)) {
-						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[(.*)\][:\s,]/), 0)).dp(2);
-						cM.join = eval(cM.conditions.regex(/:j\[(.*)\][:\s,]/));
-						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[(.*)\][:\s,]/), cM.conditions.regex(/:j\[(.*)\][:\s,]/));
+					if (cM.conditions.regex(/:j\[(.*?)\]:/)) {
+						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[(.*?)\]:/), 0)).dp(2);
+						cM.join = eval(cM.conditions.regex(/:j\[(.*?)\]:/));
+						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[(.*?)\]:/), cM.conditions.regex(/:j\[(.*?)\]:/));
 						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
 					}
-					if (cM.conditions.regex(/:c\[(.*)\][:\s,]/)) {
-						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*)\][:\s,]/), 'Warlock'));
-						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[(.*)\][:\s,]/));
+					if (cM.conditions.regex(/:c\[(.*?)\]:/)) {
+						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*?)\]:/), 'Warlock'));
+						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[(.*?)\]:/));
 					}
 					
             } catch (err) {
