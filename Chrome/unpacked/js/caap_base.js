@@ -2206,7 +2206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 // yinzanat - 07/18/2014 - don't want to hide this anymore, we're using it to house the caap menu
 //                    $j('#rightCol').hide();
                 }
-
+                $j('#rightCol').children().hide();
                 if (config.getItem('HideFBChat', false)) {
                     tDiv = $j("#pagelet_dock div[class='fbDockWrapper fixed_always fbDockWrapperRight']");
                     if ($u.hasContent(tDiv)) {
