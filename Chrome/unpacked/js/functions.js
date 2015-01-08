@@ -131,35 +131,36 @@ function caap_DomTimeOut() {
 
 function caap_clickRelogin() {
 
-	window.hyper = new $u.StorageHelper({
-		'namespace': caap.namespace,
-		'storage_id': 'hyper',
-		'storage_type': 'localStorage'
-	});
-	
-	var logonArray = hyper.getItem('logons', false),
-		logonObj = {},
-		testObj = [{'player_email' : 'fakeEmail@mailinator.com',
-			'password' : 'not_a_real_account'}];
+   window.hyper = new $u.StorageHelper({
+      'namespace': caap.namespace,
+      'storage_id': 'hyper',
+      'storage_type': 'localStorage'
+   });
+   
+   var logonArray = hyper.getItem('logons', false),
+      logonObj = {},
+      testObj = [{'player_email' : 'fakeEmail@mailinator.com',
+         'password' : 'not_a_real_account'}];
 
-	if ($u.isArray(logonArray)) {
-		if (logonArray.length > 0) {
-			logonObj = logonArray.shift();
-			logonArray.push(logonObj);
-			if (logonObj != testObj) {
-				hyper.setItem('logons',logonArray);
-				$j("input[name='player_email']").val(logonObj.player_email);
-				$j("input[name='player_password']").val(logonObj.password);
-				//con.log(1, "hyper", hyper, logonArray, logonObj.player_email, logonObj.password);
+   if ($u.isArray(logonArray)) {
+      if (logonArray.length > 0) {
+         logonObj = logonArray.shift();
+         logonArray.push(logonObj);
+         if (logonObj != testObj) {
+            hyper.setItem('logons',logonArray);
+            $j("input[name='player_email']").val(logonObj.player_email);
+            $j("input[name='player_password']").val(logonObj.password);
+            //con.log(1, "hyper", hyper, logonArray, logonObj.player_email, logonObj.password);
 
-				caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
-				$j("input[src*='crusader2_btn_submit.gif']").click();
-				caap_WaitForData();
-			}
-		}
-	} else {
-		hyper.setItem('logons',testObj);
-	}
+            caap_log("Clicking image ...", $j("input[src*='crusader2_btn_submit.gif']"));
+            $j("input[src*='crusader2_btn_submit.gif']").click();
+            caap_WaitForData();
+         }
+      }
+   } else {
+      hyper.setItem('logons',testObj);
+   }
+
 }
 
 function caap_WaitForData() {

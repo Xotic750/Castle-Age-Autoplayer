@@ -2206,7 +2206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 // yinzanat - 07/18/2014 - don't want to hide this anymore, we're using it to house the caap menu
 //                    $j('#rightCol').hide();
                 }
-
+                $j('#rightCol').children().hide();
                 if (config.getItem('HideFBChat', false)) {
                     tDiv = $j("#pagelet_dock div[class='fbDockWrapper fixed_always fbDockWrapperRight']");
                     if ($u.hasContent(tDiv)) {
@@ -7101,7 +7101,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.clearTimeout(caap.qtom);
                 con.log(1, "Searching for quest");
             } else {
-                energyCheck = caap.checkEnergy('quest_mess', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
+                energyCheck = caap.checkEnergy('Quest', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
                 if (!energyCheck) {
                     return false;
                 }
@@ -8232,7 +8232,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
                 }
-				caap.setDivContent(msgdiv, which + 'Waiting for more energy: ' + caap.stats.energy.num + "/" + energyRequired);
+				caap.setDivContent(msgdiv, which + ': Waiting for more energy: ' + caap.stats.energy.num + "/" + energyRequired);
             } else if (condition === 'At X Energy') {
 
                 whichEnergy = config.getItem('X' + which + 'Energy', 1);
@@ -8245,7 +8245,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						if (msgdiv === "quest_mess") {
 							window.clearTimeout(caap.qtom);
 						}
-						caap.setDivContent(msgdiv, which + 'At X energy. Burning to ' + config.getItem('XMin' + which + 'Energy', 0));
+						caap.setDivContent(msgdiv, which + ': At X energy. Burning to ' + config.getItem('XMin' + which + 'Energy', 0));
                         return caap.stats.energy.num - config.getItem('XMin' + which + 'Energy', 0);
                     }
                     state.setItem('X' + which + 'Energy', false);
@@ -8254,7 +8254,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + 'Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
+				caap.setDivContent(msgdiv, which + ': Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
             } else if (condition === 'At Max Energy') {
                 if (caap.stats.energy.num >= maxIdleEnergy) {
                     return caap.stats.energy.num;
@@ -8262,7 +8262,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + 'Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
+				caap.setDivContent(msgdiv, which + ': Waiting for max energy: ' + caap.stats.energy.num + "/" + maxIdleEnergy);
             }
             return false;
         } catch (err) {

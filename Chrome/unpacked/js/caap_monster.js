@@ -1225,13 +1225,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     damageDiv = $j("a[href*='user=" + caap.stats.FBID + "']", damageDiv[0].children);
 					if ($u.hasContent(damageDiv)) {
 						tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/g);
-						if ($u.hasContent(tempArr) && tempArr.length === 2) {
-							cM.attacked = tempArr[0].numberOnly();
-							cM.defended = tempArr[1].numberOnly();
-							cM.damage = cM.attacked + cM.defended;
-						} else if ($u.hasContent(tempArr) && tempArr.length === 1) {
+						if ($u.hasContent(tempArr) && tempArr.length > 0) {
 							cM.attacked = tempArr[0].numberOnly();
 							cM.damage = cM.attacked;
+							if (tempArr.length === 2) {
+								cM.defended = tempArr[1].numberOnly();
+								cM.damage = cM.attacked + cM.defended;
+							}
 						} else {
 							con.warn("Unable to get attacked and defended damage from Leaderboard", tempArr, (damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim());
 						}
