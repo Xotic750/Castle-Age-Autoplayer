@@ -859,7 +859,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (!monster.damaged(cM) || cM.status == 'Done' || cM.status === 'Dead or Fled' || cM.status == 'Collect') {
 						return false;
 					}
-					if ($u.setContent(feed.addConditions(cM),'').regex(/(\bachleft\b|\bkilled\b)/)) {
+					if ((feed.addConditions(cM) || '').regex(/(\bachleft\b|\bkilled\b)/)) {
 						schedule.setItem("achievements", 0);
 					}
 					
