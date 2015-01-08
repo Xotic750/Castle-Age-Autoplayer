@@ -59,7 +59,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				monster.lastClick = null;
 
             //con.log(2, "Checking monster list page results", page, pageURL, monsterRow);
-			if (!publicList) {
+			if (publicList) {
+				lpage = 'player_monster_list';
+			} else {
 				if (page === 'guildv2_monster_list') {
 					lpage = 'ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,'');
 				} else if (page === 'raid') {
@@ -95,7 +97,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         continue;
                     }
                     /*jslint continue: false */
-					monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim();
+					monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim().replace(/,.*/,'').toLowerCase().ucWords();
+					monsterName = monster.getInfo(monsterName, 'alias', monsterName);
 					conditions = '';
 					if (publicList) {
 						conditions = feed.addConditions(monsterName);
@@ -110,6 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR = monster.getItem(md5);
 					mR.link = link;
 					mR.lpage = lpage;
+					mR.monster = monsterName;
 					if (publicList) {
 						mR.conditions = conditions;
 					}
@@ -124,6 +128,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/list_btn_(\w*)/);
 						switch (engageButtonName) {
 							case 'collect':
+								feed.checkDeath(mR);
 								mR.status = mR.status || 'Dead or fled';
 								mR.color = 'grey';
 								break;
@@ -198,6 +203,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     switch (engageButtonName) {
                         case 'collectbtn':
                         case 'dragon_list_btn_2':
+							feed.checkDeath(mR);
                             mR.status = 'Collect';
                             mR.color = 'grey';
 
@@ -208,6 +214,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             break;
                         case 'viewbtn':
                         case 'dragon_list_btn_4':
+							feed.checkDeath(mR);
                             if (page === 'raid' && !(/!/.test(monsterFull))) {
                                 break;
                             }
@@ -234,9 +241,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			for (it = monster.records.length - 1; it >= 0; it -= 1) {
 				mR = monster.records[it];
-				if (mR.lpage === lpage && !publicList) {
+				if (mR.lpage === lpage && !publicList && mR.status !== 'Join') {
 					if (mR.listReviewed < now) {
-						mR.lMissing = $u.setContent(mR.lMissing, 0) + 1;
+						mR.lMissing += 1;
+						monster.setItem(mR);
 						con.warn('Did not see monster ' + mR.name + ' on monster list ' + mR.lMissing + ' times.', mR);
 					} else {
 						mR.lMissing = 0;
@@ -583,23 +591,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
             // Check to see if we should fortify or attack monster
 			['energy', 'stamina', 'cover'].some( function(stat) {
-				statAvailable = 0;
 				fightMode = stat == 'stamina' ? 'Monster' : 'Fortify';
-				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
 				temp = state.getItem('targetFrom' + fightMode, '');
-				cM = temp ? monster.getItem(temp) : blankRecord;
-
-				// If we're about to attack or fortify a different monster than we have a debt to, then pay the debt first
-				if (debtcM.debt.stamina > 0 && (stat == 'cover' || (cM.md5 !== debtcM.md5 && (cM.md5 || fightMode == 'Monster')))) {
-					fightMode = 'Fortify';
-					statList = 'energyList';
-					cM = debtcM;
-					// If healing the monster we're fighting, no unlimited energy unless we've damaged it first
-					statAvailable = stat == 'energy' ? 0 : maxEnergy;
-				} else if (!cM.md5) {
+				cM = stat == 'cover' ? debtcM :  temp ? monster.getItem(temp) : blankRecord;
+				
+				if (!cM.md5) {
 					return false;
 				}
 				
+				if (debtcM.debt.stamina > 0 && stat !== 'cover') { // We have a debt
+				
+					// If trying to hit or heal anyone other than the monster we need to cover, then don't, unless hitting and levelling up
+					if (cM.md5 !== debtcM.md5 && (stat == 'energy' || !caap.inLevelUpMode())) {
+						return false;
+					}
+					// If done over 10% damage to fort and have energy to heal and debt is at least one heal, then wait for cover
+					if (stat == 'stamina' && cM.fortify < cM.debt.start - 10 && debtcM.debt.stamina >= debtcM.energyList[0] / healPercStam && maxEnergy >= debtcM.energyList[0]) {
+						return false;
+					}
+				}
+				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
 				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', true));
 				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
 				xpPerPt = (statList == 'energyList' ? 3.6 : 5) * gMult;
@@ -607,8 +618,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
 				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
 
-				statAvailable = statAvailable || ((cM.stunDo && ['deflect', 'strengthen'].indexOf(cM.stunType) < 0)
-					? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable);
+				statAvailable = stat == 'cover' ? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable;
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
@@ -675,7 +685,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         con.log(1, "No stun target time set");
                     }
                     
-                    if (cM.stunDo && cM.stunType !== '') {
+					// Only stun if we have no debt
+                    if (cM.stunDo && cM.stunType !== '' && !$u.hasContent(debt.md5)) {
                         buttonList.unshift("button_nm_s_" + cM.stunType);
                     } else {
                         buttonList.unshift("button_nm_s_");
@@ -729,10 +740,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(attackButton)) {
                     if (fightMode === 'Fortify') {
                         attackMess = (cM.stunDo ? cM.stunType + 'ing ': 'Fortifying') + cM.name;
-                    } else if (useTactics) {
-                        attackMess = 'Tactic Attacking ' + cM.name;
                     } else {
-                        attackMess = (statRequire >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
+						if (general.GetStat(theGeneral, 'charge') == 100) {
+							general.getRecord(theGeneral).charge = 0;
+						}
+						if (useTactics) {
+							attackMess = 'Tactic Attacking ' + cM.name;
+						} else {
+							attackMess = (statRequire >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
+						}
                     }
 
                     con.log(1, attackMess);
@@ -1114,6 +1130,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					} else {
 						con.warn("Unable to find defense bar", defImage);
 					}
+					tempDiv = $j("img[src*='repair_bar_grey.jpg']", slice).parent();
+					if ($u.hasContent(tempDiv)) {
+						cM.strength = 100 - tempDiv.getPercent('width').dp(2);
+					}
+
+					break;
+				case 'repair_bar_grey.jpg':
+					tempDiv = $j("img[src*='" + defImage + "']", slice).parent();
+					if ($u.hasContent(tempDiv)) {
+						cM.fortify = tempDiv.getPercent('width').dp(2);
+						tempDiv = tempDiv.parent();
+						if ($u.hasContent(tempDiv)) {
+							cM.strength = tempDiv.getPercent('width').dp(2);
+							tempDiv = tempDiv.parent().siblings().eq(0).children().eq(0);
+						} else {
+							cM.strength = 100;
+							con.warn("Unable to find defense bar strength");
+						}
+					} else {
+						con.warn("Unable to find defense bar fortify");
+					}
 
 					break;
 				case 'nm_green.jpg':
@@ -1138,7 +1175,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
 			// See if healing debt is paid
-			if (config.getItem('HealPercStam', 20) > 0 && cM.debt.start > 0 && state.getItem('fightMode','Monster') == 'Fortify' && (cM.debt.stamina === 0 ||  cM.fortify > cM.debt.start)) {
+			if (config.getItem('HealPercStam', 20) > 0 && cM.debt.start > 0 && (cM.debt.stamina <= 0 ||  cM.fortify > cM.debt.start)) {
 				cM.debt.start = -1;
 				cM.debt.stamina = 0;
 				session.setItem('ReleaseControl', false);
@@ -1237,7 +1274,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							cM.charClass = tStr;
 							con.log(4, "character", cM.charClass);
 						} else {
-							cM.charClass = 'Cleric';
 							con.warn("Can't get character", tempText);
 						}
 					} else {
@@ -1314,35 +1350,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (cM.charClass) {
 
 						tStr = tempText.regex(/Tip: ([\w ]+) Status/);
-						if ($u.hasContent(tStr)) {
-							cM.tip = tStr;
-							con.log(4, "tip", cM.tip);
-						} else {
-							cM.tip = 'fortify';
+						if (!tStr) {
+							cM.stunType = 'fortify';
 							con.warn("Can't get tip", tempText);
+						} else {
+							cM.stunType = tStr.split(" ").pop().replace("ion", '').toLowerCase();
+							con.log(2, 'Stun type: ' + cM.stunType);
+						}
+						
+						if (!["strengthen", "cripple", "heal", "deflection", "fortify"].hasIndexOf(cM.stunType)) {
+							con.warn("Unknown monster stun attack", cM.stunType);
 						}
 
 						tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
 						if ($u.hasContent(tempArr) && tempArr.length === 3) {
 							cM.stunTime = Date.now() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
 							
-							// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
-							// or the WhenStun setting has changed, set a new stun target time.
-							tNum = monster.parseCondition("cd", cM.conditions);
-							tNum = $u.isNumber(tNum) ? tNum.toString() : config.getItem('WhenStun','Immediately');
-							tNum = tNum == 'Immediately' ? 6 : tNum == 'Never' ? 0 : tNum.parseFloat();
-							stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-							con.log(5,'Checking stuntarget',tNum, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
-							
-							if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tNum) {
-								cM.stunSetting = tNum;
-
-								// Add +/- 30 min so multiple CAAPs don't all stun at the same time
-								cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
-										: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
-								con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
-							}
-
 						} else {
 							cM.stunTime = Date.now() + (cM.time[0] * 60 * 60 * 1000) + (cM.time[1] * 60 * 1000) + (cM.time[2] * 1000);
 							con.warn("Can't get statusTime", tempText);
@@ -1355,60 +1378,39 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							if (tempText >= 0) {
 								cM.stun = tempText;
 								con.log(4, "stun", cM.stun);
+
+								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
+								// or the WhenStun setting has changed, set a new stun target time.
+								tNum = monster.parseCondition("cd", cM.conditions);
+								tNum = $u.isNumber(tNum) ? tNum.toString() : config.getItem('WhenStun','Immediately');
+								tNum = tNum == 'Immediately' ? 6 : tNum == 'Never' ? 0 : tNum.parseFloat();
+								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
+								con.log(5,'Checking stuntarget',tNum, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
+								
+								if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tNum) {
+									cM.stunSetting = tNum;
+
+									// Add +/- 30 min so multiple CAAPs don't all stun at the same time
+									cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
+											: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
+									con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
+								}
+
+								cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(tStr) && cM.stun < 100;
+								if (cM.stunDo) {
+									con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tNum, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+								}
+								cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
+
 							} else {
 								con.warn("Can't get stun bar width");
 							}
-						} else {
-							tempArr = cM.tip.split(" ");
-							if ($u.hasContent(tempArr)) {
-								tempText = tempArr[tempArr.length - 1].toLowerCase();
-								tempArr = ["strengthen", "heal","fortify"];
-								if (tempText && tempArr.hasIndexOf(tempText)) {
-									if (tempText === tempArr[0]) {
-										cM.stun = cM.strength;
-									} else if (tempText === tempArr[1]) {
-										cM.stun = cM.health;
-									} else if (tempText === tempArr[2]) {
-										cM.stun = cM.health;
-									} else {
-										con.warn("Expected strengthen or heal to match!", tempText);
-									}
-								} else {
-									con.warn("Expected strengthen or heal from tip!", tempText);
-								}
-							} else {
-								con.warn("Can't get stun bar and unexpected tip!", cM.tip);
-							}
+						} else if (["strengthen", "heal", "fortify"].hasIndexOf(cM.stunType)) {
+							cM.stun = cM.stunType == "strengthen" ? cM.strength : cM.health;
+						}	else {
+							con.warn('No bar and stun type is not strengthen, heal, or fortify');
 						}
 
-						if (cM.charClass && cM.tip && cM.stun !== -1) {
-							cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
-							if (cM.stunDo) {
-								con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tNum, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
-							}
-							cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
-							cM.stunType = '';
-							if (cM.stunDo) {
-								con.log(2, "Do character specific attack", cM.stunDo);
-								tempArr = cM.tip.split(" ");
-								if ($u.hasContent(tempArr)) {
-									tempText = tempArr[tempArr.length - 1].toLowerCase();
-									tempArr = ["strengthen", "cripple", "heal", "deflection", "fortify"];
-									if (tempText && tempArr.hasIndexOf(tempText)) {
-										cM.stunType = tempText.replace("ion", '');
-										con.log(2, "Character specific attack type", cM.stunType);
-									} else {
-										con.warn("Type does match list!", tempText);
-									}
-								} else {
-									con.warn("Unable to get type from tip!", cM);
-								}
-							} else {
-								con.log(3, "Tip does not match class or stun maxed", cM);
-							}
-						} else {
-							con.warn("Missing 'class', 'tip' or 'stun'", cM);
-						}
 					}
 
 					// Find the lowest and highest stamina/energy buttons
@@ -1447,7 +1449,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					if (!cM.charClass || caap.hasImage('battle_enter_battle.gif', slice)) {
 						cM.status = 'Join';
-						cM.conditions = feed.addConditions(cM.name);
+						cM.conditions = feed.addConditions(cM.name) || '';
 					} else { // I haven't hit it, but I can't join it, so delete
 						con.warn("Deleting unjoinable monster " + cM.name + " off Feed", cM)
 						deleteMon = true;
@@ -1461,6 +1463,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM)
 					deleteMon = true;
 				} else {
+					feed.checkDeath(cM);
 					cM.status = (caap.hasImage('collect_reward', slice) || caap.hasImage('collectreward', slice)) ? 'Collect' : 'Done';
 					cM.color = 'grey';
 				}

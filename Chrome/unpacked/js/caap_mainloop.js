@@ -299,7 +299,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.monster = null;
                     window.guild_monster = null;
                     window.guild_battle = null;
-                    //window.arena = null;
+                    window.arena = null;
                     window.festival = null;
                     window.tenVten = null;
                     window.feed = null;
