@@ -711,6 +711,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					cM = {},
 					tR = false,
 					link = '@MonsterGeneral,ajax:',
+					attackButton = '',
 					hasClass = function(charClass) {
 						return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
 					},
@@ -770,8 +771,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						} else {
 							link += ",clickimg:battle_enter_battle.gif";
 						}
-					} else {
-						link += ',clickimg:button_nm_p_power_attack.gif';
 					}
 				
 					con.log(1, 'Joining ' + cM.name, cM, link);
@@ -780,10 +779,22 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						return caap.navigate2('player_monster_list');
 					} else if (result === 'done') {
 						monster.lastClick = tR.md5;
+					} else if (!result && !tR.charClass) {
+						monster.powerButtons.some( function(button) {
+							attackButton = caap.checkForImage(button);
+							return $u.hasContent(attackButton);
+						});
+						if ($u.hasContent(attackButton)) {
+							caap.click(attackButton);
+							monster.lastClick = tR.md5;
+							return true;
+						} else {
+							con.warn('Unable to find attack button to join ' + tR.name);
+						}
 					}
+
 					return result;
                 }
-				return false;
 
             } catch (err) {
                 con.error("ERROR in feed.scan: " + err.stack);

@@ -18,7 +18,7 @@
 
         htmlCode = caap.startToggle('Arena', 'ARENA');
         htmlCode += caap.makeCheckTR('Enable Arena Battles', 'enableArena', false, '');
-        htmlCode += caap.makeDropDownTR("Battle Type", 'ArenaBattleType', typeList, typeInst, '', '', false, false, 62);
+//        htmlCode += caap.makeDropDownTR("Battle Type", 'ArenaBattleType', typeList, typeInst, '', '', false, false, 62);
         htmlCode += caap.makeNumberFormTR("Start At Or Above", 'arenaTokenStart', '', 10, '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'arenaTokenStop', '', 0, '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Army Max", 'arenaArmyMax', '', 501, '', '', true, false);
@@ -309,7 +309,8 @@
 
             tempRecord.data.button = $j("input[src*='arena_invade_btn']", inputDiv[index]);
             battleRecord = battle.getItem(tempRecord.data.userId);
-            switch (config.getItem("ArenaBattleType", 'Invade')) {
+//          switch (config.getItem("ArenaBattleType", 'Invade')) {
+            switch ('Duel') {
             case 'Invade' :
                 useGeneral = 'InvadeGeneral';
                 tempTime = $u.setContent(battleRecord.invadeLostTime, 0);

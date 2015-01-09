@@ -716,7 +716,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         useTactics = false;
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
-                        buttonList = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'event_attack1.gif', 'attack_monster_button.jpg'].concat(singleButtonList);
+                        buttonList = monster.powerButtons.concat(singleButtonList);
 
                         if (monster.getInfo(cM, 'attack_img')) {
                             if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
@@ -730,12 +730,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 con.log(2, "monster/button list", cM, buttonList, nodeNum);
 
-                for (it = 0, len = buttonList.length; it < len; it += 1) {
-                    attackButton = caap.checkForImage(buttonList[it], null, null, nodeNum);
-                    if ($u.hasContent(attackButton)) {
-                        break;
-                    }
-                }
+                buttonList.some( function(button) {
+                    attackButton = caap.checkForImage(button, null, null, nodeNum);
+                    return $u.hasContent(attackButton);
+                });
 
                 if ($u.hasContent(attackButton)) {
                     if (fightMode === 'Fortify') {
