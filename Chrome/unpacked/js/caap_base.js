@@ -559,7 +559,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.monster = null;
             window.guild_monster = null;
             window.guild_battle = null;
-            //window.arena = null;
+            window.arena = null;
             window.festival = null;
             window.feed = null;
             window.battle = null;
@@ -2717,14 +2717,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += guild_monster.menu();
             htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
-            //htmlCode += arena.menu();
-            //if (false) {
-            //    htmlCode += festival.menu();
-            //} else {
-                if (config.getItem("WhenFestival", "Never") !== "Never") {
-                    config.setItem("WhenFestival", "Never");
-                }
-            //}
+            htmlCode += arena.menu();
+			if (config.getItem("WhenFestival", "Never") !== "Never") {
+				config.setItem("WhenFestival", "Never");
+			}
 
             htmlCode += general.menu();
             htmlCode += caap.addSkillPointsMenu();
@@ -2740,7 +2736,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.addFestivalOptionsMenu();
             htmlCode += caap.addConquestOptionsMenu();
             htmlCode += caap.addEssenceMenu();
-            htmlCode += arena.menu();
             htmlCode += town.menu();
             htmlCode += caap.addOtherOptionsMenu();
             //htmlCode += caap.addFooterMenu();
@@ -3028,11 +3023,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Auto Archives', 'AutoArchives', false, autoArchivesInstructions);
             htmlCode += caap.makeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
             htmlCode += caap.startCheckHide('AutoPotions');
-            htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 55, '', '', true, false);
             htmlCode += caap.endCheckHide('AutoPotions');
             htmlCode += caap.makeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
             htmlCode += caap.startCheckHide('AutoAlchemy');
@@ -3324,7 +3319,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
              \-------------------------------------------------------------------------------------*/
             var layout = "<div id='caap_top'>",
                 displayList = [
-                    /*'Arena', */
+                    'Arena',
                     'Army',
                     'Battle Stats',
                     'Conquest Stats',
@@ -9531,7 +9526,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				myLand = conquestLands.records[myIndex];
 				// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
-				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 3) {
+				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
 					result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
 					caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
 				}

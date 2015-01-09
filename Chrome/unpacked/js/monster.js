@@ -64,13 +64,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			'targetPart' : -1,
 			'listReviewed' : 0,
 			'lMissing' : 0,
-            'tip': '',
             'save': true,
             'select': false
         };
     };
 
     monster.engageButtons = {};
+	
+	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'event_attack1.gif', 'attack_monster_button.jpg'];
 	
 	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']";
 
@@ -94,6 +95,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             staminaList: [1, 5],
 			energyList: [10],
 			siege: 5,
+			achNum : 5,
             defense_img: 'nm_green.jpg'
         },
        'Skaar Deathrune': {
@@ -102,6 +104,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif',
+			achNum : 25,
             festival_dur: 120
         },
         'Ragnarok': {
@@ -115,18 +118,25 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'attack_monster_button3.jpg',
             defense_img: 'seamonster_ship_health.jpg',
+			achNum : 25,
             repair_img: 'repair_bar_grey.jpg'
         },
         'Cronus': {
             ach: 500000,
+			achNum : 25,
+			achTitle : "Hydra Knight",
             festival_ach: 500000
 		},
         'Invading Force': {
 			alias: 'Dark Legion'
 		},
+        'Battle Of The Dark L...': {
+			alias: 'Dark Legion'
+		},
         'Dark Legion': {
             duration: 168,
             ach: 1000,
+			achNum : 25,
             defense_img: 'seamonster_ship_health.jpg',
             repair_img: 'repair_bar_grey.jpg'
 		},
@@ -134,12 +144,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             duration: 72,
             ach: 100000,
             staminaList: [5, 10],
+			achNum : 25,
+			achTitle : "Dragon Knight",
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif']
         },
         'Frost Dragon': {
             duration: 72,
             ach: 100000,
             staminaList: [5, 10],
+			achNum : 25,
+			achTitle : "Dragon Knight",
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 30000
@@ -148,6 +162,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             duration: 72,
             ach: 100000,
             staminaList: [5, 10],
+			achNum : 25,
+			achTitle : "Dragon Knight",
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 30000
@@ -156,6 +172,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             duration: 72,
             ach: 100000,
             staminaList: [5, 10],
+			achNum : 25,
+			achTitle : "Dragon Knight",
             attack_img: ['seamonster_power.gif', 'serpent_10stam_attack.gif'],
             festival_dur: 96,
             festival_ach: 50000
@@ -273,6 +291,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         "Aurelius": {
             tactics: true,
+			achTitle : "Aurelius, Lion's Rebellion",
             ach: 1000,
         },
         "Corvintheus": {
@@ -410,8 +429,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         try {
 			mName = $u.setContent(mName.monster, mName);
             if (!$u.isString(mName) || mName.length === 0) {
-				con.warn('mName not passed a known monster name', mName);
-                throw "Not passed a record";
+				con.warn('monster.getInfo not passed a monster name', mName);
             }
 			mName = mName.replace(/^The /i,''),
 			defValue = typeof defValue == 'undefined' ? monster.info['Default Monster'][value] : defValue;
@@ -585,7 +603,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.regex(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
+            var str = conditions.match(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
 			
 			if (!str) {
 				return false;
@@ -1000,26 +1018,24 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			monster.worldMonsterCount = 0;
             for (it = monster.records.length - 1; it >= 0; it -= 1) {
 				cM = monster.records[it];
-                if (monster.damaged(cM)) {
+				if (cM.lMissing > 3) {
+					con.log(2, 'Deleting monster ' + cM.name + ' since not seen on monster list ' + cM.lMissing + ' times', cM);
+					monster.deleteItem(cM.md5);
+				} else if (monster.damaged(cM)) {
 					//con.log(2,'Review timer check', cM.name, cM.lMissing, typeof cM.lpage, typeof cM.lpage == 'undefined', schedule.since($u.setContent(cM.listReviewed, 0), 3 * 3600));
-					if (cM.lMissing > 3 || (typeof cM.lpage == 'undefined' && cM.listReviewed > 0 && schedule.since($u.setContent(cM.listReviewed, 0), 3 * 3600))) {
-						con.log(2, 'Deleting monster ' + cM.name + ' since not seen on monster list over three times', cM);
-						monster.deleteItem(cM.md5);
-					} else {
-						if (cM.charClass.length) {
-							if (cM.color !== 'grey' && schedule.since(cM.stunTime, 0)) {
-								con.log(2, "Review monster due to class timer", cM.name);
-								cM.review = -1;
-							}
+					if (cM.charClass.length) {
+						if (cM.color !== 'grey' && schedule.since(cM.stunTime, 0)) {
+							con.log(2, "Review monster due to class timer", cM.name);
+							cM.review = -1;
 						}
-						if (cM.link.indexOf('mpool=3') >= 0 && cM.link.indexOf('festival') < 0 && cM.status === 'Attack') {
-							monster.worldMonsterCount += 1;
-						}
-						//con.log(2, 'World Monster Count after ' + cM.name + ' = ' + monster.worldMonsterCount, cM);
-						cM.conditions = 'none';
-						whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
-						monsterList[whichList].push(cM.md5);
 					}
+					if (cM.link.indexOf('mpool=3') >= 0 && cM.link.indexOf('festival') < 0 && cM.status === 'Attack') {
+						monster.worldMonsterCount += 1;
+					}
+					//con.log(2, 'World Monster Count after ' + cM.name + ' = ' + monster.worldMonsterCount, cM);
+					cM.conditions = 'none';
+					whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
+					monsterList[whichList].push(cM.md5);
                 } else {
 					cM.conditions = feed.addConditions(cM) || cM.conditions;
 				}
@@ -1145,7 +1161,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 
 						if (cM.charClass.length) {
-							if (config.getItem("StrengthenTo100", true) && monster.characterClass[cM.charClass] && monster.characterClass[cM.charClass].hasIndexOf('Strengthen')) {
+							if (monster.characterClass[cM.charClass] && monster.characterClass[cM.charClass].hasIndexOf('Strengthen') && (config.getItem("StrengthenTo100", true) || cM.stunType == 'strengthen')) {
 								if (!firstStrengthUnderMax && cM.strength < 100) {
 									if (cM.over === 'ach') {
 										if (!firstStrengthOverAch) {
@@ -1178,10 +1194,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 // Now we use the first under max/under achievement that we found. If we didn't find any under
                 // achievement then we use the first over achievement
                 if (type !== 'raid') {
+                    stunTarget = $u.setContent(firstStunUnderMax, firstStunOverAch);
                     strengthTarget = $u.setContent(firstStrengthUnderMax, firstStrengthOverAch);
                     fortifyTarget = $u.setContent(firstFortUnderMax, firstFortOverAch);
-                    stunTarget = $u.setContent(firstStunUnderMax, firstStunOverAch);
-					target.fortify = stunTarget || fortifyTarget || strengthTarget;
+					target.fortify = stunTarget || strengthTarget || fortifyTarget;
                 }
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
@@ -1609,7 +1625,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                     }
 
-                    if (cM.link.length && which == 'Monster') {
+                    if (cM.link.length) {
                         removeLink = link.replace("casuser", "remove_list") + (cM.page === 'festival_battle_monster' ? '&remove_monsterKey=' + cM.mid.replace("&mid=", "") : '');
                         removeLinkInstructions = "Clicking this link will remove " + cM.name + " from CAAP. If still on your monster list, it will reappear when CAAP sees it again.";
                         data = {
@@ -1706,7 +1722,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     }
 
 					monster.deleteItem(monsterRemove.mmd5);
-                    //    caap.clickGetCachedAjax(monsterRemove.arlink);
                 };
 
                 $j("span[id*='caap_remove_']", caap.caapTopObject).off('click', handler).on('click', handler);

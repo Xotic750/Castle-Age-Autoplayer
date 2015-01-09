@@ -235,7 +235,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     general.getRecord = function (generalName, quiet) {
         try {
 			var result = false;
-            if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
+            if (!$u.isString(generalName)) {
                 con.warn("generalName", generalName);
                 throw "Invalid identifying generalName!";
             }
@@ -755,6 +755,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (general.getRecord("Zin", true) === false ? false : true) {
                     $j("div[id*='_zin_row']", caap.caapDivObject).css("display", "block");
                 }
+                if (general.getRecord("Misa", true) === false ? false : true) {
+                    $j("div[id*='_misa_row']", caap.caapDivObject).css("display", "block");
+                }
             }
             return true;
         } catch (err) {
@@ -878,31 +881,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var targetGeneral = '',
                 levelUp = general.LevelUpCheck(whichGeneral),
-                coolType = general.getCoolDownType(whichGeneral),
-                coolName = coolType ? config.getItem(coolType, '') : '',
-                coolRecord = coolName ? general.getRecord(coolName) : {},
                 zinRecord = general.getRecord("Zin", true),
-                zinReady = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats.stamina.num <= (caap.stats.stamina.max - 15) && zinRecord.charge === 100 : false,
-                coolZin = coolName === "Zin" ? caap.stats.stamina.num > (caap.stats.stamina.max - 15) : false,
-                useCool = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord.charge === 100,
-                zinFirst = config.getItem("useZinFirst", true),
-                thisAction = state.getItem('ThisAction', 'idle'),
-                zinAction = ["battle"];
+                misaRecord = general.getRecord("Misa", true),
+				useZinMisa = ['InvadeGeneral', 'DuelGeneral', 'MonsterGeneral'].hasIndexOf(whichGeneral),
+                useZin =  useZinMisa && config.getItem("useZinFirst", false) && zinRecord && !caap.inLevelUpMode()
+					&& caap.stats.stamina.num <= (caap.stats.stamina.max - 15) && zinRecord.charge === 100,
+                useMisa =  useZinMisa && config.getItem("useMisaFirst", false) && misaRecord && !caap.inLevelUpMode()
+					&& caap.stats.energy.num <= (caap.stats.energy.max - 30) && misaRecord.charge === 100,
+                coolType = general.getCoolDownType(whichGeneral),
+                coolName = useZin ? 'Zin' : useMisa ? 'Misa' : coolType ? config.getItem(coolType, '') : '',
+                coolRecord = general.getRecord(coolName, true),
+                useCool = coolName && coolRecord.charge === 100;
 
             if (general.records.length <= (caap.stats.level >= 100 ? 20 : 1)) {
                 con.log(1, "Generals count of " + general.records.length + " <= " + (caap.stats.level >= 100 ? 20 : 2) + ', checking Generals page');
                 return caap.navigateTo('generals');
             }
 
-            con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
-            con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
+            con.log(3, 'Cool', useCool, coolType, coolName, coolRecord);
+            con.log(3, 'Zin', useZin,  zinRecord);
             if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 con.log(2, 'Using level up general');
             }
 
             //Check what target general should be
-            targetGeneral = zinReady && zinFirst && zinAction.hasIndexOf(thisAction) ? "Zin" : useCool ? coolName : whichGeneral.indexOf('General') > 0 ? config.getItem(whichGeneral, whichGeneral) : whichGeneral;
+            targetGeneral = useCool ? coolName : whichGeneral.indexOf('General') > 0 ? config.getItem(whichGeneral, whichGeneral) : whichGeneral;
             //con.log(2, 'Select General ', whichGeneral, targetGeneral, coolName, config.getItem(whichGeneral, whichGeneral));
 
             if (targetGeneral == 'Use Current') {
@@ -1114,11 +1118,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 i = 0,
                 coolDown = '',
-                haveZin = general.getRecord("Zin", true) === false ? false : true,
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Generals', 'GENERALS');
-            htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
+            htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged and not levelling up then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', general.getRecord("Zin", true) ? "display: block;" : "display: none;");
+            htmlCode += caap.makeCheckTR("Use Misa First", 'useMisaFirst', true, 'If Misa is charged and not levelling up then use her first as long as you are 30 or less points from maximum energy.', false, false, '', '_misa_row', general.getRecord("Misa", true) ? "display: block;" : "display: none;");
             htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);

@@ -23,7 +23,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             'guildId': '',
             'ticker': '',
 			'collectedTime' : 0,
-			'enteredTime' : 0,
 			'lastBattleTime' : 0,
 			'startTime' : 0,
 			'endTime' : 0,
@@ -740,8 +739,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				//con.log(2, 'Battle has enter button', config.getItem('guild_battle_enter',false));
 				guild_battle.setItem(gf, fR);
 				return true;
-			} else {
-				fR.enteredTime = now;
 			}
 
 			if (schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60)) {
@@ -1200,7 +1197,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				stateMsg += ', and auto-match button pushed!';
 			} else if (fR.state == 'Active') {
 				guild_battle.deleterPage(fR, 'path', gf.startPath);
-				stateMsg = schedule.since(fR.enteredTime, gf.waitHours * 60 * 60) ? 'Not entered' : 'Entered Battle';
+				stateMsg = schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60) ? 'Not entered' : 'Entered Battle';
 				if (config.getItem(gf.abbrev + 'whenTokens','Never') != 'Never') {
 					if (stateMsg == 'Not entered') {
 						fR.paths = [];
