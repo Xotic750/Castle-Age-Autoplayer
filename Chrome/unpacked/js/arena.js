@@ -30,29 +30,22 @@
         htmlCode += caap.endToggle;
         return htmlCode;
     },
-    flagResult: false,
-    click: function (battleButton) {
+	
+    target: false,
+	
+    checkResults: function () {
         try {
-            session.setItem('ReleaseControl', true);
-            arena.flagResult = true;
-            caap.setDomWaiting("arena.php");
-            caap.click(battleButton);
-            return true;
-        } catch (err) {
-            con.error("ERROR in arena.click: " + err);
-            return false;
-        }
-    },
-    getResult: function () {
-        try {
-            var tempDiv       = $j(),
+            var battleRecord = {},
+                tempTime     = 0,
+                arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
+				tempDiv       = $j(),
+				resultsDiv = $j("#app_body div[style*='arena_arena_bg.jpg']");
                 tempText      = '',
                 tNum          = 0,
                 battleRecord  = {},
-                warWinLoseImg = '',
                 result        = {
                     userId     : 0,
-                    userName   : '',
+                    nameStr   : '',
                     battleType : '',
                     points     : 0,
                     gold       : 0,
@@ -60,108 +53,76 @@
                     hiding     : false,
                     unknown    : false
                 };
+                
+            state.setItem("arenaTokens", arenaTokens);
 
-            if ($u.hasContent($j("img[src*='battle_victory.gif']"))) {
-                warWinLoseImg = 'war_win_left.jpg';
-                result.win = true;
-            } else if ($u.hasContent($j("img[src*='battle_defeat.gif']"))) {
-                warWinLoseImg = 'war_lose_left.jpg';
-            } else {
-                result.unknown = true;
-                con.warn("Unable to determine won or lost!");
-                return result;
+            if (arenaTokens >= config.getItem("arenaTokenStart", 10)) {
+                con.log (2, "Arena Timer resetting");
+                schedule.setItem('arenaTimer', 0);
+            }
+            
+			tempDiv = $j("#app_body img[src*='orange_healthbar.jpg']");
+			session.setItem('arenaHealth', tempDiv.length ? tempDiv.parent().text().trim().regex(/(\d+)\/\d+/) : 0);
+			con.log(2, 'Arena Health: ' + session.getItem('arenaHealth', 0));
+
+            state.setItem("arenaBattleChainId", 0);
+
+            if (!arena.target) {
+                return true;
             }
 
-            if ($u.hasContent($j("input[src*='battle_invade_again.gif']"))) {
+            con.log(2, "Checking Battle Results");
+            arena.target = false;
+
+			tempText = $j('#results_main_wrapper').text().trim().regex(/Your opponent is too (high|low) level for you to engage in an arena battle with!/);
+			if (tempText) {
+				tempText = 'arenaLevel' + (tempText == 'low' ? 'Min' : 'Max');
+				tNum = Math.abs(arena.target.levelNum - caap.stats.level);
+				$j('#caap_' + tempText).val(tNum);
+				config.setItem(tempText, tNum);
+				con.log(1, 'Arena: reset ' + (tempText == 'low' ? 'min' : 'max') + ' level to ' + tNum + ', so avoiding targets ' + (tempText == 'low' ? 'under' : 'over') + ' '+ (caap.stats.level + tNum), tempText, tNum);
+				return false;
+			}
+			
+            if ($u.hasContent($j("img[src*='battle_victory.gif']", resultsDiv))) {
+                result.win = true;
+            } else if (!$u.hasContent($j("img[src*='battle_defeat.gif']", resultsDiv))) {
+                result.unknown = true;
+                con.warn("Unable to determine won or lost!");
+            }
+
+            if ($u.hasContent($j("input[src*='battle_invade_again.gif']", resultsDiv))) {
                 result.battleType = 'Invade';
-            } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']"))) {
+            } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']", resultsDiv))) {
                 result.battleType = 'Duel';
             } else {
-                if ($u.hasContent($j("img[src*='icon_weapon.gif']"))) {
+                if ($u.hasContent($j("img[src*='icon_weapon.gif']", resultsDiv))) {
                     result.battleType = 'Duel';
-                } else if ($u.hasContent($j("div[class='full_invade_results']"))) {
+                } else if ($u.hasContent($j("div[class='full_invade_results']", resultsDiv))) {
                     result.battleType = 'Invade';
                 }
             }
 
             if ($u.hasContent(result.battleType)) {
-                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                    tempDiv = $j("img[src*='arena_battlepoints']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
-                        if ($u.hasContent(tempText)) {
-                            tNum = tempText.regex(/(\d+)\s+Arena Points/i);
-                            if ($u.hasContent(tNum)) {
-                                result.points = tNum;
-                            } else {
-                                con.warn("Unable to match arena points", tempText);
-                            }
-                        } else {
-                            con.warn("Unable to find arena points text in tempDiv.parent().parent()");
-                        }
-                    } else {
-                        con.log(3, "Unable to find arena_battlepoints in $j('#app_body #results_main_wrapper')");
-                    }
+				result.points = resultsDiv.text().trim().innerTrim().regex(/You have \w+ (\d+) Arena Points/);
+				if ($u.hasContent(tNum)) {
+					result.points = tNum;
+				} else {
+					con.warn("Unable to match arena points", tempText);
+				}
 
-                    result.gold = 100000;   
-                    // don't really care about the gold
-                    /*tempDiv = $j("b[class*='gold']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
-                        if ($u.hasContent(tNum)) {
-                            result.gold = tNum;
-                        } else {
-                            con.warn("Unable to find gold text in tempDiv");
-                        }
-                    } else {
-                        con.warn("Unable to find gold element in $j('#app_body #results_main_wrapper')");
-                    }*/
-
-                    result.userId = state.getItem("lastArenaBattleID", 0);
-                    result.userId = $j('form[id*="fight_opp_"]')[0].children[0].value;
-                    result.userName = 'unknown';
+				result.gold = result.win == true ? 100000 : - 100000;   
+				result.userId = $j('form[id*="fight_opp_"]')[0].children[0].value;
                     
-                    // There is no link to target's keep 
-                    /*tempDiv = $j("a[href*='keep.php?casuser=']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.attr("href"), '');
-                        if ($u.hasContent(tempText)) {
-                            tNum = tempText.regex(/user=(\d+)/i);
-                            if ($u.hasContent(tNum)) {
-                                result.userId = tNum;
-                            } else {
-                                con.warn("Unable to match user's id in", tempText);
-                                throw "Unable to get userId!";
-                            }
-
-                            tempText = $u.setContent(tempDiv.text(), '').trim();
-                            if ($u.hasContent(tempText)) {
-                                result.userName = tempText;
-                            } else {
-                                con.warn("Unable to match user's name in", tempText);
-                            }
-                        } else {
-                            con.warn("No href text in tempDiv");
-                            throw "Unable to get userId!";
-                        }
-                    } else {
-                        con.warn("Unable to find keep.php?casuser= in $j('#app_body #results_main_wrapper')");
-                        throw "Unable to get userId!";
-                    }*/
-
-                } else {
-                    con.warn("Unable to find result div");
-                    throw "Unable to get userId!";
-                }
             } else {
                 con.warn("Unable to determine battle type");
                 throw "Unable to get userId!";
             }
             battleRecord = battle.getItem(result.userId);
             battleRecord.attackTime = Date.now();
-            if (result.userName && result.userName !== battleRecord.nameStr && result.userName !== 'unknown') {
-                con.log(1, "Updating battle record user name, from/to", battleRecord.nameStr, result.userName);
-                battleRecord.nameStr = result.userName;
+            if (result.nameStr && result.nameStr !== battleRecord.nameStr && result.nameStr !== 'unknown') {
+                con.log(1, "Updating battle record user name, from/to", battleRecord.nameStr, result.nameStr);
+                battleRecord.nameStr = result.nameStr;
             }
 
             if (result.win) {
@@ -197,47 +158,14 @@
             }
 
             battle.setItem(battleRecord);
-            return result;
-        } catch (err) {
-            con.error("ERROR in battle.getResult: " + err);
-            return false;
-        }
-    },
-    checkResults: function () {
-        try {
-            var battleRecord = {},
-                tempTime     = 0,
-                arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
-                result       = {};
-                
-            state.setItem("arenaTokens", arenaTokens);
 
-            if (arenaTokens >= config.getItem("arenaTokenStart", 10)) {
-                con.log (2, "Arena Timer resetting");
-                schedule.setItem('arenaTimer', 0);
-            }
-            
-            if (arenaTokens <= config.getItem("arenaTokenStop", 1)) {
-                con.log (2, "Not enough tokens");
-                schedule.setItem('arenaTimer', Math.max (config.getItem("arenaTokenStart", 1) - arenaTokens, 0) * 5 * 60);
-            }
-
-            if (!arena.flagResult) {
-                return true;
-            }
-
-            con.log(2, "Checking Battle Results");
-            arena.flagResult = false;
-            state.setItem("arenaBattleChainId", 0);
-
-            result = arena.getResult();
             if (!result || result.hiding === true) {
                 return true;
             }
 
             if (result.unknown === true) {
                 if (state.getItem("lastArenaBattleID", 0)) {
-                    battleRecord = battle.getItem(arena.getItem("lastArenaBattleID", 0));
+                    battleRecord = battle.getItem(state.getItem("lastArenaBattleID", 0));
                     battleRecord.unknownTime = Date.now();
                     battle.getItem(battleRecord);
                 }
@@ -247,12 +175,11 @@
 
             battleRecord = battle.getItem(result.userId);
             if (result.win) {
-                con.log(1, "We Defeated ", result.userName, "Battle Points: " + result.points + ", Gold: " + result.gold);
-                //Test if we should chain this guy
+                con.log(1, "We Defeated " + battleRecord.nameStr + " Battle Points: " + result.points, result, battleRecord);
                 state.setItem("arenaBattleChainId", result.userId);
-                con.log(1, "Chain Attack:", result.userId, "Battle Points: " + result.points);
+				session.setItem('ReleaseControl', false);
             } else {
-                con.log(1, "We Were Defeated By ", result.userName);
+                con.log(1, "We Were Defeated By " + battleRecord.nameStr, result, battleRecord);
                 battleRecord.chainCount = 0;
                 battleRecord.chainTime = 0;
             }
@@ -266,208 +193,191 @@
     },
 
     battle: function () {
-        var minLevel = 0,
-            maxLevel = 0,
-            minRank = 0,
-            maxRank = 0,
-            useGeneral = '';
-        if(caap.navigateTo('arena', 'battle_tab_arena_on.jpg')) {
-            return true;
-        }
+		try {
+			var useGeneral = 'DuelGeneral',
+				tempDiv = $j(),
+				chainID = state.getItem("arenaBattleChainId", false),
+				v = {
+					arenaMaxLevel : 99999,
+					arenaMinLevel : 99999,
+					arenaMaxRank : 8,
+					arenaMinRank : 0,
+					arenaArmyMax : 999999
+				};
+			
+			session.setItem('ReleaseControl', true);
 
-        var inputDiv = $j("div[style*='arena_infobar']"),
-            arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
-            battleRecord      = {},
-            levelMultiplier   = 0,
-            lastArenaBattleID = 0,
-            safeTargets       = [];
+			if (caap.navigate2('@' +  useGeneral + ',arena')) {
+				return true;
+			}
 
-        state.setItem("arenaTokens", arenaTokens);
+			var inputDiv = $j("div[style*='arena_infobar']"),
+				arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
+				battleRecord      = {},
+				levelMultiplier   = 0,
+				safeTargets       = [];
 
-        if (arenaTokens <= config.getItem("arenaTokenStop", 1)) {
-            con.log (2, "Not enough tokens");
-            schedule.setItem('arenaTimer', Math.max (config.getItem("arenaTokenStart", 1) - config.getItem("arenaTokenStop", 1), 0) * 5 * 60);
-            return true;
-        }
+			state.setItem("arenaTokens", arenaTokens);
 
-        inputDiv.each(function (index) {
-            var tr         = $j(),
-                levelm     = [],
-                tempTxt    = '',
-                tNum       = 0,
-                tempTime   = -1,
-                i          = 0,
-                len        = 0,
-                tempRecord = new battle.record();
-            levelMultiplier = caap.stats.level / (tempRecord.data.levelNum > 0 ? tempRecord.data.levelNum : 1);
-            tempRecord.data.nameStr = inputDiv[index].children[1].children[0].innerHTML.trim();
-            tempRecord.data.levelNum = /\d+/.exec(inputDiv[index].children[1].children[1].innerHTML)[0];
-            tempRecord.data.rankStr = inputDiv[index].children[1].children[2].innerHTML.trim();
-            tempRecord.data.arenaRankNum = /\d+/.exec(inputDiv[index].children[1].children[2].innerHTML)[0];
-            tempRecord.data.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
-            tempRecord.data.armyNum = Math.min (501, inputDiv[index].children[2].innerHTML.trim());  // arena doesn't list the army size capped at 501
+			if (session.getItem('arenaHealth', 0) === 0 && arenaTokens < 9) {
+				schedule.setItem('arenaTimer', 5 * 60);
+				return false;
+			}
+			
+			tempDiv = $j("input[src*='battle_duel_again.gif']:first");
+			if (chainID && tempDiv.length && arenaTokens > 0) {
+                con.log(1, "Chain Attacking " + chainID);
+				caap.click(tempDiv);
+				return true;
+			}
 
-            tempRecord.data.button = $j("input[src*='arena_invade_btn']", inputDiv[index]);
-            battleRecord = battle.getItem(tempRecord.data.userId);
-//          switch (config.getItem("ArenaBattleType", 'Invade')) {
-            switch ('Duel') {
-            case 'Invade' :
-                useGeneral = 'InvadeGeneral';
-                tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
-                tempRecord.data.button = $j("input[src*='arena_invade_btn']", inputDiv[index]);
-                break;
-            case 'Duel' :
-                useGeneral = 'DuelGeneral';
-                tempTime = $u.setContent(battleRecord.duelLostTime, 0);
-                tempRecord.data.button = $j("input[src*='arena_duel_btn']", inputDiv[index]);
-                break;
-            default :
-                con.warn("Battle type unknown!", config.getItem("ArenaBattleType", 'Invade'));
-            }
-            if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
-                con.log(1, "We lost " + config.getItem("arenaBattleType", 'Invade') + " to this id this week: ", tempRecord.data.userId);
-                return true;
-            }
+			if (arenaTokens <= config.getItem("arenaTokenStop", 1) ) {
+				schedule.setItem('arenaTimer', Math.max (config.getItem("arenaTokenStart", 1) - config.getItem("arenaTokenStop", 1), 0) * 5 * 60);
+				return false;
+			}
+			
+			$.each(v, function(index, value) {
+				var temp = config.getItem(value, v[value]);
+				if ($u.isNaN(temp) && temp !== '') {
+					con.warn(value + " is not a number, using default of " + v[value], temp);
+					v[value] = v[value];
+				}
+				v[value] = temp == '' ? v[value] : temp;
+			}); 
+			
+			inputDiv.each(function (index) {
+				var thisDiv    = $j(this),
+					tempTime   = -1,
+					tR = new battle.record().data; // temp record
+				
+				// regexDivToRecord broken into two parts because double-byte char names can cause regex match to fail
+				caap.regexDivToRecord(thisDiv, tR, /(.*) level: \d+ .+ \(Rank \d\) \d+/,
+					['nameStr']);
+				caap.regexDivToRecord(thisDiv, tR, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/,
+					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
+				tR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
+				levelMultiplier = caap.stats.level / (tR.levelNum || 1);
 
-            maxLevel = config.getItem("arenaLevelMax", 99999);
-            con.log(3, "arenaLevelMax", maxLevel);
-            if (maxLevel === '' || $u.isNaN(maxLevel)) {
-                if (maxLevel !== '') {
-                    con.warn("arenaLevelMax is NaN, using default", maxLevel);
-                }
+				tR.button = $j("input[src*='arena_invade_btn']", thisDiv);
+				battleRecord = battle.getItem(tR.userId);
+	//          switch (config.getItem("ArenaBattleType", 'Invade')) {
+				switch ('Duel') {
+				case 'Invade' :
+					tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
+					tR.button = $j("input[src*='arena_invade_btn']", thisDiv);
+					break;
+				case 'Duel' :
+					tempTime = $u.setContent(battleRecord.duelLostTime, 0);
+					tR.button = $j("input[src*='arena_duel_btn']", thisDiv);
+					break;
+				default :
+					con.warn("Battle type unknown!", config.getItem("ArenaBattleType", 'Invade'));
+				}
+				
+				if (!$u.isDefined(tR.button)) {
+					con.warn("No target button", tR);
+					return true;
+				}
+				
+				if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
+					con.log(1, "We lost " +'Duel' + " to this id this week: ", tR.userId);
+					return true;
+				}
 
-                maxLevel = 99999;
-            }
+				if (tR.levelNum > caap.stats.level + v.arenaMaxLevel) {
+					con.log(2, "Target level " + tR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaMaxLevel), tR);
+					return true;
+				}
 
-            minLevel = config.getItem("arenaLevelMin", 99999);
-            con.log(3, "arenaLevelMin", minLevel);
-            if (minLevel === '' || $u.isNaN(minLevel)) {
-                if (minLevel !== '') {
-                    con.warn("arenaLevelMin is NaN, using default", minLevel);
-                }
+				if (tR.levelNum < caap.stats.level - v.arenaMinLevel) {
+					con.log(2, "Target level " + tR.levelNum + " below min level of " + (caap.stats.level - v.arenaMinLevel), tR);
+					return true;
+				}
 
-                minLevel = 99999;
-            }
+				if (tR.arenaRankNum > v.arenaMaxRank) {
+					con.log(2, "Rank of " + tR.arenaRankNum + " over max rank " + v.arenaMaxRank, tR);
+					return true;
+				}
 
-            maxRank = config.getItem("arenaRankMax", 8);
-            con.log(3, "arenaRankMax", maxRank);
-            if (maxRank === '' || $u.isNaN(maxRank)) {
-                if (maxRank !== '') {
-                    con.warn("arenaRankMax is NaN, using default", maxRank);
-                }
+				if (tR.arenaRankNum < v.arenaMinRank) {
+					con.log(2, "Rank of " + tR.arenaRankNum + " under min rank " + v.arenaMinRank, tR);
+					return true;
+				}
 
-                maxRank = 8;
-            }
+				if (v.arenaArmyMax < tR.armyNum) {
+					con.log(2, "Army of " + tR.armyNum + " is over max of " + v.arenaArmyMax, tR);
+					return true;
+				}
+				
+				if (state.getItem("lastArenaBattleID", 0) === tR.userId && !state.getItem ('arenaBattleChainId', 0) === tR.userId) {
+					return true;
+				}
 
-            minRank = config.getItem("arenaRankMin", 0);
-            con.log(3, "arenaRankMin", minRank);
-            if (minRank === '' || $u.isNaN(minRank)) {
-                if (minRank !== '') {
-                    con.warn("arenaRankMin is NaN, using default", minRank);
-                }
+				switch ('Duel') {
+				case 'Invade' :
+					tR.score = tR.arenaRankNum - (tR.armyNum / levelMultiplier / caap.stats.army.capped);
+					break;
+				case 'Duel' :
+					tR.score = tR.arenaRankNum * Math.min((caap.stats.bonus.api / tR.levelNum / 10 * 100).dp(1), 100) - tR.armyNum / 5000;
+					break;
+				default :
+					tR.score = tR.arenaRankNum - (tR.armyNum / levelMultiplier / caap.stats.army.capped);
+				}
 
-                minRank = 0;
-            }
+				tR.targetNumber = index + 1;
+				safeTargets.push(tR);
+				tempRecord = null;
+				con.log(2, 'Arena ' + tR.nameStr + ' level ' +  tR.levelNum + ' rank ' + tR.rankStr + ' ' + tR.arenaRankNum + ' ' + tR.userId + ' army ' + tR.armyNum + ' mult ' + levelMultiplier.dp(2) + ' score ' + tR.score.dp(2), tR);
+			});
 
-            if (tempRecord.data.levelNum - caap.stats.level > maxLevel) {
-                con.log(2, "Exceeds relative maxLevel", {'level': tempRecord.data.levelNum, 'levelDif': tempRecord.data.levelNum - caap.stats.level, 'maxLevel': maxLevel});
-                return true;
-            }
+			if (safeTargets.length == 0) {
+				con.log (1, "No valid targets right now, try again in two minutes");
+				schedule.setItem('arenaTimer', 2 * 60);
+				return false;
+			}
+			
+			safeTargets.sort($u.sortBy(true, "score"));
+			tR = safeTargets[0];
 
-            if (caap.stats.level - tempRecord.data.levelNum > minLevel) {
-                con.log(2, "Exceeds relative minLevel", {'level': tempRecord.data.levelNum, 'levelDif': caap.stats.level - tempRecord.data.levelNum, 'minLevel': minLevel});
-                return true;
-            }
+			con.log(2, 'Found Target #' + tR.targetNumber + ' ' + tR.nameStr + ' level ' +  tR.levelNum + ' Rank ' + tR.arenaRankNum + ' army ' + tR.armyNum + ' Score: ' + tR.score.dp(2), tR, safeTargets);
 
-            if (tempRecord.data.arenaRankNum > maxRank) {
-                con.log(2, "This guy's rank is too big ", {'Rank': tempRecord.data.arenaRankNum, 'maxRank': maxRank});
-                return true;
-            }
+			arena.target = tR;
+			caap.click(tR.button);
 
-            if (tempRecord.data.arenaRankNum < minRank) {
-                con.log(2, "This guy's rank is too small ", {'Rank': tempRecord.data.arenaRankNum, 'minRank': minRank});
-                return true;
-            }
+			delete tR.score;
+			delete tR.targetNumber;
+			delete tR.button;
+			battleRecord = battle.getItem(tR.userId);
+			if (battleRecord.newRecord) {
+				state.setItem("lastArenaBattleID", tR.userId);
+				$j.extend(true, battleRecord, tR);
+				battleRecord.newRecord = false;
+			} else {
+				for (itx in tR) {
+					if (tR.hasOwnProperty(itx)) {
+						if (!$u.hasContent(battleRecord[itx] && $u.hasContent(tR[itx]))) {
+							battleRecord[itx] = tR[itx];
+						}
 
-            if (config.getItem("arenaArmyMax", 501) < tempRecord.data.armyNum) {
-                con.log(2, "This guy's army is too big (" + tempRecord.data.armyNum + "): ", tempRecord.data.userId);
-                return true;
-            }
+						if ($u.hasContent(tR[itx]) && $u.isString(tR[itx]) && battleRecord[itx] !== tR[itx]) {
+							battleRecord[itx] = tR[itx];
+						}
 
-            switch (config.getItem("ArenaBattleType", 'Invade')) {
-            case 'Invade' :
-                tempRecord.data.score = tempRecord.data.arenaRankNum - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
-            case 'Duel' :
-                tempRecord.data.score = tempRecord.data.arenaRankNum - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
-            default :
-                tempRecord.data.score = tempRecord.data.arenaRankNum - (tempRecord.data.armyNum / levelMultiplier / caap.stats.army.capped);
-            }
+						if ($u.hasContent(tR[itx]) && $u.isNumber(tR[itx]) && battleRecord[itx] < tR[itx]) {
+							battleRecord[itx] = tR[itx];
+						}
+					}
+				}
+			}
+			battleRecord.aliveTime = Date.now();
 
-            tempRecord.data.targetNumber = index + 1;
-            safeTargets.push(tempRecord.data);
-            tempRecord = null;
-
-            return true;
-        });
-        safeTargets.sort($u.sortBy(true, "score"));
-
-        lastArenaBattleID = state.getItem("lastArenaBattleID", 0);
-        if (safeTargets.length == 0) {
-            con.log (1, "No valid targets right now, try again in a few minutes");
-            schedule.setItem('arenaTimer', 5 * 60);
-            return true;
-        }
-        for (it = 0, len = safeTargets.length; it < len; it += 1) {
-            if (!lastArenaBattleID && lastArenaBattleID === safeTargets[it].userId && !state.getItem ('arenaBattleChainId', 0) === safeTargets[it].userId) {
-                continue;
-            }
-
-            if ($u.isDefined(safeTargets[it].button)) {
-                con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
-
-                //removing changing general since generates infinite loops
-/*
-                con.log (1, "changing general", useGeneral);
-                if(general.Select(useGeneral)) {
-                    return true;
-                }
-                con.log (1, "done general");
-*/
-                arena.click(safeTargets[it].button);
-
-                delete safeTargets[it].score;
-                delete safeTargets[it].targetNumber;
-                delete safeTargets[it].button;
-                battleRecord = battle.getItem(safeTargets[it].userId);
-                if (battleRecord.newRecord) {
-                    state.setItem("lastArenaBattleID", safeTargets[it].userId);
-                    $j.extend(true, battleRecord, safeTargets[it]);
-                    battleRecord.newRecord = false;
-                    battleRecord.aliveTime = Date.now();
-                } else {
-                    battleRecord.aliveTime = Date.now();
-                    for (itx in safeTargets[it]) {
-                        if (safeTargets[it].hasOwnProperty(itx)) {
-                            if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
-                                battleRecord[itx] = safeTargets[it][itx];
-                            }
-
-                            if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
-                                battleRecord[itx] = safeTargets[it][itx];
-                            }
-
-                            if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
-                                battleRecord[itx] = safeTargets[it][itx];
-                            }
-                        }
-                    }
-                }
-
-                battle.setItem(battleRecord);
-                caap.setDivContent('battle_mess', 'Attacked: ' + lastArenaBattleID);
-                state.setItem("notSafeCount", 0);
-                return true;
-            }
+			battle.setItem(battleRecord);
+			caap.setDivContent('battle_mess', 'Arena: Attacked ' + tR.nameStr + ' level ' +  tR.levelNum);
+			state.setItem("notSafeCount", 0);
+			return true;
+        } catch (err) {
+            con.error("ERROR in arena.battle: " + err.stack);
+            return false;
         }
     }
 };

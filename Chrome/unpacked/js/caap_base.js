@@ -370,22 +370,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
-        "festival.records": {
-            "get": function () {
-                return festival.records;
-            },
-
-            "set": function (value) {
-                festival.records = value;
-            },
-
-            "save": function (src) {
-                festival.save(src);
-            },
-
-            "loaded": false
-        },
-
         "general.records": {
             "get": function () {
                 return general.records;
@@ -2238,7 +2222,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 guild_monster.load();
                 guild_battle.load();
                 //arena.load();
-                festival.load();
                 feed.load();
                 battle.load();
                 conquest.load();
@@ -2303,6 +2286,29 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.regexDivToRecord = function (div, record, regex, array) {
+        try {
+            var text = $u.setContent(div.text().trim().innerTrim(), ''),
+				args = text.regex(regex);
+			
+			args = $u.isArray(args) ? args : [args];
+			if (!args || args.length != array.length) {
+				con.warn('Invalid match for regex expression in div text', text, regex, args, array);
+				return false;
+			}
+			
+			array.forEach( function(entry, index) {
+				record[entry] = args[index];
+			});
+			
+			//con.log(2, 'Regex div text to record', text, regex, array, record);
+			return true;
+        } catch (err) {
+            con.error("ERROR in regexDivToRecord: " + err + ' ' + err.stack);
+            return undefined;
+        }
+    };
+	
     caap.minMaxArray = function (array, minMax, lowerBound, upperBound) {
         try {
 			var result;
@@ -2733,7 +2739,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             htmlCode += caap.addAutoOptionsMenu();
-            htmlCode += caap.addFestivalOptionsMenu();
             htmlCode += caap.addConquestOptionsMenu();
             htmlCode += caap.addEssenceMenu();
             htmlCode += town.menu();
@@ -3016,6 +3021,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Defense performs an automatic daily blessing with Corvintheus.',
                     'Health performs an automatic daily blessing with Aurora.',
                     'Stamina performs an automatic daily blessing with Azeron.'],
+				festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army', 'All'],
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
@@ -3048,26 +3054,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTextBox('kobo_blacklist', autoKoboBlackListInstructions, '', '');
             htmlCode += caap.endCheckHide('autoKoboUseBlackList');
             htmlCode += caap.endCheckHide('AutoKobo');
+            htmlCode += caap.makeDropDownTR("Festival Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
             con.error("ERROR in addAutoOptionsMenu: " + err.stack);
-            return '';
-        }
-    };
-
-    caap.addFestivalOptionsMenu = function () {
-        try {
-            // Other controls
-            var festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army', 'All'],
-                htmlCode = '';
-
-            htmlCode += caap.startToggle('FestivalOptions', 'FESTIVAL OPTIONS');
-            htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
-            htmlCode += caap.endToggle;
-            return htmlCode;
-        } catch (err) {
-            con.error("ERROR in addFestivalOptionsMenu: " + err.stack);
             return '';
         }
     };
@@ -4845,8 +4836,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     $j(document).on('DOMSubtreeModified', '#globalContainer #health_time_value', caap.healthTimeListener);
                 }
 
-                festival.addListeners();
-
                 $j(document).on('DOMNodeInserted', '#globalContainer', function (event) {
                     var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
                         page = $j('#globalContainer .game').eq(0).attr("id"),
@@ -5172,7 +5161,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guildConquestMarket'
         },
         'arena' : {
-            signatureId : 'arena_homemid.jpg',
+            signatureId : 'battle_tab_arena_on.jpg',
             CheckResultsFunction : 'checkResults_arenaBattle'
         },
         'player_loadouts' : {
