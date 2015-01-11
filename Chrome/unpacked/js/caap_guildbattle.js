@@ -73,15 +73,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.guild_battle = function() {
+    caap.checkResults_festival_battle_home = function () {
         try {
-			if (guild_battle.path) {
-				con.log(2, "Guild Battle path", guild_battle.path);
-			} else {
-				con.log(2, "Guild Battle no work to do");
-			}
+			var fR = guild_battle.getItem(guild_battle.gf.festival);
+			//caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
+			fR.state = !caap.hasImage('festival_arena_enter.jpg') ? 'No battle' : fR.state;
+			guild_battle.setrPage(fR, 'index', 'review', 0);
+			
         } catch (err) {
-            con.error("ERROR in caap.guild_battle: " + err.stack);
+            con.error("ERROR in checkResults_festival_battle_home: " + err);
+            return false;
+        }
+    };
+
+    caap.checkResults_festival_guild_battle = function () {
+        try {
+			guild_battle.onBattle(guild_battle.gf.festival);
+            // return festival.checkResults_festival_guild_battle();
+        } catch (err) {
+            con.error("ERROR in checkResults_festival_guild_battle: " + err);
             return false;
         }
     };

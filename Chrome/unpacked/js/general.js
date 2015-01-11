@@ -326,6 +326,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.BuildLists = function () {
         try {
+            if (!caap.oneMinuteUpdate('generalBuildLists')) {
+                return false;
+            }
+			
             var it = 0,
                 len = 0,
                 fullList = [],

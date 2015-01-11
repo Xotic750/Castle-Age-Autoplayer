@@ -44,8 +44,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.ifClick = function (obj) {
         try {
-            if ($u.hasContent(obj)) {
-				return caap.click(obj);
+			if (!$u.isObject(obj) || !obj.jquery) {
+				con.warn('Invalid jquery passed to caap.ifClick', obj);
+				return false;
+			}
+            if (obj.length) {
+				caap.click(obj);
+				return true;
             }
             return false;
         } catch (err) {

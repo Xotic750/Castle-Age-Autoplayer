@@ -108,7 +108,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guild_monster.dashboard();
             guild_battle.dashboard();
             //arena.AddArenaDashboard();
-            festival.dashboard();
             feed.dashboard();
             army.dashboard();
             battle.dashboard();

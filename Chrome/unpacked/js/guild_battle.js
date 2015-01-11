@@ -827,7 +827,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(2,' IN TOWER');
 				fR.simtis = !$u.isString(fR.me.tower) ? false : towerPops[fR.me.tower - 1] < fR.your.towers[fR.me.tower].players;
 			} else {
-				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2;
+				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2 && !schedule.since(fR.endTime, -8 * 60 );
 				//con.log(2,'EASY',fR.easy, sealedTowers + (fR.guildHealth > fR.enemyHealth + 20), sealedTowers, towerPops);
 			}
 			
@@ -1383,7 +1383,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
     guild_battle.dashboard = function() {
 		guild_battle.dashboardWork(guild_battle.gf.guild_battle);
-		guild_battle.dashboardWork(guild_battle.gf.tenVten);
+		guild_battle.dashboardWork(guild_battle.gf.tenVten)
+		guild_battle.dashboardWork(guild_battle.gf.festival);
 	};
 
     guild_battle.dashboardWork = function(gf) {
