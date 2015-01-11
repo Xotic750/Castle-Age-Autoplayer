@@ -198,10 +198,10 @@
 				tempDiv = $j(),
 				chainID = state.getItem("arenaBattleChainId", false),
 				v = {
-					arenaMaxLevel : 99999,
-					arenaMinLevel : 99999,
-					arenaMaxRank : 8,
-					arenaMinRank : 0,
+					arenaLevelMax : 99999,
+					arenaLevelMin : 99999,
+					arenaRankMax : 8,
+					arenaRankMin : 0,
 					arenaArmyMax : 999999
 				};
 			
@@ -236,13 +236,13 @@
 				return false;
 			}
 			
-			$.each(v, function(index, value) {
-				var temp = config.getItem(value, v[value]);
+			$j.each(v, function(index, value) {
+				var temp = config.getItem(index, value);
 				if ($u.isNaN(temp) && temp !== '') {
-					con.warn(value + " is not a number, using default of " + v[value], temp);
-					v[value] = v[value];
+					con.warn(index + " is not a number, using default of " + value, temp);
+					v[index] = value;
 				}
-				v[value] = temp == '' ? v[value] : temp;
+				v[index] = temp == '' ? value : temp;
 			}); 
 			
 			inputDiv.each(function (index) {
@@ -284,23 +284,23 @@
 					return true;
 				}
 
-				if (tR.levelNum > caap.stats.level + v.arenaMaxLevel) {
-					con.log(2, "Target level " + tR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaMaxLevel), tR);
+				if (tR.levelNum > caap.stats.level + v.arenaLevelMax) {
+					con.log(2, "Target level " + tR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaLevelMax), tR);
 					return true;
 				}
 
-				if (tR.levelNum < caap.stats.level - v.arenaMinLevel) {
-					con.log(2, "Target level " + tR.levelNum + " below min level of " + (caap.stats.level - v.arenaMinLevel), tR);
+				if (tR.levelNum < caap.stats.level - v.arenaLevelMin) {
+					con.log(2, "Target level " + tR.levelNum + " below min level of " + (caap.stats.level - v.arenaLevelMin), tR);
 					return true;
 				}
 
-				if (tR.arenaRankNum > v.arenaMaxRank) {
-					con.log(2, "Rank of " + tR.arenaRankNum + " over max rank " + v.arenaMaxRank, tR);
+				if (tR.arenaRankNum > v.arenaRankMax) {
+					con.log(2, "Rank of " + tR.arenaRankNum + " over max rank " + v.arenaRankMax, tR);
 					return true;
 				}
 
-				if (tR.arenaRankNum < v.arenaMinRank) {
-					con.log(2, "Rank of " + tR.arenaRankNum + " under min rank " + v.arenaMinRank, tR);
+				if (tR.arenaRankNum < v.arenaRankMin) {
+					con.log(2, "Rank of " + tR.arenaRankNum + " under min rank " + v.arenaRankMin, tR);
 					return true;
 				}
 
