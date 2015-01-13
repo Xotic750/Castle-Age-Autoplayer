@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////
+/////////////////////////////7///////////////////////////////////////
 //                          ARENA OBJECT
 // this is the main object for dealing with Arena IX
 /////////////////////////////////////////////////////////////////////
@@ -15,6 +15,7 @@
         ]
         MaxLevelInstructions = "This sets the highest relative level, above yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you would code 20.",
         MinLevelInstructions = "This sets the lowest relative level, below yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent below level 60, you would code 40.",
+		revengeInstructions = "Put a number here to attack targets that you have beaten from your Battle Feed. This will take priority over searching for targets on the Arena Page, and will only attack targets that give at least this number. For instance, if you only wanted to attack opponents that give 100 points, put 100 here.",
 
         htmlCode = caap.startToggle('Arena', 'ARENA');
         htmlCode += caap.makeCheckTR('Enable Arena Battles', 'enableArena', false, '');
@@ -26,6 +27,7 @@
         htmlCode += caap.makeNumberFormTR("Opponent's Rank Max", 'arenaRankMax', '', '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Level Min", 'arenaLevelMin', MinLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Level Max", 'arenaLevelMax', MaxLevelInstructions, '', '', '', true, false);
+        htmlCode += caap.makeNumberFormTR("Revenge point limit", 'arenaRevengePoints', revengeInstructions, '', '', '', true, false);
         htmlCode += caap.makeTD("<input type='button' id='caap_ArenaNow' value='Fight!' style='padding: 0; font-size: 10px; height: 18px' />");
         htmlCode += caap.endToggle;
         return htmlCode;
@@ -35,22 +37,19 @@
 	
     checkResults: function () {
         try {
-            var battleRecord = {},
+            var bR = false, //battle record
                 tempTime     = 0,
                 arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
-				tempDiv       = $j(),
+				resultText 	= $j('#results_main_wrapper').text().trim().innerTrim(),
 				resultsDiv = $j("#app_body div[style*='arena_arena_bg.jpg']");
+				tempDiv = $j("#app_body img[src*='orange_healthbar.jpg']"),
                 tempText      = '',
                 tNum          = 0,
-                battleRecord  = {},
                 result        = {
-                    userId     : 0,
-                    nameStr   : '',
                     battleType : '',
                     points     : 0,
                     gold       : 0,
                     win        : false,
-                    hiding     : false,
                     unknown    : false
                 };
                 
@@ -61,29 +60,46 @@
                 schedule.setItem('arenaTimer', 0);
             }
             
-			tempDiv = $j("#app_body img[src*='orange_healthbar.jpg']");
 			session.setItem('arenaHealth', tempDiv.length ? tempDiv.parent().text().trim().regex(/(\d+)\/\d+/) : 0);
-			con.log(2, 'Arena Health: ' + session.getItem('arenaHealth', 0));
 
-            state.setItem("arenaBattleChainId", 0);
+            if (arena.target) {
+				con.log(2, "Checking Battle Results");
+				bR = arena.target;
+				arena.target = false;
 
-            if (!arena.target) {
-                return true;
+				if (resultText.length) {
+					tempText = resultText.regex(/Your opponent is too (high|low) level for you to engage in an arena battle with!/);
+					if (tempText) {
+						tempText = 'arenaLevel' + (tempText == 'low' ? 'Min' : 'Max');
+						tNum = Math.abs(bR.levelNum - caap.stats.level);
+						$j('#caap_' + tempText).val(tNum);
+						config.setItem(tempText, tNum);
+						con.log(1, 'Arena: reset ' + (tempText == 'low' ? 'min' : 'max') + ' level to ' + tNum + ', so avoiding targets ' + (tempText == 'low' ? 'under' : 'over') + ' '+ (caap.stats.level + tNum), tempText, tNum);
+						bR.arenaInvalid = true;
+						battle.setItem(bR);
+						return false;
+					} else if (resultText.regex(/Out Of Health/)) {
+						con.log(1, 'Arena target ' + bR.nameStr + ' is hiding', bR);
+						bR.arenaDeadTime = Date.now();
+						battle.setItem(bR);
+						return false;
+					} else if (resultText.regex(/Out Of Tokens/)) {
+						con.log(1, 'Unable to hit ' + bR.nameStr + ' because out of tokens', bR);
+						return false;
+					} else {
+						con.warn('Arena unknown message: ' + resultText);
+					}
+				}
             }
-
-            con.log(2, "Checking Battle Results");
-            arena.target = false;
-
-			tempText = $j('#results_main_wrapper').text().trim().regex(/Your opponent is too (high|low) level for you to engage in an arena battle with!/);
-			if (tempText) {
-				tempText = 'arenaLevel' + (tempText == 'low' ? 'Min' : 'Max');
-				tNum = Math.abs(arena.target.levelNum - caap.stats.level);
-				$j('#caap_' + tempText).val(tNum);
-				config.setItem(tempText, tNum);
-				con.log(1, 'Arena: reset ' + (tempText == 'low' ? 'min' : 'max') + ' level to ' + tNum + ', so avoiding targets ' + (tempText == 'low' ? 'under' : 'over') + ' '+ (caap.stats.level + tNum), tempText, tNum);
-				return false;
-			}
 			
+			tempDiv = $j("form[onsubmit*='arena.php']", resultsDiv).has("input[src*='battle_duel_again.gif']")
+			bR = tempDiv.length ? battle.getItem($j(tempDiv).find("input[name='target_id']").attr('value')) : bR;
+			if (!bR) {
+				con.log(2, 'No duel again button and no previous target, so not processing for win/loss', bR);
+				return;
+			}
+			con.log(2, 'Attacked ' + bR.nameStr, bR);
+
             if ($u.hasContent($j("img[src*='battle_victory.gif']", resultsDiv))) {
                 result.win = true;
             } else if (!$u.hasContent($j("img[src*='battle_defeat.gif']", resultsDiv))) {
@@ -104,90 +120,41 @@
             }
 
             if ($u.hasContent(result.battleType)) {
-				result.points = resultsDiv.text().trim().innerTrim().regex(/You have \w+ (\d+) Arena Points/);
-				if ($u.hasContent(tNum)) {
-					result.points = tNum;
-				} else {
+				result.points = caap.regexDiv(resultsDiv, /You have .* \+?(\d+) Arena Points/);
+				if (!$u.hasContent(result.points)) {
 					con.warn("Unable to match arena points", tempText);
 				}
-
 				result.gold = result.win == true ? 100000 : - 100000;   
-				result.userId = $j('form[id*="fight_opp_"]')[0].children[0].value;
                     
             } else {
                 con.warn("Unable to determine battle type");
-                throw "Unable to get userId!";
+                throw "Unable to determine battle type!";
             }
-            battleRecord = battle.getItem(result.userId);
-            battleRecord.attackTime = Date.now();
-            if (result.nameStr && result.nameStr !== battleRecord.nameStr && result.nameStr !== 'unknown') {
-                con.log(1, "Updating battle record user name, from/to", battleRecord.nameStr, result.nameStr);
-                battleRecord.nameStr = result.nameStr;
-            }
-
-            if (result.win) {
-                battleRecord.statswinsNum += 1;
-            } else {
-                battleRecord.statslossesNum += 1;
-            }
-
-            switch (result.battleType) {
-            case 'Invade' :
-                if (result.win) {
-                    battleRecord.invadewinsNum += 1;
-                    battleRecord.ibp += result.points;
-                } else {
-                    battleRecord.invadelossesNum += 1;
-                    battleRecord.ibp -= result.points;
-                    battleRecord.invadeLostTime = Date.now();
-                }
-
-                break;
-            case 'Duel' :
-                if (result.win) {
-                    battleRecord.duelwinsNum += 1;
-                    battleRecord.dbp += result.points;
-                } else {
-                    battleRecord.duellossesNum += 1;
-                    battleRecord.dbp -= result.points;
-                    battleRecord.duelLostTime = Date.now();
-                }
-                break;
-            default :
-                con.warn("Battle type unknown!", result.battleType);
-            }
-
-            battle.setItem(battleRecord);
-
-            if (!result || result.hiding === true) {
-                return true;
-            }
+            bR.attackTime = Date.now();
+			bR.arenaTotal += result.points;
 
             if (result.unknown === true) {
-                if (state.getItem("lastArenaBattleID", 0)) {
-                    battleRecord = battle.getItem(state.getItem("lastArenaBattleID", 0));
-                    battleRecord.unknownTime = Date.now();
-                    battle.getItem(battleRecord);
-                }
-
-                return true;
-            }
-
-            battleRecord = battle.getItem(result.userId);
-            if (result.win) {
-                con.log(1, "We Defeated " + battleRecord.nameStr + " Battle Points: " + result.points, result, battleRecord);
-                state.setItem("arenaBattleChainId", result.userId);
-				session.setItem('ReleaseControl', false);
+				bR.arenaDeadTime = Date.now();
             } else {
-                con.log(1, "We Were Defeated By " + battleRecord.nameStr, result, battleRecord);
-                battleRecord.chainCount = 0;
-                battleRecord.chainTime = 0;
-            }
-
-            battle.setItem(battleRecord);
+				bR[result.win ? 'statswinsNum' : 'statslossesNum'] += 1;
+				bR[result.win ? 'duelwinsNum' : 'duellossesNum'] += 1;
+				bR.arenaTotal += (result.win ? 1 : -1) * result.points
+				if (result.win) {
+					con.log(1, "We Defeated " + bR.nameStr + " Battle Points: " + result.points, result, bR);
+					arena.target = bR;
+					bR.arenaPoints = result.points;
+					session.setItem('ReleaseControl', false);
+				} else {
+					con.log(1, "We Were Defeated By " + bR.nameStr, result, bR);
+                    bR.duelLostTime = Date.now();
+					bR.chainCount = 0;
+					bR.chainTime = 0;
+				}
+			}
+            battle.setItem(bR);
             return true;
         } catch (err) {
-            con.error("ERROR in arena.checkResults: " + err);
+            con.error("ERROR in arena.checkResults: " + err.stack);
             return false;
         }
     },
@@ -196,7 +163,13 @@
 		try {
 			var useGeneral = 'DuelGeneral',
 				tempDiv = $j(),
-				chainID = state.getItem("arenaBattleChainId", false),
+				revengeThreshold = config.getItem('arenaRevengePoints', ''),
+				arenaPageTf = session.getItem('page', '') == 'arena',
+				arenaTokens = arenaPageTf ? $j("span[id*='guild_token_current_value']")[0].innerHTML : state.getItem("arenaTokens", arenaTokens),
+				inputDiv = arenaPageTf ? $j("div[style*='arena_infobar']") : $j(),
+				bR      = {},
+				safeTargets       = [],
+				winner = false,
 				v = {
 					arenaLevelMax : 99999,
 					arenaLevelMin : 99999,
@@ -205,34 +178,60 @@
 					arenaArmyMax : 999999
 				};
 			
-			session.setItem('ReleaseControl', true);
-
-			if (caap.navigate2('@' +  useGeneral + ',arena')) {
-				return true;
+			if (!config.getItem('enableArena', false) || !schedule.check('arenaTimer')) {
+				return false;
 			}
 
-			var inputDiv = $j("div[style*='arena_infobar']"),
-				arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML,
-				battleRecord      = {},
-				levelMultiplier   = 0,
-				safeTargets       = [];
-
+			session.setItem('ReleaseControl', true);
 			state.setItem("arenaTokens", arenaTokens);
-
-			if (session.getItem('arenaHealth', 0) === 0 && arenaTokens < 9) {
+			
+			// If 0 health, stop
+			if (arenaPageTf && session.getItem('arenaHealth', 0) === 0 && arenaTokens < 9) {
 				schedule.setItem('arenaTimer', 5 * 60);
 				return false;
 			}
 			
-			tempDiv = $j("input[src*='battle_duel_again.gif']:first");
-			if (chainID && tempDiv.length && arenaTokens > 0) {
-                con.log(1, "Chain Attacking " + chainID);
-				caap.click(tempDiv);
+			// If can chain, chain!
+			tempDiv = arenaPageTf ? $j("input[src*='battle_duel_again.gif']:first") : [];
+			if (arena.target && tempDiv.length && arenaTokens > 0 && caap.ifClick(tempDiv)) {
+				caap.setDivContent('battle_mess', 'Arena: Chain Attacked ' + arena.target.nameStr + ' level ' +  arena.target.levelNum, '', false,1);
+				return true;
+			}
+
+			// Next try revenge hits
+			if ($u.isNumber(revengeThreshold)) { // Add in index visit here?
+				tR = battle.records.reduce( function(prev, bR) {
+					return bR.arenaRevenge && !bR.duellossesNum && bR.arenaPoints > prev.arenaPoints && schedule.since(bR.arenaDeadTime, 5 * 60)
+						? bR : prev;
+				}, new battle.record().data);
+				if (tR.arenaPoints >= revengeThreshold) {
+					if (arenaTokens > 0) { 
+						if (caap.navigate2('@' + useGeneral + ",index")) {
+							return true;
+						}
+						tempDiv = $j("#app_body #newsFeedSection form[onsubmit*='arena.php']").has("input[value='" + tR.userId + "']").find("input[src*='news_btn_revenge.gif']");
+						if (caap.ifClick(tempDiv)) {
+							arena.target = tR;
+							caap.setDivContent('battle_mess', 'Arena: Revenge attacked ' + tR.nameStr + ' level ' +  tR.levelNum, '', false, 1);
+							return true;
+						} else {
+							con.warn('Arena: unable to click on revenge button in news feed', tR);
+						}
+					} else {
+						state.setItem("arenaTokens", 1)
+						schedule.setItem('arenaTimer', 5 * 60);
+						return false;
+					}
+				}
+			}
+
+			// Ok, try the normal feed
+			if (caap.navigate2('@' +  useGeneral + ',arena')) {
 				return true;
 			}
 
 			if (arenaTokens <= config.getItem("arenaTokenStop", 1) ) {
-				schedule.setItem('arenaTimer', Math.max (config.getItem("arenaTokenStart", 1) - config.getItem("arenaTokenStop", 1), 0) * 5 * 60);
+				schedule.setItem('arenaTimer', Math.max (config.getItem("arenaTokenStart", 1) - arenaTokens, 1) * 5 * 60);
 				return false;
 			}
 			
@@ -248,26 +247,24 @@
 			inputDiv.each(function (index) {
 				var thisDiv    = $j(this),
 					tempTime   = -1,
-					tR = new battle.record().data; // temp record
+					tR = {}; // temp record
 				
-				// regexDivToRecord broken into two parts because double-byte char names can cause regex match to fail
-				caap.regexDivToRecord(thisDiv, tR, /(.*) level: \d+ .+ \(Rank \d\) \d+/,
-					['nameStr']);
-				caap.regexDivToRecord(thisDiv, tR, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/,
+				// regexDiv broken into two parts because double-byte char names can cause regex match to fail
+				caap.regexDiv(thisDiv, /(.*) level: \d+ .+ \(Rank \d\) \d+/, tR, 'nameStr');
+				caap.regexDiv(thisDiv, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/, tR,
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
 				tR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
-				levelMultiplier = caap.stats.level / (tR.levelNum || 1);
 
 				tR.button = $j("input[src*='arena_invade_btn']", thisDiv);
-				battleRecord = battle.getItem(tR.userId);
+				bR = battle.getItem(tR.userId);
 	//          switch (config.getItem("ArenaBattleType", 'Invade')) {
 				switch ('Duel') {
 				case 'Invade' :
-					tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
+					tempTime = $u.setContent(bR.invadeLostTime, 0);
 					tR.button = $j("input[src*='arena_invade_btn']", thisDiv);
 					break;
 				case 'Duel' :
-					tempTime = $u.setContent(battleRecord.duelLostTime, 0);
+					tempTime = $u.setContent(bR.duelLostTime, 0);
 					tR.button = $j("input[src*='arena_duel_btn']", thisDiv);
 					break;
 				default :
@@ -279,14 +276,38 @@
 					return true;
 				}
 				
-				if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
-					con.log(1, "We lost " +'Duel' + " to this id this week: ", tR.userId);
+				if (bR.arenaInvalid) {
+					con.log(1, "Level of this cannot be hit", tR);
 					return true;
 				}
 
-				if (tR.levelNum > caap.stats.level + v.arenaLevelMax) {
-					con.log(2, "Target level " + tR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaLevelMax), tR);
+				if (!schedule.since(bR.arenaDeadTime, 5 * 60)) {
+					con.log(1, tR.nameStr + " is hiding ", tR);
 					return true;
+				}
+
+				if (bR && !bR.newRecord && tempTime && !schedule.since(tempTime, 3 * 7 * 24 * 3600)) {
+					con.log(1, "We lost " +'Duel' + " to this id within three weeks: ", tR.userId);
+					return true;
+				}
+
+				winner = bR.duelwinsNum > 0 && bR.duellossesNum == 0;
+				
+				if (!winner) {
+					if (tR.levelNum > caap.stats.level + v.arenaLevelMax) {
+						con.log(2, "Target level " + tR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaLevelMax), tR);
+						return true;
+					}
+
+					if (tR.arenaRankNum > v.arenaRankMax) {
+						con.log(2, "Rank of " + tR.arenaRankNum + " over max rank " + v.arenaRankMax, tR);
+						return true;
+					}
+
+					if (v.arenaArmyMax < tR.armyNum) {
+						con.log(2, "Army of " + tR.armyNum + " is over max of " + v.arenaArmyMax, tR);
+						return true;
+					}
 				}
 
 				if (tR.levelNum < caap.stats.level - v.arenaLevelMin) {
@@ -294,40 +315,27 @@
 					return true;
 				}
 
-				if (tR.arenaRankNum > v.arenaRankMax) {
-					con.log(2, "Rank of " + tR.arenaRankNum + " over max rank " + v.arenaRankMax, tR);
-					return true;
-				}
-
 				if (tR.arenaRankNum < v.arenaRankMin) {
 					con.log(2, "Rank of " + tR.arenaRankNum + " under min rank " + v.arenaRankMin, tR);
 					return true;
 				}
-
-				if (v.arenaArmyMax < tR.armyNum) {
-					con.log(2, "Army of " + tR.armyNum + " is over max of " + v.arenaArmyMax, tR);
-					return true;
-				}
 				
-				if (state.getItem("lastArenaBattleID", 0) === tR.userId && !state.getItem ('arenaBattleChainId', 0) === tR.userId) {
-					return true;
-				}
-
 				switch ('Duel') {
 				case 'Invade' :
-					tR.score = tR.arenaRankNum - (tR.armyNum / levelMultiplier / caap.stats.army.capped);
+					tR.score = tR.arenaRankNum - (tR.armyNum / caap.stats.army.capped);
 					break;
 				case 'Duel' :
-					tR.score = tR.arenaRankNum * Math.min((caap.stats.bonus.api / tR.levelNum / 10 * 100).dp(1), 100) - tR.armyNum / 5000;
+					tR.score = winner ? 100 : Math.min((caap.stats.bonus.api / tR.levelNum / 10 * 100).dp(1), 100);
+					tR.score = tR.arenaRankNum * tR.score - tR.armyNum / 5000;
 					break;
 				default :
-					tR.score = tR.arenaRankNum - (tR.armyNum / levelMultiplier / caap.stats.army.capped);
+					tR.score = tR.arenaRankNum - (tR.armyNum / caap.stats.army.capped);
 				}
 
 				tR.targetNumber = index + 1;
 				safeTargets.push(tR);
 				tempRecord = null;
-				con.log(2, 'Arena ' + tR.nameStr + ' level ' +  tR.levelNum + ' rank ' + tR.rankStr + ' ' + tR.arenaRankNum + ' ' + tR.userId + ' army ' + tR.armyNum + ' mult ' + levelMultiplier.dp(2) + ' score ' + tR.score.dp(2), tR);
+				con.log(2, 'Arena ' + (winner ? ' Winner! ' : '' )+ (tR.nameStr || 'unknown') + ' level ' +  tR.levelNum + ' rank ' + tR.rankStr + ' ' + tR.arenaRankNum + ' ' + tR.userId + ' army ' + tR.armyNum + ' score ' + tR.score.dp(2), tR);
 			});
 
 			if (safeTargets.length == 0) {
@@ -339,45 +347,57 @@
 			safeTargets.sort($u.sortBy(true, "score"));
 			tR = safeTargets[0];
 
-			con.log(2, 'Found Target #' + tR.targetNumber + ' ' + tR.nameStr + ' level ' +  tR.levelNum + ' Rank ' + tR.arenaRankNum + ' army ' + tR.armyNum + ' Score: ' + tR.score.dp(2), tR, safeTargets);
-
-			arena.target = tR;
 			caap.click(tR.button);
+			con.log(2, 'Found Target #' + tR.targetNumber + ' ' + (tR.nameStr || 'unknown') + ' level ' +  tR.levelNum + ' Rank ' + tR.arenaRankNum + ' army ' + tR.armyNum + ' Score: ' + tR.score.dp(2), tR, safeTargets);
 
 			delete tR.score;
 			delete tR.targetNumber;
 			delete tR.button;
-			battleRecord = battle.getItem(tR.userId);
-			if (battleRecord.newRecord) {
-				state.setItem("lastArenaBattleID", tR.userId);
-				$j.extend(true, battleRecord, tR);
-				battleRecord.newRecord = false;
-			} else {
-				for (itx in tR) {
-					if (tR.hasOwnProperty(itx)) {
-						if (!$u.hasContent(battleRecord[itx] && $u.hasContent(tR[itx]))) {
-							battleRecord[itx] = tR[itx];
-						}
+			bR = battle.getItem(tR.userId);
+			$j.extend(true, bR, tR);
+			bR.newRecord = false;
+			bR.aliveTime = Date.now();
+			battle.setItem(bR);
 
-						if ($u.hasContent(tR[itx]) && $u.isString(tR[itx]) && battleRecord[itx] !== tR[itx]) {
-							battleRecord[itx] = tR[itx];
-						}
-
-						if ($u.hasContent(tR[itx]) && $u.isNumber(tR[itx]) && battleRecord[itx] < tR[itx]) {
-							battleRecord[itx] = tR[itx];
-						}
-					}
-				}
-			}
-			battleRecord.aliveTime = Date.now();
-
-			battle.setItem(battleRecord);
-			caap.setDivContent('battle_mess', 'Arena: Attacked ' + tR.nameStr + ' level ' +  tR.levelNum);
+			caap.setDivContent('battle_mess', 'Arena: Attacked ' + (tR.nameStr || 'unknown') + ' level ' +  tR.levelNum);
 			state.setItem("notSafeCount", 0);
+			arena.target = bR;
 			return true;
         } catch (err) {
             con.error("ERROR in arena.battle: " + err.stack);
             return false;
         }
+    },
+	
+    revengeCheck: function () {
+		try {
+			var infoDiv = $j("#app_body #newsFeedSection div[style*='news_innercontainer_top.gif']:contains('Victory')").has("img[src$='arena_battlepoints.gif']"),
+			tempDiv = $j();
+			
+			con.log(1, 'Index arena revenges ' + infoDiv.length);
+			
+			battle.records.forEach( function(tR) {
+				tR.arenaRevenge = false;
+			});
+			
+			infoDiv.each(function (index) {
+				tR = battle.getItem($j(this).find("input[name='target_id']").attr('value'));
+				if (!tR) {
+					con.warn('Arena: unable to find userID or battle record',tR, index);
+					return;
+				}
+				tempDiv = $j("#app_body #newsFeedSection div[id^='battle_messages_" + tR.userId + "']:contains('Arena Battle Points')");
+				tR.arenaPoints = tR.arenaPoints ? tR.arenaPoints : caap.regexDiv(tempDiv, /You have won (\d+) Arena Battle Points!/);
+				tR.arenaRevenge = true;
+				tR.duelwinsNum = tR.duelwinsNum ? tR.duelwinsNum : caap.regexDiv($j(infoDiv[index]).next(), /You won (\d+) times/) || 1;
+				battle.setItem(tR);
+				con.log(2, 'Arena victory in feed against ' + tR.nameStr + '. Last points: ' + tR.arenaPoints, tR);
+			});
+			return;
+        } catch (err) {
+            con.error("ERROR in arenaRevengeCheck: " + err.stack);
+            return false;
+        }
     }
+	
 };

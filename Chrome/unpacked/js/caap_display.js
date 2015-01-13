@@ -318,7 +318,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.setDivContent = function (idName, mess, slice, hide) {
+    caap.setDivContent = function (idName, mess, slice, hide, conLevel) {
         try {
             if (/_mess$/.test(idName)) {
                 if (caap.messDivs[idName] !== mess) {
@@ -340,6 +340,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 $j('#caap_' + idName, $u.setContent(slice, caap.caapDivObject)).html(mess).css('display', hide ? 'none' : 'block');
             }
+			if ($u.isNumber(conLevel)) {
+				con.log(conLevel, idName + ' ' + mess);
+			}
         } catch (err) {
             con.error("ERROR in setDivContent: " + err);
         }

@@ -2286,12 +2286,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.regexDivToRecord = function (div, record, regex, array) {
+    caap.regexDiv = function (div, regex, record, array) {
         try {
             var text = $u.setContent(div.text().trim().innerTrim(), ''),
 				args = text.regex(regex);
 			
+			if (typeof record == 'undefined' && typeof array == 'undefined') {
+				return args;
+			}
 			args = $u.isArray(args) ? args : [args];
+			array = $u.isArray(array) ? array : [array];
 			if (!args || args.length != array.length) {
 				con.warn('Invalid match for regex expression in div text', text, regex, args, array);
 				return false;
@@ -2304,7 +2308,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			//con.log(2, 'Regex div text to record', text, regex, array, record);
 			return true;
         } catch (err) {
-            con.error("ERROR in regexDivToRecord: " + err + ' ' + err.stack);
+            con.error("ERROR in regexDiv: " + err + ' ' + err.stack);
             return undefined;
         }
     };
@@ -6648,38 +6652,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // Quest function does action, DrawQuest sets up the page and gathers info
     /////////////////////////////////////////////////////////////////////
 
-    // Returns true if an action was required to check max stat
-    // Returns the normal maximum value or the least value for the currently selected generals/loadouts
-    
+    // Returns the least value of the stat for the configured generals/loadouts minus a small buffer
     caap.maxStatCheck = function(stat) {
         try {
-			if (!$u.isNumber(caap.stats[stat].norm)) {
-				caap.navigateTo('keep');
-				con.log(2, 'Visiting keep to find base stat ' + stat + ' unaltered by general');
-				return true;
-			}
-			//con.log(2, stat + ' check ', caap.stats[stat].min, caap.stats[stat].norm, caap.stats[stat]);
-            return caap.stats[stat].min + caap.stats[stat].norm - (caap.hyper ? 12 : 0);
+            return caap.stats[stat].min + caap.stats[stat].norm - (caap.hyper ? 12 : 3);
         } catch (err) {
             con.error("ERROR in maxStatCheck: " + err.stack);
-            return undefined;
         }
     };
 
     caap.maxStatsCheck = function() {
 		try {
-			// Putting here instead of adding to each monster, guild_monster, battle, etc.
-			if (caap.maxStatCheck('stamina') == true) {
+			var result = ['stamina', 'energy'].some( function(stat) {
+				if (!$u.isNumber(caap.stats[stat].norm) || caap.stats[stat].norm === 0) {
+					caap.navigateTo('keep');
+					con.log(2, 'Visiting keep to find base stat ' + stat + ' unaltered by general');
+					return true;
+				}
+			});
+
+			if (result) {
 				return true;
 			}
 
-			var result = caap.maxStatCheck('energy');
-
-            if (config.getItem('WhenQuest', 'Never') === 'Never') {
-                return false;
-            }
-			// If we had to do a general change, then return. If we have a number result, then do quests
-			return result === true ? true : caap.stats.energy.num >= result ? caap.quests() : false;
+			return caap.stats.energy.num >= caap.maxStatCheck('energy') ? caap.quests() : false;
         } catch (err) {
             con.error("ERROR in maxStatsCheck: " + err.stack);
             return undefined;
@@ -8204,11 +8200,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return 0;
 			}
 
-			if (caap.inLevelUpMode() && caap.stats.energy.num >= energyRequired) {
+			if ((caap.inLevelUpMode() || session.getItem('burnenergy')) && caap.stats.energy.num >= energyRequired) {
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + ': Burning all energy to level up');
+				caap.setDivContent(msgdiv, which + ': Burning all energy to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
 				return caap.stats.energy.num;
 			}
 
@@ -9598,12 +9594,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.doArenaBattle = function() {
-        if (!config.getItem('enableArena', false) || !schedule.check('arenaTimer')) {
-            return false;
-        }
-
-        arena.battle();
-        return true;
+        return arena.battle();
     };
 
     caap.checkResults_arenaBattle = function() {

@@ -778,6 +778,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
 					} else if (result === 'done') {
+						if (general.GetStat(general.GetCurrentGeneral(), 'charge') == 100) {
+							general.getRecord(theGeneral).charge = 0;
+						}
 						monster.lastClick = tR.md5;
 					} else if (!result && !tR.charClass) {
 						monster.powerButtons.some( function(button) {
@@ -804,7 +807,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
         scoring: function(cM) {
             try {
-				var health = cM.life,
+				var temp,
+					life = cM.life,
 					t2k = cM.t2k,
 					fortify = cM.fortify,
 					strength = cM.strength,
@@ -822,7 +826,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					time = cM.time[0] + cM.time[1]/60,
 					name = cM.name,
 					monstername = cM.monster,
-					damagemod = strength > 0 ? 58 * fortify / 100 * strength / 100 + 42 : 0,
+					damagemod = fortify > 0 ? 58 * fortify / 100 * (strength > 0 ? strength : 100) / 100 + 42 : 0,
 					rogue = 'Rogue',
 					warlock = 'Warlock',
 					warrior = 'Warrior',
@@ -831,8 +835,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					ranger = 'Ranger',
 					levelup = caap.inLevelUpMode(),
 					energy = caap.stats.energy.num,
-					energymax = caap.maxStatCheck('energy'),
-					staminamax = caap.maxStatCheck('stamina'),
+					atmaxenergy = caap.stats.energy.num >= caap.maxStatCheck('energy'),
+					atmaxstamina = caap.stats.stamina.num >= caap.maxStatCheck('stamina'),
 					stamina = caap.stats.stamina.num,
 					exp = caap.stats.exp.dif,
 					killed = monster.getInfo(cM.monster, 'achTitle', false),
@@ -848,9 +852,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 					if (cM.conditions.regex(/:j\[(.*?)\]:/)) {
 						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[(.*?)\]:/), 0)).dp(2);
-						cM.join = eval(cM.conditions.regex(/:j\[(.*?)\]:/));
-						con.log(2, cM.name +  (cM.join ? ' Join candidate' : ' Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[(.*?)\]:/), cM.conditions.regex(/:j\[(.*?)\]:/));
+						temp = (cM.staminaList.length ? Math.max(cM.staminaList[0], 5) : 5);
+						cM.join = eval(cM.conditions.regex(/:j\[(.*?)\]:/)) && stamina > temp;
+						con.log(2, cM.name +  (cM.join ? ' Join candidate' : ' Do not join') + '. Score: ' + cM.score + ' Min stamina ' + temp, cM.conditions, cM.conditions.regex(/:s\[(.*?)\]:/), cM.conditions.regex(/:j\[(.*?)\]:/));
 						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+						if (cM.score <=0) {
+							con.log(1, 'Deleting monster ' + cM.name + ' because score of ' + cM.score + ' <= 0', cM);
+							monster.deleteItem(cM.md5);
+						}
 					}
 					if (cM.conditions.regex(/:c\[(.*?)\]:/)) {
 						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*?)\]:/), 'Warlock'));
