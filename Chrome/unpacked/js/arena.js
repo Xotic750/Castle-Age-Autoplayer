@@ -29,9 +29,9 @@
         htmlCode += caap.makeNumberFormTR("Opponent's Level Min", 'arenaLevelMin', MinLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Level Max", 'arenaLevelMax', MaxLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Revenge point limit", 'arenaRevengePoints', revengeInstructions, '', '', '', true, false);
-        htmlCode += caap.makeCheckTR('Use FP to burn Health', 'burnHealthArena', false, '');
         htmlCode += caap.makeTD("List of ID to not figth:");
         htmlCode += caap.makeTextBox('arena_blacklist', arenaBlackListInstructions, '', '');
+        htmlCode += caap.makeCheckTR('Use FP to burn Health', 'burnHealthArena', false, '');
         htmlCode += caap.makeTD("<input type='button' id='caap_ArenaNow' value='Fight!' style='padding: 0; font-size: 10px; height: 18px' />");
         htmlCode += caap.endToggle;
         return htmlCode;
