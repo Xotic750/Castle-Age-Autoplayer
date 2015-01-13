@@ -15,6 +15,7 @@
         ]
         MaxLevelInstructions = "This sets the highest relative level, above yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you would code 20.",
         MinLevelInstructions = "This sets the lowest relative level, below yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent below level 60, you would code 40.",
+        arenaBlackListInstructions = "List of ID to not figth.",
 		revengeInstructions = "Put a number here to attack targets that you have beaten from your Battle Feed. This will take priority over searching for targets on the Arena Page, and will only attack targets that give at least this number. For instance, if you only wanted to attack opponents that give 100 points, put 100 here.",
 
         htmlCode = caap.startToggle('Arena', 'ARENA');
@@ -28,12 +29,52 @@
         htmlCode += caap.makeNumberFormTR("Opponent's Level Min", 'arenaLevelMin', MinLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Level Max", 'arenaLevelMax', MaxLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Revenge point limit", 'arenaRevengePoints', revengeInstructions, '', '', '', true, false);
+        htmlCode += caap.makeTD("List of ID to not figth:");
+        htmlCode += caap.makeTextBox('arena_blacklist', arenaBlackListInstructions, '', '');
+        htmlCode += caap.makeCheckTR('Use FP to burn Health', 'burnHealthArena', false, '');
         htmlCode += caap.makeTD("<input type='button' id='caap_ArenaNow' value='Fight!' style='padding: 0; font-size: 10px; height: 18px' />");
         htmlCode += caap.endToggle;
         return htmlCode;
     },
 	
     target: false,
+	
+	checkBurnHealth: function () {
+		try {
+			if (config.getItem("burnHealthArena",false)) {
+				var arenaHealth = $j("div img[src*='graphics/orange_healthbar.jpg']"), arenaHealthWidth = "";
+				arenaHealthWidth=/width:\d+/i.exec(arenaHealth[0].outerHTML)[0];
+				if (!arenaHealthWidth.match("width:0")) {
+					var arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML;
+					con.log (1, "Have Arena Health");
+					arena.flagBurnHealth=true;
+					if (arenaTokens < 1 ) {
+						try {
+							var button = $j("input[src*='arenablood_btn_refill.jpg']");
+							con.log (1, "Refill to burn Arena Health");						
+							session.setItem('ReleaseControl', true);
+							arena.flagResult = false;
+							caap.setDomWaiting("arena.php");
+							caap.click(button);
+							return true;
+						} catch (err) {
+							con.error("ERROR in arena.click: " + err);
+							return false;
+						}
+					}
+				} else {
+					con.log (1, "Have no more Arena Health");
+					arena.flagBurnHealth=false;
+				}					
+			} else {
+				arena.flagBurnHealth=false;
+			}
+			return true;
+		} catch (err) {
+			con.error("ERROR in arena.checkBurnHealth: " + err);
+			return false;
+		}
+	},
 	
     checkResults: function () {
         try {
@@ -54,7 +95,7 @@
                 };
                 
             state.setItem("arenaTokens", arenaTokens);
-
+			
             if (arenaTokens >= config.getItem("arenaTokenStart", 10)) {
                 con.log (2, "Arena Timer resetting");
                 schedule.setItem('arenaTimer', 0);
@@ -90,12 +131,15 @@
 						con.warn('Arena unknown message: ' + resultText);
 					}
 				}
-            }
+            } 
 			
 			tempDiv = $j("form[onsubmit*='arena.php']", resultsDiv).has("input[src*='battle_duel_again.gif']")
 			bR = tempDiv.length ? battle.getItem($j(tempDiv).find("input[name='target_id']").attr('value')) : bR;
 			if (!bR) {
 				con.log(2, 'No duel again button and no previous target, so not processing for win/loss', bR);
+				if (arena.checkBurnHealth()) { 
+					con.log (1, "arenaTokens",arenaTokens);
+				}
 				return;
 			}
 			con.log(2, 'Attacked ' + bR.nameStr, bR);
@@ -152,6 +196,10 @@
 				}
 			}
             battle.setItem(bR);
+
+			if (arena.checkBurnHealth()) { 
+				con.log (1, "arenaTokens",arenaTokens);
+			}
             return true;
         } catch (err) {
             con.error("ERROR in arena.checkResults: " + err.stack);
@@ -254,6 +302,21 @@
 				caap.regexDiv(thisDiv, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/, tR,
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
 				tR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
+				try {
+					con.log(2, tR.nameStr + " (" + tR.userId + ") is looking in black listed !");
+					for (p = 0, len = blackList.length; p < len; p += 1) {
+						if (tR.userId.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
+							con.log(2, tR.nameStr + " (" + tR.userId + ") is black listed !");
+							return true;
+						}
+						if (tR.nameStr.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
+							con.log(2, tR.nameStr + " (" + tR.userId + ") is black listed !");
+							return true;
+						}
+					}
+				} catch (e) {
+					con.log(2, "Error in arena black listed search : ",e);
+				}
 
 				tR.button = $j("input[src*='arena_invade_btn']", thisDiv);
 				bR = battle.getItem(tR.userId);
