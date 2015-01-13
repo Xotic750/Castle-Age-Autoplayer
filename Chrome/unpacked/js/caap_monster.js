@@ -689,11 +689,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							cM.stunType = 'fortify';
 							con.warn("Can't get tip", tempText);
 						} else {
-							cM.stunType = tStr.split(" ").pop().replace("ion", '').toLowerCase();
+							cM.stunType = tStr.split(" ").pop().toLowerCase().replace('ion', '');
 							con.log(2, 'Stun type: ' + cM.stunType);
 						}
 						
-						if (!["strengthen", "cripple", "heal", "deflection", "fortify"].hasIndexOf(cM.stunType)) {
+						if (!["strengthen", "cripple", "heal", "deflect", "fortify"].hasIndexOf(cM.stunType)) {
 							con.warn("Unknown monster stun attack", cM.stunType);
 						}
 
@@ -921,8 +921,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             var when = config.getItem('When' + battleOrMonster, 'Never'),
                 maxIdleStamina = 0,
-                theGeneral = '',
                 staminaMF = '',
+				burnStamina = caap.inLevelUpMode() || session.getItem('burnstamina'),
                 messDiv = battleOrMonster.toLowerCase() + "_mess";
 
             if (when === 'Never') {
@@ -953,8 +953,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (when === 'At X Stamina') {
-                if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
-                    caap.setDivContent(messDiv, 'Burning stamina to level up');
+                if (burnStamina && caap.stats.stamina.num >= attackMinStamina) {
+                    caap.setDivContent(messDiv, 'Burning stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
                     return caap.stats.stamina.num;
                 }
 
@@ -983,8 +983,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return caap.stats.stamina.num; 
                 }
 
-                if (caap.inLevelUpMode()) {
-                    caap.setDivContent(messDiv, 'Burning all stamina to level up');
+                if (burnStamina) {
+                    caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
                     return caap.stats.stamina.num;
                 }
 
@@ -1132,8 +1132,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
                     continue;
                 }
-                if (cM.color === 'grey' && cM.life !== -1) {
-                    cM.life = -1;
+                if (cM.color === 'grey' && cM.life == 100) {
+                    cM.life = 0;
                     cM.fortify = -1;
                     cM.strength = -1;
                     cM.time = [];
@@ -1315,14 +1315,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 				}
 				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
-				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', true));
+				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', 'name only'));
 				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
-				xpPerPt = (statList == 'energyList' ? 3.6 : 5) * gMult;
+				xpPerPt = (statList == 'energyList' ? 3.6 : 5.5) * gMult;
 				//con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
 				
 				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
 
-				statAvailable = stat == 'cover' ? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable;
+				statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable;
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
@@ -1390,7 +1390,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                     
 					// Only stun if we have no debt
-                    if (cM.stunDo && cM.stunType !== '' && !$u.hasContent(debt.md5)) {
+                    if (cM.stunDo && cM.stunType !== '' && !$u.hasContent(debtcM.md5)) {
                         buttonList.unshift("button_nm_s_" + cM.stunType);
                     } else {
                         buttonList.unshift("button_nm_s_");

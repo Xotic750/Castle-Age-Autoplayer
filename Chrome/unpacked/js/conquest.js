@@ -126,9 +126,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             conquest.hbest = conquest.hbest === false ? JSON.hbest(conquest.records) : conquest.hbest;
-            con.log(2, "conquest.load Hbest", conquest.hbest);
+            //con.log(2, "conquest.load Hbest", conquest.hbest);
             session.setItem("ConquestDashUpdate", true);
-            con.log(1, "conquest.load", conquest.records);
+            con.log(3, "conquest.load", conquest.records);
 			conquestLands.load(); // Shouldn't be here, but putting here for now
             return true;
         } catch (err) {
@@ -1559,9 +1559,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             guilds.hbest = guilds.hbest === false ? JSON.hbest(guilds.records) : guilds.hbest;
-            con.log(2, "guilds.load Hbest", guilds.hbest);
+            //con.log(2, "guilds.load Hbest", guilds.hbest);
             session.setItem("GuildsDashUpdate", true);
-            con.log(2, "guilds.load", guilds.records);
+            con.log(3, "guilds.load", guilds.records);
             return true;
         } catch (err) {
             con.error("ERROR in guilds.load: " + err);
