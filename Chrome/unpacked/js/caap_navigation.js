@@ -44,8 +44,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.ifClick = function (obj) {
         try {
-            if ($u.hasContent(obj)) {
-				return caap.click(obj);
+			if (!$u.isObject(obj) || !obj.jquery) {
+				con.warn('Invalid jquery passed to caap.ifClick', obj);
+				return false;
+			}
+            if (obj.length) {
+				caap.click(obj);
+				return true;
             }
             return false;
         } catch (err) {
@@ -221,6 +226,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								con.log(2, 'Navigate2: Go to page', jq, step, path, s);
 								caap.click(jq);
 								return caap.navigate2RepeatCheck(true, path, s);
+							} else {
+								con.warn('Unable to find path to page: ' + step, path);
 							}
 							//con.log(2,'Navigate2: Not on page ' + step + ', so going back another step', path, s, caap.pageList[step]);
 						} else if (s == lastStep) {

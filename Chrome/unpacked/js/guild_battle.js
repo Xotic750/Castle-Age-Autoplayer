@@ -23,7 +23,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             'guildId': '',
             'ticker': '',
 			'collectedTime' : 0,
-			'enteredTime' : 0,
 			'lastBattleTime' : 0,
 			'startTime' : 0,
 			'endTime' : 0,
@@ -377,12 +376,17 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             if (guild_battle.records === 'default' || !$j.isArray(guild_battle.records)) {
                 guild_battle.records = gm.setItem('guild_battle.records', []);
             }
-			guild_battle.records.forEach( function(r) {
-				delete r.data;
-			});
+			if (guild_battle.records.length && $u.hasContent(guild_battle.records[0])) {
+				if ($u.hasContent(guild_battle.records[0].data)) {
+					con.warn('Deleting old nested Guild Battle data structure');
+					guild_battle.records.forEach( function(r) {
+						delete r.data;
+					});
+				}
+				caap.fillRecords(guild_battle.records, new guild_battle.record().data);
+			}
 			delete caap.stats.reviewPagesGB;
 
-			caap.fillRecords(guild_battle.records, new guild_battle.record().data);
 			guild_battle.save();
 
             session.setItem("guildBattleDashUpdate", true);
@@ -735,8 +739,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				//con.log(2, 'Battle has enter button', config.getItem('guild_battle_enter',false));
 				guild_battle.setItem(gf, fR);
 				return true;
-			} else {
-				fR.enteredTime = now;
 			}
 
 			if (schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60)) {
@@ -825,7 +827,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				con.log(2,' IN TOWER');
 				fR.simtis = !$u.isString(fR.me.tower) ? false : towerPops[fR.me.tower - 1] < fR.your.towers[fR.me.tower].players;
 			} else {
-				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2;
+				fR.easy = (sealedTowers + (fR.guildHealth > fR.enemyHealth + 20)) > 2 && !schedule.since(fR.endTime, -8 * 60 );
 				//con.log(2,'EASY',fR.easy, sealedTowers + (fR.guildHealth > fR.enemyHealth + 20), sealedTowers, towerPops);
 			}
 			
@@ -1195,7 +1197,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				stateMsg += ', and auto-match button pushed!';
 			} else if (fR.state == 'Active') {
 				guild_battle.deleterPage(fR, 'path', gf.startPath);
-				stateMsg = schedule.since(fR.enteredTime, gf.waitHours * 60 * 60) ? 'Not entered' : 'Entered Battle';
+				stateMsg = schedule.since(fR.lastBattleTime, gf.waitHours * 60 * 60) ? 'Not entered' : 'Entered Battle';
 				if (config.getItem(gf.abbrev + 'whenTokens','Never') != 'Never') {
 					if (stateMsg == 'Not entered') {
 						fR.paths = [];
@@ -1381,7 +1383,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
     guild_battle.dashboard = function() {
 		guild_battle.dashboardWork(guild_battle.gf.guild_battle);
-		guild_battle.dashboardWork(guild_battle.gf.tenVten);
+		guild_battle.dashboardWork(guild_battle.gf.tenVten)
+		guild_battle.dashboardWork(guild_battle.gf.festival);
 	};
 
     guild_battle.dashboardWork = function(gf) {

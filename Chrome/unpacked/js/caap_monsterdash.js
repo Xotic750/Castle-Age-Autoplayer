@@ -108,7 +108,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guild_monster.dashboard();
             guild_battle.dashboard();
             //arena.AddArenaDashboard();
-            festival.dashboard();
             feed.dashboard();
             army.dashboard();
             battle.dashboard();
@@ -957,7 +956,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             value = e.target.options[e.target.selectedIndex].value,
             title = e.target.options[e.target.selectedIndex].title;
 
-        con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+        con.log(1, 'Change: dashboard setting "' + idName + '" to "' + value + '" with title "' + title + '"');
         config.setItem(idName, value);
         e.target.title = title;
         caap.setDisplay("caapTopObject", 'infoMonster', false);
@@ -984,6 +983,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'GFDisplay', false);
         caap.setDisplay("caapTopObject", 'buttonGuildMonster', false);
         caap.setDisplay("caapTopObject", 'buttonTargets', false);
+        caap.setDisplay("caapTopObject", 'buttonGenerals', false);
         caap.setDisplay("caapTopObject", 'buttonBattle', false);
         caap.setDisplay("caapTopObject", 'buttonConquest', false);
         caap.setDisplay("caapTopObject", 'buttonGuilds', false);
@@ -1017,6 +1017,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case "Generals Stats":
                 caap.setDisplay("caapTopObject", 'generalsStats', true);
+                caap.setDisplay("caapTopObject", 'buttonGenerals', true);
 
                 break;
             case "Soldiers Stats":

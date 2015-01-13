@@ -68,7 +68,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkLastAction = function (thisAction) {
         try {
-            state.setItem('ThisAction', thisAction);
             var lastAction = state.getItem('LastAction', 'idle');
 
             caap.setDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
@@ -86,14 +85,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.masterActionList = {
         0x01: 'heal',
-        0x02: 'guildBattle',
-        0x03: 'immediateBanking',
-        0x04: 'immediateAutoStat',
-        0x05: 'maxStatsCheck',
-        0x06: 'festivalReview',
-        0x07: 'guildMonsterReview',
-        0x08: 'monsterReview',
-        0x09: 'festival',
+        0x02: 'collectConquest',
+        0x03: 'maxStatsCheck',
+        0x04: 'guildBattle',
+        0x05: 'immediateBanking',
+        0x06: 'immediateAutoStat',
+        0x07: 'doArenaBattle',
+        0x08: 'guildMonsterReview',
+        0x09: 'monsterReview',
         0x0A: 'guildMonster',
         0x0B: 'demiPoints',
         0x0C: 'monsters',
@@ -102,12 +101,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x0F: 'conquestBattle',
         0x10: 'bank',
         0x11: 'checkAllGenerals',
-        0x12: 'passiveGeneral',
-        0x13: 'checkArmy',
+        0x12: 'feedScan',
+        0x13: 'passiveGeneral',
         0x14: 'lands',
         0x15: 'autoBless',
         0x16: 'autoStat',
-//        0x17: 'checkCoins', rolled into checkstats
+        0x17: 'LoMmove', 
         0x18: 'autoGift',
         0x19: 'checkKeep',
         0x1A: 'autoPotions',
@@ -128,9 +127,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         0x29: 'ajaxCheckFeed',
         0x2A: 'ajaxCheckGuild',
         0x2B: 'ajaxCheckPublic',
-        0x2E: 'feedScan',
-        0x2F: 'collectConquest',
-        0x32: 'doArenaBattle',
+        0x2E: 'checkArmy',
         0x33: 'autoKobo',
         0x34: 'scoutGuildEssence',
         0x35: 'idle'
@@ -299,7 +296,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     window.monster = null;
                     window.guild_monster = null;
                     window.guild_battle = null;
-                    //window.arena = null;
+                    window.arena = null;
                     window.festival = null;
                     window.tenVten = null;
                     window.feed = null;
@@ -530,12 +527,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (!releaseControl) {
 				actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
 			}
-            for (action = 0, len = actionsListCopy.indexOf('idle') + 1; action < len; action += 1) {
-                if (caap[actionsListCopy[action]]()) {
-                    caap.checkLastAction(actionsListCopy[action]);
-                    break;
+            actionsListCopy.some( function(action) {
+				state.setItem('ThisAction', action);
+                if (caap[action]()) {
+                    caap.checkLastAction(action);
+					return true;
                 }
-            }
+				return action == 'idle';
+            });
+			
 			if (!releaseControl && action > 0) {
 				session.setItem('ReleaseControl', true);
 			}

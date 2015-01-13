@@ -23,7 +23,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'nameStr': '',
             'rankStr': '',
             'rankNum': 0,
-            'arenaRankNum': 0,
             'conquestRankNum': 0,
             'warRankStr': '',
             'warRankNum': 0,
@@ -56,7 +55,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'attackTime': 0,
             'selectTime': 0,
             'unknownTime': 0,
-            'newRecord': true
+            'newRecord': true,
+            'arenaRankNum': 0,
+			'arenaRevenge' : false,
+			'arenaDeadTime' : 0,
+			'arenaPoints' : 0,
+			'arenaTotal' : 0,
+			'arenaInvalid' : false
         };
     };
 
@@ -109,14 +114,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.load = function() {
         try {
             battle.records = gm.getItem('battle.records', 'default');
-            if (battle.records === 'default' || !$j.isArray(battle.records)) {
+            if (!$j.isArray(battle.records)) {
                 battle.records = gm.setItem('battle.records', []);
             }
 
             battle.hbest = battle.hbest === false ? JSON.hbest(battle.records) : battle.hbest;
-            con.log(3, "battle.load Hbest", battle.hbest);
+			battle.records.forEach( function(bR, index) {
+				battle.records[index] = $j.extend(new battle.record().data, bR);
+			});
+            //con.log(3, "battle.load Hbest", battle.hbest);
             session.setItem("BattleDashUpdate", true);
-            con.log(3, "battle.load", battle.records);
+            //con.log(3, "battle.load", battle.records);
             return true;
         } catch (err) {
             con.error("ERROR in battle.load: " + err.stack);
@@ -188,7 +196,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             newRecord = new battle.record();
             newRecord.data.userId = userId;
-            con.log(3, "New battle record", userId, newRecord.data);
+            con.log(2, "New battle record", userId, newRecord.data);
             return newRecord.data;
         } catch (err) {
             con.error("ERROR in battle.getItem: " + err.stack);

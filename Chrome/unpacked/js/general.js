@@ -110,7 +110,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             general.records = gm.getItem('general.records', 'default');
             con.log(2, "pre general.load", general.records, $u.hasContent(general.records));
-            if (general.records === 'default' || !$j.isArray(general.records) || (general.records.length && $u.isUndefined(general.records[0].attackItemBonus))) {
+            if (!$j.isArray(general.records) || (general.records.length && $u.isUndefined(general.records[0].attackItemBonus))) {
                 general.records = gm.setItem('general.records', []);
             }
 
@@ -235,7 +235,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     general.getRecord = function (generalName, quiet) {
         try {
 			var result = false;
-            if (!$u.hasContent(generalName) || !$u.isString(generalName)) {
+            if (!$u.isString(generalName)) {
                 con.warn("generalName", generalName);
                 throw "Invalid identifying generalName!";
             }
@@ -326,6 +326,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     general.BuildLists = function () {
         try {
+            if (!caap.oneMinuteUpdate('generalBuildLists')) {
+                return false;
+            }
+			
             var it = 0,
                 len = 0,
                 fullList = [],
@@ -755,6 +759,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (general.getRecord("Zin", true) === false ? false : true) {
                     $j("div[id*='_zin_row']", caap.caapDivObject).css("display", "block");
                 }
+                if (general.getRecord("Misa", true) === false ? false : true) {
+                    $j("div[id*='_misa_row']", caap.caapDivObject).css("display", "block");
+                }
             }
             return true;
         } catch (err) {
@@ -878,31 +885,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var targetGeneral = '',
                 levelUp = general.LevelUpCheck(whichGeneral),
+                zinRecord = state.getItem('ThisAction', 'idle') !== 'doArenaBattle' && general.getRecord("Zin", true),
+                misaRecord = state.getItem('ThisAction', 'idle') !== 'doArenaBattle' && general.getRecord("Misa", true),
+				useZinMisa = ['InvadeGeneral', 'DuelGeneral', 'MonsterGeneral'].hasIndexOf(whichGeneral),
+                useZin =  useZinMisa && config.getItem("useZinFirst", false) && zinRecord && !caap.inLevelUpMode()
+					&& caap.stats.stamina.num <= (caap.stats.stamina.max - 15) && zinRecord.charge === 100,
+                useMisa =  useZinMisa && config.getItem("useMisaFirst", false) && misaRecord && !caap.inLevelUpMode()
+					&& caap.stats.energy.num <= (caap.stats.energy.max - 30) && misaRecord.charge === 100,
                 coolType = general.getCoolDownType(whichGeneral),
-                coolName = coolType ? config.getItem(coolType, '') : '',
-                coolRecord = coolName ? general.getRecord(coolName) : {},
-                zinRecord = general.getRecord("Zin", true),
-                zinReady = zinRecord && !$j.isEmptyObject(zinRecord) ? caap.stats.stamina.num <= (caap.stats.stamina.max - 15) && zinRecord.charge === 100 : false,
-                coolZin = coolName === "Zin" ? caap.stats.stamina.num > (caap.stats.stamina.max - 15) : false,
-                useCool = coolName && !coolZin && !$j.isEmptyObject(coolRecord) && coolRecord.charge === 100,
-                zinFirst = config.getItem("useZinFirst", true),
-                thisAction = state.getItem('ThisAction', 'idle'),
-                zinAction = ["battle"];
+                coolName = useZin ? 'Zin' : useMisa ? 'Misa' : coolType ? config.getItem(coolType, '') : '',
+                coolRecord = general.getRecord(coolName, true),
+                useCool = coolName && coolRecord.charge === 100;
 
             if (general.records.length <= (caap.stats.level >= 100 ? 20 : 1)) {
                 con.log(1, "Generals count of " + general.records.length + " <= " + (caap.stats.level >= 100 ? 20 : 2) + ', checking Generals page');
                 return caap.navigateTo('generals');
             }
 
-            con.log(3, 'Cool', useCool, coolZin, coolType, coolName, coolRecord);
-            con.log(3, 'Zin', zinReady, zinFirst, zinRecord);
+            con.log(3, 'Cool', useCool, coolType, coolName, coolRecord);
+            con.log(3, 'Zin', useZin,  zinRecord);
             if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 con.log(2, 'Using level up general');
             }
 
             //Check what target general should be
-            targetGeneral = zinReady && zinFirst && zinAction.hasIndexOf(thisAction) ? "Zin" : useCool ? coolName : whichGeneral.indexOf('General') > 0 ? config.getItem(whichGeneral, whichGeneral) : whichGeneral;
+            targetGeneral = useCool ? coolName : whichGeneral.indexOf('General') > 0 ? config.getItem(whichGeneral, whichGeneral) : whichGeneral;
             //con.log(2, 'Select General ', whichGeneral, targetGeneral, coolName, config.getItem(whichGeneral, whichGeneral));
 
             if (targetGeneral == 'Use Current') {
@@ -924,50 +932,68 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.Clear(whichGeneral);
                 return returnNametf ? 'Use Current' : false;
             }
-
-            return returnNametf ? targetGeneral : general.selectSpecific(targetGeneral);
+			
+            return general.selectSpecific(targetGeneral, returnNametf);
         } catch (err) {
             con.error("ERROR in general.Select: " + err.stack);
             return false;
         }
     };
-
+	
+	// If not ok to switch general due to stat loss, returns true
+	general.changeStatCheck = function(g) { //target general, current general
+		return ['stamina', 'energy'].reduce( function(p, s) {
+			if (caap.stats[s].num > caap.stats[s].norm + general.GetStat(g, s)) {
+				2050 > 2000 + 0 
+				con.warn('Overrode general change to ' + g + ' because ' + caap.stats[s].num + ' ' + stat + ' greater than max ' + caap.stats[s].norm + ' plus general mod of  ' + general.GetStat(g, s));
+				session.setItem('burn' + s, true);
+				return true;
+			}
+			session.setItem('burn' + s, false);
+			return p;
+		}, false);
+	};
+		
+		
     // Load a specific general or loadout by name.  'Use Current' is used for no preference.
-    general.selectSpecific = function(targetGeneral) {
+	// If returnNametf is true, then returns the name of general to be equipped instead of doing so
+    general.selectSpecific = function(targetGeneral, returnNametf) {
         try {
             var	targetLoadout = '',
                 generalImage = '',
                 timedGeneral = general.timedLoadout(),
-				freezetf = false,
+				resultTrue = returnNametf ? targetGeneral : true,
+				resultFalse = returnNametf ? targetGeneral : false,
+				freezeTf = resultFalse,
                 lRecord = {},
                 currentGeneral = general.GetCurrentGeneral(),
                 currentLoadout = general.GetCurrentLoadout(),
 				cgR = {}, // current general record
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 			
-            if (timedGeneral && timedGeneral != targetGeneral) {
-                con.log(2,'General change to ' + targetGeneral + (freezetf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
-                targetGeneral = timedGeneral;
-				freezetf = config.getItem('timedFreeze', true);
-            }
-
-			if (!general.getRecord(currentGeneral,false)) {
-				con.warn('Unable to find current general record. Going to generals page to get all general records.');
+			if (!general.getRecord(currentGeneral,false) && !returnNametf) {
+				con.warn('Current general unknown. Going to generals page to get general records.');
 				if (caap.navigateTo('generals')) {
 					return true;
-				} else {
-					return caap.navigateTo('keep');
 				}
+				return caap.navigateTo('keep');
 			}
 
-			//con.log(2, "Select Specific " + targetGeneral);
-            if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
+            if (timedGeneral && timedGeneral != targetGeneral && (targetGeneral != 'Use Current' || currentGeneral != timedGeneral)) {
+				freezeTf = config.getItem('timedFreeze', true);
+                con.log(2,'General change to ' + targetGeneral + (freezetf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
+                targetGeneral = timedGeneral;
+				resultTrue = returnNametf ? targetGeneral : true;
+				resultFalse = returnNametf ? targetGeneral : freezeTf;
+            }
+
+			if (defaultLoadout != 'Use Current' && !general.getRecord(defaultLoadout,false)) {
                 con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
                 general.Clear('DefaultLoadout');
             }
 
             if (!targetGeneral || targetGeneral == 'Use Current') {
-                return freezetf;
+                return resultFalse;
             }
 
             // Confirm loadout is ok
@@ -977,43 +1003,51 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				lRecord = general.getRecord(targetLoadout,false);
 				targetGeneral = general.isLoadout(targetGeneral) ? general.GetStat(targetGeneral,'general') : targetGeneral;
 				if (targetLoadout !== currentLoadout || !general.GetStat(targetLoadout,'general')) {
-	//				|| (targetGeneral !== currentGeneral && targetGeneral == lRecord.general)) {
 					if (lRecord === false) {
-						con.log(2,'Unable to find ' + targetLoadout + ' record. general.records.length:' + general.records.length + ' targetGeneral ',targetGeneral, currentLoadout, currentGeneral);
-						return freezetf;
+						con.warn('Unable to find ' + targetLoadout + ' record');
+						return resultFalse;
 					}
-					con.log(2,'Loading ' +targetLoadout + ' value ' + lRecord.value, lRecord);
+					if (general.changeStatCheck(targetLoadout)) {
+						return resultFalse;
+					}
+					if (returnNametf) {
+						return targetLoadout;
+					}
+					con.log(2,'Loading ' + targetLoadout + ' value ' + lRecord.value, lRecord);
 
 					general.clickedLoadout = lRecord.value - 1;
 					caap.click($j('div[id*="hot_swap_loadouts_content_div"] > div:nth-child(' + lRecord.value + ') > div:first'));
-					return true;
+					return resultTrue;
 				}
 			}
 			
             // Confirm if necessary to load a different general
             if (!targetGeneral || targetGeneral === currentGeneral || targetGeneral === 'Use Current') {
-                return freezetf;
+                return resultFalse;
             }
 
+			if (general.changeStatCheck(targetGeneral)) {
+				return resultFalse;
+			}
+			if (returnNametf) {
+				return targetGeneral;
+			}
+			
             con.log(2, 'Changing from ' + currentGeneral + ' to ' + targetGeneral);
             if (caap.navigateTo('generals')) {
-                return true;
+                return resultTrue;
             }
 
             generalImage = general.GetStat(targetGeneral, 'img');
             if (generalImage && caap.hasImage(generalImage, $j('#generalContainerBox2'))) {
                 general.clickedLoadout = false;
                 caap.click(caap.checkForImage(generalImage, $j('#generalContainerBox2')));
-                return true;
+                return resultTrue;
             }
 
-            caap.setDivContent('Could not find ' + targetGeneral);
             con.warn('Could not find', targetGeneral, generalImage);
-            if (!config.getItem('ignoreGeneralImage', true)) {
-                return general.Clear(whichGeneral);
-            }
 
-            return freezetf;
+            return resultFalse;
         } catch (err) {
             con.error("ERROR in general.selectSpecific: " + err.stack);
             return false;
@@ -1088,11 +1122,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             // Add General Comboboxes
             var reverseGenInstructions = "This will make the script level Generals under max level from Top-down instead of Bottom-up",
-                ignoreGeneralImage = "This will prevent the script " +
-                    "from changing your selected General to 'Use Current' if the script " +
-                    "is unable to find the General's image when changing activities. " +
-                    "Instead it will use the current General for the activity and try " +
-                    "to select the correct General again next time.",
                 LevelUpGenExpInstructions = "Specify the number of experience " +
                     "points below the next level up to begin using the level up general.",
                 LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.",
@@ -1114,12 +1143,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 i = 0,
                 coolDown = '',
-                haveZin = general.getRecord("Zin", true) === false ? false : true,
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Generals', 'GENERALS');
-            htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', haveZin ? "display: block;" : "display: none;");
-            htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
+            htmlCode += caap.makeCheckTR("Use Zin First", 'useZinFirst', true, 'If Zin is charged and not levelling up then use her first as long as you are 15 or less points from maximum stamina.', false, false, '', '_zin_row', general.getRecord("Zin", true) ? "display: block;" : "display: none;");
+            htmlCode += caap.makeCheckTR("Use Misa First", 'useMisaFirst', true, 'If Misa is charged and not levelling up then use her first as long as you are 30 or less points from maximum energy.', false, false, '', '_misa_row', general.getRecord("Misa", true) ? "display: block;" : "display: none;");
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);
             for (i = 0; i < general.menuList.length; i += 1) {

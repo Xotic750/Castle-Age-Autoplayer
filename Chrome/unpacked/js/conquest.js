@@ -126,9 +126,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             conquest.hbest = conquest.hbest === false ? JSON.hbest(conquest.records) : conquest.hbest;
-            con.log(2, "conquest.load Hbest", conquest.hbest);
+            //con.log(2, "conquest.load Hbest", conquest.hbest);
             session.setItem("ConquestDashUpdate", true);
-            con.log(1, "conquest.load", conquest.records);
+            con.log(3, "conquest.load", conquest.records);
+			conquestLands.load(); // Shouldn't be here, but putting here for now
             return true;
         } catch (err) {
             con.error("ERROR in conquest.load: " + err);
@@ -1161,37 +1162,44 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     conquest.getLands = function() {
-        var landCapsules = $j("[style*='conq2_capsule']"),
+        var landCapsules = $j("div[style*='conq2_capsule']"),
             timeLeft,
 			path,
+			tmp = $j(),
 			pathList = [],
 			monsterFound = false,
 			activePathlist = [];
 		
-		landCapsules.each(function() {
-            var currentCapsule = $j(this),
-                tmp = '',
-                landRecord = new conquestLands.record();
-            landRecord.name = currentCapsule.children().eq(0).text().trim();
+		tmp = $j("#app_body #header_garrison_tab a[href*='slot=']");
+		caap.stats.LoMland = $u.hasContent(tmp) ? tmp.attr('href').regex(/slot=(\d+)/) - 1 : -1;
+		landCapsules.each(function(index) {
+			var currentCapsule = $j(this),
+				arr = [],
+				landRecord = conquestLands.getItem(index);
+			
+			landRecord.name = currentCapsule.children().eq(0).text().trim();
             tmp = $j("img[src*='conq2_btn']", currentCapsule)[0].src.split('/');
-            landRecord.status = tmp[tmp.length - 1].match(/.+_(.+)\..+/)[1];
-            if (landRecord.status == 'explore') {
-                tmp = $j("img[src*='conq2_btn']", currentCapsule).attr('onClick').match(/.+popup_(\d+)/)[1];
-                landRecord.timeLeft = 0;
-                landRecord.stateTimeLeft = 0;
-            } else {
-                tmp = $j("img[src*='conq2_btn']", currentCapsule).parent().eq(0).attr('href').match(/.+slot=(\d+)/)[1];
-                try{
-                    landRecord.timeLeft = $j("[id*='expire_text']", currentCapsule).html().match(/.+forever in (\d+) hours/)[1];
-                } catch (err) {
-                    con.error("ERROR in landRecord.timeLeft: " + err);
-                    landRecord.timeLeft = 999999;
-                }	
-            }
-            landRecord.slot = tmp[tmp.length - 1];
-
-            conquestLands.setItem(landRecord);
+			landRecord.status = tmp[tmp.length - 1].match(/.+_(.+)\..+/)[1];
+			if (landRecord.status == 'explore') {
+				landRecord.timeLeft = 0;
+				landRecord.stateTimeLeft = 0;
+			} else {
+				try{
+					arr = currentCapsule.text().trim().regex(/(\d+) HR/gi);
+					landRecord.timeLeft = arr.length ? arr.pop() : 999999;
+					landRecord.phaseLeft = arr.length ? arr.pop() : 999999;
+					landRecord.defenders = $j("div[onmouseout*='defenderc_text_']", currentCapsule).parent().text().regex(/(\d+)/);
+				} catch (err) {
+					con.error("ERROR in landRecord.timeLeft: " + err);
+					landRecord.timeLeft = 999999;
+				}	
+			}
+			landRecord.index = index;
+			conquestLands.records[index] = landRecord;
         });
+		conquestLands.records.splice(landCapsules.length, conquestLands.records.length - landCapsules.length);
+		con.log(2, 'Conquest Lands Records', conquestLands.records);
+		conquestLands.save();
     };
 
 	conquest.categories = ['Conqueror','Guardian','Hunter','Engineer'];
@@ -1202,25 +1210,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return config.getItem('When' + category, 'Never') !== 'Never';
 			});
 		
-			if (check && schedule.check('conquestCollectPage')) {
+			if (schedule.check('conquestCollectPage') && (check || config.getItem('doLoMmove',false))) {
 				return caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
 			}
 			
 			check = false;
 			if (schedule.check('conquestFail')) {
-				check = conquest.categories.some( function(category) {
+				conquest.categories.some( function(category) {
 					if (caap.stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
 						con.log(1, category + ' points are ' + caap.stats.conquest[category] + ', which is over ' 
 							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
 						check = caap.navigate2("guildv2_conquest_command,clickjq:input[name*='Report Collect!']");
 						if (!check || check != 'fail') {
 							schedule.setItem('conquestFail', 3600);
+							check = false;
+							return true;
 							con.warn('Unable to complete conquest points Collect, waiting an hour to try again');
 						} else if (check == 'done') {
 							conquest.categories.forEach( function(category) {
 								caap.stats.conquest[category] = 0;
 							});
 						}
+						check = true;
 						return true;
 					}
 				});
@@ -1548,9 +1559,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             guilds.hbest = guilds.hbest === false ? JSON.hbest(guilds.records) : guilds.hbest;
-            con.log(2, "guilds.load Hbest", guilds.hbest);
+            //con.log(2, "guilds.load Hbest", guilds.hbest);
             session.setItem("GuildsDashUpdate", true);
-            con.log(2, "guilds.load", guilds.records);
+            con.log(3, "guilds.load", guilds.records);
             return true;
         } catch (err) {
             con.error("ERROR in guilds.load: " + err);
@@ -2049,9 +2060,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     conquestLands.record = function() {
         this.data = {
             'name': '',
-            'slot': 0,
+            'index': 0,
             'status': 0,
             'timeLeft': 0,
+            'phaseLeft': 0,
+            'defenders': 0,
             'stateTimeLeft': 0,
             'newRecord': true
         };
@@ -2113,35 +2126,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    conquestLands.getItem = function(slot) {
+    conquestLands.getItem = function(index) {
         try {
-            var it = 0,
-                len = 0,
-                success = false,
-                newRecord = null;
+            var newRecord = null;
 
-            if (slot === '' || $u.isNaN(slot) || slot < 1) {
-                con.warn("slot", slot);
-                throw "Invalid identifying slot!";
+            if (index === '' || $u.isNaN(index) || index < 0) {
+                con.warn("index", index);
+                throw "Invalid identifying index!";
             }
 
-            for (it = 0, len = conquestLands.records.length; it < len; it += 1) {
-                if (conquestLands.records[it].slot === slot) {
-                    success = true;
-                    break;
-                }
+            if (index < conquestLands.records.length) {
+                con.log(2, "Got conquest land record", index, conquestLands.records[index]);
+                conquestLands.records[index].newRecord = false;
+                return conquestLands.records[index];
             }
 
-            if (success) {
-                con.log(2, "Got conquest land record", slot, conquestLands.records[it]);
-                conquestLands.records[it].newRecord = false;
-                return conquestLands.records[it];
-            }
-
-            newRecord = new conquestLands.record();
-            newRecord.data.slot = slot;
-            con.log(2, "New conquest record", slot, newRecord.data);
-            return newRecord.data;
+            newRecord = new conquestLands.record().data;
+            newRecord.index = index;
+            con.log(2, "New conquest record", index, newRecord);
+            return newRecord;
         } catch (err) {
             con.error("ERROR in conquestLands.getItem: " + err);
             return false;
@@ -2166,7 +2169,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 success = false;
 
             for (it = 0; it < conquestLands.records.length; it += 1) {
-                if (conquestLands.records[it].slot === record.slot) {
+                if (conquestLands.records[it].index === record.index) {
                     success = true;
                     break;
                 }

@@ -59,7 +59,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				monster.lastClick = null;
 
             //con.log(2, "Checking monster list page results", page, pageURL, monsterRow);
-			if (!publicList) {
+			if (publicList) {
+				lpage = 'player_monster_list';
+			} else {
 				if (page === 'guildv2_monster_list') {
 					lpage = 'ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,'');
 				} else if (page === 'raid') {
@@ -95,7 +97,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         continue;
                     }
                     /*jslint continue: false */
-					monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim();
+					monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim().replace(/,.*/,'').toLowerCase().ucWords();
+					monsterName = monster.getInfo(monsterName, 'alias', monsterName);
 					conditions = '';
 					if (publicList) {
 						conditions = feed.addConditions(monsterName);
@@ -110,6 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     mR = monster.getItem(md5);
 					mR.link = link;
 					mR.lpage = lpage;
+					mR.monster = monsterName;
 					if (publicList) {
 						mR.conditions = conditions;
 					}
@@ -124,6 +128,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/list_btn_(\w*)/);
 						switch (engageButtonName) {
 							case 'collect':
+								feed.checkDeath(mR);
 								mR.status = mR.status || 'Dead or fled';
 								mR.color = 'grey';
 								break;
@@ -198,6 +203,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     switch (engageButtonName) {
                         case 'collectbtn':
                         case 'dragon_list_btn_2':
+							feed.checkDeath(mR);
                             mR.status = 'Collect';
                             mR.color = 'grey';
 
@@ -208,6 +214,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             break;
                         case 'viewbtn':
                         case 'dragon_list_btn_4':
+							feed.checkDeath(mR);
                             if (page === 'raid' && !(/!/.test(monsterFull))) {
                                 break;
                             }
@@ -234,9 +241,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			for (it = monster.records.length - 1; it >= 0; it -= 1) {
 				mR = monster.records[it];
-				if (mR.lpage === lpage && !publicList) {
+				if (mR.lpage === lpage && !publicList && mR.status !== 'Join') {
 					if (mR.listReviewed < now) {
-						mR.lMissing = $u.setContent(mR.lMissing, 0) + 1;
+						mR.lMissing += 1;
+						monster.setItem(mR);
 						con.warn('Did not see monster ' + mR.name + ' on monster list ' + mR.lMissing + ' times.', mR);
 					} else {
 						mR.lMissing = 0;
@@ -244,6 +252,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					monster.setItem(mR);
 				}
 			}
+            session.getItem("FeedDashUpdate", true)
+            session.getItem("MonsterDashUpdate", true)
             caap.updateDashboard(true);
             return true;
         } catch (err) {
@@ -251,662 +261,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-    caap.checkResults_battle = function () {
-        try {
-            var symDiv = $j(),
-                points = [],
-                success = true;
 
-            battle.checkResults();
-            symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
-            if ($u.hasContent(symDiv) && symDiv.length === 5) {
-                symDiv.each(function () {
-                    var txt = '';
-
-                    txt = $j(this).parent().parent().next().text();
-                    txt = txt ? txt.replace(/\s/g, '') : '';
-                    if (txt) {
-                        points.push(txt);
-                    } else {
-                        success = false;
-                        con.warn('Demi temp text problem', txt);
-                    }
-                });
-
-                if (success) {
-                    caap.demi.ambrosia.daily = caap.getStatusNumbers(points[0]);
-                    caap.demi.malekus.daily = caap.getStatusNumbers(points[1]);
-                    caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
-                    caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
-                    caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
-                    schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6, hiddenVar) : 6) * 3600, 300);
-                    caap.SaveDemi();
-                }
-            } else {
-                con.warn('Demi symDiv problem');
-            }
-
-            //config.getItem('DoPlayerRecon', false)
-            if (battle.reconInProgress) {
-                battle.freshmeat("recon");
-            }
-
-            symDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_battle: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.inLevelUpMode = function () {
-        try {
-            if (!config.getItem('EnableLevelUpMode', true)) {
-                //if levelup mode is false then new level up mode is also false (kob)
-                state.setItem("newLevelUpMode", false);
-                return false;
-            }
-
-            if (!caap.stats.indicators.enl) {
-                //if levelup mode is false then new level up mode is also false (kob)
-                state.setItem("newLevelUpMode", false);
-                return false;
-            }
-
-            // minutesBeforeLevelToUseUpStaEnergy : 5, = 30000
-            if (((caap.stats.indicators.enl - Date.now()) < 30000) || (caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 20))) {
-                //detect if we are entering level up mode for the very first time (kob)
-                if (!state.getItem("newLevelUpMode", false)) {
-                    //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
-                    state.setItem("newLevelUpMode", true);
-                }
-
-                return true;
-            }
-
-            //if levelup mode is false then new level up mode is also false (kob)
-            state.setItem("newLevelUpMode", false);
-            return false;
-        } catch (err) {
-            con.error("ERROR in inLevelUpMode: " + err.stack);
-            return false;
-        }
-    };
-
-	// Will return amount of stamina available.
-    caap.checkStamina = function (battleOrMonster, attackMinStamina) {
-        try {
-            con.log(4, "checkStamina", battleOrMonster, attackMinStamina);
-            attackMinStamina = $u.setContent(attackMinStamina, 0);
-
-            var when = config.getItem('When' + battleOrMonster, 'Never'),
-                maxIdleStamina = 0,
-                theGeneral = '',
-                staminaMF = '',
-                messDiv = battleOrMonster.toLowerCase() + "_mess";
-
-            if (when === 'Never') {
-                return false;
-            }
-
-            if (!caap.stats.stamina || !caap.stats.health) {
-                caap.setDivContent(messDiv, 'Health or stamina not known yet.');
-                return false;
-            }
-
-            if (caap.stats.health.num < 10) {
-                if (battleOrMonster === "Conquest") {
-                    schedule.setItem("conquest_delay_stats", (10 - caap.stats.health.num) *  180, 120);
-                }
-
-                caap.setDivContent(messDiv, "Need health to fight: " + caap.stats.health.num + "/10");
-                return false;
-            }
-
-            if (((battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false)) || (battleOrMonster === "Conquest" && config.getItem("conquestWaitSafeHealth", false))) && caap.stats.health.num < 13) {
-                if (battleOrMonster === "Conquest") {
-                    schedule.setItem("conquest_delay_stats", (13 - caap.stats.health.num) *  180, 120);
-                }
-
-                caap.setDivContent(messDiv, "Unsafe. Need health to fight: " + caap.stats.health.num + "/13");
-                return false;
-            }
-
-            if (when === 'At X Stamina') {
-                if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
-                    caap.setDivContent(messDiv, 'Burning stamina to level up');
-                    return caap.stats.stamina.num;
-                }
-
-                staminaMF = battleOrMonster + 'Stamina';
-                if (state.getItem('BurnMode_' + staminaMF, false) || caap.stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
-                    if (caap.stats.stamina.num < attackMinStamina || caap.stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
-                        state.setItem('BurnMode_' + staminaMF, false);
-                        return false;
-                    }
-
-                    state.setItem('BurnMode_' + staminaMF, true);
-                    return caap.stats.stamina.num - config.getItem('XMin' + staminaMF, 0);
-                }
-
-                state.setItem('BurnMode_' + staminaMF, false);
-
-                caap.setDivContent(messDiv, 'Waiting for stamina: ' + caap.stats.stamina.num + "/" + config.getItem('X' + staminaMF, 1));
-                return false;
-            }
-
-            if (when === 'At Max Stamina') {
-                maxIdleStamina = caap.maxStatCheck('stamina');
-
-                if (caap.stats.stamina.num >= maxIdleStamina) {
-                    caap.setDivContent(messDiv, 'Using max stamina');
-                    return caap.stats.stamina.num; 
-                }
-
-                if (caap.inLevelUpMode()) {
-                    caap.setDivContent(messDiv, 'Burning all stamina to level up');
-                    return caap.stats.stamina.num;
-                }
-
-                caap.setDivContent(messDiv, 'Waiting for max stamina: ' + caap.stats.stamina.num + "/" + maxIdleStamina);
-                return false;
-            }
-
-            if (caap.stats.stamina.num >= attackMinStamina) {
-                return caap.stats.stamina.num;
-            }
-
-            caap.setDivContent(messDiv, "Waiting for more stamina: " + caap.stats.stamina.num + "/" + attackMinStamina);
-            return false;
-        } catch (err) {
-            con.error("ERROR in checkStamina: " + err.stack);
-            return false;
-        }
-    };
-
-    /*-------------------------------------------------------------------------------------\
-    needToHide will return true if the current stamina and health indicate we need to bring
-    our health down through battles (hiding).  It also returns true if there is no other outlet
-    for our stamina (currently this just means Monsters, but will eventually incorporate
-    other stamina uses).
-    \-------------------------------------------------------------------------------------*/
-    caap.needToHide = function () {
-        try {
-            if (config.getItem('WhenMonster', 'Never') === 'Never') {
-                con.log(1, 'Stay Hidden Mode: Monster battle not enabled');
-                return true;
-            }
-
-            if (!state.getItem('targetFromMonster', '')) {
-                con.log(1, 'Stay Hidden Mode: No monster to battle');
-                return true;
-            }
-
-            if (config.getItem('delayStayHidden', true) === false) {
-                con.log(2, 'Stay Hidden Mode: Delay hide if "safe" not enabled');
-                return true;
-            }
-
-            /*-------------------------------------------------------------------------------------\
-             The riskConstant helps us determine how much we stay in hiding and how much we are willing
-             to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to
-             stay in hiding. The higher the risk constant, the more we attempt to use our stamina for
-             non-hiding activities.  The below matrix shows the default riskConstant of 1.7
-
-             S   T   A   M   I   N   A
-             1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
-             H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
-             E   11  -   -   +   +   +   +   +   +   +
-             A   12  -   -   +   +   +   +   +   +   +
-             L   13  -   -   +   +   +   +   +   +   +
-             T   14  -   -   -   +   +   +   +   +   +
-             H   15  -   -   -   +   +   +   +   +   +
-             16  -   -   -   -   +   +   +   +   +
-             17  -   -   -   -   -   +   +   +   +
-             18  -   -   -   -   -   +   +   +   +
-
-             Setting our riskConstant down to 1 will result in us spending out stamina to hide much
-             more often:
-
-             S   T   A   M   I   N   A
-             1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
-             H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
-             E   11  -   -   +   +   +   +   +   +   +
-             A   12  -   -   -   +   +   +   +   +   +
-             L   13  -   -   -   -   +   +   +   +   +
-             T   14  -   -   -   -   -   +   +   +   +
-             H   15  -   -   -   -   -   -   +   +   +
-             16  -   -   -   -   -   -   -   +   +
-             17  -   -   -   -   -   -   -   -   +
-             18  -   -   -   -   -   -   -   -   -
-
-            \-------------------------------------------------------------------------------------*/
-
-            var riskConstant = gm ? gm.getItem('HidingRiskConstant', 1.7, hiddenVar) : 1.7;
-
-            /*-------------------------------------------------------------------------------------\
-            The formula for determining if we should hide goes something like this:
-
-            If  (health - (estimated dmg from next attacks) puts us below 10)  AND
-            (current stamina will be at least 5 using staminatime/healthtime ratio)
-            Then stamina can be used/saved for normal process
-            Else stamina is used for us to hide
-
-            \-------------------------------------------------------------------------------------*/
-            //if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && (caap.stats.stamina.num * (5 / 3) >= 5)) {
-            if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && ((caap.stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1, hiddenVar) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
-                return false;
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in needToHide: " + err.stack);
-            return undefined;
-        }
-    };
-
-    caap.monsters = function () {
-        try {
-			var whenMonster = config.getItem('WhenMonster', 'Never');
-
-			if (whenMonster === 'Never' || whenMonster == 'Review Only') {
-				caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
-				return false;
-			}
-				
-			monster.select(false);
-			
-            ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
-
-            if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && caap.needToHide() && caap.checkStamina('Monster', 1)) {
-                con.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
-                caap.setDivContent('monster_mess', 'Not Safe For Monster. Battle!');
-                return false;
-            }
-
-            if (!schedule.check('NotargetFrombattle_monster')) {
-                return false;
-            }
-
-            ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
-
-            // Establish a delay timer when we are 1 stamina below attack level.
-            // Timer includes 5 min for stamina tick plus user defined random interval
-
-            if (!caap.inLevelUpMode() && caap.stats.stamina.num === (state.getItem('MonsterStaminaReq', 1) - 1) && schedule.check('battleTimer') && config.getItem('seedTime', 0) > 0) {
-                schedule.setItem('battleTimer', 300, config.getItem('seedTime', 0));
-                caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
-                return false;
-            }
-
-            if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < caap.maxStatCheck('stamina')) {
-                    caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
-                    return false;
-                }
-            }
-
-            var fightMode = '',
-                energyRequire = 0,
-                cM = {},  // current monster
-                attackButton = null,
-                singleButtonList = [],
-                buttonList = [],
-                tacticsValue = 0,
-                useTactics = false,
-                attackMess = '',
-                it = 0,
-                len = 0,
-				gMult = 1, // General multiplier, like Orc King = 5
-				minMax = 'min',
-                theGeneral = 'Use Current',
-				temp,
-				nodeNum = 0,
-				xpPerPt = 1,
-				statRequire = 0,
-				statRequireBig = 0,
-				statAvailable = 0,
-				debtcM = {},
-				statList = 'energyList',
-				blankRecord = new monster.record().data,
-				result = false,
-				healPercStam = config.getItem('HealPercStam', 20) / 100,
-				staminaAvailable = Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? caap.stats.energy.num / healPercStam : 10000),
-				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available'));
-
-			debtcM = healPercStam ? (monster.records.reduce(function(previous, redR) {
-				return redR.debt.stamina > previous.debt.stamina ? redR : previous;
-			}, blankRecord)) : blankRecord;
-			
-            // Check to see if we should fortify or attack monster
-			['energy', 'stamina', 'cover'].some( function(stat) {
-				statAvailable = 0;
-				fightMode = stat == 'stamina' ? 'Monster' : 'Fortify';
-				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
-				temp = state.getItem('targetFrom' + fightMode, '');
-				cM = temp ? monster.getItem(temp) : blankRecord;
-
-				// If we're about to attack or fortify a different monster than we have a debt to, then pay the debt first
-				if (debtcM.debt.stamina > 0 && (stat == 'cover' || (cM.md5 !== debtcM.md5 && (cM.md5 || fightMode == 'Monster')))) {
-					fightMode = 'Fortify';
-					statList = 'energyList';
-					cM = debtcM;
-					statAvailable = caap.checkEnergy('Fortify', 'Energy Available');
-				} else if (!cM.md5) {
-					return false;
-				}
-				
-				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', true));
-				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
-				xpPerPt = (statList == 'energyList' ? 3.6 : 5) * gMult;
-				//con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
-				
-				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
-
-				statAvailable = statAvailable || (statList == 'energyList' ? energyAvailable : staminaAvailable);
-				if (caap.inLevelUpMode()) {  
-					// Check for the biggest hit we can make with our remaining stats
-					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
-					
-					// Is there a smaller power attack that will work?
-					statRequire = caap.minMaxArray(cM[statList], 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult);
-					
-					if (statRequire && statRequire * xpPerPt < caap.stats.exp.dif) {
-						// Ok, small power hit is a go
-					// If power hit won't work, then do single hit
-					} else if (cM[statList][0] == 1 && 1 * xpPerPt < caap.stats.exp.dif) {
-						statRequire = 1;
-					} else {
-						// If too close to levelling for a power attack, do max attack to carry over xp
-						statRequire = statRequireBig;
-					}
-					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif, cM, cM[statList][0], cM[statList][0] == 1, 1 * xpPerPt < caap.stats.exp.dif);
-				} else if (cM[statList][0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
-					statRequire = 1;
-				} else {
-					minMax = statList == 'staminaList' && config.getItem('PowerAttackMax', false) ? 'max' : 'min';
-					statRequire = caap.minMaxArray(cM[statList], minMax, 1, (statAvailable + 1) / gMult );
-				}
-				if (statRequire && statRequire * gMult <= statAvailable) {
-					nodeNum = !cM.multiNode ? 0 : cM[statList].indexOf(statRequire);
-					con.log(2, 'NodeNum ' + nodeNum);
-					return true;
-				} else {
-					statAvailable = 0;
-				}
-			});
-
-			if (!statAvailable) {
-				schedule.setItem('NotargetFrombattle_monster', 60);
-				return false;
-			}
-
-            // Set general and go to monster page
-			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
-            if (result !== false) {
-				attackButton = null;
-                singleButtonList = null;
-                buttonList = null;
-                if (result == 'fail') {
-					monster.deleteItem(cM.md5);
-					con.warn('Monster ' + cM.name + ' deleted after five attempts to navigate to it.', cM);
-					return false;
-				}
-                return true;
-            }
-
-            // Check if on engage monster page
-            if ($u.hasContent($j("#app_body " + monster.onMonsterHeader))) {
-                singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
-
-                // Find the attack or fortify button
-                if (fightMode === 'Fortify') {
-                    buttonList = ['seamonster_fortify.gif', 'button_dispel.gif', 'attack_monster_button3.jpg'];
-
-                    if (monster.getInfo(cM, 'fortify_img')) {
-                        buttonList.unshift(monster.getInfo(cM, 'fortify_img')[0]);
-                    }
-                    if (!cM.stunTarget) {
-                        con.log(1, "No stun target time set");
-                    }
-                    
-                    if (cM.stunDo && cM.stunType !== '') {
-                        buttonList.unshift("button_nm_s_" + cM.stunType);
-                    } else {
-                        buttonList.unshift("button_nm_s_");
-                    }
-                } else if (statRequire === 1) {
-                    // not power attack only normal attacks
-                    buttonList = singleButtonList;
-                } else {
-                    if (/:tac/i.test(cM.conditions) && caap.stats.level >= 50) {
-                        useTactics = true;
-                        tacticsValue = monster.parseCondition("tac%", cM.conditions);
-                    } else if (config.getItem('UseTactics', false) && caap.stats.level >= 50) {
-                        useTactics = true;
-                        tacticsValue = config.getItem('TacticsThreshold', false);
-                    }
-
-                    if (tacticsValue !== false && cM.fortify && cM.fortify < tacticsValue) {
-                        con.log(2, "Party health is below threshold value", cM.fortify, tacticsValue);
-                        useTactics = false;
-                    }
-
-                    if (useTactics && caap.hasImage('nm_button_tactics.gif')) {
-                        con.log(2, "Attacking monster using tactics buttons");
-                        buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
-                    } else {
-                        con.log(2, "Attacking monster using regular buttons");
-                        useTactics = false;
-                        // power attack or if not seamonster power attack or if not regular attack -
-                        // need case for seamonster regular attack?
-                        buttonList = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'event_attack1.gif', 'attack_monster_button.jpg'].concat(singleButtonList);
-
-                        if (monster.getInfo(cM, 'attack_img')) {
-                            if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                buttonList.unshift(monster.getInfo(cM, 'attack_img')[1]);
-                            } else {
-                                buttonList.unshift(monster.getInfo(cM, 'attack_img')[0]);
-                            }
-                        }
-                    }
-                }
-
-                con.log(2, "monster/button list", cM, buttonList, nodeNum);
-
-                for (it = 0, len = buttonList.length; it < len; it += 1) {
-                    attackButton = caap.checkForImage(buttonList[it], null, null, nodeNum);
-                    if ($u.hasContent(attackButton)) {
-                        break;
-                    }
-                }
-
-                if ($u.hasContent(attackButton)) {
-                    if (fightMode === 'Fortify') {
-                        attackMess = (cM.stunDo ? cM.stunType + 'ing ': 'Fortifying') + cM.name;
-                    } else if (useTactics) {
-                        attackMess = 'Tactic Attacking ' + cM.name;
-                    } else {
-                        attackMess = (statRequire >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
-                    }
-
-                    con.log(1, attackMess);
-                    caap.setDivContent('monster_mess', attackMess);
-                    caap.click(attackButton);
-					cM.spent[fightMode === 'Fortify' ? 'energy' : 'stamina'] += statRequire;
-					
-					// Record healing debt or repayments
-					if (cM.fortify >= 0 && healPercStam > 0 && (!cM.charClass || ['Mage','Rogue'].indexOf(cM.charClass) == -1)) {
-						cM.debt.stamina = Math.max(0, cM.debt.stamina + (fightMode === 'Fortify' ? -statRequire / healPercStam : statRequire));
-						cM.debt.start = cM.debt.start == -1 && fightMode === 'Monster' ? Math.min(cM.fortify, 97) 
-							: cM.debt.stamina ? cM.debt.start : -1;
-						session.setItem('ReleaseControl', false);
-					}
-                    // dashboard autorefresh fix
-                    localStorage.AFrecentAction = true;
-
-                    attackButton = null;
-                    singleButtonList = null;
-                    buttonList = null;
-					state.setItem('fightMode', fightMode);
-                    return true;
-                }
-
-                con.warn('No button to attack/fortify with.');
-                schedule.setItem('NotargetFrombattle_monster', 60);
-                attackButton = null;
-                singleButtonList = null;
-                buttonList = null;
-                return false;
-            }
-
-            schedule.setItem('NotargetFrombattle_monster', 60);
-            con.warn('Unable to find top banner for ' + cM.name, cM);
-            attackButton = null;
-            singleButtonList = null;
-            buttonList = null;
-            return false;
-        } catch (err) {
-            con.error("ERROR in monsters: " + err.stack);
-            return false;
-        }
-    };
-
-    /*-------------------------------------------------------------------------------------\
-    MonsterReview is a primary action subroutine to manage the monster and raid list
-    on the dashboard
-    \-------------------------------------------------------------------------------------*/
-    caap.monsterReview = function () {
-        try {
-            /*-------------------------------------------------------------------------------------\
-            We do monster review once an hour.  Some routines may reset this timer to drive
-            MonsterReview immediately.
-            \-------------------------------------------------------------------------------------*/
-			//con.log(2,'monster review',caap.stats.reviewPages);
-            if (config.getItem('WhenMonster', 'Never') === 'Never' && ['No Monster', 'Demi Points Only'].indexOf(config.getItem('WhenBattle', 'Never')) < 0 &&  config.getItem('TargetType', 'Freshmeat') != 'Raid') {
-                return false;
-            }
-
-            var link = '',
-                result = false,
-				i = 0,
-				time = 60,
-				cM = {},
-				message = 'Reviewing ';
-
-//caap.stats.reviewPages = {};
-            for (i = 0; i < caap.stats.reviewPages.length; i++) {
-                if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages,caap.stats.reviewPages[i].review);
-                    return caap.navigateTo(caap.stats.reviewPages[i].path);
-                }
-            }
-            //con.log(5,'monster review',caap.stats.reviewPages);
-
-            if (monster.records.length === 0) {
-                return false;
-            }
-
-            /*-------------------------------------------------------------------------------------\
-            Now we step through the monsterOl objects. We set monsterReviewCounter to the next
-            index for the next reiteration since we will be doing a click and return in here.
-            \-------------------------------------------------------------------------------------*/
-            for (i = 0; i < monster.records.length; i++) {
-                cM = monster.records[i];
-                /*jslint continue: true */
-				
-				// Skip monsters we haven't joined, unless in conquest lands
-                if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
-                    continue;
-                }
-                if (cM.color === 'grey' && cM.life !== -1) {
-                    cM.life = -1;
-                    cM.fortify = -1;
-                    cM.strength = -1;
-                    cM.time = [];
-                    cM.t2k = -1;
-                    cM.phase = '';
-                    monster.save();
-                }
-
-                /*-------------------------------------------------------------------------------------\
-                If we looked at this monster more recently than an hour ago, skip it
-                \-------------------------------------------------------------------------------------*/
-				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 60) * 60;
-				//con.log(2,'PRE MONSTER REVIEW', cM.name, schedule.since(cM.review, time),  cM, time, monster.parseCondition('mnt', cM.conditions));
-
-				link = "ajax:" + cM.link;
-
-				/*-------------------------------------------------------------------------------------\
-				If the autocollect token was specified then we set the link to do auto collect.
-				\-------------------------------------------------------------------------------------*/
-				if (['Collect', 'Dead or fled'].indexOf(cM.status)>=0) {
-					if (/:collect\b/.test(cM.conditions) || (!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false))) {
-						if (general.Select('CollectGeneral')) {
-							return true;
-						}
-
-						link += '&action=collectReward' + cM.rix;
-						con.log(2, 'Collecting reward on ' + cM.name, cM);
-						message = 'Collecting ';
-					}
-
-				} else if (cM.status == 'Done' && cM.lpage == "player_monster_list") {
-					if (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false))) {
-						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
-						//caap.updateDashboard(true);
-						message = 'Clearing ';
-						monster.deleteItem(cM.md5);
-					}
-
-				} else if (cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
-					link += ',clickimg:siege_btn.gif';
-					message = 'Sieging ';
-				}
-				
-                if (message === 'Reviewing ' && (cM.status === 'Done' || !schedule.since(cM.review, time))) {
-                    continue;
-                }
-                /*jslint continue: false */
-
-                /*-------------------------------------------------------------------------------------\
-                We get our monster link
-                \-------------------------------------------------------------------------------------*/
-                caap.setDivContent('monster_mess', message + (i + 1) + '/' + monster.records.length + ' ' + cM.name);
-
-                /*-------------------------------------------------------------------------------------\
-                If the link is good then we get the url and any conditions for monster
-                \-------------------------------------------------------------------------------------*/
-				
-				/*-------------------------------------------------------------------------------------\
-				Now we use ajaxSendLink to display the monsters page.
-				\-------------------------------------------------------------------------------------*/
-				con.log(1, message + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
-
-				result = caap.navigate2(link);
-				if (result == 'fail') {
-					caap.navigate2('keep');
-				}
-				monster.lastClick = cM.md5;
-				return result;
-            }
-
-            /*-------------------------------------------------------------------------------------\
-            All done.  Set timer and tell monster.select and dashboard they need to do their thing.
-            We set the monsterReviewCounter to do a full refresh next time through.
-            \-------------------------------------------------------------------------------------*/
-
-            caap.setDivContent('monster_mess', '');
-            caap.updateDashboard(true);
-
-            return false;
-        } catch (err) {
-            con.error("ERROR in monsterReview: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_onMonster = function (ajax, aslice) {
+	caap.checkResults_onMonster = function (ajax, aslice) {
         try {
             var slice = ajax ? $j(aslice) : $j("#app_body"),
 				visiblePageChangetf = !ajax && !feed.isScan,
@@ -1005,7 +361,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			} else {
 				if ($u.hasContent(monsterDiv)) {
 					cM.userName = monsterDiv.text().replace(/Monster Codes: \w+:\w+/, '').trim();
-					cM.userName = monsterDiv.text().replace("'s summoned", ' summoned').regex(/\s*(\S+)\s+summoned/i);
+					cM.userName = monsterDiv.text().replace("'s summoned", ' summoned').regex(/\s*(.+)\s+summoned/i);
 					if (!cM.userName) {
 						con.warn('Unable to find summoner name in monster div', monsterDiv.text(), monsterDiv);
 					}
@@ -1109,6 +465,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					} else {
 						con.warn("Unable to find defense bar", defImage);
 					}
+					tempDiv = $j("img[src*='repair_bar_grey.jpg']", slice).parent();
+					if ($u.hasContent(tempDiv)) {
+						cM.strength = 100 - tempDiv.getPercent('width').dp(2);
+					}
+
+					break;
+				case 'repair_bar_grey.jpg':
+					tempDiv = $j("img[src*='" + defImage + "']", slice).parent();
+					if ($u.hasContent(tempDiv)) {
+						cM.fortify = tempDiv.getPercent('width').dp(2);
+						tempDiv = tempDiv.parent();
+						if ($u.hasContent(tempDiv)) {
+							cM.strength = tempDiv.getPercent('width').dp(2);
+							tempDiv = tempDiv.parent().siblings().eq(0).children().eq(0);
+						} else {
+							cM.strength = 100;
+							con.warn("Unable to find defense bar strength");
+						}
+					} else {
+						con.warn("Unable to find defense bar fortify");
+					}
 
 					break;
 				case 'nm_green.jpg':
@@ -1133,7 +510,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
 			// See if healing debt is paid
-			if (config.getItem('HealPercStam', 20) > 0 && cM.debt.start > 0 && state.getItem('fightMode','Monster') == 'Fortify' && (cM.debt.stamina === 0 ||  cM.fortify > cM.debt.start)) {
+			if (config.getItem('HealPercStam', 20) > 0 && cM.debt.start > 0 && (cM.debt.stamina <= 0 ||  cM.fortify > cM.debt.start)) {
 				cM.debt.start = -1;
 				cM.debt.stamina = 0;
 				session.setItem('ReleaseControl', false);
@@ -1232,7 +609,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							cM.charClass = tStr;
 							con.log(4, "character", cM.charClass);
 						} else {
-							cM.charClass = 'Cleric';
 							con.warn("Can't get character", tempText);
 						}
 					} else {
@@ -1309,35 +685,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (cM.charClass) {
 
 						tStr = tempText.regex(/Tip: ([\w ]+) Status/);
-						if ($u.hasContent(tStr)) {
-							cM.tip = tStr;
-							con.log(4, "tip", cM.tip);
-						} else {
-							cM.tip = 'fortify';
+						if (!tStr) {
+							cM.stunType = 'fortify';
 							con.warn("Can't get tip", tempText);
+						} else {
+							cM.stunType = tStr.split(" ").pop().toLowerCase().replace('ion', '');
+							con.log(2, 'Stun type: ' + cM.stunType);
+						}
+						
+						if (!["strengthen", "cripple", "heal", "deflect", "fortify"].hasIndexOf(cM.stunType)) {
+							con.warn("Unknown monster stun attack", cM.stunType);
 						}
 
 						tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
 						if ($u.hasContent(tempArr) && tempArr.length === 3) {
 							cM.stunTime = Date.now() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
 							
-							// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
-							// or the WhenStun setting has changed, set a new stun target time.
-							tNum = monster.parseCondition("cd", cM.conditions);
-							tNum = $u.isNumber(tNum) ? tNum.toString() : config.getItem('WhenStun','Immediately');
-							tNum = tNum == 'Immediately' ? 6 : tNum == 'Never' ? 0 : tNum.parseFloat();
-							stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
-							con.log(5,'Checking stuntarget',tNum, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
-							
-							if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tNum) {
-								cM.stunSetting = tNum;
-
-								// Add +/- 30 min so multiple CAAPs don't all stun at the same time
-								cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
-										: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
-								con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
-							}
-
 						} else {
 							cM.stunTime = Date.now() + (cM.time[0] * 60 * 60 * 1000) + (cM.time[1] * 60 * 1000) + (cM.time[2] * 1000);
 							con.warn("Can't get statusTime", tempText);
@@ -1350,60 +713,39 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							if (tempText >= 0) {
 								cM.stun = tempText;
 								con.log(4, "stun", cM.stun);
+
+								// If we haven't set a target time for stunning yet, or the target time was for the phase before this one,
+								// or the WhenStun setting has changed, set a new stun target time.
+								tNum = monster.parseCondition("cd", cM.conditions);
+								tNum = $u.isNumber(tNum) ? tNum.toString() : config.getItem('WhenStun','Immediately');
+								tNum = tNum == 'Immediately' ? 6 : tNum == 'Never' ? 0 : tNum.parseFloat();
+								stunStart = cM.stunTime - 6 * 60 * 60 * 1000;
+								con.log(5,'Checking stuntarget',tNum, $u.makeTime(stunStart, caap.timeStr(true)),$u.makeTime(cM.stunTime, caap.timeStr(true)));
+								
+								if (!cM.stunTarget || cM.stunTarget < stunStart || cM.stunSetting !== tNum) {
+									cM.stunSetting = tNum;
+
+									// Add +/- 30 min so multiple CAAPs don't all stun at the same time
+									cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
+											: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
+									con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
+								}
+
+								cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(tStr) && cM.stun < 100;
+								if (cM.stunDo) {
+									con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tNum, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
+								}
+								cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
+
 							} else {
 								con.warn("Can't get stun bar width");
 							}
-						} else {
-							tempArr = cM.tip.split(" ");
-							if ($u.hasContent(tempArr)) {
-								tempText = tempArr[tempArr.length - 1].toLowerCase();
-								tempArr = ["strengthen", "heal","fortify"];
-								if (tempText && tempArr.hasIndexOf(tempText)) {
-									if (tempText === tempArr[0]) {
-										cM.stun = cM.strength;
-									} else if (tempText === tempArr[1]) {
-										cM.stun = cM.health;
-									} else if (tempText === tempArr[2]) {
-										cM.stun = cM.health;
-									} else {
-										con.warn("Expected strengthen or heal to match!", tempText);
-									}
-								} else {
-									con.warn("Expected strengthen or heal from tip!", tempText);
-								}
-							} else {
-								con.warn("Can't get stun bar and unexpected tip!", cM.tip);
-							}
+						} else if (["strengthen", "heal", "fortify"].hasIndexOf(cM.stunType)) {
+							cM.stun = cM.stunType == "strengthen" ? cM.strength : cM.health;
+						}	else {
+							con.warn('No bar and stun type is not strengthen, heal, or fortify');
 						}
 
-						if (cM.charClass && cM.tip && cM.stun !== -1) {
-							cM.stunDo = cM.charClass === '?' ? '' : new RegExp(cM.charClass).test(cM.tip) && cM.stun < 100;
-							if (cM.stunDo) {
-								con.log(2,"Cripple/Deflect after " + $u.makeTime(cM.stunTarget, caap.timeStr(true)), cM.stunTime, cM.stunTarget, tNum, cM.stunSetting, stunStart, Date.now() > cM.stunTarget);
-							}
-							cM.stunDo = cM.stunDo && Date.now() > cM.stunTarget;
-							cM.stunType = '';
-							if (cM.stunDo) {
-								con.log(2, "Do character specific attack", cM.stunDo);
-								tempArr = cM.tip.split(" ");
-								if ($u.hasContent(tempArr)) {
-									tempText = tempArr[tempArr.length - 1].toLowerCase();
-									tempArr = ["strengthen", "cripple", "heal", "deflection","fortify"];
-									if (tempText && tempArr.hasIndexOf(tempText)) {
-										cM.stunType = tempText.replace("ion", '');
-										con.log(2, "Character specific attack type", cM.stunType);
-									} else {
-										con.warn("Type does match list!", tempText);
-									}
-								} else {
-									con.warn("Unable to get type from tip!", cM);
-								}
-							} else {
-								con.log(3, "Tip does not match class or stun maxed", cM);
-							}
-						} else {
-							con.warn("Missing 'class', 'tip' or 'stun'", cM);
-						}
 					}
 
 					// Find the lowest and highest stamina/energy buttons
@@ -1431,17 +773,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							});
 						}
 					} else {
-						cM.staminaList = monster.getInfo(cM, 'staminaList');
 						if (!cM.staminaList.length) {
-							con.warn('Unable to find stamina/energy attack buttons');
+							con.log(2, 'Unable to find stamina/energy attack buttons, so using default configuration');
 						}
+						cM.staminaList = monster.getInfo(cM, 'staminaList');
+						cM.energyList = cM.fortify >= 0 ? monster.getInfo(cM, 'energyList') : [];
 					}
 						
 				// It's alive and I haven't hit it
 				} else {
 					if (!cM.charClass || caap.hasImage('battle_enter_battle.gif', slice)) {
 						cM.status = 'Join';
-						cM.conditions = feed.addConditions(cM.name);
+						cM.conditions = feed.addConditions(cM.name) || '';
 					} else { // I haven't hit it, but I can't join it, so delete
 						con.warn("Deleting unjoinable monster " + cM.name + " off Feed", cM)
 						deleteMon = true;
@@ -1455,6 +798,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM)
 					deleteMon = true;
 				} else {
+					feed.checkDeath(cM);
 					cM.status = (caap.hasImage('collect_reward', slice) || caap.hasImage('collectreward', slice)) ? 'Collect' : 'Done';
 					cM.color = 'grey';
 				}
@@ -1467,7 +811,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				monster.setItem(cM);
 			}
             monster.select(true);
-            caap.updateDashboard(true);
+            session.getItem("FeedDashUpdate", true)
+            session.getItem("MonsterDashUpdate", true)
+			caap.updateDashboard(true);
             if (schedule.check('battleTimer')) {
                 window.setTimeout(function () {
                     caap.setDivContent('monster_mess', '');
@@ -1485,4 +831,668 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
+	caap.checkResults_battle = function () {
+        try {
+            var symDiv = $j(),
+                points = [],
+                success = true;
+
+            battle.checkResults();
+            symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
+            if ($u.hasContent(symDiv) && symDiv.length === 5) {
+                symDiv.each(function () {
+                    var txt = '';
+
+                    txt = $j(this).parent().parent().next().text();
+                    txt = txt ? txt.replace(/\s/g, '') : '';
+                    if (txt) {
+                        points.push(txt);
+                    } else {
+                        success = false;
+                        con.warn('Demi temp text problem', txt);
+                    }
+                });
+
+                if (success) {
+                    caap.demi.ambrosia.daily = caap.getStatusNumbers(points[0]);
+                    caap.demi.malekus.daily = caap.getStatusNumbers(points[1]);
+                    caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
+                    caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
+                    caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
+                    schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6, hiddenVar) : 6) * 3600, 300);
+                    caap.SaveDemi();
+                }
+            } else {
+                con.warn('Demi symDiv problem');
+            }
+
+            //config.getItem('DoPlayerRecon', false)
+            if (battle.reconInProgress) {
+                battle.freshmeat("recon");
+            }
+
+            symDiv = null;
+            return true;
+        } catch (err) {
+            con.error("ERROR in checkResults_battle: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.inLevelUpMode = function () {
+        try {
+            if (!config.getItem('EnableLevelUpMode', true)) {
+                //if levelup mode is false then new level up mode is also false (kob)
+                state.setItem("newLevelUpMode", false);
+                return false;
+            }
+
+            if (!caap.stats.indicators.enl) {
+                //if levelup mode is false then new level up mode is also false (kob)
+                state.setItem("newLevelUpMode", false);
+                return false;
+            }
+
+            // minutesBeforeLevelToUseUpStaEnergy : 5, = 30000
+            if (((caap.stats.indicators.enl - Date.now()) < 30000) || (caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 20))) {
+                //detect if we are entering level up mode for the very first time (kob)
+                if (!state.getItem("newLevelUpMode", false)) {
+                    //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
+                    state.setItem("newLevelUpMode", true);
+                }
+
+                return true;
+            }
+
+            //if levelup mode is false then new level up mode is also false (kob)
+            state.setItem("newLevelUpMode", false);
+            return false;
+        } catch (err) {
+            con.error("ERROR in inLevelUpMode: " + err.stack);
+            return false;
+        }
+    };
+
+	// Will return amount of stamina available.
+    caap.checkStamina = function (battleOrMonster, attackMinStamina) {
+        try {
+            con.log(4, "checkStamina", battleOrMonster, attackMinStamina);
+            attackMinStamina = $u.setContent(attackMinStamina, 0);
+
+            var when = config.getItem('When' + battleOrMonster, 'Never'),
+                maxIdleStamina = 0,
+                staminaMF = '',
+				burnStamina = caap.inLevelUpMode() || session.getItem('burnstamina'),
+                messDiv = battleOrMonster.toLowerCase() + "_mess";
+
+            if (when === 'Never') {
+                return false;
+            }
+
+            if (!caap.stats.stamina || !caap.stats.health) {
+                caap.setDivContent(messDiv, 'Health or stamina not known yet.');
+                return false;
+            }
+
+            if (caap.stats.health.num < 10) {
+                if (battleOrMonster === "Conquest") {
+                    schedule.setItem("conquest_delay_stats", (10 - caap.stats.health.num) *  180, 120);
+                }
+
+                caap.setDivContent(messDiv, "Need health to fight: " + caap.stats.health.num + "/10");
+                return false;
+            }
+
+            if (((battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false)) || (battleOrMonster === "Conquest" && config.getItem("conquestWaitSafeHealth", false))) && caap.stats.health.num < 13) {
+                if (battleOrMonster === "Conquest") {
+                    schedule.setItem("conquest_delay_stats", (13 - caap.stats.health.num) *  180, 120);
+                }
+
+                caap.setDivContent(messDiv, "Unsafe. Need health to fight: " + caap.stats.health.num + "/13");
+                return false;
+            }
+
+            if (when === 'At X Stamina') {
+                if (burnStamina && caap.stats.stamina.num >= attackMinStamina) {
+                    caap.setDivContent(messDiv, 'Burning stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
+                    return caap.stats.stamina.num;
+                }
+
+                staminaMF = battleOrMonster + 'Stamina';
+                if (state.getItem('BurnMode_' + staminaMF, false) || caap.stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
+                    if (caap.stats.stamina.num < attackMinStamina || caap.stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
+                        state.setItem('BurnMode_' + staminaMF, false);
+                        return false;
+                    }
+
+                    state.setItem('BurnMode_' + staminaMF, true);
+                    return caap.stats.stamina.num - config.getItem('XMin' + staminaMF, 0);
+                }
+
+                state.setItem('BurnMode_' + staminaMF, false);
+
+                caap.setDivContent(messDiv, 'Waiting for stamina: ' + caap.stats.stamina.num + "/" + config.getItem('X' + staminaMF, 1));
+                return false;
+            }
+
+            if (when === 'At Max Stamina') {
+                maxIdleStamina = caap.maxStatCheck('stamina');
+
+                if (caap.stats.stamina.num >= maxIdleStamina) {
+                    caap.setDivContent(messDiv, 'Using max stamina');
+                    return caap.stats.stamina.num; 
+                }
+
+                if (burnStamina) {
+                    caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
+                    return caap.stats.stamina.num;
+                }
+
+                caap.setDivContent(messDiv, 'Waiting for max stamina: ' + caap.stats.stamina.num + "/" + maxIdleStamina);
+                return false;
+            }
+
+            if (caap.stats.stamina.num >= attackMinStamina) {
+                return caap.stats.stamina.num;
+            }
+
+            caap.setDivContent(messDiv, "Waiting for more stamina: " + caap.stats.stamina.num + "/" + attackMinStamina);
+            return false;
+        } catch (err) {
+            con.error("ERROR in checkStamina: " + err.stack);
+            return false;
+        }
+    };
+
+    /*-------------------------------------------------------------------------------------\
+    needToHide will return true if the current stamina and health indicate we need to bring
+    our health down through battles (hiding).  It also returns true if there is no other outlet
+    for our stamina (currently this just means Monsters, but will eventually incorporate
+    other stamina uses).
+    \-------------------------------------------------------------------------------------*/
+    caap.needToHide = function () {
+        try {
+            if (config.getItem('WhenMonster', 'Never') === 'Never') {
+                con.log(1, 'Stay Hidden Mode: Monster battle not enabled');
+                return true;
+            }
+
+            if (!state.getItem('targetFromMonster', '')) {
+                con.log(1, 'Stay Hidden Mode: No monster to battle');
+                return true;
+            }
+
+            if (config.getItem('delayStayHidden', true) === false) {
+                con.log(2, 'Stay Hidden Mode: Delay hide if "safe" not enabled');
+                return true;
+            }
+
+            /*-------------------------------------------------------------------------------------\
+             The riskConstant helps us determine how much we stay in hiding and how much we are willing
+             to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to
+             stay in hiding. The higher the risk constant, the more we attempt to use our stamina for
+             non-hiding activities.  The below matrix shows the default riskConstant of 1.7
+
+             S   T   A   M   I   N   A
+             1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+             H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+             E   11  -   -   +   +   +   +   +   +   +
+             A   12  -   -   +   +   +   +   +   +   +
+             L   13  -   -   +   +   +   +   +   +   +
+             T   14  -   -   -   +   +   +   +   +   +
+             H   15  -   -   -   +   +   +   +   +   +
+             16  -   -   -   -   +   +   +   +   +
+             17  -   -   -   -   -   +   +   +   +
+             18  -   -   -   -   -   +   +   +   +
+
+             Setting our riskConstant down to 1 will result in us spending out stamina to hide much
+             more often:
+
+             S   T   A   M   I   N   A
+             1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+             H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+             E   11  -   -   +   +   +   +   +   +   +
+             A   12  -   -   -   +   +   +   +   +   +
+             L   13  -   -   -   -   +   +   +   +   +
+             T   14  -   -   -   -   -   +   +   +   +
+             H   15  -   -   -   -   -   -   +   +   +
+             16  -   -   -   -   -   -   -   +   +
+             17  -   -   -   -   -   -   -   -   +
+             18  -   -   -   -   -   -   -   -   -
+
+            \-------------------------------------------------------------------------------------*/
+
+            var riskConstant = gm ? gm.getItem('HidingRiskConstant', 1.7, hiddenVar) : 1.7;
+
+            /*-------------------------------------------------------------------------------------\
+            The formula for determining if we should hide goes something like this:
+
+            If  (health - (estimated dmg from next attacks) puts us below 10)  AND
+            (current stamina will be at least 5 using staminatime/healthtime ratio)
+            Then stamina can be used/saved for normal process
+            Else stamina is used for us to hide
+
+            \-------------------------------------------------------------------------------------*/
+            //if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && (caap.stats.stamina.num * (5 / 3) >= 5)) {
+            if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && ((caap.stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1, hiddenVar) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
+                return false;
+            }
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in needToHide: " + err.stack);
+            return undefined;
+        }
+    };
+
+    /*-------------------------------------------------------------------------------------\
+    MonsterReview is a primary action subroutine to manage the monster and raid list
+    on the dashboard
+    \-------------------------------------------------------------------------------------*/
+    caap.monsterReview = function () {
+        try {
+            /*-------------------------------------------------------------------------------------\
+            We do monster review once an hour.  Some routines may reset this timer to drive
+            MonsterReview immediately.
+            \-------------------------------------------------------------------------------------*/
+			//con.log(2,'monster review',caap.stats.reviewPages);
+            if (config.getItem('WhenMonster', 'Never') === 'Never' && ['No Monster', 'Demi Points Only'].indexOf(config.getItem('WhenBattle', 'Never')) < 0 &&  config.getItem('TargetType', 'Freshmeat') != 'Raid') {
+                return false;
+            }
+
+            var link = '',
+                result = false,
+				i = 0,
+				time = 60,
+				cM = {},
+				message = 'Reviewing ';
+
+//caap.stats.reviewPages = {};
+            for (i = 0; i < caap.stats.reviewPages.length; i++) {
+                if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
+                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages,caap.stats.reviewPages[i].review);
+                    return caap.navigateTo(caap.stats.reviewPages[i].path);
+                }
+            }
+            //con.log(5,'monster review',caap.stats.reviewPages);
+
+            if (monster.records.length === 0) {
+                return false;
+            }
+
+            /*-------------------------------------------------------------------------------------\
+            Now we step through the monsterOl objects. We set monsterReviewCounter to the next
+            index for the next reiteration since we will be doing a click and return in here.
+            \-------------------------------------------------------------------------------------*/
+            for (i = 0; i < monster.records.length; i++) {
+                cM = monster.records[i];
+                /*jslint continue: true */
+				
+				// Skip monsters we haven't joined, unless in conquest lands
+                if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
+                    continue;
+                }
+                if (cM.color === 'grey' && cM.life == 100) {
+                    cM.life = 0;
+                    cM.fortify = -1;
+                    cM.strength = -1;
+                    cM.time = [];
+                    cM.t2k = -1;
+                    cM.phase = '';
+                    monster.save();
+                }
+
+                /*-------------------------------------------------------------------------------------\
+                If we looked at this monster more recently than an hour ago, skip it
+                \-------------------------------------------------------------------------------------*/
+				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 60) * 60;
+				//con.log(2,'PRE MONSTER REVIEW', cM.name, schedule.since(cM.review, time),  cM, time, monster.parseCondition('mnt', cM.conditions));
+
+				link = "ajax:" + cM.link;
+
+				/*-------------------------------------------------------------------------------------\
+				If the autocollect token was specified then we set the link to do auto collect.
+				\-------------------------------------------------------------------------------------*/
+				if (['Collect', 'Dead or fled'].indexOf(cM.status)>=0) {
+					if (/:collect\b/.test(cM.conditions) || (!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false))) {
+						if (general.Select('CollectGeneral')) {
+							return true;
+						}
+
+						link += '&action=collectReward' + cM.rix;
+						con.log(2, 'Collecting reward on ' + cM.name, cM);
+						message = 'Collecting ';
+					}
+
+				} else if (cM.status == 'Done' && cM.lpage == "player_monster_list") {
+					if (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false))) {
+						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
+						//caap.updateDashboard(true);
+						message = 'Clearing ';
+						monster.deleteItem(cM.md5);
+					}
+
+				} else if (cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+					link += ',clickimg:siege_btn.gif';
+					message = 'Sieging ';
+				}
+				
+                if (message === 'Reviewing ' && (cM.status === 'Done' || !schedule.since(cM.review, time))) {
+                    continue;
+                }
+                /*jslint continue: false */
+
+                /*-------------------------------------------------------------------------------------\
+                We get our monster link
+                \-------------------------------------------------------------------------------------*/
+                caap.setDivContent('monster_mess', message + (i + 1) + '/' + monster.records.length + ' ' + cM.name);
+
+                /*-------------------------------------------------------------------------------------\
+                If the link is good then we get the url and any conditions for monster
+                \-------------------------------------------------------------------------------------*/
+				
+				/*-------------------------------------------------------------------------------------\
+				Now we use ajaxSendLink to display the monsters page.
+				\-------------------------------------------------------------------------------------*/
+				con.log(1, message + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
+
+				result = caap.navigate2(link);
+				if (result == 'fail') {
+					caap.navigate2('keep');
+				}
+				monster.lastClick = cM.md5;
+				return result;
+            }
+
+            /*-------------------------------------------------------------------------------------\
+            All done.  Set timer and tell monster.select and dashboard they need to do their thing.
+            We set the monsterReviewCounter to do a full refresh next time through.
+            \-------------------------------------------------------------------------------------*/
+
+            caap.setDivContent('monster_mess', '');
+            caap.updateDashboard(true);
+
+            return false;
+        } catch (err) {
+            con.error("ERROR in monsterReview: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.monsters = function () {
+        try {
+			var whenMonster = config.getItem('WhenMonster', 'Never');
+
+			if (whenMonster === 'Never' || whenMonster == 'Review Only') {
+				caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
+				return false;
+			}
+				
+			monster.select(false);
+			
+            ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
+
+            if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && caap.needToHide() && caap.checkStamina('Monster', 1)) {
+                con.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
+                caap.setDivContent('monster_mess', 'Not Safe For Monster. Battle!');
+                return false;
+            }
+
+            if (!schedule.check('NotargetFrombattle_monster')) {
+                return false;
+            }
+
+            ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
+
+            // Establish a delay timer when we are 1 stamina below attack level.
+            // Timer includes 5 min for stamina tick plus user defined random interval
+
+            if (!caap.inLevelUpMode() && caap.stats.stamina.num === (state.getItem('MonsterStaminaReq', 1) - 1) && schedule.check('battleTimer') && config.getItem('seedTime', 0) > 0) {
+                schedule.setItem('battleTimer', 300, config.getItem('seedTime', 0));
+                caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
+                return false;
+            }
+
+            if (!schedule.check('battleTimer')) {
+                if (caap.stats.stamina.num < caap.maxStatCheck('stamina')) {
+                    caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
+                    return false;
+                }
+            }
+
+            var fightMode = '',
+                energyRequire = 0,
+                cM = {},  // current monster
+                attackButton = null,
+                singleButtonList = [],
+                buttonList = [],
+                tacticsValue = 0,
+                useTactics = false,
+                attackMess = '',
+                it = 0,
+                len = 0,
+				gMult = 1, // General multiplier, like Orc King = 5
+				minMax = 'min',
+                theGeneral = 'Use Current',
+				temp,
+				nodeNum = 0,
+				xpPerPt = 1,
+				statRequire = 0,
+				statRequireBig = 0,
+				statAvailable = 0,
+				debtcM = {},
+				statList = 'energyList',
+				blankRecord = new monster.record().data,
+				result = false,
+				healPercStam = config.getItem('HealPercStam', 20) / 100,
+				staminaAvailable = Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? caap.stats.energy.num / healPercStam : 10000),
+				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
+				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available');
+
+			debtcM = healPercStam ? (monster.records.reduce(function(previous, redR) {
+				return redR.debt.stamina > previous.debt.stamina ? redR : previous;
+			}, blankRecord)) : blankRecord;
+			
+            // Check to see if we should fortify or attack monster
+			['energy', 'stamina', 'cover'].some( function(stat) {
+				fightMode = stat == 'stamina' ? 'Monster' : 'Fortify';
+				temp = state.getItem('targetFrom' + fightMode, '');
+				cM = stat == 'cover' ? debtcM :  temp ? monster.getItem(temp) : blankRecord;
+				
+				if (!cM.md5) {
+					return false;
+				}
+				
+				if (debtcM.debt.stamina > 0 && stat !== 'cover') { // We have a debt
+				
+					// If trying to hit or heal anyone other than the monster we need to cover, then don't, unless hitting and levelling up
+					if (cM.md5 !== debtcM.md5 && (stat == 'energy' || !caap.inLevelUpMode())) {
+						return false;
+					}
+					// If done over 10% damage to fort and have energy to heal and debt is at least one heal, then wait for cover
+					if (stat == 'stamina' && cM.fortify < cM.debt.start - 10 && debtcM.debt.stamina >= debtcM.energyList[0] / healPercStam && maxEnergy >= debtcM.energyList[0]) {
+						return false;
+					}
+				}
+				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
+				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', 'name only'));
+				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
+				xpPerPt = (statList == 'energyList' ? 3.6 : 5.5) * gMult;
+				//con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
+				
+				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
+
+				statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable;
+				if (caap.inLevelUpMode()) {  
+					// Check for the biggest hit we can make with our remaining stats
+					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
+					
+					// Is there a smaller power attack that will work?
+					statRequire = caap.minMaxArray(cM[statList], 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult);
+					
+					if (statRequire && statRequire * xpPerPt < caap.stats.exp.dif) {
+						// Ok, small power hit is a go
+					// If power hit won't work, then do single hit
+					} else if (cM[statList][0] == 1 && 1 * xpPerPt < caap.stats.exp.dif) {
+						statRequire = 1;
+					} else {
+						// If too close to levelling for a power attack, do max attack to carry over xp
+						statRequire = statRequireBig;
+					}
+					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif, cM, cM[statList][0], cM[statList][0] == 1, 1 * xpPerPt < caap.stats.exp.dif);
+				} else if (cM[statList][0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
+					statRequire = 1;
+				} else {
+					minMax = statList == 'staminaList' && config.getItem('PowerAttackMax', false) ? 'max' : 'min';
+					statRequire = caap.minMaxArray(cM[statList], minMax, 1, (statAvailable + 1) / gMult );
+				}
+				if (statRequire && statRequire * gMult <= statAvailable) {
+					nodeNum = !cM.multiNode ? 0 : cM[statList].indexOf(statRequire);
+					con.log(2, 'NodeNum ' + nodeNum);
+					return true;
+				} else {
+					statAvailable = 0;
+				}
+			});
+
+			if (!statAvailable) {
+				schedule.setItem('NotargetFrombattle_monster', 60);
+				return false;
+			}
+
+            // Set general and go to monster page
+			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
+            if (result !== false) {
+				attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                if (result == 'fail') {
+					monster.deleteItem(cM.md5);
+					con.warn('Monster ' + cM.name + ' deleted after five attempts to navigate to it.', cM);
+					return false;
+				}
+                return true;
+            }
+
+            // Check if on engage monster page
+            if ($u.hasContent($j("#app_body " + monster.onMonsterHeader))) {
+                singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
+
+                // Find the attack or fortify button
+                if (fightMode === 'Fortify') {
+                    buttonList = ['seamonster_fortify.gif', 'button_dispel.gif', 'attack_monster_button3.jpg'];
+
+                    if (monster.getInfo(cM, 'fortify_img')) {
+                        buttonList.unshift(monster.getInfo(cM, 'fortify_img')[0]);
+                    }
+                    if (!cM.stunTarget) {
+                        con.log(1, "No stun target time set");
+                    }
+                    
+					// Only stun if we have no debt
+                    if (cM.stunDo && cM.stunType !== '' && !$u.hasContent(debtcM.md5)) {
+                        buttonList.unshift("button_nm_s_" + cM.stunType);
+                    } else {
+                        buttonList.unshift("button_nm_s_");
+                    }
+                } else if (statRequire === 1) {
+                    // not power attack only normal attacks
+                    buttonList = singleButtonList;
+                } else {
+                    if (/:tac/i.test(cM.conditions) && caap.stats.level >= 50) {
+                        useTactics = true;
+                        tacticsValue = monster.parseCondition("tac%", cM.conditions);
+                    } else if (config.getItem('UseTactics', false) && caap.stats.level >= 50) {
+                        useTactics = true;
+                        tacticsValue = config.getItem('TacticsThreshold', false);
+                    }
+
+                    if (tacticsValue !== false && cM.fortify && cM.fortify < tacticsValue) {
+                        con.log(2, "Party health is below threshold value", cM.fortify, tacticsValue);
+                        useTactics = false;
+                    }
+
+                    if (useTactics && caap.hasImage('nm_button_tactics.gif')) {
+                        con.log(2, "Attacking monster using tactics buttons");
+                        buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
+                    } else {
+                        con.log(2, "Attacking monster using regular buttons");
+                        useTactics = false;
+                        // power attack or if not seamonster power attack or if not regular attack -
+                        // need case for seamonster regular attack?
+                        buttonList = monster.powerButtons.concat(singleButtonList);
+
+                        if (monster.getInfo(cM, 'attack_img')) {
+                            if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                buttonList.unshift(monster.getInfo(cM, 'attack_img')[1]);
+                            } else {
+                                buttonList.unshift(monster.getInfo(cM, 'attack_img')[0]);
+                            }
+                        }
+                    }
+                }
+
+                con.log(2, "monster/button list", cM, buttonList, nodeNum);
+
+                buttonList.some( function(button) {
+                    attackButton = caap.checkForImage(button, null, null, nodeNum);
+                    return $u.hasContent(attackButton);
+                });
+
+                if ($u.hasContent(attackButton)) {
+                    if (fightMode === 'Fortify') {
+                        attackMess = (cM.stunDo ? cM.stunType + 'ing ': 'Fortifying') + cM.name;
+                    } else {
+						if (general.GetStat(theGeneral, 'charge') == 100) {
+							general.getRecord(theGeneral).charge = 0;
+						}
+						if (useTactics) {
+							attackMess = 'Tactic Attacking ' + cM.name;
+						} else {
+							attackMess = (statRequire >= 5 ? 'Power' : 'Single') + ' Attacking ' + cM.name;
+						}
+                    }
+
+                    con.log(1, attackMess);
+                    caap.setDivContent('monster_mess', attackMess);
+                    caap.click(attackButton);
+					cM.spent[fightMode === 'Fortify' ? 'energy' : 'stamina'] += statRequire;
+					
+					// Record healing debt or repayments
+					if (cM.fortify >= 0 && healPercStam > 0 && (!cM.charClass || ['Mage','Rogue'].indexOf(cM.charClass) == -1)) {
+						cM.debt.stamina = Math.max(0, cM.debt.stamina + (fightMode === 'Fortify' ? -statRequire / healPercStam : statRequire));
+						cM.debt.start = cM.debt.start == -1 && fightMode === 'Monster' ? Math.min(cM.fortify, 97) 
+							: cM.debt.stamina ? cM.debt.start : -1;
+						session.setItem('ReleaseControl', false);
+					}
+                    // dashboard autorefresh fix
+                    localStorage.AFrecentAction = true;
+
+                    attackButton = null;
+                    singleButtonList = null;
+                    buttonList = null;
+					state.setItem('fightMode', fightMode);
+                    return true;
+                }
+
+                con.warn('No button to attack/fortify with.');
+                schedule.setItem('NotargetFrombattle_monster', 60);
+                attackButton = null;
+                singleButtonList = null;
+                buttonList = null;
+                return false;
+            }
+
+            schedule.setItem('NotargetFrombattle_monster', 60);
+            con.warn('Unable to find top banner for ' + cM.name, cM);
+            attackButton = null;
+            singleButtonList = null;
+            buttonList = null;
+            return false;
+        } catch (err) {
+            con.error("ERROR in monsters: " + err.stack);
+            return false;
+        }
+    };
+
 }());

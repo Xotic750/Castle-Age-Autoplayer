@@ -278,6 +278,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
+        "conquestLands.records": {
+            "get": function () {
+                return conquestLands.records;
+            },
+
+            "set": function (value) {
+                conquestLands.records = value;
+            },
+
+            "save": function (src) {
+                conquestLands.save(src);
+            },
+
+            "loaded": false
+        },
+
         "guilds.records": {
             "get": function () {
                 return guilds.records;
@@ -349,22 +365,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             "save": function (src) {
                 feed.saveList(src);
-            },
-
-            "loaded": false
-        },
-
-        "festival.records": {
-            "get": function () {
-                return festival.records;
-            },
-
-            "set": function (value) {
-                festival.records = value;
-            },
-
-            "save": function (src) {
-                festival.save(src);
             },
 
             "loaded": false
@@ -525,7 +525,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             port.postMessage(msj, url);
         } catch (err) {
             con.error("ERROR in postMessage: " + err, msg);
-            //alert("ERROR in postMessage: " + err);
+            //alert("ERROR in postMessage: " + err.stack);
 
             window.image64 = null;
             window.offline = null;
@@ -543,7 +543,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.monster = null;
             window.guild_monster = null;
             window.guild_battle = null;
-            //window.arena = null;
+            window.arena = null;
             window.festival = null;
             window.feed = null;
             window.battle = null;
@@ -598,7 +598,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.connect: " + err);
+                con.error("ERROR in messaging.connect: " + err.stack);
                 return false;
             }
         },
@@ -637,7 +637,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.setItem: " + err);
+                con.error("ERROR in messaging.setItem: " + err.stack);
                 return false;
             }
         },
@@ -659,7 +659,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.getItem: " + err);
+                con.error("ERROR in messaging.getItem: " + err.stack);
                 return false;
             }
         },
@@ -679,7 +679,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.ok: " + err);
+                con.error("ERROR in messaging.ok: " + err.stack);
                 return false;
             }
         },
@@ -701,7 +701,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.visitUrl: " + err);
+                con.error("ERROR in messaging.visitUrl: " + err.stack);
                 return false;
             }
         },
@@ -727,7 +727,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.setDivContent: " + err);
+                con.error("ERROR in messaging.setDivContent: " + err.stack);
                 return false;
             }
         },
@@ -750,7 +750,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.setCheckedIds: " + err);
+                con.error("ERROR in messaging.setCheckedIds: " + err.stack);
                 return false;
             }
         },
@@ -785,7 +785,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.restartListener: " + err);
+                con.error("ERROR in messaging.restartListener: " + err.stack);
                 return false;
             }
         },
@@ -820,7 +820,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.pauseListener: " + err);
+                con.error("ERROR in messaging.pauseListener: " + err.stack);
                 return false;
             }
         },
@@ -842,7 +842,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.ajaxGiftCheck: " + err);
+                con.error("ERROR in messaging.ajaxGiftCheck: " + err.stack);
                 return false;
             }
         },
@@ -868,7 +868,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.changeDropDownList: " + err);
+                con.error("ERROR in messaging.changeDropDownList: " + err.stack);
                 return false;
             }
         },
@@ -893,7 +893,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.selectDropOption: " + err);
+                con.error("ERROR in messaging.selectDropOption: " + err.stack);
                 return false;
             }
         },
@@ -924,7 +924,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.hello: " + err);
+                con.error("ERROR in messaging.hello: " + err.stack);
                 return false;
             }
         },
@@ -946,7 +946,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.sentGifts: " + err);
+                con.error("ERROR in messaging.sentGifts: " + err.stack);
                 return false;
             }
         },
@@ -967,7 +967,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.broadcast: " + err);
+                con.error("ERROR in messaging.broadcast: " + err.stack);
                 return false;
             }
         },
@@ -989,7 +989,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.cntd: " + err);
+                con.error("ERROR in messaging.cntd: " + err.stack);
                 return false;
             }
         },
@@ -1027,7 +1027,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.disconnect: " + err);
+                con.error("ERROR in messaging.disconnect: " + err.stack);
                 return false;
             }
         },
@@ -1047,7 +1047,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.scrollToTop: " + err);
+                con.error("ERROR in messaging.scrollToTop: " + err.stack);
                 return false;
             }
         },
@@ -1067,7 +1067,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.styleChange: " + err);
+                con.error("ERROR in messaging.styleChange: " + err.stack);
                 return false;
             }
         },
@@ -1087,7 +1087,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.backgroundCA: " + err);
+                con.error("ERROR in messaging.backgroundCA: " + err.stack);
                 return false;
             }
         },
@@ -1107,7 +1107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in messaging.goblinHinting: " + err);
+                con.error("ERROR in messaging.goblinHinting: " + err.stack);
                 return false;
             }
         }
@@ -1322,7 +1322,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in getSigned: " + err);
+            con.error("ERROR in getSigned: " + err.stack);
             return false;
         }
     };
@@ -1376,7 +1376,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in getMsgItem: " + err);
+            con.error("ERROR in getMsgItem: " + err.stack);
             return false;
         }
     };
@@ -1441,7 +1441,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in setCheckedIds: " + err);
+            con.error("ERROR in setCheckedIds: " + err.stack);
             return false;
         }
     };
@@ -1677,7 +1677,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.messaging.connect();
             }
         } catch (err) {
-            con.error("ERROR in caapifpStartup: " + err);
+            con.error("ERROR in caapifpStartup: " + err.stack);
         }
     };
 
@@ -1693,7 +1693,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
         } catch (err) {
-            con.error("ERROR in caapifpShutdown: " + err);
+            con.error("ERROR in caapifpShutdown: " + err.stack);
         }
     };
 
@@ -1849,7 +1849,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.messaging.connect();
             }
         } catch (err) {
-            con.error("ERROR in caapifStartup: " + err);
+            con.error("ERROR in caapifStartup: " + err.stack);
         }
     };
 
@@ -1866,7 +1866,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
         } catch (err) {
-            con.error("ERROR in caapifShutdown: " + err);
+            con.error("ERROR in caapifShutdown: " + err.stack);
         }
     };
 
@@ -1977,7 +1977,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
         } catch (err) {
-            con.error("ERROR in caapfbPMListener: " + err);
+            con.error("ERROR in caapfbPMListener: " + err.stack);
         }
     };
 
@@ -1997,7 +1997,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
         } catch (err) {
-            con.error("ERROR in caapfbStartup: " + err);
+            con.error("ERROR in caapfbStartup: " + err.stack);
         }
     };
 
@@ -2013,7 +2013,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
         } catch (err) {
-            con.error("ERROR in caapfbShutdown: " + err);
+            con.error("ERROR in caapfbShutdown: " + err.stack);
         }
     };
 
@@ -2101,7 +2101,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in release lsUsed: " + err);
+            con.error("ERROR in release lsUsed: " + err.stack);
             return false;
         }
     };
@@ -2110,7 +2110,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             return session.incItem("pageLoadCounter");
         } catch (err) {
-            con.error("ERROR in incrementPageLoadCounter: " + err);
+            con.error("ERROR in incrementPageLoadCounter: " + err.stack);
             return undefined;
         }
     };
@@ -2190,7 +2190,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 // yinzanat - 07/18/2014 - don't want to hide this anymore, we're using it to house the caap menu
 //                    $j('#rightCol').hide();
                 }
-
+                $j('#rightCol').children().hide();
                 if (config.getItem('HideFBChat', false)) {
                     tDiv = $j("#pagelet_dock div[class='fbDockWrapper fixed_always fbDockWrapperRight']");
                     if ($u.hasContent(tDiv)) {
@@ -2222,7 +2222,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 guild_monster.load();
                 guild_battle.load();
                 //arena.load();
-                festival.load();
                 feed.load();
                 battle.load();
                 conquest.load();
@@ -2263,7 +2262,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in init: " + err);
+            con.error("ERROR in init: " + err.stack);
             return false;
         }
     };
@@ -2282,11 +2281,38 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             state.setItem('reset' + funcName, false);
             return true;
         } catch (err) {
-            con.error("ERROR in oneMinuteUpdate: " + err);
+            con.error("ERROR in oneMinuteUpdate: " + err.stack);
             return undefined;
         }
     };
 
+    caap.regexDiv = function (div, regex, record, array) {
+        try {
+            var text = $u.setContent(div.text().trim().innerTrim(), ''),
+				args = text.regex(regex);
+			
+			if (typeof record == 'undefined' && typeof array == 'undefined') {
+				return args;
+			}
+			args = $u.isArray(args) ? args : [args];
+			array = $u.isArray(array) ? array : [array];
+			if (!args || args.length != array.length) {
+				con.warn('Invalid match for regex expression in div text', text, regex, args, array);
+				return false;
+			}
+			
+			array.forEach( function(entry, index) {
+				record[entry] = args[index];
+			});
+			
+			//con.log(2, 'Regex div text to record', text, regex, array, record);
+			return true;
+        } catch (err) {
+            con.error("ERROR in regexDiv: " + err + ' ' + err.stack);
+            return undefined;
+        }
+    };
+	
     caap.minMaxArray = function (array, minMax, lowerBound, upperBound) {
         try {
 			var result;
@@ -2355,7 +2381,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return $u.makeTime(($u.isPlainObject(timer) ? timer.next : new Date()), caap.timeStr(true));
         } catch (err) {
-            con.error("ERROR in displayTime: " + err);
+            con.error("ERROR in displayTime: " + err.stack);
             return false;
         }
     };
@@ -2402,7 +2428,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in selectDropOption: " + err);
+            con.error("ERROR in selectDropOption: " + err.stack);
             return false;
         }
     };
@@ -2432,7 +2458,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             state.setItem('AutoQuest', temp);
             return true;
         } catch (err) {
-            con.error("ERROR in updateAutoQuest: " + err);
+            con.error("ERROR in updateAutoQuest: " + err.stack);
             return false;
         }
     };
@@ -2442,7 +2468,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.setDivContent("stopAutoQuest", "Stop auto quest: " + state.getItem('AutoQuest', caap.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest()).energy + ")", caap.caapDivObject, false);
             return true;
         } catch (err) {
-            con.error("ERROR in showAutoQuest: " + err);
+            con.error("ERROR in showAutoQuest: " + err.stack);
             return false;
         }
     };
@@ -2452,7 +2478,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.setDivContent("stopAutoQuest", "", caap.caapDivObject, true);
             return true;
         } catch (err) {
-            con.error("ERROR in clearAutoQuest: " + err);
+            con.error("ERROR in clearAutoQuest: " + err.stack);
             return false;
         }
     };
@@ -2464,7 +2490,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.clearAutoQuest();
             return true;
         } catch (err) {
-            con.error("ERROR in manualAutoQuest: " + err);
+            con.error("ERROR in manualAutoQuest: " + err.stack);
             return false;
         }
     };
@@ -2498,7 +2524,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in changeDropDownList: " + err);
+            con.error("ERROR in changeDropDownList: " + err.stack);
             return false;
         }
     };
@@ -2520,7 +2546,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 x: caap.controlXY.x === '' || reset ? selector.offset().left + xoff : selector.offset().left + caap.controlXY.x
             };
         } catch (err) {
-            con.error("ERROR in getControlXY: " + err);
+            con.error("ERROR in getControlXY: " + err.stack);
             return {
                 x: 0,
                 y: 0
@@ -2535,7 +2561,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             state.setItem('caap_top_zIndex', '1');
             state.setItem('caap_div_zIndex', '2');
         } catch (err) {
-            con.error("ERROR in saveControlXY: " + err);
+            con.error("ERROR in saveControlXY: " + err.stack);
         }
     };
 
@@ -2554,7 +2580,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 x: caap.dashboardXY.x === '' || reset ? selector.offset().left : selector.offset().left + caap.dashboardXY.x
             };
         } catch (err) {
-            con.error("ERROR in getDashboardXY: " + err);
+            con.error("ERROR in getDashboardXY: " + err.stack);
             return {
                 x: 0,
                 y: 0
@@ -2571,7 +2597,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
             caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top);
         } catch (err) {
-            con.error("ERROR in saveDashboardXY: " + err);
+            con.error("ERROR in saveDashboardXY: " + err.stack);
         }
     };
 
@@ -2701,14 +2727,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += guild_monster.menu();
             htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
-            //htmlCode += arena.menu();
-            //if (false) {
-            //    htmlCode += festival.menu();
-            //} else {
-                if (config.getItem("WhenFestival", "Never") !== "Never") {
-                    config.setItem("WhenFestival", "Never");
-                }
-            //}
+            htmlCode += arena.menu();
+			if (config.getItem("WhenFestival", "Never") !== "Never") {
+				config.setItem("WhenFestival", "Never");
+			}
 
             htmlCode += general.menu();
             htmlCode += caap.addSkillPointsMenu();
@@ -2721,10 +2743,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             htmlCode += caap.addAutoOptionsMenu();
-            htmlCode += caap.addFestivalOptionsMenu();
             htmlCode += caap.addConquestOptionsMenu();
             htmlCode += caap.addEssenceMenu();
-            htmlCode += arena.menu();
             htmlCode += town.menu();
             htmlCode += caap.addOtherOptionsMenu();
             //htmlCode += caap.addFooterMenu();
@@ -2753,7 +2773,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.checkLastAction(state.getItem('LastAction', 'idle'));
             return true;
         } catch (err) {
-            con.error("ERROR in addControl: " + err);
+            con.error("ERROR in addControl: " + err.stack);
             return false;
         }
     };
@@ -2807,7 +2827,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in ajax: " + err);
+            con.error("ERROR in ajax: " + err.stack);
             return false;
         }
     };
@@ -2816,7 +2836,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             return "<div id='caapPaused' style='font-weight: bold; display: " + state.getItem('caapPause', 'block') + "'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />";
         } catch (err) {
-            con.error("ERROR in addPauseMenu: " + err);
+            con.error("ERROR in addPauseMenu: " + err.stack);
             return '';
         }
     };
@@ -2830,7 +2850,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += '<hr />';
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addDisableMenu: " + err);
+            con.error("ERROR in addDisableMenu: " + err.stack);
             return '';
         }
     };
@@ -2859,7 +2879,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addCashHealthMenu: " + err);
+            con.error("ERROR in addCashHealthMenu: " + err.stack);
             return '';
         }
     };
@@ -2921,7 +2941,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addQuestMenu: " + err);
+            con.error("ERROR in addQuestMenu: " + err.stack);
             return '';
         }
     };
@@ -2972,7 +2992,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addSkillPointsMenu: " + err);
+            con.error("ERROR in addSkillPointsMenu: " + err.stack);
             return '';
         }
     };
@@ -3005,6 +3025,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Defense performs an automatic daily blessing with Corvintheus.',
                     'Health performs an automatic daily blessing with Aurora.',
                     'Stamina performs an automatic daily blessing with Azeron.'],
+				festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army', 'All'],
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
@@ -3012,11 +3033,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Auto Archives', 'AutoArchives', false, autoArchivesInstructions);
             htmlCode += caap.makeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
             htmlCode += caap.startCheckHide('AutoPotions');
-            htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 55, '', '', true, false);
             htmlCode += caap.endCheckHide('AutoPotions');
             htmlCode += caap.makeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
             htmlCode += caap.startCheckHide('AutoAlchemy');
@@ -3037,26 +3058,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTextBox('kobo_blacklist', autoKoboBlackListInstructions, '', '');
             htmlCode += caap.endCheckHide('autoKoboUseBlackList');
             htmlCode += caap.endCheckHide('AutoKobo');
+            htmlCode += caap.makeDropDownTR("Festival Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addAutoOptionsMenu: " + err);
-            return '';
-        }
-    };
-
-    caap.addFestivalOptionsMenu = function () {
-        try {
-            // Other controls
-            var festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army', 'All'],
-                htmlCode = '';
-
-            htmlCode += caap.startToggle('FestivalOptions', 'FESTIVAL OPTIONS');
-            htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
-            htmlCode += caap.endToggle;
-            return htmlCode;
-        } catch (err) {
-            con.error("ERROR in addFestivalOptionsMenu: " + err);
+            con.error("ERROR in addAutoOptionsMenu: " + err.stack);
             return '';
         }
     };
@@ -3069,6 +3075,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				catInst = 'Conquest points collect will be triggered if any of these conditions are met';
 
             htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
+            htmlCode += caap.makeCheckTR('Move to defend LoM lands', 'doLoMmove', false, '');
             htmlCode += caap.makeCheckTR('Enable Resource Collect', 'doConquestCollect', false, '');
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
 			conquest.categories.forEach(function (category) {
@@ -3077,7 +3084,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addConquestOptionsMenu: " + err);
+            con.error("ERROR in addConquestOptionsMenu: " + err.stack);
             return '';
         }
     };
@@ -3118,7 +3125,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addEssenceMenu: " + err);
+            con.error("ERROR in addEssenceMenu: " + err.stack);
             return '';
         }
     };
@@ -3266,7 +3273,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addOtherOptionsMenu: " + err);
+            con.error("ERROR in addOtherOptionsMenu: " + err.stack);
             return '';
         }
     };
@@ -3294,7 +3301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in addFooterMenu: " + err);
+            con.error("ERROR in addFooterMenu: " + err.stack);
             return '';
         }
     };
@@ -3307,7 +3314,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
              \-------------------------------------------------------------------------------------*/
             var layout = "<div id='caap_top'>",
                 displayList = [
-                    /*'Arena', */
+                    'Arena',
                     'Army',
                     'Battle Stats',
                     'Conquest Stats',
@@ -3518,7 +3525,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j("input[type='button']", caap.caapTopObject).button();
             return true;
         } catch (err) {
-            con.error("ERROR in addDashboard: " + err);
+            con.error("ERROR in addDashboard: " + err.stack);
             return false;
         }
     };
@@ -3565,7 +3572,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.caapTopMinObject = $j('#caap_topmin');
             return true;
         } catch (err) {
-            con.error("ERROR in addDashboardMin: " + err);
+            con.error("ERROR in addDashboardMin: " + err.stack);
             return false;
         }
     };
@@ -3607,7 +3614,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.caapPlayButtonDiv = $j('#caap_playbuttondiv');
             return true;
         } catch (err) {
-            con.error("ERROR in addPlayButton: " + err);
+            con.error("ERROR in addPlayButton: " + err.stack);
             return false;
         }
     };
@@ -3641,7 +3648,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in setDisplay: " + err);
+            con.error("ERROR in setDisplay: " + err.stack);
             return false;
         }
     };
@@ -3890,7 +3897,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkBoxListener: " + err);
+            con.error("ERROR in checkBoxListener: " + err.stack);
             return false;
         }
     };
@@ -3959,7 +3966,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in colorUpdate: " + err);
+            con.error("ERROR in colorUpdate: " + err.stack);
             return false;
         }
     };
@@ -4032,7 +4039,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in colorBoxClickListener: " + err);
+            con.error("ERROR in colorBoxClickListener: " + err.stack);
             return false;
         }
     };
@@ -4043,7 +4050,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.colorBoxListener(e);
             return true;
         } catch (err) {
-            con.error("ERROR in colorBoxChangeListener: " + err);
+            con.error("ERROR in colorBoxChangeListener: " + err.stack);
             return false;
         }
     };
@@ -4079,7 +4086,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in colorBoxListener: " + err);
+            con.error("ERROR in colorBoxListener: " + err.stack);
             return false;
         }
     };
@@ -4095,7 +4102,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             config.setItem(idName, String(e.target.value));
             return true;
         } catch (err) {
-            con.error("ERROR in textBoxListener: " + err);
+            con.error("ERROR in textBoxListener: " + err.stack);
             return false;
         }
     };
@@ -4135,7 +4142,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             e.target.value = config.setItem(idName, number);
             return true;
         } catch (err) {
-            con.error("ERROR in numberBoxListener: " + err);
+            con.error("ERROR in numberBoxListener: " + err.stack);
             return false;
         }
     };
@@ -4294,7 +4301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in dropBoxListener: " + err);
+            con.error("ERROR in dropBoxListener: " + err.stack);
             return false;
         }
     };
@@ -4338,7 +4345,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in textAreaListener: " + err);
+            con.error("ERROR in textAreaListener: " + err.stack);
             return false;
         }
     };
@@ -4515,7 +4522,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in foldingBlockListener: " + err);
+            con.error("ERROR in foldingBlockListener: " + err.stack);
             return false;
         }
     };
@@ -4782,7 +4789,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in reBindCaapDiv: " + err);
+            con.error("ERROR in reBindCaapDiv: " + err.stack);
             return false;
         }
     };
@@ -4833,8 +4840,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     $j(document).on('DOMSubtreeModified', '#globalContainer #health_time_value', caap.healthTimeListener);
                 }
 
-                festival.addListeners();
-
                 $j(document).on('DOMNodeInserted', '#globalContainer', function (event) {
                     var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
                         page = $j('#globalContainer .game').eq(0).attr("id"),
@@ -4881,7 +4886,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in addListeners: " + err);
+            con.error("ERROR in addListeners: " + err.stack);
             return false;
         }
     };
@@ -5160,7 +5165,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guildConquestMarket'
         },
         'arena' : {
-            signatureId : 'arena_homemid.jpg',
+            signatureId : 'battle_tab_arena_on.jpg',
             CheckResultsFunction : 'checkResults_arenaBattle'
         },
         'player_loadouts' : {
@@ -5174,7 +5179,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 		
 			// TESTING AREA
 			//var addCode = '123456 '.regex(/.*?(?:^|[^\da-f])([\da-f]{6})(?:$|[^\da-f])/i);
-			//con.log(2, 'Army add', addCode);
+			//con.log(2, 'Test', 'j:[sdfa[a]]:'.regex(/:j\[(.*)\][\b:]/));
 			//con.log(2, 'stat', caap.minMaxArray([100, 101],'min', 5, 6));
 
 			
@@ -5286,7 +5291,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults: " + err);
+            con.error("ERROR in checkResults: " + err.stack);
             return false;
         }
     };
@@ -5453,6 +5458,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'Hunter': 0,
             'Engineer': 0
         },
+		'LoMland' : -1,
         'other': {
             'qc': 0,
             'bww': 0,
@@ -5663,7 +5669,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             tempDiv = null;
             return passed;
         } catch (err) {
-            con.error("ERROR getStats: " + err);
+            con.error("ERROR getStats: " + err.stack);
             return false;
         }
     };
@@ -6156,7 +6162,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_keep: " + err);
+            con.error("ERROR in checkResults_keep: " + err.stack);
             return false;
         }
     };
@@ -6246,7 +6252,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem("oracle", (gm ? gm.getItem("checkOracle", 24, hiddenVar) : 24) * 3600, 300);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_oracle: " + err);
+            con.error("ERROR in checkResults_oracle: " + err.stack);
             return false;
         }
     };
@@ -6322,7 +6328,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_alchemy: " + err);
+            con.error("ERROR in checkResults_alchemy: " + err.stack);
             return false;
         }
     };
@@ -6332,7 +6338,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j("#app_body form[id*='itemBuy'] select[name='amount']").val("5");
             return true;
         } catch (err) {
-            con.error("ERROR in commonTown: " + err);
+            con.error("ERROR in commonTown: " + err.stack);
             return false;
         }
     };
@@ -6346,7 +6352,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem("soldiers", time * 3600, 300);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_soldiers: " + err);
+            con.error("ERROR in checkResults_soldiers: " + err.stack);
             return false;
         }
     };
@@ -6360,7 +6366,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem("item", time * 3600, 300);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_item: " + err);
+            con.error("ERROR in checkResults_item: " + err.stack);
             return false;
         }
     };
@@ -6374,7 +6380,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem("magic", time * 3600, 300);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_magic: " + err);
+            con.error("ERROR in checkResults_magic: " + err.stack);
             return false;
         }
     };
@@ -6387,7 +6393,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_goblin_emp: " + err);
+            con.error("ERROR in checkResults_goblin_emp: " + err.stack);
             return false;
         }
     };
@@ -6407,7 +6413,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem("gift", time * 86400, 300);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_gift: " + err);
+            con.error("ERROR in checkResults_gift: " + err.stack);
             return false;
         }
     };
@@ -6434,7 +6440,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             rankDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_battlerank: " + err);
+            con.error("ERROR in checkResults_battlerank: " + err.stack);
             return false;
         }
     };
@@ -6461,7 +6467,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             rankDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_war_rank: " + err);
+            con.error("ERROR in checkResults_war_rank: " + err.stack);
             return false;
         }
     };
@@ -6489,7 +6495,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             rankDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_conquest_rank: " + err);
+            con.error("ERROR in checkResults_conquest_rank: " + err.stack);
             return false;
         }
     };
@@ -6601,7 +6607,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             tdDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_achievements: " + err);
+            con.error("ERROR in checkResults_achievements: " + err.stack);
             return false;
         }
     };
@@ -6636,7 +6642,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             classDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_view_class_progress: " + err);
+            con.error("ERROR in checkResults_view_class_progress: " + err.stack);
             return false;
         }
     };
@@ -6646,40 +6652,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     // Quest function does action, DrawQuest sets up the page and gathers info
     /////////////////////////////////////////////////////////////////////
 
-    // Returns true if an action was required to check max stat
-    // Returns the normal maximum value or the least value for the currently selected generals/loadouts
-    
+    // Returns the least value of the stat for the configured generals/loadouts minus a small buffer
     caap.maxStatCheck = function(stat) {
         try {
-			if (!$u.isNumber(caap.stats[stat].norm)) {
-				caap.navigateTo('keep');
-				con.log(2, 'Visiting keep to find base stat ' + stat + ' unaltered by general');
-				return true;
-			}
-			//con.log(2, stat + ' check ', caap.stats[stat].min, caap.stats[stat].norm, caap.stats[stat]);
-            return caap.stats[stat].min + caap.stats[stat].norm - (caap.hyper ? 12 : 0);
+            return caap.stats[stat].min + caap.stats[stat].norm - (caap.hyper ? 12 : 3);
         } catch (err) {
-            con.error("ERROR in maxStatCheck: " + err);
-            return undefined;
+            con.error("ERROR in maxStatCheck: " + err.stack);
         }
     };
 
     caap.maxStatsCheck = function() {
 		try {
-			// Putting here instead of adding to each monster, guild_monster, battle, etc.
-			if (caap.maxStatCheck('stamina') == true) {
+			var result = ['stamina', 'energy'].some( function(stat) {
+				if (!$u.isNumber(caap.stats[stat].norm) || caap.stats[stat].norm === 0) {
+					caap.navigateTo('keep');
+					con.log(2, 'Visiting keep to find base stat ' + stat + ' unaltered by general');
+					return true;
+				}
+			});
+
+			if (result) {
 				return true;
 			}
 
-			var result = caap.maxStatCheck('energy');
-
-            if (config.getItem('WhenQuest', 'Never') === 'Never') {
-                return false;
-            }
-			// If we had to do a general change, then return. If we have a number result, then do quests
-			return result === true ? true : caap.stats.energy.num >= result ? caap.quests() : false;
+			return caap.stats.energy.num >= caap.maxStatCheck('energy') ? caap.quests() : false;
         } catch (err) {
-            con.error("ERROR in maxStatsCheck: " + err);
+            con.error("ERROR in maxStatsCheck: " + err.stack);
             return undefined;
         }
     };
@@ -7406,7 +7404,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.warn('Can not click auto quest', autoQuestName);
             return false;
         } catch (err) {
-            con.error("ERROR in quests: " + err);
+            con.error("ERROR in quests: " + err.stack);
             return false;
         }
     };
@@ -7451,7 +7449,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_symbolquests: " + err);
+            con.error("ERROR in checkResults_symbolquests: " + err.stack);
             return false;
         }
     };
@@ -7472,7 +7470,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return found;
         } catch (err) {
-            con.error("ERROR in isBossQuest: " + err);
+            con.error("ERROR in isBossQuest: " + err.stack);
             return false;
         }
     };
@@ -7861,7 +7859,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in checkResults_quests: " + err);
+            con.error("ERROR in checkResults_quests: " + err.stack);
             caap.manualAutoQuest();
             return false;
         }
@@ -7916,7 +7914,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return found;
         } catch (err) {
-            con.error("ERROR in checkCurrentQuestArea: " + err);
+            con.error("ERROR in checkCurrentQuestArea: " + err.stack);
             return false;
         }
     };
@@ -7965,7 +7963,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return caap.questName;
         } catch (err) {
-            con.error("ERROR in getQuestName: " + err);
+            con.error("ERROR in getQuestName: " + err.stack);
             return false;
         }
     };
@@ -8202,16 +8200,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return 0;
 			}
 
-			if (caap.inLevelUpMode() && caap.stats.energy.num >= energyRequired) {
+			if ((caap.inLevelUpMode() || session.getItem('burnenergy')) && caap.stats.energy.num >= energyRequired) {
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
-				caap.setDivContent(msgdiv, which + ': Burning all energy to level up');
+				caap.setDivContent(msgdiv, which + ': Burning all energy to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
 				return caap.stats.energy.num;
 			}
 
             if (['Energy Available', 'Not Fortifying', 'Not Covering My Damage'].indexOf(condition) >=0) {
-				energyMin = Math.max(0, caap.stats.energy.num - (condition == 'Not Covering My Damage' ? caap.stats.stamina.num * config.getItem('HealPercStam', 20) / 100 : 0));
+				energyMin = Math.max(0, caap.stats.energy.num - (condition == 'Not Covering My Damage' ? Math.max( 20, caap.stats.stamina.num * config.getItem('HealPercStam', 20) / 100) : 0));
                 if (energyMin >= energyRequired) {
                     return energyMin;
                 }
@@ -8243,7 +8241,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				caap.setDivContent(msgdiv, which + ': Waiting for X energy: ' + caap.stats.energy.num + "/" + whichEnergy);
             } else if (condition === 'At Max Energy') {
                 if (caap.stats.energy.num >= maxIdleEnergy) {
-                    return caap.stats.energy.num - maxIdleEnergy;
+                    return caap.stats.energy.num;
                 }
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
@@ -8307,7 +8305,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             mainDiv = null;
             return true;
         } catch (err) {
-            con.error("ERROR in labelListener: " + err);
+            con.error("ERROR in labelListener: " + err.stack);
             return false;
         }
     };
@@ -8369,7 +8367,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             newdiv = null;
         } catch (err) {
-            con.error("ERROR in labelQuests: " + err);
+            con.error("ERROR in labelQuests: " + err.stack);
         }
     };
 
@@ -8417,7 +8415,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.blessingPerformed = false;
             }
         } catch (err) {
-            con.error("ERROR in blessingResults: " + err);
+            con.error("ERROR in blessingResults: " + err.stack);
         }
     };
 
@@ -8532,7 +8530,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
                 return 'attack';
             } catch (err) {
-                con.error("ERROR in autoBlessSelection: " + err);
+                con.error("ERROR in autoBlessSelection: " + err.stack);
                 return 'none';
             }
         } else {
@@ -8604,7 +8602,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             descSlice = null;
             return true;
         } catch (err) {
-            con.error("ERROR in autoBless: " + err);
+            con.error("ERROR in autoBless: " + err.stack);
             return false;
         }
     };
@@ -8617,7 +8615,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_festival_tower: " + err);
+            con.error("ERROR in checkResults_festival_tower: " + err.stack);
             return false;
         }
     };
@@ -8673,7 +8671,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             tDiv = null;
         } catch (err) {
-            con.error("ERROR in festivalBlessResults: " + err);
+            con.error("ERROR in festivalBlessResults: " + err.stack);
         }
     };
 
@@ -8804,7 +8802,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             picSlice = null;
             return true;
         } catch (err) {
-            con.error("ERROR in festivalBless: " + err);
+            con.error("ERROR in festivalBless: " + err.stack);
             return false;
         }
     };
@@ -8913,7 +8911,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 return true;
             } catch (err) {
-                con.error("ERROR in selectLands: " + err);
+                con.error("ERROR in selectLands: " + err.stack);
                 return false;
             }
         }
@@ -9031,7 +9029,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Best Land Cost: ", bestLandCost.name, bestLandCost.cost, bestLandCost);
             return true;
         } catch (err) {
-            con.error("ERROR in checkResults_land: " + err);
+            con.error("ERROR in checkResults_land: " + err.stack);
             return false;
         }
     };
@@ -9058,7 +9056,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn(type + " button not found!");
                 return false;
             } catch (err) {
-                con.error("ERROR in buySellLand: " + err);
+                con.error("ERROR in buySellLand: " + err.stack);
                 return false;
             }
         }
@@ -9143,7 +9141,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in lands: " + err);
+            con.error("ERROR in lands: " + err.stack);
             return false;
         }
     };
@@ -9161,7 +9159,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, 'Visiting keep to get stats');
             return caap.navigateTo('keep', 'tab_stats_on.gif');
         } catch (err) {
-            con.error("ERROR in checkKeep: " + err);
+            con.error("ERROR in checkKeep: " + err.stack);
             return false;
         }
     };
@@ -9175,7 +9173,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Oracle for Favor Points");
             return caap.navigateTo('oracle', 'oracle_on.gif');
         } catch (err) {
-            con.error("ERROR in checkOracle: " + err);
+            con.error("ERROR in checkOracle: " + err.stack);
             return false;
         }
     };
@@ -9189,7 +9187,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, 'Visiting Battle Rank to get stats');
             return caap.navigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
         } catch (err) {
-            con.error("ERROR in checkBattleRank: " + err);
+            con.error("ERROR in checkBattleRank: " + err.stack);
             return false;
         }
     };
@@ -9203,7 +9201,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, 'Visiting War Rank to get stats');
             return caap.navigateTo('battle,war_rank', 'tab_war_on.gif');
         } catch (err) {
-            con.error("ERROR in CheckWar: " + err);
+            con.error("ERROR in CheckWar: " + err.stack);
             return false;
         }
     };
@@ -9223,7 +9221,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return caap.navigateTo('conquest_battlerank', 'conqrank_on2.jpg');
         } catch (err) {
-            con.error("ERROR in checkConquestRank: " + err);
+            con.error("ERROR in checkConquestRank: " + err.stack);
             return false;
         }
     };
@@ -9278,7 +9276,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             return config.getItem('checkEachGeneral', false) ? general.GetAllStats() : false;
         } catch (err) {
-            con.error("ERROR in checkAllGenerals: " + err);
+            con.error("ERROR in checkAllGenerals: " + err.stack);
             return false;
         }
     };
@@ -9292,7 +9290,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Soldiers");
             return caap.navigateTo('soldiers', 'fb_tab_soldiers_on.jpg');
         } catch (err) {
-            con.error("ERROR in checkSoldiers: " + err);
+            con.error("ERROR in checkSoldiers: " + err.stack);
             return false;
         }
     };
@@ -9306,7 +9304,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Item");
             return caap.navigateTo('soldiers,item', 'fb_tab_smith_on.jpg');
         } catch (err) {
-            con.error("ERROR in checkItem: " + err);
+            con.error("ERROR in checkItem: " + err.stack);
             return false;
         }
     };
@@ -9320,7 +9318,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Magic");
             return caap.navigateTo('soldiers,magic', 'fb_tab_magic_on.jpg');
         } catch (err) {
-            con.error("ERROR in checkMagic: " + err);
+            con.error("ERROR in checkMagic: " + err.stack);
             return false;
         }
     };
@@ -9334,7 +9332,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, 'Visiting achievements to get stats');
             return caap.navigateTo('keep,achievements', 'tab_achievements_on.gif');
         } catch (err) {
-            con.error("ERROR in checkAchievements: " + err);
+            con.error("ERROR in checkAchievements: " + err.stack);
             return false;
         }
     };
@@ -9348,7 +9346,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Visiting symbolquests to get 'Demi-Power' points");
             return caap.navigateTo('quests,symbolquests', 'demi_quest_on.gif');
         } catch (err) {
-            con.error("ERROR in checkSymbolQuests: " + err);
+            con.error("ERROR in checkSymbolQuests: " + err.stack);
             return false;
         }
     };
@@ -9362,7 +9360,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Monster Class to get Character Class Stats");
             return caap.navigateTo('player_monster_list,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
-            con.error("ERROR in checkCharacterClasses: " + err);
+            con.error("ERROR in checkCharacterClasses: " + err.stack);
             return false;
         }
     };
@@ -9380,7 +9378,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return army.run();
         } catch (err) {
-            con.error("ERROR in checkArmy: " + err);
+            con.error("ERROR in checkArmy: " + err.stack);
             return false;
         }
     };
@@ -9394,7 +9392,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "Checking Gift");
             return caap.navigateTo('army,gift', 'tab_gifts_on.gif');
         } catch (err) {
-            con.error("ERROR in checkGift: " + err);
+            con.error("ERROR in checkGift: " + err.stack);
             return false;
         }
     };
@@ -9410,7 +9408,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             feed.ajaxFeed();
             return true;
         } catch (err) {
-            con.error("ERROR in ajaxCheckFeed: " + err);
+            con.error("ERROR in ajaxCheckFeed: " + err.stack);
             return false;
         }
     };
@@ -9426,7 +9424,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             feed.ajaxGuild();
             return true;
         } catch (err) {
-            con.error("ERROR in ajaxCheckGuild: " + err);
+            con.error("ERROR in ajaxCheckGuild: " + err.stack);
             return false;
         }
     };
@@ -9449,7 +9447,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			return done;
 
         } catch (err) {
-            con.error("ERROR in ajaxCheckPublic: " + err);
+            con.error("ERROR in ajaxCheckPublic: " + err.stack);
             return false;
         }
     };
@@ -9461,7 +9459,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             return feed.scan();
         } catch (err) {
-            con.error("ERROR in feedScan: " + err);
+            con.error("ERROR in feedScan: " + err.stack);
             return false;
         }
     };
@@ -9487,11 +9485,47 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in collectConquest: " + err);
+            con.error("ERROR in collectConquest: " + err.stack);
             return false;
         }
     };
-
+	
+    caap.LoMmove = function () {
+        try {
+			var myIndex = caap.stats.LoMland,
+				myLand = {},
+				nextLand = -1,
+				result = false;
+			
+			if (!config.getItem('doLoMmove', false) || (myIndex >= 0 && conquestLands.records[myIndex].status != 'enter') || !schedule.check('LoMmoveWait')) {
+				return false;
+			}
+			nextLand = conquestLands.records.reduce( function(previous, land) {
+				return land.status == 'enter' && land.defenders < 25 
+					&& (previous == -1 || land.phaseLeft < previous.phaseLeft) ? land : previous;
+			}, nextLand);
+			if (myIndex == -1 && nextLand !== -1) {
+				result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
+				//result = caap.navigate2("guildv2_conquest_command");
+				caap.stats.LoMland = result == 'done' ? nextLand.index : caap.stats.LoMland;
+			} else {
+				myLand = conquestLands.records[myIndex];
+				// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
+				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
+					result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
+					caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
+				}
+			}
+			if (result == 'fail') {
+				schedule.setItem('LoMmoveWait', 5 * 60);
+			}
+            return result == 'done' || result === true;
+        } catch (err) {
+            con.error("ERROR in LoMmove: " + err.stack);
+            return false;
+        }
+    };
+	
     caap.checkResults_conquest = function () {
 		try {
 			var infoDiv = $j("#app_body div[style*='conq3_top.jpg']"),
@@ -9525,7 +9559,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.checkResults_conquestLand = function () {
-        conquest.land();
+		// Nothing to see here for now. Move along.
+        //conquest.land();
+        return false;
+    };
+
+    caap.checkResults_conquestLand2 = function () {
+		// Here neither.
+        //conquest.land();
         return false;
     };
 
@@ -9553,12 +9594,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.doArenaBattle = function() {
-        if (!config.getItem('enableArena', false) || !schedule.check('arenaTimer')) {
-            return false;
-        }
-
-        arena.battle();
-        return true;
+        return arena.battle();
     };
 
     caap.checkResults_arenaBattle = function() {

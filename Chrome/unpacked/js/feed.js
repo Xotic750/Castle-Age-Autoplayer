@@ -677,20 +677,20 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			try {
 				var monsterName = $u.isObject(cM) ? cM.name : cM,
 					monsterConditions = '',
-					filterList = config.getList('feedFilter', 'all');
+					filterList = config.getItem('feedFilter', 'all').split('\n');
 					
                 for (var i = 0; i < filterList.length; i += 1) {
                     if (!filterList[i].trim()) {
                         return '';
                     }
-					filterList[i] = filterList[i].toLowerCase();
+					filterList[i] = filterList[i];
 					if (filterList[i] == 'all') {
 						return '';
 					}
-					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(/^[^:]+/i).toString().trim())) {
+					if (monsterName.toLowerCase().hasIndexOf(filterList[i].match(/^[^:]+/i).toString().toLowerCase().trim())) {
 						monsterConditions = filterList[i].replace(/^[^:]+/i, '').toString().trim();
 						if ($u.isObject(cM)) {
-							cM.conditions = monsterConditions;
+							cM.conditions = monsterConditions + ':';
 							feed.scoring(cM);
 						}
 						return monsterConditions.length ? monsterConditions + ':' : '';
@@ -711,6 +711,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					cM = {},
 					tR = false,
 					link = '@MonsterGeneral,ajax:',
+					attackButton = '',
 					hasClass = function(charClass) {
 						return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
 					},
@@ -745,6 +746,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 }
 				feed.isScan = false;
 				feed.scanRecord = {};
+
+				if (caap.checkAchievements()) {
+					return true;
+				}
 				
                 if (tR.score > 0) {
 					link += tR.link;
@@ -766,8 +771,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						} else {
 							link += ",clickimg:battle_enter_battle.gif";
 						}
-					} else {
-						link += ',clickimg:button_nm_p_power_attack.gif';
 					}
 				
 					con.log(1, 'Joining ' + cM.name, cM, link);
@@ -775,11 +778,26 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (result === 'fail') {
 						return caap.navigate2('player_monster_list');
 					} else if (result === 'done') {
+						if (general.GetStat(general.GetCurrentGeneral(), 'charge') == 100) {
+							general.getRecord(theGeneral).charge = 0;
+						}
 						monster.lastClick = tR.md5;
+					} else if (!result && !tR.charClass) {
+						monster.powerButtons.some( function(button) {
+							attackButton = caap.checkForImage(button);
+							return $u.hasContent(attackButton);
+						});
+						if ($u.hasContent(attackButton)) {
+							caap.click(attackButton);
+							monster.lastClick = tR.md5;
+							return true;
+						} else {
+							con.warn('Unable to find attack button to join ' + tR.name);
+						}
 					}
+
 					return result;
                 }
-				return false;
 
             } catch (err) {
                 con.error("ERROR in feed.scan: " + err.stack);
@@ -789,7 +807,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
         scoring: function(cM) {
             try {
-				var health = cM.life,
+				var temp,
+					life = cM.life,
 					t2k = cM.t2k,
 					fortify = cM.fortify,
 					strength = cM.strength,
@@ -799,7 +818,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					sameundermax = monster.records.filter( function(obj) {
 						return obj.monster == cM.monster && obj.status == 'Attack' && obj.over != 'max';
 					}).length,
-					allundermax = monster.records.filter( function(obj) {
+					undermax = monster.records.filter( function(obj) {
 						return obj.status == 'Attack' && obj.over != 'max';
 					}).length,
 					targetpart = cM.targetPart,
@@ -807,6 +826,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					time = cM.time[0] + cM.time[1]/60,
 					name = cM.name,
 					monstername = cM.monster,
+					damagemod = fortify > 0 ? 58 * fortify / 100 * (strength > 0 ? strength : 100) / 100 + 42 : 0,
 					rogue = 'Rogue',
 					warlock = 'Warlock',
 					warrior = 'Warrior',
@@ -815,25 +835,56 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					ranger = 'Ranger',
 					levelup = caap.inLevelUpMode(),
 					energy = caap.stats.energy.num,
-					energymax = caap.checkStats('energy'),
-					staminamax = caap.checkStats('stamina'),
+					atmaxenergy = caap.stats.energy.num >= caap.maxStatCheck('energy'),
+					atmaxstamina = caap.stats.stamina.num >= caap.maxStatCheck('stamina'),
 					stamina = caap.stats.stamina.num,
 					exp = caap.stats.exp.dif,
-					ach = caap.stats.achievements;
+					killed = monster.getInfo(cM.monster, 'achTitle', false),
+					achnum = monster.getInfo(cM.monster, 'achNum'),
+					achleft = 0,
+					conq = cM.lpage == "ajax:player_monster_list.php?monster_filter=2",
+					achrecords = caap.stats.achievements.monster;
 					
-					if (cM.conditions.regex(/:j\[([^\]]*)\]/)) {
-						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[([^\]]*)\]/), 0)).dp(2);
-						cM.join = eval(cM.conditions.regex(/:j\[([^\]]*)\]/));
-						con.log(1, (cM.join ? 'Join candidate' : 'Do not join') + '. Score: ' + cM.score, cM.conditions, cM.conditions.regex(/:s\[([^\]]*)\]/), cM.conditions.regex(/:j\[([^\]]*)\]/));
+					killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {
+						return previous || (current.hasIndexOf(cM.monster) && !current.regex(/'s/) ? achrecords[current] : 0);
+					}, 0);
+					achleft = Math.min(0, monster.getInfo(cM.monster, 'achNum') - killed);
+
+					if (cM.conditions.regex(/:j\[(.*?)\]:/)) {
+						cM.score = eval($u.setContent(cM.conditions.regex(/:s\[(.*?)\]:/), 0)).dp(2);
+						temp = (cM.staminaList.length ? Math.max(cM.staminaList[0], 5) : 5);
+						cM.join = eval(cM.conditions.regex(/:j\[(.*?)\]:/)) && stamina > temp;
+						con.log(2, cM.name +  (cM.join ? ' Join candidate' : ' Do not join') + '. Score: ' + cM.score + ' Min stamina ' + temp, cM.conditions, cM.conditions.regex(/:s\[(.*?)\]:/), cM.conditions.regex(/:j\[(.*?)\]:/));
 						cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+						if (cM.score <=0) {
+							con.log(1, 'Deleting monster ' + cM.name + ' because score of ' + cM.score + ' <= 0', cM);
+							monster.deleteItem(cM.md5);
+						}
 					}
-					if (cM.conditions.regex(/:c\[([^\]]*)\]/)) {
-						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[([^\]]*)\]/), 'Warlock'));
-						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[([^\]]*)\]/));
+					if (cM.conditions.regex(/:c\[(.*?)\]:/)) {
+						cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*?)\]:/), 'Warlock'));
+						con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[(.*?)\]:/));
 					}
 					
             } catch (err) {
                 con.error("ERROR in feed.scoring: " + err.stack);
+                return false;
+            }
+        },
+
+        checkDeath: function(cM) {
+            try {
+				var health = cM.life;
+;
+					if (!monster.damaged(cM) || cM.status == 'Done' || cM.status === 'Dead or Fled' || cM.status == 'Collect') {
+						return false;
+					}
+					if ((feed.addConditions(cM) || '').regex(/(\bachleft\b|\bkilled\b)/)) {
+						schedule.setItem("achievements", 0);
+					}
+					
+            } catch (err) {
+                con.error("ERROR in feed.checkDeath: " + err.stack);
                 return false;
             }
         },
@@ -852,7 +903,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 var htmlCode = '',
 					filterInstructions = "List of filters to decide what monsters to look for. ";
 
-                htmlCode += caap.startToggle('Monster Finder', 'MONSTER FINDER');
+                htmlCode += caap.startToggle('MonsterFinder', 'MONSTER FINDER');
                 htmlCode += caap.makeCheckTR("Enable Monster Finder", 'enableMonsterFinder', false, "Find joinable monsters.");
                 htmlCode += caap.startCheckHide('enableMonsterFinder');
   /*              htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxMonsterFinder', true, "Check Monsters using AJAX rather than page navigation.");

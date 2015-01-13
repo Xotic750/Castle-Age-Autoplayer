@@ -126,65 +126,51 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (!caap.inLevelUpMode()) {
-                if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
-                    con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
-                    caap.setDivContent('conquest_mess', 'Waiting Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
-                    state.setItem("ConquestChainId", 0);
-                    button = null;
-                    tempDiv = null;
-                    return false;
-                }
+			if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
+				con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
+				caap.setDivContent('conquest_mess', 'Waiting Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				state.setItem("ConquestChainId", 0);
+				button = null;
+				tempDiv = null;
+				return false;
+			}
 
-                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num >= config.getItem('ConquestXCoins', 1)) {
-                    state.setItem('conquest_burn', true);
-                    con.log(1, 'Burn tokens ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-                }
+			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num >= config.getItem('ConquestXCoins', 1)) {
+				state.setItem('conquest_burn', true);
+				con.log(1, 'Burn tokens ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+			}
 
-                con.log(4, 'Waiting X coins burn', state.getItem('conquest_burn', false));
-                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0)) {
-                    state.setItem('conquest_burn', false);
-                    con.log(4, '1:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-                    caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
-                    state.setItem("ConquestChainId", 0);
-                    button = null;
-                    tempDiv = null;
-                    return false;
-                }
+			con.log(4, 'Waiting X coins burn', state.getItem('conquest_burn', false));
+			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0)) {
+				state.setItem('conquest_burn', false);
+				con.log(4, '1:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+				caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				state.setItem("ConquestChainId", 0);
+				button = null;
+				tempDiv = null;
+				return false;
+			}
 
-                if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)) {
-                    state.setItem('conquest_burn', false);
-                    con.log(4, '2:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-                    caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
-                    state.setItem("ConquestChainId", 0);
-                    button = null;
-                    tempDiv = null;
-                    return false;
-                }
+			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)) {
+				state.setItem('conquest_burn', false);
+				con.log(4, '2:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+				caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				state.setItem("ConquestChainId", 0);
+				button = null;
+				tempDiv = null;
+				return false;
+			}
 
-                if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
-                    con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
-                    caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
-                    state.setItem("ConquestChainId", 0);
-                    button = null;
-                    tempDiv = null;
-                    return false;
-                }
+			if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
+				con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
+				caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				state.setItem("ConquestChainId", 0);
+				button = null;
+				tempDiv = null;
+				return false;
+			}
 
-                caap.setDivContent('conquest_mess', 'Conquest Ready');
-            } else {
-                if (caap.stats.guildTokens.num < 1) {
-                    con.log(4, 'Waiting Coins ' + caap.stats.guildTokens.num + '/1');
-                    caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
-                    state.setItem("ConquestChainId", 0);
-                    button = null;
-                    tempDiv = null;
-                    return false;
-                }
-
-                con.log(1, 'Burn tokens level up ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-                caap.setDivContent('conquest_mess', 'Conquest Level Up');
-            }
+			caap.setDivContent('conquest_mess', 'Conquest Ready');
 
             if (caap.stats.level < 8) {
                 schedule.setItem("conquest_token", 86400, 300);
