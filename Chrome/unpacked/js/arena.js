@@ -303,17 +303,21 @@
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
 				tR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
 				try {
+					var blackList = config.getList('arena_blacklist', false);
 					con.log(2, tR.nameStr + " (" + tR.userId + ") is looking in black listed !");
 					for (p = 0, len = blackList.length; p < len; p += 1) {
 						if (tR.userId.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
 							con.log(2, tR.nameStr + " (" + tR.userId + ") is black listed !");
+							blackList=null;
 							return true;
 						}
 						if (tR.nameStr.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
 							con.log(2, tR.nameStr + " (" + tR.userId + ") is black listed !");
+							blackList=null;
 							return true;
 						}
 					}
+					blackList=null;
 				} catch (e) {
 					con.log(2, "Error in arena black listed search : ",e);
 				}
