@@ -303,7 +303,7 @@
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
 				tR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
 				try {
-					var blackList = config.getList('arena_blacklist', false);
+					var blackList = config.getList('arena_blacklist', "");
 					con.log(2, tR.nameStr + " (" + tR.userId + ") is looking in black listed !");
 					for (p = 0, len = blackList.length; p < len; p += 1) {
 						if (tR.userId.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
