@@ -119,12 +119,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (state.getItem('targetFrombattle_monster', '') || state.getItem('targetFromraid', '')) {
                     return true;
                 }
-
                 var WhenBattle = config.getItem("WhenBattle", 'Never');
-
-                if ((WhenBattle === 'No Monster' || WhenBattle === 'Demi Points Only') && config.getItem("DemiPointsFirst", false) && !battle.selectedDemisDone()) {
-                    return true;
-                }
             }
 
             return false;

@@ -65,6 +65,10 @@ String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
 };
 
+Number.prototype.numberOnly = function() {
+    return this.valueOf();
+};
+
 String.prototype.parseTimer = function() {
     var a = [],
         b = 0,

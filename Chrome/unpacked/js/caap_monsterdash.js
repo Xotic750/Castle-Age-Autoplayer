@@ -107,7 +107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monster.dashboard();
             guild_monster.dashboard();
             guild_battle.dashboard();
-            //arena.AddArenaDashboard();
+            arena.dashboard();
             feed.dashboard();
             army.dashboard();
             battle.dashboard();
@@ -962,7 +962,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'infoMonster', false);
         caap.setDisplay("caapTopObject", 'guildMonster', false);
         caap.setDisplay("caapTopObject", 'guildBattle', false);
-        //caap.setDisplay("caapTopObject", 'arena', false);
+        caap.setDisplay("caapTopObject", 'infoArena', false);
         caap.setDisplay("caapTopObject", 'festival', false);
         caap.setDisplay("caapTopObject", '10v10', false);
         caap.setDisplay("caapTopObject", 'infoFeed', false);
@@ -998,8 +998,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case "Battle Stats":
                 caap.setDisplay("caapTopObject", 'infoBattle', true);
-                caap.setDisplay("caapTopObject", 'buttonBattle', true);
 
+                break;
+            case "Arena Stats" :
+                caap.setDisplay("caapTopObject", 'infoArena', true);
+                //caap.setDisplay("caapTopObject", 'buttonBattle', true);
                 break;
             case "Conquest Stats":
                 caap.setDisplay("caapTopObject", 'infoConquest', true);
@@ -1056,12 +1059,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDisplay("caapTopObject", 'infoMonster', true);
                 caap.setDisplay("caapTopObject", 'buttonMonster', true);
                 break;
-            /*
-            case "Arena" :
-                caap.setDisplay("caapTopObject", 'arena', true);
-
-                break;
-            */
             case "Festival":
 				caap.setDisplay("caapTopObject", 'GFDisplay', true);
                 caap.setDisplay("caapTopObject", 'festival', true);
@@ -1105,7 +1102,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'your10v10', value == 'My Guild');
         caap.setDisplay("caapTopObject", 'enemy10v10', value == 'Opponent');
         caap.setDisplay("caapTopObject", 'enemyguildBattle', value == 'Opponent');
-//        caap.updateDashboard(true);
+        caap.updateDashboard(true);
     };
 
 	// Pass through function used to pass arguments that might not be referred from a different context

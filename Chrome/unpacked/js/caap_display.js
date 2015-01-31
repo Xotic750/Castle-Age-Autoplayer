@@ -209,27 +209,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.startCheckHide = function (idName, not) {
-        try {
-            var id = idName ? " id='caap_" + idName + (not ? "_not" : '') + "_hide'" : '',
-                css = " style='display: " + (config.getItem(idName, false) ? (not ? 'none' : 'block') : (not ? 'block' : 'none')) + ";'";
-
-            return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
-        } catch (err) {
-            con.error("ERROR in startCheckHide: " + err);
-            return '';
-        }
-    };
-
-    caap.endCheckHide = function () {
-        try {
-            return "</div>";
-        } catch (err) {
-            con.error("ERROR in endCheckHide: " + err);
-            return '';
-        }
-    };
-
     caap.makeNumberFormTR = function (text, idName, instructions, initDefault, formatParms, subtype, indent, right, width) {
         try {
             indent = $u.setContent(indent, false);
@@ -263,27 +242,37 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.startDropHide = function (idName, idPlus, test, not) {
+	caap.display = {};
+	
+	// If config setting for idName is the same as test, display
+	// If display not defined, default is to display
+	// If test not defined, default is true
+    caap.display.start = function (idName, display, test) {
         try {
-            var value = config.getItem(idName, 'Never'),
-                result = not ? value !== test : value === test,
-                id = " id='caap_" + idName + idPlus + "_hide'",
-                css = " style='display: " + (result ? 'block' : 'none') + ";'";
-
+            var value = config.getItem(idName, 'Never').toString(),
+				result,
+				id,
+				css;
+			
+			if (idName.regex(/(\W)/)) {
+				con.warn('Config idName "' + idName + '" has a non-word character in it. Please remove');
+			}
+			
+			display = $u.setContent(display, 'is') && display != 'isnot';
+			test = $u.setContent(test, true).toString();
+			result = display == (value == test),
+			id = " id='caap_displayIf__" + idName + (display ? '__is__' : '__isnot__') + test.replace(/ /g,'_') + "'",
+			css = " style='display: " + (result ? 'block' : 'none') + ";'";
+			
             return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
         } catch (err) {
-            con.error("ERROR in startDropHide: " + err);
+            con.error("ERROR in caap.display.start: " + err);
             return '';
         }
     };
 
-    caap.endDropHide = function () {
-        try {
-            return "</div>";
-        } catch (err) {
-            con.error("ERROR in endDropHide: " + err);
-            return '';
-        }
+    caap.display.end = function () {
+        return "</div>";
     };
 
     caap.startToggle = function (controlId, staticText) {

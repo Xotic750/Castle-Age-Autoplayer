@@ -1115,11 +1115,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
             htmlCode += caap.startToggle('GuildMonsters', 'GUILD MONSTERS');
             htmlCode += caap.makeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
+            htmlCode += caap.display.start('WhenGuildMonster', 'isnot', 'Never');
+            htmlCode += caap.display.start('WhenGuildMonster', 'is', 'At X Stamina');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'MaxStaminaToGMonster', '', 0, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'MinStaminaToGMonster', '', 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
+            htmlCode += caap.display.end('WhenGuildMonster', 'is', 'At X Stamina');
             htmlCode += caap.makeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
             htmlCode += caap.makeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
             htmlCode += caap.makeCheckTR('Collect Rewards', 'guildMonsterCollect', false, 'Collect the rewards of your completed Guild Monsters.');
@@ -1135,7 +1135,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             htmlCode += caap.makeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
             htmlCode += caap.makeTD("Attack Minions in this order");
             htmlCode += caap.makeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
-            htmlCode += caap.endDropHide('WhenGuildMonster');
+            htmlCode += caap.display.end('WhenGuildMonster', 'isnot', 'Never');
             //htmlCode += caap.makeCheckTR('Enable Arachnid', 'enableSpider', true, 'Allows you to summon the Giant Arachnid.');
             config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
