@@ -1294,11 +1294,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode = caap.startToggle('Conquesting', 'CONQUEST BATTLE');
             htmlCode += caap.makeDropDownTR("Conquest When", 'WhenConquest', conquestList, conquestInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenConquest', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenConquest', 'XCoins', 'At X Coins', false);
+            htmlCode += caap.display.start('WhenConquest', 'isnot', 'Never');
+            htmlCode += caap.display.start('WhenConquest', 'is', 'At X Coins');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'ConquestXCoins', '', 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'ConquestXMinCoins', '', 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenConquest', 'XCoins');
+            htmlCode += caap.display.end('WhenConquest', 'is', 'At X Coins');
             htmlCode += caap.makeDropDownTR("Conquest Type", 'ConquestType', typeList, typeInst, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR("Wait For Safe Health", 'conquestWaitSafeHealth', false, '');
             htmlCode += caap.makeNumberFormTR("Chain Conquest Points", 'ConquestChainBP', chainBPInstructions, '', '');
@@ -1310,17 +1310,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("My Rank Plus", 'ConquestMaxRank', '', 2, '', '', true);
             htmlCode += caap.makeNumberFormTR("Higher Than X*AR", 'ConquestARBase', FMARBaseInstructions, 0.7, '', '', true);
             htmlCode += caap.makeCheckTR('Advanced', 'ConquestAdvancedOptions', false);
-            htmlCode += caap.startCheckHide('ConquestAdvancedOptions');
+            htmlCode += caap.display.start('ConquestAdvancedOptions');
             htmlCode += caap.makeNumberFormTR("Army Ratio Max", 'ConquestARMax', FreshMeatARMaxInstructions, '', '', '', true);
             htmlCode += caap.makeNumberFormTR("Army Ratio Min", 'ConquestARMin', FreshMeatARMinInstructions, '', '', '', true);
-            htmlCode += caap.endCheckHide('ConquestAdvancedOptions');
-            htmlCode += caap.endDropHide('WhenConquest');
+            htmlCode += caap.display.end('ConquestAdvancedOptions');
+            htmlCode += caap.display.end('WhenConquest', 'isnot', 'Never');
             /*
             htmlCode += caap.makeCheckTR("Modify Timers", 'conquestModifyTimers', false, "Advanced timers for how often Conquest functions are performed.");
-            htmlCode += caap.startCheckHide('conquestModifyTimers');
+            htmlCode += caap.display.start('conquestModifyTimers');
             htmlCode += caap.makeNumberFormTR("Conquest retry", 'ConquestNotSafeCount', "Check the Conquest X times before release and delay for other processes. Minimum 1.", 20, '', '', true);
             htmlCode += caap.makeNumberFormTR("Conquest delay", 'ConquestNoTargetDelay', "Check the Conquest every X seconds when no target available. Minimum 10.", 45, '', '', true);
-            htmlCode += caap.endCheckHide('conquestModifyTimers');
+            htmlCode += caap.display.end('conquestModifyTimers');
             */
             htmlCode += caap.endToggle;
             return htmlCode;

@@ -79,7 +79,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			//caap.globalContainer.find("input[src*='battle_enter_battle']").on('click', festival.engageListener);
 			fR.state = !caap.hasImage('festival_arena_enter.jpg') ? 'No battle' : fR.state;
 			guild_battle.setrPage(fR, 'index', 'review', 0);
-			
+			guild_battle.setItem(guild_battle.gf.festival, fR);
         } catch (err) {
             con.error("ERROR in checkResults_festival_battle_home: " + err);
             return false;

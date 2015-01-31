@@ -31,6 +31,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 schedule.setItem("ajaxGiftCheck", time * 60, 300);
             }
 			
+			schedule.setItem("pageIndex", 1 * 3600);
+			
 			guild_battle.onTop(guild_battle.gf.tenVten);
 			guild_battle.onTop(guild_battle.gf.festival);
 			guild_battle.onTop(guild_battle.gf.guild_battle);
