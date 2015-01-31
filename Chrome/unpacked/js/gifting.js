@@ -787,35 +787,34 @@
 
                 htmlCode += caap.startToggle('Gifting', 'GIFTING OPTIONS');
                 htmlCode += caap.makeCheckTR('Auto Gifting', 'AutoGift', false, giftInstructions);
-                htmlCode += caap.startCheckHide('AutoGift');
+                htmlCode += caap.display.start('AutoGift');
                 htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxGiftCheck', true, "Check for gifts using AJAX rather than page navigation.");
                 htmlCode += caap.makeCheckTR('Watch FB Beeper', 'watchBeeper', true, "Watch the FB Beeper for new gifts.");
                 htmlCode += caap.makeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
                 htmlCode += caap.makeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
-                htmlCode += caap.startCheckHide('CollectOnly');
+                htmlCode += caap.display.start('CollectOnly');
                 htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions, true);
-                htmlCode += caap.endCheckHide('CollectOnly');
+                htmlCode += caap.display.end('CollectOnly');
                 /*
                 htmlCode += caap.makeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
                 htmlCode += caap.makeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
                 htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Do not return gifts to a list of UserIDs");
-                htmlCode += caap.startCheckHide('FilterReturnId');
+                htmlCode += caap.display.start('FilterReturnId');
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Do not return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnIdList', false, "Do not queue gifts for a list of certain UserIDs recieved", true);
-                htmlCode += caap.endCheckHide('FilterReturnId');
+                htmlCode += caap.display.end('FilterReturnId');
                 htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Do not return gifts for a list of certain gifts recieved");
-                htmlCode += caap.startCheckHide('FilterReturnGift');
+                htmlCode += caap.display.start('FilterReturnGift');
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Do not return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
                 htmlCode += caap.makeCheckTR('Do Not Queue', 'noQueueFilterReturnGift', false, "Do not queue gifts for a list of certain gifts recieved", true);
-                htmlCode += caap.endCheckHide('FilterReturnGift');
+                htmlCode += caap.display.end('FilterReturnGift');
                 */
-                htmlCode += caap.endCheckHide('AutoGift');
                 htmlCode += caap.makeCheckTR("Modify Timers", 'giftModifyTimers', false, "Advanced timers for how often Gifting actions are performed.");
-                htmlCode += caap.startCheckHide('giftModifyTimers');
+                htmlCode += caap.display.start('giftModifyTimers');
                 /*
                 htmlCode += caap.makeNumberFormTR("Max Gift Hours", 'MaxGiftsExceededDelaySecs', "When Max Gifts is exceeded wait X hours before attempting to send gifts. Minimum 1.", 3, '', '', true);
                 htmlCode += caap.makeNumberFormTR("One Gift Hours", 'OneGiftPerPersonDelaySecs', "When '1 Gift Per Person Per 24hrs' is enabled this is the timer used and is normally 24. Minimum 1.", 24, '', '', true);
@@ -824,8 +823,8 @@
                 */
                 htmlCode += caap.makeNumberFormTR("Gift List Days", 'checkGift', "Check gift list every X days. Minimum 3.", 3, '', '', true);
                 htmlCode += caap.makeNumberFormTR("Ajax Gift Check", 'CheckGiftMins', "Check gifts waiting every X minutes. Minimum 15.", 15, '', '', true);
-                htmlCode += caap.endCheckHide('giftModifyTimers');
-                htmlCode += caap.endCheckHide('AutoGift');
+                htmlCode += caap.display.end('giftModifyTimers');
+                htmlCode += caap.display.end('AutoGift');
 
                 htmlCode += caap.endToggle;
                 return htmlCode;

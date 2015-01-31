@@ -74,28 +74,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.demiPoints = function () {
         try {
-            if (caap.stats.level < 9) {
+            if (caap.stats.level < 9 || !battle.demisPointsToDo('set')) {
                 return false;
             }
 
-            if (!config.getItem('DemiPointsFirst', false) || config.getItem('WhenMonster', 'Never') === 'Never') {
-                return false;
+            if (schedule.check("battle") && caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
+				return true;
             }
 
-            if (schedule.check("battle")) {
-                if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
-                    return true;
-                }
-            }
-
-            var demiPointsDone = false;
-            demiPointsDone = battle.selectedDemisDone();
-            state.setItem("DemiPointsDone", demiPointsDone);
-            if (demiPointsDone) {
-                return false;
-            }
-
-            return caap.battle('DemiPoints');
+            return battle.demisPointsToDo('left') ? caap.battle('DemiPoints') : false;
         } catch (err) {
             con.error("ERROR in demiPoints: " + err);
             return false;

@@ -29,7 +29,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			'state' : 'Active',
 			'seal' : '0',
 			'easy' : false,
-			'simtis' : false,
+			'simtis' : false, // someone in my tower is stunned
 			'firstScanDone' : false,
 			'burn' : false,
 			't' : false,
@@ -92,10 +92,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					'score' : 0
 				}
 			},
-			'clericHealthNum' : 0,
-			'clericHealthMax' : 0,
-			'clericDamage' : 0,
-			'clericLife' : 0
+			'healthNum' : 0,
+			'healthMax' : 0,
+			'damage' : 0,
+			'life' : 0
 		};
 	};
 	
@@ -379,9 +379,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (guild_battle.records.length && $u.hasContent(guild_battle.records[0])) {
 				if ($u.hasContent(guild_battle.records[0].data)) {
 					con.warn('Deleting old nested Guild Battle data structure');
-					guild_battle.records.forEach( function(r) {
-						delete r.data;
-					});
+					guild_battle.records = [];
 				}
 				caap.fillRecords(guild_battle.records, new guild_battle.record().data);
 			}
@@ -820,7 +818,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				return this.innerText.match(/(\d+)/)[1];
 			}).get();
 			['1','2','3','4'].forEach(function(stower) {
-				sealedTowers += $u.hasContent(fR[which].towers[stower]) ? fR[which].towers[stower].clericHealthNum == 0 : towerPops[stower - 1] > 0;
+				sealedTowers += $u.hasContent(fR[which].towers[stower]) ? fR[which].towers[stower].healthNum == 0 : towerPops[stower - 1] > 0;
 			});
 			// easy if only 1 unsealed tower left or 2 unsealed and winning by over 20%
 			if (which == 'your') {
@@ -913,8 +911,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						tR.actives += mR.battlePoints > 0 ? 1 : 0;
 						tR.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
 						stunnedClerics += (mR.status == 'Stunned' && mR.mclass == 'cleric') ? 1 : 0;
-						tR.clericHealthNum += mR.mclass == 'cleric' ? mR.healthNum : 0;
-						tR.clericHealthMax += mR.mclass == 'cleric' ? mR.healthMax : 0;
+						tR.healthNum += mR.healthNum;
+						tR.healthMax += mR.healthMax;
 						isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
 						if (isMe) {
 							fR.me.tower = tower;
@@ -961,7 +959,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									case 'confidence' : tf = $u.hasContent($j("img[src*='effect_confidence']", member)); 	break;
 									case 'fortify' : 	tf = $u.hasContent($j("img[src*='effect_fort']", member)); 			break;
 									case 'smokebomb' : 	tf = $u.hasContent($j("img[src*='effect_smoke']", member)); 		break;
-										// yinzanat: added the targetting flags
 									case 'attack' : 	tf = $u.hasContent($j("img[src*='targetting_attack']", member)); 	break;
 									case 'avoid' : 		tf = $u.hasContent($j("img[src*='targetting_avoid']", member)); 	break;
 									case 'defend' : 	tf = $u.hasContent($j("img[src*='targetting_defend']", member));	break;
@@ -1040,8 +1037,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					}
 				}
 			}
-			tR.clericDamage = tR.clericHealthMax - tR.clericHealthNum;
-			tR.clericLife = tR.clerics ? (tR.clericHealthNum/tR.clericHealthMax * 100).dp(1) : 100.0;
+			tR.damage = tR.healthMax - tR.healthNum;
+			tR.life = (tR.healthNum/tR.healthMax * 100).dp(1);
 			fR.firstScanDone = true;
 			fR[which].towers[tower] = tR;
 
@@ -1051,8 +1048,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				['1','2','3','4'].forEach(function(fTower) {
 					tR = fR[fwhich].towers[fTower];
 					if ($u.isObject(tR)) {
-						if ($u.isNumber(tR.clericDamage) && tR.clericDamage > maxDamage + 1000 && tR.clericHealthNum > 0) {
-							maxDamage = tR.clericDamage;
+						if ($u.isNumber(tR.damage) && tR.damage > maxDamage + 1000 && tR.healthNum > 0) {
+							maxDamage = tR.damage;
 							maxTower = fTower;
 						}
 					} else {
@@ -1166,6 +1163,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			wait = fR.t;
 			fR.t = false;
 			// Set paths or reset paths list according to state i
+			if (schedule.check("pageIndex") && false) {
+				con.log(1, 'Guild Battle: navigating to Index to check on battles');
+				if (caap.navigateTo('index')) {
+					return true;
+				}
+				return caap.navigateTo('keep');
+			}
+			
 			if (fR.state == 'Collect') {
 				fR.paths = [];
 				nowUTC = new Date(now.getTime() +  (now.getTimezoneOffset() / 60 - 8) * 3600000 - 2 * 50 * 1000);
@@ -1340,7 +1345,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                     'At fixed times will allow you to set a schedule of when to start battles',
                     'Never - disables starting guild battles'
                 ],
-                tokenList = ['Over', 'Between Max/Min', 'Never'],
+                tokenList = ['Over', 'Between Max Min', 'Never'],
                 tokenInst = [
                     'Over - join battles and attack whenever your tokens are over the max',
                     'Between Max/Min - join battles and burn tokens once over max until just over min',
@@ -1354,24 +1359,22 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 			[guild_battle.gf.guild_battle.abbrev,guild_battle.gf.festival.abbrev,guild_battle.gf.tenVten.abbrev].forEach(function(t) {
 				htmlCode += caap.makeDropDownTR(t + " Use tokens", t + 'whenTokens', tokenList, tokenInst, '', 'Never', false, false, 62);
-				htmlCode += caap.startDropHide(t + 'whenTokens','', 'Never', true);
+				htmlCode += caap.display.start(t + 'whenTokens', 'isnot', 'Never');
 				htmlCode += caap.makeDropDownTR(t + " Max", t + 'max', tokenRange, [], '', '8', false, false, 62);
-				htmlCode += caap.startDropHide(t + 'whenTokens', 'Burn', 'Between Max/Min', false);
+				htmlCode += caap.display.start(t + 'whenTokens', 'is', 'Between Max/Min');
 				htmlCode += caap.makeDropDownTR(t + " Min", t + 'min', tokenRange, [], '', '0', false, false, 62);
-				htmlCode += caap.endDropHide(t + 'whenTokens', 'Burn', 'Between Max/Min', false);
-				htmlCode += caap.endDropHide(t + 'whenTokens','', 'Never', true);
+				htmlCode += caap.display.end(t + 'whenTokens', 'is', 'Between Max/Min');
+				htmlCode += caap.display.end(t + 'whenTokens', 'isnot', 'Never');
 				htmlCode += caap.makeCheckTR(t + " Auto-collect", t + 'collect', false, 'Auto-collect when these battles finish');
 			});
 
             htmlCode += caap.makeTD("Rate targets by: <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=830' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('guild_battle_scoring', guild_battle_scoring_inst, 'cduel[],mduel[],wduel[],rduel[]', '');
             htmlCode += caap.makeDropDownTR("Start Guild Battles when", 'WhenGuildBattle', gbattleList, gbattleInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenGuildBattle', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenGuildBattle', 'FixedTimes', 'At fixed times', false);
+            htmlCode += caap.display.start('WhenGuildBattle', 'is', 'At fixed times');
             htmlCode += caap.makeTD("Start Guild Battles at these times:");
             htmlCode += caap.makeTextBox('timed_guild_battles', timed_guild_battles_inst, '', '');
-            htmlCode += caap.endDropHide('WhenGuildBattle', 'FixedTimes');
-			htmlCode += caap.endDropHide('WhenGuildBattle');
+            htmlCode += caap.display.end('WhenGuildBattle', 'is', 'At fixed times');
             config.setItem('enableSpider', false);
             htmlCode += caap.endToggle;
             return htmlCode;
@@ -1465,7 +1468,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						if (!tower) {
 							continue;
 						}
-						towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Cleric Life%: ' + tower.clericLife + '<br>';
+						towerHtml += 'Tower ' + pp + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Health Life%: ' + tower.life + '<br>';
 					}
 
 					for (pp = 0; pp < headers.length; pp += 1) {

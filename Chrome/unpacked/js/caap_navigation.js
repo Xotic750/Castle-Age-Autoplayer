@@ -44,6 +44,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.ifClick = function (obj) {
         try {
+			if ($u.isString(obj) && obj.length) {
+				obj = caap.checkForImage(obj);
+			}
 			if (!$u.isObject(obj) || !obj.jquery) {
 				con.warn('Invalid jquery passed to caap.ifClick', obj);
 				return false;
