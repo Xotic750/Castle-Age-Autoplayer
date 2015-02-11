@@ -2626,17 +2626,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'battle_mess': "",
         'conquest_mess': "",
         'monster_mess': "",
-        '10v10_mess': "",
-        'festival_mess': "",
+        'gb10_mess': "",
+        'gb100_mess': "",
+        'gbClassic_mess': "",
         'guild_monster_mess': "",
-        'guild_battle_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
         'demipoint_mess': "",
         'gifting_mess': "",
         'army_mess': "",
         'feats_mess': "",
-        'demibless_mess': "",
         'kobo_mess': "",
         'essenceScan_mess': "",
         'level_mess': "",
@@ -2745,8 +2744,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
             htmlCode += arena.menu();
-			if (config.getItem("WhenFestival", "Never") !== "Never") {
-				config.setItem("WhenFestival", "Never");
+			if (config.getItem("When100v100", "Never") !== "Never") {
+				config.setItem("When100v100", "Never");
 			}
 
             htmlCode += general.menu();
@@ -3340,13 +3339,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Battle Stats',
                     'Conquest Stats',
                     'Feed',
-                    'Festival',
+                    '100v100',
                     'Generals Stats',
                     'Gift Queue',
                     'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
-                    'Guild Battle',
+                    'Classic',
                     '10v10',
                     'Item Stats',
                     'Magic Stats',
@@ -3360,7 +3359,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Display your Battle history statistics, who you fought and if you won or lost.',
                     'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
-                    'Display the Festival battle in progress.',
+                    'Display the 100v100 battle in progress.',
                     'Display information about your Generals.',
                     'Display your current Gift Queue.',
                     'Display your Gifting history, how many gifts you have received and returned to a user.',
@@ -3399,10 +3398,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             Next we put in our Guild and Festival battle dropdown which will only show when we have
             selected the Guild or Festival battle display.
             \-------------------------------------------------------------------------------------*/
-//            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'>";
-//            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
-            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['Festival','Guild Battle', '10v10'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
+            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['gb100','gbClassic', 'gb10'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
             layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
@@ -3510,8 +3507,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_guildBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Battle' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_10v10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '10v10' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gbClassic' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gbClassic' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb10' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoArena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'></div>";
@@ -3523,7 +3520,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_festival' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Festival' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb100' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoConquest' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoGuilds' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'></div>";
@@ -3713,14 +3710,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			caap.setDisplayById(idName);
 			
             switch (idName) {
-                case "useZinMisaFirst":
-                case "DemiPoint0":
-                case "DemiPoint1":
-                case "DemiPoint2":
-                case "DemiPoint3":
-                case "DemiPoint4":
-                    battle.setDisplay();
-                    break;
                 case "AutoStatAdv":
                     con.log(9, "AutoStatAdv");
                     state.setItem("statsMatch", true);
@@ -4225,8 +4214,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 				switch (idName) {
 					case 'WhenBattle':
-						battle.setDisplay(); // Deliberate omission of break; to allow fall through
-					case 'WhenFestival':
 					case 'WhenConquest':
 					case 'WhenMonster':
 						caap.setDivContent(mess, value === 'Never' ? worker + ' off' : '');
@@ -4240,8 +4227,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						caap.setDivContent('guild_monster_mess', value === 'Never' ? 'Guild Monster off' : '');
 						break;
 						
-					case 'WhenGuildBattle':
-						caap.setDivContent('guild_battle_mess', value === 'Never' ? 'Guild Battle off' : '');
+					case 'WhenGuildBattle': // Add in 10v10, 100v100?
+						caap.setDivContent('gbClassic_mess', value === 'Never' ? 'Classic off' : '');
 						break;
 						
 					case 'QuestArea':
@@ -4956,6 +4943,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'fb_tab_land_on.jpg',
             CheckResultsFunction: 'checkResults_land'
         },
+        'territory': {
+            signaturePic: 'fbland_top.jpg',
+            CheckResultsFunction: 'checkResults_territory'
+        },
         'generals': {
             signaturePic: 'tab_generals_on.gif',
             CheckResultsFunction: 'checkResults_onGenerals'
@@ -5107,13 +5098,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'festival_achievement_monster_',
             CheckResultsFunction: 'checkResults_onMonster'
         },
-        'festival_battle_home': {
-            signaturePic: 'festival_button_rewards.gif',
-            CheckResultsFunction: 'checkResults_festival_battle_home'
+        'hundred_battle': {
+            signaturePic: 'fb_guild_btn_100_off.jpg',
+            CheckResultsFunction: 'checkResults_hundred_battle'
         },
-        'festival_guild_battle': {
-            signatureId: 'arena_battle_banner_section',
-            CheckResultsFunction: 'checkResults_festival_guild_battle'
+        'hundred_battle_view': {
+            signaturePic: 'guild_battle_banner.jpg',
+            CheckResultsFunction: 'checkResults_hundred_battle_view'
         },
         'army_news_feed': {
             signatureId: 'army_feed_body',
@@ -5140,10 +5131,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guild_formation'
         },
         'guildv2_conquest_command': {
-            signaturePic: 'guild_tab6_on.jpg',
-            CheckResultsFunction: 'checkResults_conquest'
+            signaturePic: 'conq2_mistnav_on3.gif',
+            CheckResultsFunction: 'checkResults_conquestMist'
         },
-        'onConquestEarth': {
+        'guildv2_conquest_castle': {
             signatureId: 'conq2_earthnav_on3.',
             CheckResultsFunction: 'checkResults_conquestEarth'
         },
@@ -5271,7 +5262,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.updateDashboard();
             caap.setNextLevelMessage();
             caap.setDivContent('demipoint_mess', !battle.demisPointsToDo('set') ? 'Daily Demi Points: off' : battle.demisPointsToDo('left') ? 'Daily Demi Points in progress' : 'Daily Demi Points done');
-            caap.setDivContent('demibless_mess', schedule.check('BlessingTimer') ? 'Demi Blessing = none' : 'Next Demi Blessing: ' + $u.setContent(caap.displayTime('BlessingTimer'), "Unknown"));
             caap.setDivContent('essenceScan_mess', schedule.check('newEssenceListTimer') ? 'Essence Scan = none' : 'Next Scan: ' + $u.setContent(caap.displayTime('newEssenceListTimer'), "Unknown"));
             caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(caap.displayTime('festivalBlessTimer'), "Unknown"));
             if ($u.hasContent(general.List) && general.List.length <= 2) {
@@ -5638,8 +5628,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.stats.exp) {
                 xS = gm ? gm.getItem("expStaminaRatio", 2.4, hiddenVar) : 2.4;
                 xE = state.getItem('AutoQuest', caap.newAutoQuest()).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
-                caap.stats.indicators.htl = ((caap.stats.level * 12.5) - (caap.stats.stamina.max * xS) - (caap.stats.energy.max * xE)) / (12 * (xS + xE));
-                caap.stats.indicators.hrtl = (caap.stats.exp.dif - (caap.stats.stamina.num * xS) - (caap.stats.energy.num * xE)) / (12 * (xS + xE));
+                caap.stats.indicators.htl = ((caap.stats.level * 12.5) - (caap.stats.stamina.max * xS) - (caap.stats.energy.max * xE)) / (24 * (xS + xE));
+                caap.stats.indicators.hrtl = (caap.stats.exp.dif - (caap.stats.stamina.num * xS) - (caap.stats.energy.num * xE)) / (24 * (xS + xE));
                 caap.stats.indicators.enl = Date.now() + Math.ceil(caap.stats.indicators.hrtl * 3600000);
             } else {
                 con.warn('Could not calculate time to next level. Missing experience stats!');
@@ -7412,7 +7402,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 points = [],
                 success = true;
 
-            caap.blessingResults();
             if ($u.hasContent(demiDiv) && demiDiv.length === 5) {
                 demiDiv.each(function () {
                     var num = $u.setContent($j(this).children().next().eq(1).children().children().next().text(), '').trim().innerTrim().regex(/(\d+)/);
@@ -7477,7 +7466,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.symbolquestsClickListener = function (event) {
         con.log(2, "Clicked Demi Power blessing", event.target.parentNode.id);
         caap.setDomWaiting("symbolquests.php");
-        caap.blessingPerformed = true;
     };
 
     caap.checkResults_quests = function (pickQuestTF) {
@@ -8375,42 +8363,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'stamina': 5
     };
 
-    caap.blessingPerformed = false;
-
-    caap.blessingResults = function () {
-        try {
-            var hours = 0,
-                minutes = 0,
-                done = false;
-
-            if (caap.blessingPerformed) {
-                if (/Please come back in:/i.test(caap.resultsText)) {
-                    // Check time until next Oracle Blessing
-                    hours = $u.setContent(caap.resultsText.regex(/(\d+) hour/i), 3);
-                    minutes = $u.setContent(caap.resultsText.regex(/(\d+) minute/i), 0);
-                    done = true;
-                } else if (/You have paid tribute to/i.test(caap.resultsText)) {
-                    // Recieved Demi Blessing.  Wait X hours to try again.
-                    hours = /Azeron/i.test(caap.resultsText) ? 48 : 24;
-                    done = true;
-                } else {
-                    if ($u.hasContent(caap.resultsText)) {
-                        con.warn("Unknown blessing result text", caap.resultsText);
-                    }
-                }
-
-                if (done) {
-                    con.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + minutes.lpad("0", 2));
-                    schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
-                }
-
-                caap.blessingPerformed = false;
-            }
-        } catch (err) {
-            con.error("ERROR in blessingResults: " + err.stack);
-        }
-    };
-
     caap.pstDay = function () {
         var time = new Date();
         var pstMS = time.getTime() + ((-420) * 60000);
@@ -8520,7 +8472,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return attribute;
                     }
                 }
-                return 'attack';
+                return '';
             } catch (err) {
                 con.error("ERROR in autoBlessSelection: " + err.stack);
                 return 'none';
@@ -8532,10 +8484,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoBless = function () {
         try {
-            if (caap.blessingPerformed) {
-                return true;
-            }
-
             var autoBless = caap.autoBlessSelection(),
                 autoBlessN = caap.deityTable[autoBless.toLowerCase()],
                 picSlice = $j(),
@@ -8543,11 +8491,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 rVal;
 
 
-            if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
+            picSlice = $j("#mainHeaderTabs input[src*='header_persist_btn_pray.gif']");
+			if (!$u.hasContent(autoBlessN) || !$u.hasContent(picSlice)) { 
                 picSlice = null;
                 descSlice = null;
                 return false;
             }
+			
+			descSlice = $j("#mainHeaderTabs input[src*='demi_symbol_" + autoBlessN + ".gif']")
+			if ($u.hasContent(descSlice) && schedule.check('blessingTimer') && caap.ifClick(picSlice)) {
+				schedule.setItem('blessingTimer', 5 * 60);
+				return true;
+			}
 
             if (caap.navigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
                 picSlice = null;
@@ -8587,8 +8542,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Click deity blessing for', autoBless, autoBlessN);
-            schedule.setItem('BlessingTimer', 300, 300);
-            caap.blessingPerformed = true;
             caap.click(picSlice);
             picSlice = null;
             descSlice = null;
@@ -8881,8 +8834,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.bestLand = {};
 
     caap.sellLand = {};
+	
+	caap.checkResults_territory = function () {
+		// Nothing to see here
+    };
 
-    caap.checkResults_land = function () {
+    caap.checkResults_land = function () { //fbland_top.jpg
         function selectLands(div, val, type) {
             try {
                 type = type || 'Buy';
@@ -9054,13 +9011,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
+            var bestLandCost = {},
+				cashTotAvail = 0,
+                cashNeed = 0,
+                theGeneral = '',
+				result = false;
+				
+			if (schedule.check('territory')) {
+				result = caap.navigate2('territory,clickimg:fbland_btn_collect.gif');
+				if (result == 'fail') {
+					schedule.setItem('territory', 6 * 60 * 60);
+				} else if (result) {
+					con.log(1, 'Checking daily territory collect.');
+					return true;
+				}
+			}
+
             if (!config.getItem('autoBuyLand', false)) {
                 return false;
             }
-
-            var bestLandCost = {}, cashTotAvail = 0,
-                cashNeed = 0,
-                theGeneral = '';
 
             // Do we have lands above our max to sell?
             if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
@@ -9220,19 +9189,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
-				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
-				tRecord = guild_battle.getItem(guild_battle.gf.tenVten),
+			var fRecord = guild_battle.getItem(guild_battle.gf.gb100),
+				gRecord = guild_battle.getItem(guild_battle.gf.gbClassic),
+				tRecord = guild_battle.getItem(guild_battle.gf.gb10),
 				configSet = false;
 				
 			if (schedule.since(fRecord.startTime, 1 * 60) && !schedule.since(fRecord.startTime, 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('Fest_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest_ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('100v100_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('100v100_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -8 * 60) && !schedule.since(tRecord.startTime, -0 * 60)) {
 				caap.stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
-				caap.stats.priorityGeneral = config.getItem('GB_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral != 'Use Current') {
 				con.log(2,' Pre battle class general',caap.stats.priorityGeneral);
@@ -9242,15 +9211,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 				
 			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB_Fest_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_Fest_IdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = 'Use Current';
 			}
 
-			return ['festival', 'tenVten', 'guild_battle'].some( function(name) {
-				configSet =  config.getItem(guild_battle.gf[name].abbrev + 'whenTokens') != 'Never' ||
-					config.getItem(guild_battle.gf[name].abbrev + ' ClassGeneral', 'Use Current') != 'Use Current' ||
-					config.getItem(guild_battle.gf[name].abbrev + 'collect', false);
+			return ['gb100', 'gb10', 'gbClassic'].some( function(name) {
+				configSet =  config.getItem(guild_battle.gf[name].label + 'whenTokens') != 'Never' ||
+					config.getItem(guild_battle.gf[name].name + ' ClassGeneral', 'Use Current') != 'Use Current' ||
+					config.getItem(guild_battle.gf[name].label + 'collect', false);
 				if (configSet && guild_battle.work(guild_battle.gf[name])) {
 					return true;
 				}
@@ -9462,11 +9431,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var headerDiv = $j('#mainHeaderTabs');
 			if (config.getItem('AutoArchives', false) && caap.ifClick($j("input[src*='header_persist_btn_eneable.gif']", headerDiv))) {
 				return true;
-			} else if (config.getItem('doConquestCollect', false)
+			} else if (schedule.check('doConquestCollect') && config.getItem('doConquestCollect', false)
 				&& caap.ifClick($j("div[style*='header_persist_collect_container_wood.jpg'] input[src*='header_persist_btn_collect.gif']", headerDiv))) {
+				schedule.setItem('doConquestCollect', 5 * 60);
 				return true;
-			} else if (config.getItem('doConquestCrystalCollect', false) 
+			} else if (schedule.check('doConquestCrystalCollect') && config.getItem('doConquestCrystalCollect', false) 
 				&& caap.ifClick($j("div[style*='header_persist_collect_container_crystal.jpg'] input[src*='header_persist_btn_pray.gif']", headerDiv))) {
+				schedule.setItem('doConquestCrystalCollect', 5 * 60);
 				return true;
 			} 
 			if (conquest.collect()) {
@@ -9508,20 +9479,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 			}
 
-			if (myIndex == -1 && nextLand !== -1) {
-				result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
-				//result = caap.navigate2("guildv2_conquest_command");
-				caap.stats.LoMland = result == 'done' ? nextLand.index : caap.stats.LoMland;
-			} else {
-				myLand = conquestLands.records[myIndex];
-				// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
-				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
-					result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
-					caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
+			if (nextLand != -1) {
+				if (myIndex == -1) {
+					result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
+					//result = caap.navigate2("guildv2_conquest_command");
+					caap.stats.LoMland = result == 'done' ? nextLand.index : caap.stats.LoMland;
+				} else {
+					myLand = conquestLands.records[myIndex];
+					// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
+					if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
+						result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
+						caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
+					}
 				}
-			}
-			if (result == 'fail') {
-				schedule.setItem('LoMmoveWait', 5 * 60);
+				if (result == 'fail') {
+					schedule.setItem('LoMmoveWait', 5 * 60);
+				}
 			}
             return result == 'done' || result === true;
         } catch (err) {
@@ -9530,7 +9503,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
-    caap.checkResults_conquest = function () {
+    caap.checkResults_conquestMist = function () {
 		try {
 			var infoDiv = $j("#app_body div[style*='conq3_top.jpg']"),
 				tempText = '';
@@ -9557,7 +9530,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			return true;
         } catch (err) {
-            con.error("ERROR in collectConquest: " + err.stack);
+            con.error("ERROR in checkResults_conquestMist: " + err.stack);
             return false;
         }
     };
@@ -9571,10 +9544,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_conquestLand2 = function () {
 		// Here neither.
         //conquest.land();
-        return false;
-    };
-
-    caap.checkResults_conquestMist = function () {
         return false;
     };
 

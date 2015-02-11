@@ -129,7 +129,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						switch (engageButtonName) {
 							case 'collect':
 								feed.checkDeath(mR);
-								mR.status = mR.status || 'Dead or fled';
+								mR.status = mR.status == 'Attack' ? 'Dead or fled' : mR.status || 'Dead or fled';
 								mR.color = 'grey';
 								break;
 							case 'atk':
@@ -1181,7 +1181,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 energyRequire = 0,
                 cM = {},  // current monster
                 attackButton = null,
-                singleButtonList = [],
                 buttonList = [],
                 tacticsValue = 0,
                 useTactics = false,
@@ -1207,7 +1206,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
 				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
 				gMultFunc = function(gen) { 
-					return $u.setContent(general.getStat(general.getConfigMenuGeneral(gen), 'special').regex(/power attacks? by (\d)x/i), 1);
+					return $u.setContent(general.getStat(general.getConfigMenuGeneral(gen), 'special').regex(/(\d)x power attacks/i), 1);
 				},
 				setGeneralVarsFunc = function(generalMenuSetting, stat) { 
 					menuGeneral = generalMenuSetting;
@@ -1292,9 +1291,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Set general and go to monster page
 			result = caap.navigate2('@' + menuGeneral + ',ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
             if (result !== false) {
-				attackButton = null;
-                singleButtonList = null;
-                buttonList = null;
                 if (result == 'fail') {
 					monster.deleteItem(cM.md5);
 					con.warn('Monster ' + cM.name + ' deleted after five attempts to navigate to it.', cM);
@@ -1305,8 +1301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // Check if on engage monster page
             if ($u.hasContent($j("#app_body " + monster.onMonsterHeader))) {
-                singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
-
+                
                 // Find the attack or fortify button
                 if (fightMode === 'Fortify') {
                     buttonList = ['seamonster_fortify.gif', 'button_dispel.gif', 'attack_monster_button3.jpg'];
@@ -1326,7 +1321,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 } else if (statRequire === 1) {
                     // not power attack only normal attacks
-                    buttonList = singleButtonList;
+                    buttonList = monster.singleButtons;
                 } else {
 					if (caap.ifClick('darkrage_button1.gif')) {
 						return true;
@@ -1346,13 +1341,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if (useTactics && caap.hasImage('nm_button_tactics.gif')) {
                         con.log(2, "Attacking monster using tactics buttons");
-                        buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
+                        buttonList = ['nm_button_tactics.gif'].concat(monster.powerButtons);
                     } else {
                         con.log(2, "Attacking monster using regular buttons");
                         useTactics = false;
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
-                        buttonList = monster.powerButtons.concat(singleButtonList);
+                        buttonList = monster.powerButtons;
 
                         if (monster.getInfo(cM, 'attack_img')) {
                             if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
@@ -1399,7 +1394,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     localStorage.AFrecentAction = true;
 
                     attackButton = null;
-                    singleButtonList = null;
                     buttonList = null;
 					state.setItem('fightMode', fightMode);
                     return true;
@@ -1408,7 +1402,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn('No button to attack/fortify with.');
                 schedule.setItem('NotargetFrombattle_monster', 60);
                 attackButton = null;
-                singleButtonList = null;
                 buttonList = null;
                 return false;
             }
@@ -1416,7 +1409,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem('NotargetFrombattle_monster', 60);
             con.warn('Unable to find top banner for ' + cM.name, cM);
             attackButton = null;
-            singleButtonList = null;
             buttonList = null;
             return false;
         } catch (err) {

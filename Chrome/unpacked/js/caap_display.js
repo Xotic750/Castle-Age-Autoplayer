@@ -46,30 +46,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeDropDown = function (idName, dropDownList, instructions, formatParms, defaultValue, css) {
         try {
-            var selectedItem = config.getItem(idName, 'defaultValue'),
+            var selectedItem = config.getItem(idName, false),
                 id = idName ? " id='caap_" + idName + "'" : '',
                 title = '',
                 htmlCode = '',
-                item = 0,
-                len = 0;
+                index = 0;
 
-            selectedItem = selectedItem !== 'defaultValue' ? selectedItem : (config.setItem(idName, $u.setContent(defaultValue, dropDownList[0])));
-            len = dropDownList.length;
-            for (item = 0; item < len; item += 1) {
-                if (selectedItem === dropDownList[item]) {
-                    break;
-                }
-            }
+			if (selectedItem === false || !dropDownList.hasIndexOf(selectedItem)) {
+				selectedItem = config.setItem(idName, $u.setContent(defaultValue, dropDownList[0]));
+			}
+            index = dropDownList.indexOf(selectedItem);
 
-            title = instructions[item] ? " title='" + instructions[item].toString().escapeHTML() + "'" : '';
+            title = instructions[index] ? " title='" + instructions[index].toString().escapeHTML() + "'" : '';
             css = css ? " style='" + css + "'" : '';
             formatParms = formatParms ? ' ' + formatParms : '';
             htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
             htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
-            for (item = 0; item < len; item += 1) {
-                title = instructions[item] ? " title='" + instructions[item].toString().escapeHTML() + "'" : '';
-                htmlCode += "<option value='" + dropDownList[item].toString().escapeHTML() + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item].toString().escapeHTML() + "</option>";
-            }
+            dropDownList.forEach( function(item, i) {
+                title = instructions[i] ? " title='" + instructions[i].toString().escapeHTML() + "'" : '';
+                htmlCode += "<option value='" + item.toString().escapeHTML() + "'" + (selectedItem === item ? " selected='selected'" : '') + title + ">" + item.toString().escapeHTML() + "</option>";
+            });
 
             htmlCode += "</select>";
             return htmlCode;

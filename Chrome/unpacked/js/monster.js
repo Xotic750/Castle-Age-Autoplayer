@@ -72,7 +72,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.engageButtons = {};
 	
-	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'event_attack1.gif', 'attack_monster_button.jpg'];
+	monster.singleButtons = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif'];
+	
+	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'serpent_10stam_attack.gif'];
 	
 	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']";
 
@@ -101,22 +103,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
        'Skaar Deathrune': {
             duration: 96,
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif',
 			achNum : 25,
             festival_dur: 120
         },
         'Ragnarok': {
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif'
         },
         'Genesis': {
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'attack_monster_button3.jpg',
             defense_img: 'seamonster_ship_health.jpg',
 			achNum : 25,
@@ -207,9 +203,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         'Keira': {
             duration: 48,
-            ach: 30000,
-            reqAtkButton: 'event_attack1.gif',
-            pwrAtkButton: 'event_attack2.gif'
+            ach: 30000
         },
         'Amethyst Sea Serpent': {
             duration: 72,
@@ -270,10 +264,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'War Of The Red Plains': {
             tactics: true,
             duration: 168,
-            ach: 10000,
+            ach: 10000
         },
         'Bahamut': {
-            ach: 4000000,
+            ach: 4000000
         },
         'Alpha Bahamut': {
             ach: 8000000,
@@ -284,7 +278,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 4000000
         },
         'Alpha Mephistopheles': {
-            ach: 12000000,
+            ach: 12000000
         },
         'Gehenna': {
             festival_dur: 96,
@@ -293,7 +287,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         "Aurelius": {
             tactics: true,
 			achTitle : "Aurelius, Lion's Rebellion",
-            ach: 1000,
+            ach: 1000
         },
         "Corvintheus": {
             festival_ach: 2500000
@@ -357,7 +351,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	// Cleans a link to put it in a standard order. If no argument passed, uses the last clicked URL
 	monster.cleanLink = function(link, casuser, mpool) {
 		var temp;
-		if (!$u.isString(link) || link.length == 0) {
+		if (!$u.isString(link) || link.length === 0) {
 			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		}
 		//con.log(2, 'CleanLink', link, casuser, mpool);
@@ -969,7 +963,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 return false;
             }
 
-            //con.log(2, 'SELECTING MONSTER');
             var monsterList = {
 					'battle_monster': [],
 					'raid': [],
@@ -1006,8 +999,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'fortify': ''
                 },
                 monsterMD5 = '',
-                cM = {},
-                //monstType             = '',
                 p = 0,
                 m = 0,
                 attackOrderList = [];
