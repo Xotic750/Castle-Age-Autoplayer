@@ -33,9 +33,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			schedule.setItem("pageIndex", 1 * 3600);
 			
-			guild_battle.onTop(guild_battle.gf.tenVten);
-			guild_battle.onTop(guild_battle.gf.festival);
-			guild_battle.onTop(guild_battle.gf.guild_battle);
+			guild_battle.onTop(guild_battle.gf.gb10);
+			guild_battle.onTop(guild_battle.gf.gb100);
+			guild_battle.onTop(guild_battle.gf.gbClassic);
 			arena.revengeCheck();
 
             return true;
