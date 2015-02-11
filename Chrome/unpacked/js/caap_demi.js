@@ -125,12 +125,4 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         4: 'azeron'
     };
 
-    caap.demiTableStat = {
-        'energy' : 0,
-        'attack' : 1,
-        'defense' : 2,
-        'health' : 3,
-        'stamina' : 4
-    };
-
 }());

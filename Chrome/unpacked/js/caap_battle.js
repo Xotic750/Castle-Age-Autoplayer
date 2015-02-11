@@ -219,41 +219,47 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-			if (battle.demisPointsToDo('left') && battletype != 'War') {
-				battleOrOverride = 'battleOverride';
-				caap.setDivContent('battle_mess', 'Battle: Doing Demi Points');
+			switch (whenBattle) {
+			case 'Never':
+				caap.setDivContent('battle_mess', 'Battle: off');
+				return false;
+			case 'Recon Only':
+				caap.setDivContent('battle_mess', 'Battle: Battle Recon Only');
+				return false;
+			case 'Stay Hidden':
+				if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
+					caap.setDivContent('battle_mess', 'Battle: We Dont Need To Hide Yet');
+					con.log(1, 'We Dont Need To Hide Yet');
+					return false;
+				}
+
+				break;
+			case 'No Monster':
+				if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
+					return false;
+				}
+				break;
+			case 'Only Demipoints or Zin/Misa':
+				if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(battletype + 'General')) {
+					caap.setDivContent('battle_mess', 'Battle: Demipoints and Zin/Misa done');
+					return false;
+				}
+				break;
+			default:
+			}
+
+			if (battle.demisPointsToDo('left')) {
+				if (battletype == 'War') {
+					if (caap.oneMinuteUpdate('battleWarDemipoints')) {
+						con.warn('Unable to get demi points because battle type is set to "War"');
+					}
+				} else {
+					battleOrOverride = 'battleOverride';
+					caap.setDivContent('battle_mess', 'Battle: Doing Demi Points');
+				}
 			} else if (general.ZinMisaCheck(battletype + 'General')) {
 				caap.setDivContent('battle_mess', 'Battle: Doing Zin or Misa');
 				battleOrOverride = 'battleOverride';
-			} else {
-				if (mode == 'DemiPoints') {
-					return false;
-				}
-				if (battle.demisPointsToDo('set') && battletype == 'War') {
-					con.warn('Unable to get demi points because battle type is set to "War"');
-				}	
-				switch (whenBattle) {
-				case 'Never':
-					caap.setDivContent('battle_mess', 'Battle off');
-					return false;
-				case 'Recon Only':
-					caap.setDivContent('battle_mess', 'Battle Recon Only');
-					return false;
-				case 'Stay Hidden':
-					if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
-						caap.setDivContent('battle_mess', 'We Dont Need To Hide Yet');
-						con.log(1, 'We Dont Need To Hide Yet');
-						return false;
-					}
-
-					break;
-				case 'No Monster':
-					if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
-						return false;
-					}
-					break;
-				default:
-				}
 			}
 
             if (caap.checkKeep()) {

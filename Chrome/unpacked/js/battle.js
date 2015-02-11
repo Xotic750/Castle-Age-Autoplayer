@@ -870,8 +870,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     tempTxt = $u.setContent($j("img[src*='iphone_']", tr).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
-                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.demiTableStat[tempTxt])) {
-                        tempRecord.data.deityNum = caap.demiTableStat[tempTxt];
+                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.deityTable[tempTxt] - 1)) {
+                        tempRecord.data.deityNum = caap.deityTable[tempTxt] - 1;
 						deityStr = caap.demiTable[tempRecord.data.deityNum];
                     } else {
                         con.warn("Unable to match demi number in tempTxt", tempTxt);
@@ -1326,11 +1326,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-	battle.setDisplay = function() {
-		config.setItem('battleSetDisplayOption', config.getItem('WhenBattle', 'Never') != 'Never' || battle.demisPointsToDo('set') || config.getItem('useZinMisaFirst', false));
-		caap.setDisplayById('battleSetDisplayOption');
-	};
-
     battle.menu = function() {
         try {
             var XBattleInstructions = "Start battling if stamina is above this points",
@@ -1354,16 +1349,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 raidOrderInstructions = "List of search words that decide which " + "raids to participate in first.  Use words in player name or in " +
                     "raid name. To specify max damage follow keyword with :max token " + "and specifiy max damage values. Use 'k' and 'm' suffixes for " + "thousand and million.",
                 ignorebattlelossInstructions = "Ignore battle losses and attack " + "regardless.  This will also delete all battle loss records.",
-                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Recon Only', 'Never'],
-                battleInst = [
-                    'Stamina Available will battle whenever you have enough stamina',
-                    'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
-                    'At X Stamina you can set maximum and minimum stamina to battle',
-                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
-                    'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                    'Only perform Player Recon, does not actually battle players.',
-                    'Never - disables player battles'
-                ],
                 typeList = ['Invade', 'Duel', 'War'],
                 typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though', 'War using Duel button - no guarentee you will win though'],
                 targetList = ['Freshmeat', 'Userid List', 'Raid'],
@@ -1374,8 +1359,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				haveZin = general.getRecord("Zin", true),
 				haveMisa = general.getRecord("Misa", true),
 				who = (haveZin ? 'Zin' : '') + (haveZin && haveMisa ? ' and ' : '') + (haveMisa ? 'Misa' : ''),
+                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Recon Only', 'Only Demipoints or Zin/Misa', 'Never'],
+                battleInst = [
+                    'Stamina Available will battle whenever you have enough stamina',
+                    'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+                    'At X Stamina you can set maximum and minimum stamina to battle',
+                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
+                    'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                    'Only perform Player Recon, does not actually battle players.',
+                    'Only does Demipoints' + (who ? ' or ' + who : ''),
+                    'Never - disables player battles'
+                ],
 				subCode = '',
                 htmlCode = caap.startToggle('Battling', 'BATTLE');
+
+            htmlCode += caap.makeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
+            htmlCode += caap.display.start('WhenBattle', 'isnot', 'Never');
 
             htmlCode += caap.makeCheckTR("Use " + who + " First", 'useZinMisaFirst', false, 'If ' + who + ' charged and not levelling up then use battle first if space in the appropriate stat.', false, false, '', '_zin_row', who ? "display: block;" : "display: none;");
 
@@ -1387,10 +1386,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 subCode += "</span>";
             });
             htmlCode += caap.makeTD(subCode, false, false, "white-space: nowrap;");
-
-            htmlCode += caap.makeDropDownTR(" Otherwise Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
-			battle.setDisplay();
-            htmlCode += caap.display.start('battleSetDisplayOption');
 
             htmlCode += "<div id='caap_WhenBattleStayHidden_hide' style='color: red; font-weight: bold; display: ";
             htmlCode += (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
@@ -1443,7 +1438,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.display.start('TargetType', 'is', 'Userid List');
             htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
             htmlCode += caap.display.end('TargetType', 'is', 'Userid List');
-            htmlCode += caap.display.end('battleSetDisplayOption');
+            htmlCode += caap.display.end('WhenBattle', 'isnot', 'Never');
             htmlCode += caap.endToggle;
 			config.setItem('WhenbattleOverride', 'Stamina Available');
             return htmlCode;

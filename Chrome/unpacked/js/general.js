@@ -43,10 +43,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'Banking',
         'Collect',
         'SubQuest',
-        'GB Class',
-        'Fest Class',
+        'Classic Class',
         '10v10 Class',
-        'GB Fest Idle',
+        '100v100 Class',
+        'GB Idle',
         'Level Up'];
 
     general.filters = {
@@ -992,6 +992,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cgR = {}, // current general record
                 defaultLoadout = config.getItem("DefaultLoadout", 'Use Current');
 			
+			targetGeneral = $u.setContent(targetGeneral, 'Use Current');
 			if (!general.getRecord(currentGeneral,false) && !returnNametf) {
 				con.warn('Current general unknown. Going to generals page to get general records.');
 				if (caap.navigateTo('generals')) {
@@ -1013,7 +1014,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general.Clear('DefaultLoadout');
             }
 
-            if (!targetGeneral || targetGeneral == 'Use Current') {
+            if (targetGeneral == 'Use Current') {
                 return resultFalse;
             }
 
@@ -1023,7 +1024,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
 				lRecord = general.getRecord(targetLoadout,false);
 				targetGeneral = general.isLoadout(targetGeneral) ? general.getStat(targetGeneral,'general') : targetGeneral;
-				if (targetLoadout !== currentLoadout || !general.getStat(targetLoadout,'general')) {
+				if (targetLoadout !== currentLoadout || !general.getStat(targetLoadout,'general') 
+					|| (targetLoadout == currentLoadout && general.getStat(targetLoadout,'general') == targetGeneral)
+					&& currentGeneral !== targetGeneral && targetGeneral !== 'Use Current') {
 					if (lRecord === false) {
 						con.warn('Unable to find ' + targetLoadout + ' record');
 						return resultFalse;
@@ -1044,7 +1047,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 			
             // Confirm if necessary to load a different general
-            if (!targetGeneral || targetGeneral === currentGeneral || targetGeneral === 'Use Current') {
+            if (targetGeneral === currentGeneral || targetGeneral === 'Use Current') {
                 return resultFalse;
             }
 

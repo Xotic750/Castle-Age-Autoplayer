@@ -706,7 +706,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				done = true,
 				cM = {},
 				tR = false,
-				link = '@MonsterGeneral,ajax:',
+				link = 'ajax:',
 				attackButton = '',
 				hasClass = function(charClass) {
 					return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
@@ -723,6 +723,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return tarM.score > previous.score ? tarM : previous;
 			}, {'score' : 0, conditions : ''});
 			attackReady = tR.score && caap.stats.stamina.num > tR.staminaList[0];
+			
+			if (attackReady && general.Select('MonsterGeneral')) {
+				return true;
+			}
+			
 			for (var i = 0; i < monster.records.length; i += 1) {
 				cM = monster.records[i];
 				//con.log(2, 'SCAN1', cM, cM.hide, cM.status, schedule.since(cM.review, reviewInterval));
@@ -913,7 +918,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			htmlCode += caap.display.end('guildMonsterFinder');
 */             htmlCode += caap.makeCheckTR("Enable Tier 1", 'publicMonsterFinder1', false, "Find monsters in the Public Tier 1 Feed.");
 			htmlCode += caap.display.start('publicMonsterFinder1');
-			htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes. Minimum 15.", 60, '', '', true);
+			htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins1', "Check the Public Tier 1 Feed every X minutes", 60, '', '', true);
 			htmlCode += caap.display.end('publicMonsterFinder1');
 
 			htmlCode += caap.makeCheckTR("Enable Tier 2", 'publicMonsterFinder2', false, "Find monsters in the Public Tier 2 Feed.");
@@ -923,11 +928,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 			htmlCode += caap.makeCheckTR("Enable Tier 3", 'publicMonsterFinder3', false, "Find monsters in the Public Tier 3 Feed.");
 			htmlCode += caap.display.start('publicMonsterFinder3');
-			htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes. Minimum 15.", 60, '', '', true);
+			htmlCode += caap.makeNumberFormTR("Check every X mins", 'CheckPublicMonsterFinderMins3', "Check the Public Tier 3 Feed every X minutes", 60, '', '', true);
 			htmlCode += caap.display.end('publicMonsterFinder3');
 			htmlCode += caap.makeCheckTR("Status Scan", 'feedScan', false, "Scan the feed monsters to check their status.");
 			htmlCode += caap.display.start('feedScan');
-			htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status. Minimum 1.", 6, '', '', true);
+			htmlCode += caap.makeNumberFormTR("Scan every X hours", 'feedMonsterReviewHrs', "Scan the feed monsters every X hours to check their status", 6, '', '', true);
 			htmlCode += caap.display.end('feedScan');
 			/*
 			if (false) {
