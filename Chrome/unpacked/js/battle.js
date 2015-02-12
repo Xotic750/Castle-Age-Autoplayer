@@ -1179,17 +1179,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     form = inputDiv.eq(0).parent().parent();
                     inp = $j("input[name='target_id']", form);
                     if ($u.hasContent(inp)) {
-                        inp.attr("value", chainId);
-                        con.log(1, "Chain attacking: ", chainId);
-                        battle.click(inputDiv.eq(0), type);
-                        state.setItem("lastBattleID", chainId);
-                        caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                        state.setItem("notSafeCount", 0);
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        return true;
+			if (caap.getMyGuildIds().lastIndexOf(chainId)<0) {
+	                        inp.attr("value", chainId);
+	                        con.log(1, "Chain attacking: ", chainId);
+	                        battle.click(inputDiv.eq(0), type);
+	                        state.setItem("lastBattleID", chainId);
+	                        caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
+	                        state.setItem("notSafeCount", 0);
+	                        inputDiv = null;
+	                        inp = null;
+	                        form = null;
+	                        engageButton = null;
+	                        return true;
+			}
                     }
 
                     con.warn("Could not find 'target_id' input");
@@ -1198,19 +1200,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         form = inputDiv.eq(0).parent().parent();
                         inp = $j("input[name='target_id']", form);
                         if ($u.hasContent(inp)) {
-                            txt = inp.attr("value");
-                            firstId = txt ? txt.parseInt() : 0;
-                            inp.attr("value", '200000000000001');
-                            con.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                            battle.click(inputDiv.eq(0), type);
-                            state.setItem("lastBattleID", firstId);
-                            caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                            state.setItem("notSafeCount", 0);
-                            inputDiv = null;
-                            inp = null;
-                            form = null;
-                            engageButton = null;
-                            return true;
+                        	txt = inp.attr("value");
+				firstId = txt ? txt.parseInt() : 0;
+				inp.attr("value", '200000000000001');
+				con.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
+				if (caap.getMyGuildIds().lastIndexOf(firstId)<0) {
+					battle.click(inputDiv.eq(0), type);
+					state.setItem("lastBattleID", firstId);
+					caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
+					state.setItem("notSafeCount", 0);
+					inputDiv = null;
+					inp = null;
+					form = null;
+					engageButton = null;
+					return true;
+				}
                         }
 
                         con.warn("Could not find 'target_id' input");
@@ -1229,44 +1233,46 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         /*jslint continue: false */
 
                         if ($u.isDefined(safeTargets[it].button)) {
-                            con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
-                            battle.click(safeTargets[it].button, type);
-                            delete safeTargets[it].score;
-                            delete safeTargets[it].targetNumber;
-                            delete safeTargets[it].button;
-                            battleRecord = battle.getItem(safeTargets[it].userId);
-                            if (battleRecord.newRecord) {
-                                state.setItem("lastBattleID", safeTargets[it].userId);
-                                $j.extend(true, battleRecord, safeTargets[it]);
-                                battleRecord.newRecord = false;
-                                battleRecord.aliveTime = Date.now();
-                            } else {
-                                battleRecord.aliveTime = Date.now();
-                                for (itx in safeTargets[it]) {
-                                    if (safeTargets[it].hasOwnProperty(itx)) {
-                                        if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
-                                            battleRecord[itx] = safeTargets[it][itx];
-                                        }
-
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
-                                            battleRecord[itx] = safeTargets[it][itx];
-                                        }
-
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
-                                            battleRecord[itx] = safeTargets[it][itx];
-                                        }
-                                    }
-                                }
-                            }
-
-                            battle.setItem(battleRecord);
-                            caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
-                            state.setItem("notSafeCount", 0);
-                            inputDiv = null;
-                            inp = null;
-                            form = null;
-                            engageButton = null;
-                            return true;
+				if (caap.getMyGuildIds().lastIndexOf(safeTargets[it].id)<0) {
+	                            con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
+	                            battle.click(safeTargets[it].button, type);
+	                            delete safeTargets[it].score;
+	                            delete safeTargets[it].targetNumber;
+	                            delete safeTargets[it].button;
+	                            battleRecord = battle.getItem(safeTargets[it].userId);
+	                            if (battleRecord.newRecord) {
+	                                state.setItem("lastBattleID", safeTargets[it].userId);
+	                                $j.extend(true, battleRecord, safeTargets[it]);
+	                                battleRecord.newRecord = false;
+	                                battleRecord.aliveTime = Date.now();
+	                            } else {
+	                                battleRecord.aliveTime = Date.now();
+	                                for (itx in safeTargets[it]) {
+	                                    if (safeTargets[it].hasOwnProperty(itx)) {
+	                                        if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
+	                                            battleRecord[itx] = safeTargets[it][itx];
+	                                        }
+	
+	                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
+	                                            battleRecord[itx] = safeTargets[it][itx];
+	                                        }
+	
+	                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
+	                                            battleRecord[itx] = safeTargets[it][itx];
+	                                        }
+	                                    }
+	                                }
+	                            }
+	
+	                            battle.setItem(battleRecord);
+	                            caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
+	                            state.setItem("notSafeCount", 0);
+	                            inputDiv = null;
+	                            inp = null;
+	                            form = null;
+	                            engageButton = null;
+	                            return true;
+				}
                         }
 
                         con.warn('Attack button is null or undefined');
