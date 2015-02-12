@@ -16,6 +16,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_guildv2_battle = function() {
         try {
+			caap.checkMyGuildIds();
 		
 			var text = $u.setContent($j('#app_body #guildv2_battle_middle').text().trim().innerTrim(), ''),
 				fR = guild_battle.getItem(guild_battle.gf.gbClassic);
