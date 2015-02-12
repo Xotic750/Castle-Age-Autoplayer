@@ -265,6 +265,7 @@
 
 				fR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
 				try {
+					var blackList = config.getList('arena_blacklist', '');
 					con.log(2, fR.nameStr + " (" + fR.userId + ") is looking in black listed !");
 					for (p = 0, len = blackList.length; p < len; p += 1) {
 						if (fR.userId.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
