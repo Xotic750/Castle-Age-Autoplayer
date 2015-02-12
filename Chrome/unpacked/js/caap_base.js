@@ -9585,5 +9585,60 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         guilds.guildMarket();
         return true;
     };
+	caap.MyGuildIds=[];
+    caap.getMyGuildIds = function () {
+		try {
+			//Load caap.MyGuildIds
+			caap.MyGuildIds = gm.getItem('caap.MyGuildIds', 'default');
+			if (!$j.isArray(battle.records)) {
+				caap.MyGuildIds = gm.setItem('caap.MyGuildIds', []);
+			}
+			return caap.MyGuildIds;			
+		} catch (err) {
+			con.error("ERROR in getMyGuildIds: " + err.stack);
+			return [];			
+		}
+	};
+    caap.checkMyGuildIds = function () {
+		try {
+			var tempDiv = $j("#guildv2_formation_middle");
+			con.log(2, 'checkMyGuildIds');        
+			if ($u.hasContent(tempDiv)) {
+				var tempArray=[];
+				
+				//Checking caap.MyGuildIds
+				for (var i=0;i<100;i++) {
+					try {
+						tempDiv = $j("#player"+i); 
+						if ($u.hasContent(tempDiv)) {
+							tempArray.push(eval(tempDiv.attr("key")));
+						}
+					} catch (err) {
+						con.error("ERROR in #player"+i+": " + err.stack);					
+					}
+				}
+				
+				//Save caap.MyGuildIds
+				try {
+					if (caap.domain.which === 3) {
+						caap.messaging.setItem('caap.MyGuildIds', tempArray);
+					} else {
+						gm.setItem('caap.MyGuildIds', tempArray);
+						if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+							caap.messaging.setItem('caap.MyGuildIds', tempArray);
+						}
+					}
+					con.log(3, "save caap.MyGuildIds", tempArray);
+				} catch (err) {
+					con.error("ERROR in battle.save: " + err.stack);
+					return false;
+				}
+			}
+			return true;
+		} catch (err) {
+			con.error("ERROR in checkMyGuildIds: " + err.stack);
+			return false;			
+		}
+    };
 
 }());
