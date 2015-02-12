@@ -494,11 +494,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD("<input type='button' id='caap_TownBestReport' value='Show Report' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "");
             htmlCode += caap.endTR;
             htmlCode += caap.makeCheckTR("Modify Timers", 'townModifyTimers', false, "Advanced timers for how often Town checks are performed.");
-            htmlCode += caap.startCheckHide('townModifyTimers');
+            htmlCode += caap.display.start('townModifyTimers');
             htmlCode += caap.makeNumberFormTR("Soldiers Hours", 'checkSoldiers', "Check the Town Soldiers every X hours. Minimum 72.", 72, '', '', true);
             htmlCode += caap.makeNumberFormTR("Items Hours", 'checkItem', "Check the Town Items every X hours. Minimum 72.", 72, '', '', true);
             htmlCode += caap.makeNumberFormTR("Magic Hours", 'checkMagic', "Check the Town Magic every X hours. Minimum 72.", 72, '', '', true);
-            htmlCode += caap.endCheckHide('townModifyTimers');
+            htmlCode += caap.display.end('townModifyTimers');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {

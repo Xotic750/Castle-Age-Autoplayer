@@ -14,12 +14,144 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-    caap.battleUserId = function(userid) {
+    battle.checkResults = function() {
         try {
-            if (battle.hashCheck(userid)) {
+            var battleRecord = {},
+                tempTime = 0,
+                chainBP = 0,
+                chainGold = 0,
+                maxChains = 0,
+                result = {};
+
+            if (!battle.flagResult) {
                 return true;
             }
 
+            con.log(2, "Checking Battle Results");
+            battle.flagResult = false;
+            state.setItem("BattleChainId", 0);
+            if (battle.deadCheck() !== false) {
+                return true;
+            }
+
+            result = battle.getResult();
+            if (!result || result.hiding === true) {
+                return true;
+            }
+
+            if (result.unknown === true) {
+                if (state.getItem("lastBattleID", 0)) {
+                    battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
+                    battleRecord.unknownTime = Date.now();
+                    battle.setItem(battleRecord);
+                }
+
+                return true;
+            }
+
+            battleRecord = battle.getItem(result.userId);
+            if (result.win) {
+                con.log(1, "We Defeated ", result.userName, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold);
+                //Test if we should chain this guy
+                tempTime = $u.setContent(battleRecord.chainTime, 0);
+                chainBP = config.getItem('ChainBP', '');
+                chainGold = config.getItem('ChainGold', '');
+                if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
+                    if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
+                        if (result.points >= chainBP) {
+                            state.setItem("BattleChainId", result.userId);
+                            con.log(1, "Chain Attack:", result.userId, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points);
+                        } else {
+                            battleRecord.ignoreTime = Date.now();
+                        }
+                    }
+
+                    if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
+                        if (result.gold >= chainGold) {
+                            state.setItem("BattleChainId", result.userId);
+                            con.log(1, "Chain Attack:", result.userId, "Gold: " + result.goldnum);
+                        } else {
+                            battleRecord.ignoreTime = Date.now();
+                        }
+                    }
+                }
+
+                battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
+                maxChains = config.getItem('MaxChains', 4);
+                if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
+                    maxChains = 4;
+                }
+
+                if (battleRecord.chainCount >= maxChains) {
+                    con.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
+                    battleRecord.chainTime = Date.now();
+                    battleRecord.chainCount = 0;
+                }
+
+            } else {
+                con.log(1, "We Were Defeated By ", result.userName);
+                battleRecord.chainCount = 0;
+                battleRecord.chainTime = 0;
+            }
+
+            battle.setItem(battleRecord);
+            return true;
+        } catch (err) {
+            con.error("ERROR in battle.checkResults: " + err.stack);
+            return false;
+        }
+    };
+
+	caap.checkResults_battle = function () {
+        try {
+            var symDiv = $j(),
+                points = [],
+                success = true;
+
+            battle.checkResults();
+            symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
+            if ($u.hasContent(symDiv) && symDiv.length === 5) {
+                symDiv.each(function () {
+                    var txt = '';
+
+                    txt = $j(this).parent().parent().next().text();
+                    txt = txt ? txt.replace(/\s/g, '') : '';
+                    if (txt) {
+                        points.push(txt);
+                    } else {
+                        success = false;
+                        con.warn('Demi temp text problem', txt);
+                    }
+                });
+
+                if (success) {
+                    caap.demi.ambrosia.daily = caap.getStatusNumbers(points[0]);
+                    caap.demi.malekus.daily = caap.getStatusNumbers(points[1]);
+                    caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
+                    caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
+                    caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
+                    schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6, hiddenVar) : 6) * 3600, 300);
+                    caap.SaveDemi();
+                }
+            } else {
+                con.warn('Demi symDiv problem');
+            }
+
+            //config.getItem('DoPlayerRecon', false)
+            if (battle.reconInProgress) {
+                battle.freshmeat("recon");
+            }
+
+            symDiv = null;
+            return true;
+        } catch (err) {
+            con.error("ERROR in checkResults_battle: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.battleUserId = function(userid) {
+        try {
             var battleButton = $j(),
                 form = $j(),
                 inp = $j();
@@ -62,168 +194,114 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.battle = function(mode) {
         try {
-            var whenBattle = '',
+            var whenBattle = config.getItem('WhenBattle', 'Never'),
                 target = '',
-                battletype = '',
-                useGeneral = '',
+                battletype = config.getItem('BattleType', 'Invade'),
                 staminaReq = 0,
-                chainImg = '',
                 button = $j(),
                 raidName = '',
                 battleChainId = 0,
-                targetMonster = '',
-                whenMonster = '',
-                targetType = '',
+                targetMonster = state.getItem('targetFrombattle_monster', ''),
+                whenMonster = config.getItem('WhenMonster', 'Never'),
+                targetType = config.getItem('TargetType', 'Invade'),
                 rejoinSecs = '',
                 battleRecord = {},
                 tempTime = 0,
-                monsterObject = {},
-                noSafeCountSet = 0;
+                monsterObject = $u.hasContent(targetMonster) ? monster.getItem(targetMonster) : {},
+                noSafeCountSet = 0,
+				battleOrOverride = 'Battle';
 
             if (caap.stats.level < 8) {
                 if (caap.battleWarnLevel) {
                     con.log(1, "Battle: Unlock at level 8");
                     caap.battleWarnLevel = false;
                 }
-
                 return false;
             }
 
-            whenBattle = config.getItem('WhenBattle', 'Never');
-            whenMonster = config.getItem('WhenMonster', 'Never');
-            targetMonster = state.getItem('targetFrombattle_monster', '');
-            monsterObject = $u.hasContent(targetMonster) ? monster.getItem(targetMonster) : monsterObject;
-            switch (whenBattle) {
-            case 'Never':
-                caap.setDivContent('battle_mess', 'Battle off');
-                button = null;
-                return false;
-            case 'Recon Only':
-                caap.setDivContent('battle_mess', 'Battle Recon Only');
-                button = null;
-                return false;
-            case 'Stay Hidden':
-                if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
-                    caap.setDivContent('battle_mess', 'We Dont Need To Hide Yet');
-                    con.log(1, 'We Dont Need To Hide Yet');
-                    button = null;
-                    return false;
-                }
+			switch (whenBattle) {
+			case 'Never':
+				caap.setDivContent('battle_mess', 'Battle: off');
+				return false;
+			case 'Recon Only':
+				caap.setDivContent('battle_mess', 'Battle: Battle Recon Only');
+				return false;
+			case 'Stay Hidden':
+				if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
+					caap.setDivContent('battle_mess', 'Battle: We Dont Need To Hide Yet');
+					con.log(1, 'We Dont Need To Hide Yet');
+					return false;
+				}
 
-                break;
-            case 'No Monster':
-                if (mode !== 'DemiPoints') {
-                    if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
-                        button = null;
-                        return false;
-                    }
-                }
+				break;
+			case 'No Monster':
+				if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
+					return false;
+				}
+				break;
+			case 'Only Demipoints or Zin/Misa':
+				if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(battletype + 'General')) {
+					caap.setDivContent('battle_mess', 'Battle: Demipoints and Zin/Misa done');
+					return false;
+				}
+				break;
+			default:
+			}
 
-                break;
-            case 'Demi Points Only':
-                if (mode === 'DemiPoints' && whenMonster === 'Never') {
-                    button = null;
-                    return false;
-                }
-
-                if (mode !== 'DemiPoints' && whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
-                    button = null;
-                    return false;
-                }
-
-                if (battle.selectedDemisDone(true) || (config.getItem("DemiPointsFirst", false) && whenMonster !== 'Never' && config.getItem("observeDemiFirst", false) && state.getItem('DemiPointsDone', false))) {
-                    button = null;
-                    return false;
-                }
-
-                break;
-            default:
-            }
+			if (battle.demisPointsToDo('left')) {
+				if (battletype == 'War') {
+					if (caap.oneMinuteUpdate('battleWarDemipoints')) {
+						con.warn('Unable to get demi points because battle type is set to "War"');
+					}
+				} else {
+					battleOrOverride = 'battleOverride';
+					caap.setDivContent('battle_mess', 'Battle: Doing Demi Points');
+				}
+			} else if (general.ZinMisaCheck(battletype + 'General')) {
+				caap.setDivContent('battle_mess', 'Battle: Doing Zin or Misa');
+				battleOrOverride = 'battleOverride';
+			}
 
             if (caap.checkKeep()) {
-                button = null;
                 return true;
             }
 
             /*
             if (caap.stats.health.num < 10) {
                 con.log(5, 'Health is less than 10: ', caap.stats.health.num);
-                button = null;
                 return false;
             }
 
             if (config.getItem("waitSafeHealth", false) && caap.stats.health.num < 13) {
                 con.log(5, 'Unsafe. Health is less than 13: ', caap.stats.health.num);
-                button = null;
                 return false;
             }
             */
 
-            target = battle.getTarget(mode);
-            con.log(5, 'Mode/Target', mode, target);
+            target = battle.getTarget();
+            con.log(5, 'Target', target);
             if (!target) {
                 con.log(1, 'No valid battle target');
-                button = null;
                 return false;
             }
 
-            if (!$u.isNumber(target)) {
-                target = target.toLowerCase();
-            }
+			target = $u.isString(target) ? target.toLowerCase() : target;
 
             if (target === 'noraid') {
                 con.log(5, 'No Raid To Attack');
-                button = null;
                 return false;
             }
 
-            battletype = config.getItem('BattleType', 'Invade');
-            switch (battletype) {
-            case 'Invade':
-                useGeneral = 'InvadeGeneral';
-                staminaReq = target === 'raid' ? state.getItem('RaidStaminaReq', 1) : 1;
-                chainImg = 'battle_invade_again.gif';
-                if (general.LevelUpCheck(useGeneral)) {
-                    useGeneral = 'LevelUpGeneral';
-                    con.log(3, 'Using level up general');
-                }
+            staminaReq = battletype == 'War' ? 10 : target === 'raid' ? state.getItem('RaidStaminaReq', 1) : 1;
 
-                break;
-            case 'Duel':
-                useGeneral = 'DuelGeneral';
-                staminaReq = target === 'raid' ? state.getItem('RaidStaminaReq', 1) : 1;
-                chainImg = 'battle_duel_again.gif';
-                if (general.LevelUpCheck(useGeneral)) {
-                    useGeneral = 'LevelUpGeneral';
-                    con.log(3, 'Using level up general');
-                }
-
-                break;
-            case 'War':
-                useGeneral = 'WarGeneral';
-                staminaReq = 10;
-                chainImg = 'battle_duel_again.gif';
-                if (general.LevelUpCheck(useGeneral)) {
-                    useGeneral = 'LevelUpGeneral';
-                    con.log(3, 'Using level up general');
-                }
-
-                break;
-            default:
-                con.warn('Unknown battle type ', battletype);
-                button = null;
-                return false;
-            }
-
-            if (!caap.checkStamina('Battle', staminaReq)) {
+            if (!caap.checkStamina(battleOrOverride, staminaReq)) {
                 con.log(3, 'Not enough stamina for ', battletype, staminaReq);
-                button = null;
                 return false;
             }
 
             // Check if we should chain attack
             if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
-                button = caap.checkForImage(chainImg);
+                button = caap.checkForImage(battletype == 'Invade' ? 'battle_invade_again.gif' : 'battle_duel_again.gif');
                 battleChainId = state.getItem("BattleChainId", 0);
                 if ($u.hasContent(button) && battleChainId) {
                     caap.setDivContent('battle_mess', 'Chain Attack In Progress');
@@ -242,7 +320,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             //con.log(2, 'Battle Target', target);
-            targetType = config.getItem('TargetType', 'Invade');
             switch (target) {
             case 'raid':
                 if (!schedule.check("NoTargetDelay")) {
@@ -253,7 +330,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
 
-                if (general.Select(useGeneral)) {
+                if (general.Select(battletype + 'General')) {
                     button = null;
                     return true;
                 }
@@ -349,7 +426,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return false;
                 }
 
-                if (general.Select(useGeneral)) {
+                if (general.Select(battletype + 'General')) {
                     button = null;
                     return true;
                 }
@@ -386,25 +463,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 button = null;
                 return battle.freshmeat('Freshmeat');
-            default:
+
+			default:
                 if (!config.getItem("IgnoreBattleLoss", false)) {
                     battleRecord = battle.getItem(target);
-                    switch (config.getItem("BattleType", 'Invade')) {
-                    case 'Invade':
-                        tempTime = battleRecord.invadeLostTime || tempTime;
-
-                        break;
-                    case 'Duel':
-                        tempTime = battleRecord.duelLostTime || tempTime;
-
-                        break;
-                    case 'War':
-                        tempTime = battleRecord.warlostTime || tempTime;
-
-                        break;
-                    default:
-                        con.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                    }
+                    tempTime = battleRecord[battletype + 'LostTime'] || tempTime;
 
                     if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
                         con.log(1, 'Avoiding Losing Target', target);
@@ -413,11 +476,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 
-                if (general.Select(useGeneral)) {
-                    return true;
-                }
-
-                if (caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
+                if (caap.navigate2('@' + battletype + 'General,battle')) {
                     return true;
                 }
 

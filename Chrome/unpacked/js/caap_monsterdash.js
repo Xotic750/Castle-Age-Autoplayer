@@ -2,7 +2,7 @@
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
-festival,feed,battle,town,conquest,
+feed,battle,town,conquest,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,hiddenVar,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
@@ -107,7 +107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             monster.dashboard();
             guild_monster.dashboard();
             guild_battle.dashboard();
-            //arena.AddArenaDashboard();
+            arena.dashboard();
             feed.dashboard();
             army.dashboard();
             battle.dashboard();
@@ -961,10 +961,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         e.target.title = title;
         caap.setDisplay("caapTopObject", 'infoMonster', false);
         caap.setDisplay("caapTopObject", 'guildMonster', false);
-        caap.setDisplay("caapTopObject", 'guildBattle', false);
-        //caap.setDisplay("caapTopObject", 'arena', false);
-        caap.setDisplay("caapTopObject", 'festival', false);
-        caap.setDisplay("caapTopObject", '10v10', false);
+        caap.setDisplay("caapTopObject", 'gbClassic', false);
+        caap.setDisplay("caapTopObject", 'infoArena', false);
+        caap.setDisplay("caapTopObject", 'gb100', false);
+        caap.setDisplay("caapTopObject", 'gb10', false);
         caap.setDisplay("caapTopObject", 'infoFeed', false);
         caap.setDisplay("caapTopObject", 'army', false);
         caap.setDisplay("caapTopObject", 'infoTargets1', false);
@@ -998,8 +998,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case "Battle Stats":
                 caap.setDisplay("caapTopObject", 'infoBattle', true);
-                caap.setDisplay("caapTopObject", 'buttonBattle', true);
 
+                break;
+            case "Arena Stats" :
+                caap.setDisplay("caapTopObject", 'infoArena', true);
+                //caap.setDisplay("caapTopObject", 'buttonBattle', true);
                 break;
             case "Conquest Stats":
                 caap.setDisplay("caapTopObject", 'infoConquest', true);
@@ -1047,29 +1050,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDisplay("caapTopObject", 'buttonGuildMonster', true);
 
                 break;
-            case "Guild Battle":
+            case "Classic":
 				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", 'guildBattle', true);
+                caap.setDisplay("caapTopObject", 'gbClassic', true);
 
                 break;
             case "Monster":
                 caap.setDisplay("caapTopObject", 'infoMonster', true);
                 caap.setDisplay("caapTopObject", 'buttonMonster', true);
                 break;
-            /*
-            case "Arena" :
-                caap.setDisplay("caapTopObject", 'arena', true);
-
-                break;
-            */
-            case "Festival":
+            case "100v100":
 				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", 'festival', true);
+                caap.setDisplay("caapTopObject", 'gb100', true);
 
                 break;
             case "10v10":
 				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", '10v10', true);
+                caap.setDisplay("caapTopObject", 'gb10', true);
 
                 break;
             case "Feed":
@@ -1089,7 +1086,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     /*-------------------------------------------------------------------------------------\
-    addDBListener creates the listener for guild battle and festival control.
+    addDBListener creates the listener for guild battles control.
     \-------------------------------------------------------------------------------------*/
     caap.gfDisplayListener = function (e) {
         var idName = e.target.id.stripCaap(),
@@ -1099,13 +1096,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
         config.setItem(idName, value);
         e.target.title = title;
-        caap.setDisplay("caapTopObject", 'yourfestival', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'yourguildBattle', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'enemyfestival', value == 'Opponent');
-        caap.setDisplay("caapTopObject", 'your10v10', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'enemy10v10', value == 'Opponent');
-        caap.setDisplay("caapTopObject", 'enemyguildBattle', value == 'Opponent');
-//        caap.updateDashboard(true);
+        caap.setDisplay("caapTopObject", 'yourgb100', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'yourgbClassic', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'enemygb100', value == 'Opponent');
+        caap.setDisplay("caapTopObject", 'yourgb10', value == 'My Guild');
+        caap.setDisplay("caapTopObject", 'enemygb10', value == 'Opponent');
+        caap.setDisplay("caapTopObject", 'enemygbClassic', value == 'Opponent');
+        caap.updateDashboard(true);
     };
 
 	// Pass through function used to pass arguments that might not be referred from a different context

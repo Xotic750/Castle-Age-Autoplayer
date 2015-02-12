@@ -25,13 +25,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'monster': '',
             'md5': '',
             'attacked': -1,
-            'defended': -1,
+            'defended': 0,
             'damage': -1,
             'life': 100,
 			'lpage' : '',
             'fortify': -1,
             'time': [],
-            't2k': -1,
+            't2k': 168,
             'phase': -1,
             'miss': 0,
             'link': '',
@@ -43,7 +43,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             'conditions': '',
 			'fullC' : '',
             'charClass': '',
-			'staminaList' : [],
+			'staminaList' : [10],
 			'energyList' : [],
 			'multiNode' : false,
 			'partsHealth' : [], // List of health of multi-part monsters, for example [100, 65, 94]
@@ -72,7 +72,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.engageButtons = {};
 	
-	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'event_attack1.gif', 'attack_monster_button.jpg'];
+	monster.singleButtons = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif'];
+	
+	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'serpent_10stam_attack.gif'];
 	
 	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='festival_monsters_top_'],div[style*='newmonsterbanner_']";
 
@@ -101,22 +103,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
        'Skaar Deathrune': {
             duration: 96,
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif',
 			achNum : 25,
             festival_dur: 120
         },
         'Ragnarok': {
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'button_dispel.gif',
             defense_img: 'bar_dispel.gif'
         },
         'Genesis': {
-            reqAtkButton: 'attack_monster_button.jpg',
-            pwrAtkButton: 'attack_monster_button2.jpg',
             defButton: 'attack_monster_button3.jpg',
             defense_img: 'seamonster_ship_health.jpg',
 			achNum : 25,
@@ -207,9 +203,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         'Keira': {
             duration: 48,
-            ach: 30000,
-            reqAtkButton: 'event_attack1.gif',
-            pwrAtkButton: 'event_attack2.gif'
+            ach: 30000
         },
         'Amethyst Sea Serpent': {
             duration: 72,
@@ -270,10 +264,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         'War Of The Red Plains': {
             tactics: true,
             duration: 168,
-            ach: 10000,
+            ach: 10000
         },
         'Bahamut': {
-            ach: 4000000,
+            ach: 4000000
         },
         'Alpha Bahamut': {
             ach: 8000000,
@@ -284,7 +278,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             festival_ach: 4000000
         },
         'Alpha Mephistopheles': {
-            ach: 12000000,
+            ach: 12000000
         },
         'Gehenna': {
             festival_dur: 96,
@@ -293,7 +287,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         "Aurelius": {
             tactics: true,
 			achTitle : "Aurelius, Lion's Rebellion",
-            ach: 1000,
+            ach: 1000
         },
         "Corvintheus": {
             festival_ach: 2500000
@@ -357,7 +351,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	// Cleans a link to put it in a standard order. If no argument passed, uses the last clicked URL
 	monster.cleanLink = function(link, casuser, mpool) {
 		var temp;
-		if (!$u.isString(link) || link.length == 0) {
+		if (!$u.isString(link) || link.length === 0) {
 			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		}
 		//con.log(2, 'CleanLink', link, casuser, mpool);
@@ -963,15 +957,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         }
     };
 
-	monster.worldMonsterCount = 0;
-	
     monster.select = function(force) {
         try {
             if (!caap.oneMinuteUpdate('selectMonster', force) || caap.stats.level < 7) {
                 return false;
             }
 
-            //con.log(2, 'SELECTING MONSTER');
             var monsterList = {
 					'battle_monster': [],
 					'raid': [],
@@ -986,6 +977,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				cM = {},
 				whichList = 'any',
 				conditions = '',
+				monString = '',
                 selectTypes = [],
 				maxToFortify = 0,
                 nodeNum = 0,
@@ -1007,8 +999,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'fortify': ''
                 },
                 monsterMD5 = '',
-                cM = {},
-                //monstType             = '',
                 p = 0,
                 m = 0,
                 attackOrderList = [];
@@ -1016,7 +1006,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             // Next we get our monster objects from the repository and break them into separate lists
             // for monster or raid.  If we are serializing then we make one list only.
 
-			monster.worldMonsterCount = 0;
             for (it = monster.records.length - 1; it >= 0; it -= 1) {
 				cM = monster.records[it];
 				if (cM.lMissing > 3) {
@@ -1030,10 +1019,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							cM.review = -1;
 						}
 					}
-					if (cM.link.indexOf('mpool=3') >= 0 && cM.link.indexOf('festival') < 0 && cM.status === 'Attack') {
-						monster.worldMonsterCount += 1;
-					}
-					//con.log(2, 'World Monster Count after ' + cM.name + ' = ' + monster.worldMonsterCount, cM);
 					cM.conditions = 'none';
 					whichList = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
 					monsterList[whichList].push(cM.md5);
@@ -1101,8 +1086,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             return;
                         }
 						conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
+						monString = aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
                         // If this monster does not match, skip to next one
-                        if (!monster.getItem(thisMon).name.toLowerCase().hasIndexOf(aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) && (conditions.regex(/(:conq)\b/) != (cM.lpage == "ajax:player_monster_list.php?monster_filter=2"))) {
+                        if ((monString !== 'all' && !monster.getItem(thisMon).name.toLowerCase().hasIndexOf(monString)) 
+							|| (conditions.regex(/(:conq)\b/) && (cM.lpage != "ajax:player_monster_list.php?monster_filter=2"))
+							|| (conditions.regex(/(:!conq)\b/) && (cM.lpage == "ajax:player_monster_list.php?monster_filter=2"))) {
                             return;
                         }
 
@@ -1232,8 +1220,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 questFortifyInstructions = "Do quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
                 stopAttackInstructions = "Do not attack if ship health is below this % (leave blank to disable)",
                 monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
-                demiPointsFirstInstructions = "Do not attack monsters until you have gotten all your demi points from battling. Set 'Battle When' to 'No Monster' or 'Demi Points Only'. " +
-                    "Be sure to set battle to Invade or Duel, War does not give you Demi Points.",
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
@@ -1272,65 +1258,52 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'Siege monsters for up to 250 stamina, will not siege unless 1st siege has been launched'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
                 monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
-                demiPtItem = 0,
-                subCode = '',
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Monster', 'MONSTER');
             htmlCode += caap.makeDropDownTR("Attack When", 'WhenMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenMonster', '', 'Never', true);
+            htmlCode += caap.display.start('WhenMonster', 'isnot', 'Never');
             htmlCode += "<div id='caap_WhenMonsterStayHidden_hide' style='color: red; font-weight: bold; display: ";
             htmlCode += (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
             htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
             htmlCode += "</div>";
-            htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+            htmlCode += caap.display.start('WhenMonster', 'is', 'At X Stamina');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions.replace('stamina','energy'), 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions.replace('stamina','energy'), 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-            htmlCode += caap.startDropHide('WhenMonster', 'DelayStayHidden', 'Stay Hidden', false);
+            htmlCode += caap.display.end('WhenMonster', 'is', 'At X Stamina');
+            htmlCode += caap.display.start('WhenMonster', 'is', 'Stay Hidden');
             htmlCode += caap.makeCheckTR("Delay hide if \"safe\"", 'delayStayHidden', true, delayStayHiddenInstructions, true);
-            htmlCode += caap.endDropHide('WhenMonster', 'DelayStayHidden', 'Stay Hidden', false);
-            htmlCode += caap.makeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
+            htmlCode += caap.display.end('WhenMonster', 'is', 'Stay Hidden');
+            //htmlCode += caap.makeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
             htmlCode += caap.makeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
-            htmlCode += caap.startCheckHide('UseTactics');
+            htmlCode += caap.display.start('UseTactics', 'is', true);
             htmlCode += caap.makeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, '', '', true, false);
-            htmlCode += caap.endCheckHide('UseTactics');
+            htmlCode += caap.display.end('UseTactics', 'is', true);
             htmlCode += caap.makeCheckTR("Power Attack Only", 'PowerAttack', true, powerattackInstructions);
-            htmlCode += caap.startCheckHide('PowerAttack');
+            htmlCode += caap.display.start('PowerAttack', 'is', true);
             htmlCode += caap.makeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
-            htmlCode += caap.endCheckHide('PowerAttack');
+            htmlCode += caap.display.end('PowerAttack', 'is', true);
             htmlCode += caap.makeDropDownTR("Siege up to", 'siegeUpTo', siegeList, siegeInst, '', 'Never', false, false, 62);
             htmlCode += caap.makeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
             //htmlCode += caap.makeCheckTR("Battle Conquest Monsters", 'conquestMonsters', false, '');
             htmlCode += caap.makeCheckTR("Achievement Mode", 'AchievementMode', true, monsterachieveInstructions);
-            htmlCode += caap.makeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, demiPointsFirstInstructions);
-            htmlCode += caap.startCheckHide('DemiPointsFirst');
-            for (demiPtItem = 0; demiPtItem < caap.demiQuestList.length; demiPtItem += 1) {
-                subCode += "<span title='" + caap.demiQuestList[demiPtItem] + "'>";
-                subCode += "<img alt='" + caap.demiQuestList[demiPtItem] + "' src='data:image/gif;base64," + image64[caap.demiQuestList[demiPtItem]] + "' height='15px' width='15px'/>";
-                subCode += caap.makeCheckBox('DemiPoint' + demiPtItem, true);
-                subCode += "</span>";
-            }
-
-            htmlCode += caap.makeTD(subCode, false, false, "white-space: nowrap;");
-            htmlCode += caap.endCheckHide('DemiPointsFirst');
             htmlCode += caap.makeNumberFormTR("Heal My Damage Up to % of Stamina Used", 'HealPercStam', healPercStamInst, 20, '', '');
             htmlCode += caap.makeDropDownTR("Fortify for Others When", 'WhenFortify', fortifyList, fortifyInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenFortify', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenFortify', 'XEnergy', 'At X Energy', false);
+            htmlCode += caap.display.start('WhenFortify', 'isnot', 'Never');
+            htmlCode += caap.display.start('WhenFortify', 'is', 'At X Energy');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XFortifyEnergy', XMonsterInstructions, 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinFortifyEnergy', XMinMonsterInstructions, 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenFortify', 'XEnergy', 'At X Energy', false);
+            htmlCode += caap.makeCheckTR("Do not wait for Strengthen phase", 'StrengthenTo100', true, strengthenTo100Instructions);
+            htmlCode += caap.display.end('WhenFortify', 'is', 'At X Energy');
             htmlCode += caap.makeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '');
             htmlCode += caap.makeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '');
-            htmlCode += caap.endDropHide('WhenFortify');
+            htmlCode += caap.display.end('WhenFortify', 'isnot', 'Never');
             htmlCode += caap.makeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '');
             htmlCode += caap.makeDropDownTR("Cripple/Deflect when", 'WhenStun', stunList, stunInst, '', 'Immediately', false, false, 62);
-            htmlCode += caap.makeCheckTR("Do not Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
             htmlCode += caap.makeTD("Attack Monsters in this order <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
-            htmlCode += caap.endDropHide('WhenMonster');
+            htmlCode += caap.display.end('WhenMonster', 'isnot', 'Never');
             htmlCode += caap.makeCheckTR("Enable Labels", 'monsterEnableLabels', true, "When enabled then the damage and fortify bars will display percentage labels.");
             htmlCode += caap.endToggle;
             return htmlCode;

@@ -17,9 +17,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     battle.records = [];
 
-    battle.record = function() {
+    battle.record = function(userId) {
         this.data = {
-            'userId': 0,
+            'userId': userId,
             'nameStr': '',
             'rankStr': '',
             'rankNum': 0,
@@ -148,6 +148,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (caap.domain.which !== 0) {
                 session.setItem("BattleDashUpdate", true);
+                session.setItem("ArenaDashUpdate", true);
             }
 
             return true;
@@ -169,138 +170,84 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    battle.getItem = function(userId) {
+	battle.findIndex = function(records, userId) {
         try {
-            var it = 0,
-                len = 0,
-                success = false,
-                newRecord = null;
+			if ($u.isNaN(userId) || userId < 1) {
+				con.warn("userId", userId);
+				throw "Invalid identifying userId!";
+			}
 
-            if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                con.warn("userId", userId);
-                throw "Invalid identifying userId!";
-            }
-
-            for (it = 0, len = battle.records.length; it < len; it += 1) {
-                if (battle.records[it].userId === userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            if (success) {
-                con.log(3, "Got battle record", userId, battle.records[it]);
-                battle.records[it].newRecord = false;
-                return battle.records[it];
-            }
-
-            newRecord = new battle.record();
-            newRecord.data.userId = userId;
-            con.log(2, "New battle record", userId, newRecord.data);
-            return newRecord.data;
+			return records.reduce( function(p, c, i) {
+				return c.userId == userId ? i : p;
+			}, null);
         } catch (err) {
-            con.error("ERROR in battle.getItem: " + err.stack);
+            con.error("ERROR in battle.findIndex: " + err.stack, records, userId);
+            return false;
+        }
+	};
+			
+    battle.getItem = function(userId, reconTf) {
+        try {
+            var records = reconTf ? battle.reconRecords : battle.records,
+				index = battle.findIndex(records, userId);
+
+            if ($u.isNumber(index)) {
+                con.log(3, "Got battle record", userId, reconTf, records[index]);
+                records[index].newRecord = false;
+                return records[index];
+            }
+
+            con.log(2, "New battle record", userId);
+            return reconTf ? new battle.reconRecord(userId).data : new battle.record(userId).data;
+        } catch (err) {
+            con.error("ERROR in battle.getItem: " + err.stack, record);
             return false;
         }
     };
 
-    battle.setItem = function(record) {
+    battle.setItem = function(record, reconTf) {
         try {
             if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
+            var records = reconTf ? battle.reconRecords : battle.records,
+				index = battle.findIndex(records, record.userId);
 
-            if (record.userId === '' || $u.isNaN(record.userId) || record.userId < 1) {
-                con.warn("userId", record.userId);
-                throw "Invalid identifying userId!";
-            }
-
-            var it = 0,
-                len = 0,
-                success = false;
-
-            for (it = 0, len = battle.records.length; it < len; it += 1) {
-                if (battle.records[it].userId === record.userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            record.newRecord = false;
-            if (success) {
-                battle.records[it] = record;
-                con.log(3, "Updated battle record", record, battle.records);
+			record.newRecord = false;
+            if ($u.isNumber(index)) {
+                records[index] = record;
+                //records[index] = $j.extend(true,{},record);
+				 // Save a copy of the record, to prevent object linking between recon records and battle records
+                con.log(3, "Updated battle record", record, reconTf, battle.records);
             } else {
-                battle.records.push(record);
-                con.log(3, "Added battle record", record, battle.records);
+                records.push(record);
+                con.log(3, "Added battle record", record, reconTf, records);
             }
 
-            battle.save();
+            reconTf ? battle.saveRecon() : battle.save();
             return true;
         } catch (err) {
-            con.error("ERROR in battle.setItem: " + err, record);
+            con.error("ERROR in battle.setItem: " + err.stack, reconTf, record);
             return false;
         }
     };
 
-    battle.deleteItem = function(userId) {
+    battle.deleteItem = function(userId, reconTf) {
         try {
-            var it = 0,
-                len = 0,
-                success = false;
+            var records = reconTf ? battle.reconRecords : battle.records,
+				index = battle.findIndex(records, userId);
 
-            if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                con.warn("userId", userId);
-                throw "Invalid identifying userId!";
-            }
-
-            for (it = 0, len = battle.records.length; it < len; it += 1) {
-                if (battle.records[it].userId === userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            if (success) {
-                battle.records.splice(it, 1);
-                battle.save();
-                con.log(3, "Deleted battle record", userId, battle.records);
+			if ($u.isNumber(index)) {
+                records.splice(index, 1);
+				reconTf ? battle.saveRecon() : battle.save();
+                con.log(3, "Deleted battle record", userId, reconTf, records);
                 return true;
             }
 
-            con.warn("Unable to delete battle record", userId, battle.records);
+            con.warn("Unable to delete battle record", userId, reconTf, records);
             return false;
         } catch (err) {
             con.error("ERROR in battle.deleteItem: " + err.stack);
-            return false;
-        }
-    };
-
-    battle.hashCheck = function(record) {
-        try {
-            var hash = '',
-                hashes = [
-                    "3f56e5f147545c2069f615aa2ebc80d2eef34d48",
-                    "8caeb4b385c1257419ee18dee47cfa3a1271ba77",
-                    "02752cf4b979dd5a77b53694917a60f944cb772f",
-                    "c644f2fdcf1a7d721b82efab5313df609442c4f9",
-                    "8d29caf6400807789964185405b0f442e6cacae7",
-                    "7f04c6d6d1110ce05532ca508efde5dbafe7ec17"
-                ];
-
-            if (!hashes.length || !(gm ? gm.getItem('AllowProtected', true, hiddenVar) : true)) {
-                return false;
-            }
-
-            if (record.userId === '' || $u.isNaN(record.userId) || record.userId < 1) {
-                con.warn("userId", record);
-                throw "Invalid identifying userId!";
-            }
-
-            hash = (record.userId.toString().SHA1() + record.nameStr).SHA1();
-            return (hashes.hasIndexOf(hash));
-        } catch (err) {
-            con.error("ERROR in battle.hashCheck: " + err.stack);
             return false;
         }
     };
@@ -315,6 +262,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0,
                 battleRecord = {},
                 warWinLoseImg = '',
+				currentGeneral = general.getCurrentGeneral(),
                 result = {
                     userId: 0,
                     userName: '',
@@ -353,7 +301,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return result;
             }
 
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_castle.jpg']"))) {
+			if (warWinLoseImg) {
+				general.resetCharge();
+			}
+
+			if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_castle.jpg']"))) {
                 result.battleType = 'War';
                 if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
                     tempDiv = $j("#app_body #results_main_wrapper img[src*='war_rank_small_icon']").eq(0);
@@ -612,99 +564,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    battle.checkResults = function() {
-        try {
-            var battleRecord = {},
-                tempTime = 0,
-                chainBP = 0,
-                chainGold = 0,
-                maxChains = 0,
-                result = {};
-
-            if (!battle.flagResult) {
-                return true;
-            }
-
-            con.log(2, "Checking Battle Results");
-            battle.flagResult = false;
-            state.setItem("BattleChainId", 0);
-            if (battle.deadCheck() !== false) {
-                return true;
-            }
-
-            result = battle.getResult();
-            if (!result || result.hiding === true) {
-                return true;
-            }
-
-            if (result.unknown === true) {
-                if (state.getItem("lastBattleID", 0)) {
-                    battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
-                    battleRecord.unknownTime = Date.now();
-                    battle.setItem(battleRecord);
-                }
-
-                return true;
-            }
-
-            battleRecord = battle.getItem(result.userId);
-            if (result.win) {
-                con.log(1, "We Defeated ", result.userName, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold);
-                //Test if we should chain this guy
-                tempTime = $u.setContent(battleRecord.chainTime, 0);
-                chainBP = config.getItem('ChainBP', '');
-                chainGold = config.getItem('ChainGold', '');
-                if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
-                    if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
-                        if (result.points >= chainBP) {
-                            state.setItem("BattleChainId", result.userId);
-                            con.log(1, "Chain Attack:", result.userId, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points);
-                        } else {
-                            battleRecord.ignoreTime = Date.now();
-                        }
-                    }
-
-                    if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
-                        if (result.gold >= chainGold) {
-                            state.setItem("BattleChainId", result.userId);
-                            con.log(1, "Chain Attack:", result.userId, "Gold: " + result.goldnum);
-                        } else {
-                            battleRecord.ignoreTime = Date.now();
-                        }
-                    }
-                }
-
-                battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
-                maxChains = config.getItem('MaxChains', 4);
-                if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
-                    maxChains = 4;
-                }
-
-                if (battleRecord.chainCount >= maxChains) {
-                    con.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
-                    battleRecord.chainTime = Date.now();
-                    battleRecord.chainCount = 0;
-                }
-
-            } else {
-                con.log(1, "We Were Defeated By ", result.userName);
-                battleRecord.chainCount = 0;
-                battleRecord.chainTime = 0;
-            }
-
-            battle.setItem(battleRecord);
-            return true;
-        } catch (err) {
-            con.error("ERROR in battle.checkResults: " + err.stack);
-            return false;
-        }
-    };
-
     battle.nextTarget = function() {
         state.setItem('BattleTargetUpto', state.getItem('BattleTargetUpto', 0) + 1);
     };
 
-    battle.getTarget = function(mode) {
+    battle.getTarget = function() {
         try {
             var target = '',
                 targets = [],
@@ -714,13 +578,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             targetType = config.getItem('TargetType', 'Freshmeat');
             targetRaid = state.getItem('targetFromraid', '');
-            if (mode === 'DemiPoints') {
-                if (targetRaid && targetType === 'Raid') {
-                    return 'Raid';
-                }
-
-                return 'Freshmeat';
-            }
 
             if (targetType === 'Raid') {
                 if (targetRaid) {
@@ -733,6 +590,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             if (targetType === 'Freshmeat') {
                 return 'Freshmeat';
+            }
+
+            if (targetType === 'Arena') {
+				battle.reconRecords.some( function(bR) {
+					var eR = battle.getItem(bR.userId);
+					if (eR.duellossesNum || eR.duelwinsNum) {
+						state.setItem('arenaReconned', state.getItem('arenaReconned','') + ',' + bR.userId);
+						battle.deleteItem(bR.userId, 'recon');
+						eR = $j.extend(true, eR, bR);
+						eR.arenaPoints = !eR.duellossesNum ? 100 + eR.arenaRankNum.numberOnly() : 0;
+						battle.setItem(eR);
+					} else if (!schedule.since(eR.deadTime, 5 * 60)) {
+						return false;
+					} else if (bR.arenaRankNum >= config.getItem('arenaReconRankMin',1)
+						&& bR.arenaRankNum <= config.getItem('arenaReconRankMax',7)
+						&& bR.levelNum <= config.getItem('arenaReconLevelMax',1400)
+						&& !state.getItem('arenaReconned','').hasIndexOf(',' + bR.userId + ',')) {
+						target = bR.userId;
+						con.log(2, 'Arena reconning ' + state.getItem('arenaReconned','').split(',').length);
+					} else {
+						battle.deleteItem(bR.userId, 'recon');
+					}
+						
+					return target;
+				});
+                return target;
             }
 
             target = state.getItem('BattleChainId', 0);
@@ -809,27 +692,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    battle.selectedDemisDone = function(force) {
-        try {
-            var demiPointsDone = true,
-                it = 0;
-
-            for (it = 0; it < 5; it += 1) {
-                if (force || config.getItem('DemiPoint' + it, true)) {
-                    if (caap.demi[caap.demiTable[it]].daily.dif > 0) {
-                        demiPointsDone = false;
-                        break;
-                    }
-                }
-            }
-
-            return demiPointsDone;
-        } catch (err) {
-            con.error("ERROR in battle.selectedDemisDone: " + err.stack);
-            return undefined;
-        }
-    };
-
     battle.freshmeat = function(type, slice) {
         try {
             var buttonType = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
@@ -838,6 +700,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 safeTargets = [],
                 chainId = '',
                 chainAttack = false,
+				demisLeft = battle.demisPointsToDo('left'),
                 inp = $j(),
                 txt = '',
                 minRank = 0,
@@ -846,6 +709,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ARBase = 0,
                 ARMax = 0,
                 ARMin = 0,
+				deityStr = '',
                 levelMultiplier = 0,
                 armyRatio = 0,
                 battleRecord = {},
@@ -972,16 +836,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (type === "recon") {
-                    for (i = 0, len = battle.reconRecords.length; i < len; i += 1) {
-                        if (battle.reconRecords[i].userId === tempRecord.data.userId) {
-                            tempRecord.data = battle.reconRecords[i];
-                            battle.reconRecords.splice(i, 1);
-                            con.log(2, "UserRecord exists. Loaded and removed.", tempRecord);
-                            break;
-                        }
-                    }
-                }
+				if (type === "recon" && battle.deleteItem(tempRecord.data.userId, 'recon')) {
+					con.log(2, "UserRecord exists. Loaded and removed.", tempRecord);
+				}
 
                 if (type === 'Raid') {
                     tempTxt = $u.setContent(tr.children().eq(1).text(), '').trim();
@@ -1013,36 +870,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
 
                     tempTxt = $u.setContent($j("img[src*='iphone_']", tr).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
-                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.demiTableStat[tempTxt])) {
-                        tempRecord.data.deityNum = caap.demiTableStat[tempTxt];
-						tempRecord.data.deityStr = caap.demiTable[tempRecord.data.deityNum];
+                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.deityTable[tempTxt] - 1)) {
+                        tempRecord.data.deityNum = caap.deityTable[tempTxt] - 1;
+						deityStr = caap.demiTable[tempRecord.data.deityNum];
                     } else {
                         con.warn("Unable to match demi number in tempTxt", tempTxt);
                     }
 
                     // If looking for demi points, and already full, continue
-                    if (type !== "recon") {
-                        if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                            if (caap.demi[tempRecord.data.deityStr].daily.dif <= 0 || !config.getItem('DemiPoint' + tempRecord.data.deityNum, true)) {
-                                con.log(2, "Daily Demi Points done for", tempRecord.data.deityStr);
-                                inputDiv = null;
-                                inp = null;
-                                form = null;
-                                engageButton = null;
-                                tr = null;
-                                return true;
-                            }
-                        } else if (config.getItem('WhenBattle', 'Never') === "Demi Points Only") {
-                            if (caap.demi[tempRecord.data.deityStr].daily.dif <= 0) {
-                                con.log(2, "Daily Demi Points done for", tempRecord.data.deityStr);
-                                inputDiv = null;
-                                inp = null;
-                                form = null;
-                                engageButton = null;
-                                tr = null;
-                                return true;
-                            }
-                        }
+                    if (type !== "recon" && demisLeft && !battle.demisPointsToDo(tempRecord.data.deityNum)) {
+						con.log(3, "Daily Demi Points done for", deityStr);
+						inputDiv = null;
+						inp = null;
+						form = null;
+						engageButton = null;
+						tr = null;
+						return true;
                     }
 
                     tempTxt = $u.setContent(tr.text(), '').trim();
@@ -1094,15 +937,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 				
 				con.log(3, 'Battle target stats:', tempRecord.data.nameStr, tempRecord.data.levelNum, tempRecord.data.rankStr, tempRecord.data.rankNum, tempRecord.data.armyNum);
-
-                if (battle.hashCheck(tempRecord.data)) {
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
 
                 levelMultiplier = caap.stats.level / (tempRecord.data.levelNum > 0 ? tempRecord.data.levelNum : 1);
                 armyRatio = ARBase * levelMultiplier;
@@ -1477,6 +1311,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	// Returns true if selected demi points not done and menu says do them first
+	// If passed "set," checks for any demi points that set to work on
+	// If passed "left," checks for any demi points that still need points that day
+    battle.demisPointsToDo = function(demiPoint) {
+        try {
+            return (['set','left'].hasIndexOf(demiPoint) ? [0, 1, 2, 3, 4] : [demiPoint]).some( function(it) {
+				return config.getItem('DemiPoint' + it, false) && (demiPoint == 'set' || caap.demi[caap.demiTable[it]].daily.dif > 0);
+            });
+
+        } catch (err) {
+            con.error("ERROR in battle.demisPointsToDo: " + err.stack);
+            return undefined;
+        }
+    };
+
     battle.menu = function() {
         try {
             var XBattleInstructions = "Start battling if stamina is above this points",
@@ -1500,47 +1349,58 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 raidOrderInstructions = "List of search words that decide which " + "raids to participate in first.  Use words in player name or in " +
                     "raid name. To specify max damage follow keyword with :max token " + "and specifiy max damage values. Use 'k' and 'm' suffixes for " + "thousand and million.",
                 ignorebattlelossInstructions = "Ignore battle losses and attack " + "regardless.  This will also delete all battle loss records.",
-                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Demi Points Only', 'Recon Only', 'Never'],
-                battleInst = [
-                    'Stamina Available will battle whenever you have enough stamina',
-                    'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
-                    'At X Stamina you can set maximum and minimum stamina to battle',
-                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
-                    'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                    'Demi Points Only will battle only when Daily Demi Points are required, can use in conjunction with Get Demi Points First. Does not work with War.',
-                    'Only perform Player Recon, does not actually battle players.',
-                    'Never - disables player battles'
-                ],
                 typeList = ['Invade', 'Duel', 'War'],
                 typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though', 'War using Duel button - no guarentee you will win though'],
                 targetList = ['Freshmeat', 'Userid List', 'Raid'],
                 targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'],
                 dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
                 collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
-                observeDemiFirstInstructions = "If you are setting Get demi Points First and No Attack If % Under in Monster then enabling this option " +
-                    "will cause Demi Points Only to observe the Demi Points requested in the case where No Attack If % Under is triggered.",
                 PReconInstructions = "Enable player battle reconnaissance to run " + "as an idle background task. Battle targets will be collected and" + " can be displayed using the 'Target List' selection on the " + "dashboard.",
-                htmlCode = '';
+				haveZin = general.getRecord("Zin", true),
+				haveMisa = general.getRecord("Misa", true),
+				who = (haveZin ? 'Zin' : '') + (haveZin && haveMisa ? ' and ' : '') + (haveMisa ? 'Misa' : ''),
+                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Recon Only', 'Only Demipoints or Zin/Misa', 'Never'],
+                battleInst = [
+                    'Stamina Available will battle whenever you have enough stamina',
+                    'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+                    'At X Stamina you can set maximum and minimum stamina to battle',
+                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
+                    'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                    'Only perform Player Recon, does not actually battle players.',
+                    'Only does Demipoints' + (who ? ' or ' + who : ''),
+                    'Never - disables player battles'
+                ],
+				subCode = '',
+                htmlCode = caap.startToggle('Battling', 'BATTLE');
 
-            htmlCode = caap.startToggle('Battling', 'BATTLE');
             htmlCode += caap.makeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenBattle', '', 'Never', true);
+            htmlCode += caap.display.start('WhenBattle', 'isnot', 'Never');
+
+            htmlCode += caap.makeCheckTR("Use " + who + " First", 'useZinMisaFirst', false, 'If ' + who + ' charged and not levelling up then use battle first if space in the appropriate stat.', false, false, '', '_zin_row', who ? "display: block;" : "display: none;");
+
+            htmlCode += "<div title='Does not work with War'>Get below Demi points first</div>";
+			caap.demiQuestList.forEach( function(item, i) {
+                subCode += "<span title='" + item + "'>";
+                subCode += "<img alt='" + item + "' src='data:image/gif;base64," + image64[item] + "' height='15px' width='15px'/>";
+                subCode += caap.makeCheckBox('DemiPoint' + i, false);
+                subCode += "</span>";
+            });
+            htmlCode += caap.makeTD(subCode, false, false, "white-space: nowrap;");
+
             htmlCode += "<div id='caap_WhenBattleStayHidden_hide' style='color: red; font-weight: bold; display: ";
             htmlCode += (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
             htmlCode += "Warning: Monster Not Set To 'Stay Hidden'";
             htmlCode += "</div>";
-            htmlCode += caap.startDropHide('WhenBattle', 'XStamina', 'At X Stamina', false);
+
+            htmlCode += caap.display.start('WhenBattle', 'is', 'At X Stamina');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XBattleStamina', XBattleInstructions, 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenBattle', 'XStamina');
-            htmlCode += caap.startDropHide('WhenBattle', 'DemiOnly', 'Demi Points Only', false);
-            htmlCode += caap.makeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, observeDemiFirstInstructions);
-            htmlCode += caap.endDropHide('WhenBattle', 'DemiOnly');
+            htmlCode += caap.display.end('WhenBattle', 'is', 'At X Stamina');
             htmlCode += caap.makeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
-// siege is changed so disable 
-config.setItem('raidDoSiege', false)
-//            htmlCode += caap.makeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
+			// siege is changed so disable 
+			config.setItem('raidDoSiege', false)
+			//htmlCode += caap.makeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
             htmlCode += caap.makeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
             htmlCode += caap.makeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
@@ -1551,30 +1411,36 @@ config.setItem('raidDoSiege', false)
             htmlCode += caap.makeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
             htmlCode += caap.makeNumberFormTR("Higher Than X*AR", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
             htmlCode += caap.makeCheckTR('Advanced', 'AdvancedFreshMeatOptions', false);
-            htmlCode += caap.startCheckHide('AdvancedFreshMeatOptions');
+            htmlCode += caap.display.start('AdvancedFreshMeatOptions');
             htmlCode += caap.makeNumberFormTR("Max Level", 'FreshMeatMaxLevel', FreshMeatMaxLevelInstructions, '', '', '', true);
             htmlCode += caap.makeNumberFormTR("Min Level", 'FreshMeatMinLevel', FreshMeatMinLevelInstructions, '', '', '', true);
             htmlCode += caap.makeNumberFormTR("Army Ratio Max", 'FreshMeatARMax', FreshMeatARMaxInstructions, '', '', '', true);
             htmlCode += caap.makeNumberFormTR("Army Ratio Min", 'FreshMeatARMin', FreshMeatARMinInstructions, '', '', '', true);
-            htmlCode += caap.endCheckHide('AdvancedFreshMeatOptions');
+            htmlCode += caap.display.end('AdvancedFreshMeatOptions');
             htmlCode += caap.makeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, PReconInstructions);
-            htmlCode += caap.startCheckHide('DoPlayerRecon');
+            htmlCode += caap.display.start('DoPlayerRecon');
             htmlCode += caap.makeCheckTR("Do In Background", 'bgRecon', true, "Use AJAX for Player Recon.");
             htmlCode += caap.makeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, '', '');
             htmlCode += caap.makeCheckTR("Stop Recon At Limit", 'stopReconLimit', true, "Stop performing Player Recon when target limit is reached rather than replacing oldest targets with new.");
-            htmlCode += caap.endCheckHide('DoPlayerRecon');
+            htmlCode += caap.display.end('DoPlayerRecon');
             htmlCode += caap.makeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
-            htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
+            htmlCode += caap.display.start('TargetType', 'is', 'Arena');
+	        htmlCode += caap.makeNumberFormTR("Opponent Rank Min", 'arenaReconRankMin', '', '', '', '', true, false);
+	        htmlCode += caap.makeNumberFormTR("Opponent Rank Max", 'arenaReconRankMax', '', '', '', '', true, false);
+	        htmlCode += caap.makeNumberFormTR("Opponent Level Max", 'arenaReconLevelMax', '', '', '', '', true, false);
+            htmlCode += caap.display.end('TargetType', 'is', 'Arena');
+            htmlCode += caap.display.start('TargetType', 'is', 'Raid');
             htmlCode += caap.makeCheckTR("Power Attack", 'RaidPowerAttack', false, raidPowerAttackInstructions, true);
             htmlCode += caap.makeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions, true);
             htmlCode += caap.makeTD("Join Raids in this order <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('orderraid', raidOrderInstructions, '');
-            htmlCode += caap.endDropHide('TargetType', 'Raid');
-            htmlCode += caap.startDropHide('TargetType', 'UserId', 'Userid List', false);
+            htmlCode += caap.display.end('TargetType', 'is', 'Raid');
+            htmlCode += caap.display.start('TargetType', 'is', 'Userid List');
             htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
-            htmlCode += caap.endDropHide('TargetType', 'UserId');
-            htmlCode += caap.endDropHide('WhenBattle');
+            htmlCode += caap.display.end('TargetType', 'is', 'Userid List');
+            htmlCode += caap.display.end('WhenBattle', 'isnot', 'Never');
             htmlCode += caap.endToggle;
+			config.setItem('WhenbattleOverride', 'Stamina Available');
             return htmlCode;
         } catch (err) {
             con.error("ERROR in battle.menu: " + err.stack);
@@ -1582,7 +1448,7 @@ config.setItem('raidDoSiege', false)
         }
     };
 
-    battle.dashboard = function() {
+    battle.dashboard = function(which) {
         function points(num) {
             num = $u.setContent(num, 0);
             return num >= 0 ? "+" + num : num;
@@ -1593,8 +1459,10 @@ config.setItem('raidDoSiege', false)
             Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Battle Stats' && session.getItem("BattleDashUpdate", true)) {
-                var headers = ['UserId', 'Name', 'BR', 'WR', 'Level', 'Army', 'Invade', 'Duel', 'War'],
+			
+			which = which == 'Arena' ? which : 'Battle';
+            if (config.getItem('DBDisplay', '') === (which + ' Stats') && session.getItem(which + "DashUpdate", true)) {
+                var headers = ['UserId', 'Name', 'BR', 'WR', 'Level', 'Army', 'Invade', 'Duel', 'War', '&nbsp;'],
                     values = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'duelwinsNum', 'warwinsNum'],
                     pp = 0,
                     i = 0,
@@ -1613,6 +1481,27 @@ config.setItem('raidDoSiege', false)
                     body = '',
                     row = '';
 
+				if (which == 'Arena') {
+					headers = ['UserId', 'Name', 'Points', 'Total', 'Duel', 'AR', 'Level', 'Army', '&nbsp;'];
+                    values = ['userId', 'nameStr', 'arenaPoints', 'arenaTotal', 'duelwinsNum', 'arenaRankNum', 'levelNum', 'armyNum'];
+					var arenaers = battle.records.filter( function(bR) {
+							return bR.arenaRankNum;
+						}),
+						winnerF = function(bR) {
+							return bR.duelwinsNum > 0 && !bR.duellossesNum;
+						},
+						winners = arenaers.filter(winnerF),
+						report = '';
+					[1, 2, 3, 4, 5, 6, 7].forEach( function(rank) {
+						report += 'R' + rank + ': ';
+						var aRankArr = arenaers.filter( function(bR) {
+								return bR.arenaRankNum == rank;
+							}),
+							winnerSum = aRankArr.filter(winnerF).length;
+						report += winnerSum + '/' + aRankArr.length + ' ' + (winnerSum / aRankArr.length * 100).dp(1) + '% ';
+					});
+				}
+				
                 for (pp = 0; pp < headers.length; pp += 1) {
                     switch (headers[pp]) {
                     case 'UserId':
@@ -1652,6 +1541,15 @@ config.setItem('raidDoSiege', false)
                             id: '',
                             title: '',
                             width: '5%'
+                        });
+                        break;
+                    case '&nbsp;':
+                        head += caap.makeTh({
+                            text: headers[pp],
+                            color: '',
+                            id: '',
+                            title: '',
+                            width: '1%'
                         });
                         break;
                     default:
@@ -1733,11 +1631,22 @@ config.setItem('raidDoSiege', false)
                         }
                     }
 
+					userIdLinkInstructions = "Clicking this link will remove " + battle.records[i].name + "'s data from CAAP.";
+					data = {
+						text: '<span id="caap_battle_remove_' + battle.records[i].userId + '" title="' + userIdLinkInstructions 
+							+ '" userid="' + battle.records[i].userId + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+						color: 'blue',
+						id: '',
+						title: ''
+					};
+
+					row += caap.makeTd(data);
+
                     body += caap.makeTr(row);
                 }
 
-                $j("#caap_infoBattle", caap.caapTopObject).html(
-                $j(caap.makeTable("battle", head, body)).dataTable({
+                $j("#caap_info" + which, caap.caapTopObject).html(
+                $j(caap.makeTable(which.toLowerCase(), head, body)).dataTable({
                     "bAutoWidth": false,
                     "bFilter": false,
                     "bJQueryUI": false,
@@ -1746,33 +1655,44 @@ config.setItem('raidDoSiege', false)
                     "bPaginate": false,
                     "bProcessing": false,
                     "bStateSave": true,
-                    "bSortClasses": false
-                }));
-
+                    "bSortClasses": false,
+                    "aoColumnDefs": [{
+                        "bSortable": false,
+                        "aTargets": [headers.length - 1]
+                    }]
+					}));
+				$j("#caap_info" + which, caap.caapTopObject).prepend(report);
+				
                 $j("span[id*='caap_battle_']", caap.caapTopObject).click(function(e) {
-                    var visitUserIdLink = {
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
+                    var i = 0,
                         len = 0;
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            visitUserIdLink.arlink = visitUserIdLink.rlink;
+							caap.clickAjaxLinkSend(e.target.attributes[i].nodeValue);
+							return true;
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitUserIdLink.arlink);
                 });
 
-                session.setItem("BattleDashUpdate", false);
+                $j("span[id^='caap_battle_remove_']", caap.caapTopObject).click(function(e) {
+                    var i = 0,
+                        len = 0;
+						
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                        if (e.target.attributes[i].nodeName === 'userid') {
+                            battle.deleteItem(e.target.attributes[i].value);
+                        }
+                    }
+                });
+
+                session.setItem(which + "DashUpdate", false);
             }
 
             return true;
         } catch (err) {
-            con.error("ERROR in battle.dashboard: " + err.stack);
+            con.error("ERROR in battle.dashboard: " + err.stack, which);
             return false;
         }
     };
@@ -1798,30 +1718,41 @@ config.setItem('raidDoSiege', false)
             'levelNum': 0,
             'armyNum': 0,
             'deityNum': 0,
-            'aliveTime': 0
+            'aliveTime': 0,
+			'arenaRankNum' : 0
         };
     };
 
     battle.reconhbest = 2;
 
     battle.loadRecon  = function() {
-        battle.reconRecords = gm.getItem('recon.records', 'default');
-        if (battle.reconRecords === 'default' || !$j.isArray(battle.reconRecords)) {
-            battle.reconRecords = gm.setItem('recon.records', []);
-        }
+		try {
+			battle.reconRecords = gm.getItem('recon.records', 'default');
+			if (battle.reconRecords === 'default' || !$j.isArray(battle.reconRecords)) {
+				battle.reconRecords = gm.setItem('recon.records', []);
+			}
+			battle.reconRecords.forEach( function(bR, index) {
+				battle.reconRecords[index] = $j.extend(new battle.reconRecord().data, bR);
+			});
 
-        battle.reconhbest = battle.reconhbest === false ? JSON.hbest(battle.reconRecords) : battle.reconhbest;
-        con.log(3, "recon.records Hbest", battle.reconhbest);
-        session.setItem("ReconDashUpdate", true);
-        con.log(3, "recon.records", battle.reconRecords);
-    };
+			battle.reconhbest = battle.reconhbest === false ? JSON.hbest(battle.reconRecords) : battle.reconhbest;
+			con.log(3, "recon.records Hbest", battle.reconhbest);
+			session.setItem("ReconDashUpdate", true);
+			con.log(3, "recon.records", battle.reconRecords);
+		} catch (err) {
+            con.error("ERROR in battle.load: " + err.stack);
+            return false;
+        }
+     };
 
     battle.saveRecon = function(src) {
         var compress = false;
 
         if (caap.domain.which === 3) {
+            //caap.messaging.setItem('battle.reconRecords', []);
             caap.messaging.setItem('battle.reconRecords', battle.reconRecords);
         } else {
+            //gm.setItem('recon.records', [], battle.reconhbest, compress);
             gm.setItem('recon.records', battle.reconRecords, battle.reconhbest, compress);
             con.log(3, "recon.records", battle.reconRecords);
             if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {

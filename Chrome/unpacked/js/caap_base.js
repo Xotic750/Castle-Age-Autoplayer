@@ -57,7 +57,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         which: -1,
         protocol: ["http://", "https://"],
         ptype: 0,
-        url: ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws", "web.castleagegame.com/castle", "www.facebook.com/dialog/apprequests"],
+        url: ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws", "webback.castleagegame.com/castle", "www.facebook.com/dialog/apprequests"],
         link: "",
         altered: "",
         inIframe: false
@@ -1512,19 +1512,36 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 'storage_type': 'localStorage'
             });
 			
-			//con.log(1, 'Configs test', configOld.getItem('AutoArchives', false));
-			
 			config.getItem = function (name, value) {
 				if (!$u.isString(name) || !$u.hasContent(name)) {
-					throwError("config.setItem", new TypeError(name + " is an invalid identifier"));
+					throwError("config.getItem", new TypeError(name + " is an invalid identifier"));
 				}
-				//con.log(2, 'name Default config old result', name, configDefault.getItem(name, 'none'), name in this['vars'] ? this['vars'][name] : 'none', configOld.getItem(name, 'none'), configDefault.getItem(name, name in this['vars'] ? this['vars'][name] : configOld.getItem(name, value)));
-
 				return configDefault.getItem(name, name in this['vars'] ? this['vars'][name] : configOld.getItem(name, value));
+
 			};
 
-			//con.log(1, 'Config test', config.getItem('AutoArchives', false));
-			
+			config.setItem = function (name, value) {
+				if (name === this['keyName']) {
+					throwError("config.setItem", new TypeError(name + " is a reserved identifier"));
+				}
+
+				if (!$u.isDefined(value)) {
+					throwError("config.setItem", new TypeError(value + " is 'undefined' or 'null'"));
+				}
+
+				if (configDefault.getItem(name) !== undefined) {
+					con.log(1, 'Setting default value for all hyper accounts for ' + name + ' to ' + value);
+					return configDefault.setItem(name, value);
+				}
+				
+				if (!$u.compare($u.ConfigHelper['base']['getItem'].call(this, name), value)) {
+					$u.ConfigHelper['base']['setItem'].call(this, name, value);
+					this['save']();
+				}
+
+				return value;
+			};
+
             window.state = new $u.ConfigHelper("state.flags", "current", {
                 'namespace': caap.namespace,
                 'storage_id': FBID.toString(),
@@ -2609,17 +2626,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'battle_mess': "",
         'conquest_mess': "",
         'monster_mess': "",
-        '10v10_mess': "",
-        'festival_mess': "",
+        'gb10_mess': "",
+        'gb100_mess': "",
+        'gbClassic_mess': "",
         'guild_monster_mess': "",
-        'guild_battle_mess': "",
         'fortify_mess': "",
         'heal_mess': "",
         'demipoint_mess': "",
         'gifting_mess': "",
         'army_mess': "",
         'feats_mess': "",
-        'demibless_mess': "",
         'kobo_mess': "",
         'essenceScan_mess': "",
         'level_mess': "",
@@ -2728,8 +2744,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += guild_battle.menu();
             htmlCode += feed.menu();
             htmlCode += arena.menu();
-			if (config.getItem("WhenFestival", "Never") !== "Never") {
-				config.setItem("WhenFestival", "Never");
+			if (config.getItem("When100v100", "Never") !== "Never") {
+				config.setItem("When100v100", "Never");
 			}
 
             htmlCode += general.menu();
@@ -2911,11 +2927,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode = caap.startToggle('Quests', 'QUEST');
             htmlCode += caap.makeDropDownTR("Quest When", 'WhenQuest', questWhenList, questWhenInst, '', 'Never', false, false, 62);
-            htmlCode += caap.startDropHide('WhenQuest', '', 'Never', true);
-            htmlCode += caap.startDropHide('WhenQuest', 'XEnergy', 'At X Energy', false);
+            htmlCode += caap.display.start('WhenQuest', 'isnot', 'Never');
+            htmlCode += caap.display.start('WhenQuest', 'is', 'At X Energy');
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XQuestEnergy', XQuestInstructions, 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinQuestEnergy', XMinQuestInstructions, 0, '', '', true, false);
-            htmlCode += caap.endDropHide('WhenQuest', 'XEnergy');
+            htmlCode += caap.display.end('WhenQuest', 'is', 'At X Energy');
             htmlCode += caap.makeDropDownTR("Quest Area", 'QuestArea', questAreaList, '', '', '', false, false, 62);
             switch (config.getItem('QuestArea', questAreaList[0])) {
                 case 'Quest':
@@ -2937,7 +2953,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += "<a id='caap_stopAutoQuest' style='display: " + (autoQuestName ? "block" : "none") + "' href='javascript:;' title='" + stopInstructions + "'>";
             htmlCode += (autoQuestName ? "Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest()).energy + ")" : '');
             htmlCode += "</a>";
-            htmlCode += caap.endDropHide('WhenQuest');
+            htmlCode += caap.display.end('WhenQuest', 'isnot', 'Never');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -2962,11 +2978,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.startToggle('Status', 'UPGRADE SKILL POINTS');
             htmlCode += caap.makeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, statusInstructions);
-            htmlCode += caap.startCheckHide('AutoStat');
+            htmlCode += caap.display.start('AutoStat');
             htmlCode += caap.makeCheckTR("Spend All Possible", 'StatSpendAll', false, statSpendAllInstructions);
             htmlCode += caap.makeCheckTR("Upgrade Immediately", 'StatImmed', false, statImmedInstructions);
             htmlCode += caap.makeCheckTR("Advanced Settings <a href='http://caaplayer.freeforums.org/help-for-upgrade-points-control-t418.html' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, statusAdvInstructions);
-            htmlCode += caap.startCheckHide('AutoStatAdv', true);
+            htmlCode += caap.display.start('AutoStatAdv', 'isnot', true);
             for (it = 0; it < 5; it += 1) {
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD("Increase", false, false, "width: 27%; display: inline-block;");
@@ -2976,8 +2992,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode += caap.endTR;
             }
 
-            htmlCode += caap.endCheckHide('AutoStatAdv', true);
-            htmlCode += caap.startCheckHide('AutoStatAdv');
+            htmlCode += caap.display.end('AutoStatAdv', 'isnot', true);
+            htmlCode += caap.display.start('AutoStatAdv');
             for (it = 5; it < 10; it += 1) {
                 htmlCode += caap.startTR();
                 htmlCode += it === 5 ? caap.makeTD("Increase", false, false, "width: 25%; display: inline-block;") : caap.makeTD("Then", false, false, "width: 25%; display: inline-block;");
@@ -2987,8 +3003,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'));
             }
 
-            htmlCode += caap.endCheckHide('AutoStatAdv');
-            htmlCode += caap.endCheckHide('AutoStat');
+            htmlCode += caap.display.end('AutoStatAdv');
+            htmlCode += caap.display.end('AutoStat');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -3032,32 +3048,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeDropDownTR("Auto Bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR('Auto Archives', 'AutoArchives', false, autoArchivesInstructions);
             htmlCode += caap.makeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
-            htmlCode += caap.startCheckHide('AutoPotions');
+            htmlCode += caap.display.start('AutoPotions');
             htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 30, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 25, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 30, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 25, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 55, '', '', true, false);
-            htmlCode += caap.endCheckHide('AutoPotions');
+            htmlCode += caap.display.end('AutoPotions');
             htmlCode += caap.makeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
-            htmlCode += caap.startCheckHide('AutoAlchemy');
+            htmlCode += caap.display.start('AutoAlchemy');
             htmlCode += caap.makeCheckTR('Do Battle Hearts', 'AutoAlchemyHearts', false, autoAlchemyInstructions2, true);
-            htmlCode += caap.endCheckHide('AutoAlchemy');
+            htmlCode += caap.display.end('AutoAlchemy');
             htmlCode += caap.makeCheckTR('Auto Kobo', 'AutoKobo', false, autoKoboInstructions0);
-            htmlCode += caap.startCheckHide('AutoKobo');
+            htmlCode += caap.display.start('AutoKobo');
             htmlCode += caap.makeNumberFormTR("Keep", 'koboKeepUnder', autoKoboInstructions1, 100, '', '', true, false);
             htmlCode += caap.makeCheckTR('Roll Ale', 'autoKoboAle', false, autoKoboInstructions2,true);
             htmlCode += caap.makeCheckTR('Use White list', 'autoKoboUseWhiteList', true, autoKoboInstructions3,true);
-            htmlCode += caap.startCheckHide('autoKoboUseWhiteList');
+            htmlCode += caap.display.start('autoKoboUseWhiteList');
             htmlCode += caap.makeTD("White list of item to roll",true);
             htmlCode += caap.makeTextBox('kobo_whitelist', autoKoboWhiteListInstructions, '', '');
-            htmlCode += caap.endCheckHide('autoKoboUseWhiteList');
+            htmlCode += caap.display.end('autoKoboUseWhiteList');
             htmlCode += caap.makeCheckTR('Use Black list', 'autoKoboUseBlackList', false, autoKoboInstructions4,true);
-            htmlCode += caap.startCheckHide('autoKoboUseBlackList');
+            htmlCode += caap.display.start('autoKoboUseBlackList');
             htmlCode += caap.makeTD("Black list of item to not roll",true);
             htmlCode += caap.makeTextBox('kobo_blacklist', autoKoboBlackListInstructions, '', '');
-            htmlCode += caap.endCheckHide('autoKoboUseBlackList');
-            htmlCode += caap.endCheckHide('AutoKobo');
+            htmlCode += caap.display.end('autoKoboUseBlackList');
+            htmlCode += caap.display.end('AutoKobo');
             htmlCode += caap.makeDropDownTR("Festival Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
             htmlCode += caap.endToggle;
             return htmlCode;
@@ -3072,10 +3088,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Other controls
             var htmlCode = '', 
 				catList = ['Never','1000','3000','4500'],
+				LoMList = ['Never','Next','Newest'],
+				LoMInst = ['Do not move to defend LoM lands',
+					'Move to the next LoM that will defend',
+					'Move to the LoM with the most hours left on it that will be in defense at the same time as the next one'],
 				catInst = 'Conquest points collect will be triggered if any of these conditions are met';
 
             htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
-            htmlCode += caap.makeCheckTR('Move to defend LoM lands', 'doLoMmove', false, '');
+            htmlCode += caap.makeDropDownTR('Move to defend LoM lands', 'doLoMmove', LoMList, LoMInst, '', 'Never', false, false, 62);
             htmlCode += caap.makeCheckTR('Enable Resource Collect', 'doConquestCollect', false, '');
             htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
 			conquest.categories.forEach(function (category) {
@@ -3105,11 +3125,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode = caap.startToggle('essenceOptions', 'ESSENCE TRADING');
             htmlCode += caap.makeCheckTR('Scan for Essence', 'EssenceScanCheck', false, essenceInstructions);
-            htmlCode += caap.startCheckHide('EssenceScanCheck');
+            htmlCode += caap.display.start('EssenceScanCheck');
             htmlCode += caap.makeNumberFormTR("Scan Interval", 'essenceScanInterval', essenceInstructions1, 60, '', '', true, false);
             htmlCode += caap.makeCheckTR('Show as Available Only', 'essenceRoomOnly', true, essenceInstructions2);
             htmlCode += caap.makeCheckTR('Trade Essence', 'essenceTrade', false);
-            htmlCode += caap.startCheckHide('essenceTrade');
+            htmlCode += caap.display.start('essenceTrade');
             htmlCode += caap.makeNumberFormTR("Min Energy for Trade", 'EssenceEnergyMin', energyInstructions, '', '', '', false, false, 30);
             htmlCode += caap.makeDropDownTR("Max Trade Amount", 'maxEssenceTrade', limitList, limitListInstructions, '', '800', false, false, 30);
             for (it = 0; it < 5; it += 1) {
@@ -3120,8 +3140,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode += caap.makeTD(caap.makeNumberForm('RuneValue' + it, runeInstructions, 0), false, true, "width: 20%; display: inline-block;");
                 htmlCode += caap.endTR;
             }
-            htmlCode += caap.endCheckHide('essenceTrade');
-            htmlCode += caap.endCheckHide('EssenceScanCheck');
+            htmlCode += caap.display.end('essenceTrade');
+            htmlCode += caap.display.end('EssenceScanCheck');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -3170,11 +3190,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             /*
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('FB Custom Dropdown', 'FBCustomDrop', false, "Enable FB custom request dropdown");
-                htmlCode += caap.startCheckHide('FBCustomDrop');
+                htmlCode += caap.display.start('FBCustomDrop');
                 htmlCode += caap.startTR();
                 htmlCode += caap.makeTD(caap.makeTextBox('FBCustomDropList', "List of UserIDs for a FB custom request dropdown", '', ''));
                 htmlCode += caap.endTR;
-                htmlCode += caap.endCheckHide('FBCustomDrop');
+                htmlCode += caap.display.end('FBCustomDrop');
             }
             */
 
@@ -3187,16 +3207,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //htmlCode += caap.makeCheckTR('Keep Shrink', 'enableKeepShrink', true, keepShrinkInstructions);
             /*
             htmlCode += caap.makeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
-            htmlCode += caap.startCheckHide('enableRecipeClean');
+            htmlCode += caap.display.start('enableRecipeClean');
             htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
-            htmlCode += caap.endCheckHide('enableRecipeClean');
+            htmlCode += caap.display.end('enableRecipeClean');
             */
 
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Auto Scroll To Top', 'scrollToTop', false, "Automatically scrolls the window to the very top of the view.");
-                htmlCode += caap.startCheckHide('scrollToTop');
+                htmlCode += caap.display.start('scrollToTop');
                 htmlCode += caap.makeSlider('Offset', "scrollToPosition", '', 0, true);
-                htmlCode += caap.endCheckHide('scrollToTop');
+                htmlCode += caap.display.end('scrollToTop');
             }
 
 
@@ -3205,15 +3225,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
 
             htmlCode += caap.makeCheckTR('Days to next level', 'NextLevelInDays', false, nextLevelInDaysInstructions);
-            htmlCode += caap.startCheckHide('NextLevelInDays');
+            htmlCode += caap.display.start('NextLevelInDays');
             htmlCode += caap.makeNumberFormTR('if more than n days', 'NextLevelThreshold', nextLevelThresholdInstructions, 5, '', '', true, false);
-            htmlCode += caap.endCheckHide('NextLevelInDays');
+            htmlCode += caap.display.end('NextLevelInDays');
 
             htmlCode += caap.makeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
-            htmlCode += caap.startCheckHide('SetTitle');
+            htmlCode += caap.display.start('SetTitle');
             htmlCode += caap.makeCheckTR('Display Action', 'SetTitleAction', false, titleInstructions1, true);
             htmlCode += caap.makeCheckTR('Display Name', 'SetTitleName', false, titleInstructions2, true);
-            htmlCode += caap.endCheckHide('SetTitle');
+            htmlCode += caap.display.end('SetTitle');
             htmlCode += caap.makeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('Use CA Background', 'backgroundCA', false, '');
@@ -3228,16 +3248,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             //htmlCode += caap.makeNumberFormTR("Up - Down offset (px)", 'udOffset', 'Changing this will move the side menu up or down', 44, '', '', true, false);
             //htmlCode += caap.makeTD("<input type='button' id='caap_moveMenu' value='Set Menu Position' style='padding: 0; font-size: 10px; height: 18px' />");
             htmlCode += caap.makeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
-            htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
+            htmlCode += caap.display.start('DisplayStyle', 'is', 'Custom');
             htmlCode += caap.makeTD("Running:");
             htmlCode += caap.makeNumberFormTR("Color", 'CustStyleBackgroundLight', '#FFFFFF', '#E0C691', '', 'color', true, false, 40);
             htmlCode += caap.makeSlider('Transparency', "CustStyleOpacityLight", '', 1, true);
             htmlCode += caap.makeTD("Paused:");
             htmlCode += caap.makeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
             htmlCode += caap.makeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
-            htmlCode += caap.endDropHide('DisplayStyle');
+            htmlCode += caap.display.end('DisplayStyle', 'is', 'Custom');
             htmlCode += caap.makeCheckTR('Advanced', 'AdvancedOptions', false);
-            htmlCode += caap.startCheckHide('AdvancedOptions');
+            htmlCode += caap.display.start('AdvancedOptions');
             htmlCode += caap.makeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
             htmlCode += caap.makeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
             //htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
@@ -3269,7 +3289,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 htmlCode += "</fieldset></form>";
             }
 
-            htmlCode += caap.endCheckHide('AdvancedOptions');
+            htmlCode += caap.display.end('AdvancedOptions');
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
@@ -3314,18 +3334,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
              \-------------------------------------------------------------------------------------*/
             var layout = "<div id='caap_top'>",
                 displayList = [
-                    'Arena',
+                    'Arena Stats',
                     'Army',
                     'Battle Stats',
                     'Conquest Stats',
                     'Feed',
-                    'Festival',
+                    '100v100',
                     'Generals Stats',
                     'Gift Queue',
                     'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
-                    'Guild Battle',
+                    'Classic',
                     '10v10',
                     'Item Stats',
                     'Magic Stats',
@@ -3339,7 +3359,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Display your Battle history statistics, who you fought and if you won or lost.',
                     'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
-                    'Display the Festival battle in progress.',
+                    'Display the 100v100 battle in progress.',
                     'Display information about your Generals.',
                     'Display your current Gift Queue.',
                     'Display your Gifting history, how many gifts you have received and returned to a user.',
@@ -3378,10 +3398,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             Next we put in our Guild and Festival battle dropdown which will only show when we have
             selected the Guild or Festival battle display.
             \-------------------------------------------------------------------------------------*/
-//            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'>";
-//            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
 
-            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['Festival','Guild Battle', '10v10'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
+            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['gb100','gbClassic', 'gb10'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
             layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
@@ -3411,6 +3429,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonBattle' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'>";
             layout += "<input type='button' id='caap_clearBattle' value='Clear Battle Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+
+            /*-------------------------------------------------------------------------------------\
+            Next we put in the Clear Arena Stats button which will only show when we have
+            selected the Target List display
+            \-------------------------------------------------------------------------------------
+            layout += "<div id='caap_buttonArena' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'>";
+            layout += "<input type='button' id='caap_clearArena' value='Clear Arena Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";*/
 
             /*-------------------------------------------------------------------------------------\
             Next we put in the Clear Conquest Stats button which will only show when we have
@@ -3482,10 +3507,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_guildBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Battle' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_10v10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '10v10' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gbClassic' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gbClassic' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb10' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoArena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Soldiers Stats' ? 'block' : 'none') + "'></div>";
@@ -3494,7 +3520,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_festival' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Festival' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb100' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoConquest' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoGuilds' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'></div>";
@@ -3653,6 +3679,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.setDisplayById = function (idName) {
+        try {
+			$j("div[id^='caap_displayIf__" + idName + "__is']").each( function() {
+				var id = $j(this).attr('id'),					
+					arr = id.regex(/caap_displayIf__(\w+)__(is|isnot)__(\w+)/);
+				if (arr) {
+					caap.setDisplay('', id.replace('caap_',''), (config.getItem(arr[0], false).toString() == arr[2].replace(/_/g,' ')) == (arr[1] == 'is'));
+				} else {
+					con.warn('caap.dropBoxListener: Unable to parse setting change for id ' + id);
+				}
+			});
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in setDisplayById: " + err.stack);
+            return false;
+        }
+    };
+
     caap.checkBoxListener = function (e) {
         try {
             var idName = e.target.id.stripCaap(),
@@ -3662,8 +3707,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             con.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
             config.setItem(idName, e.target.checked);
-            caap.setDisplay("caapDivObject", idName + '_hide', e.target.checked, true);
-            caap.setDisplay("caapDivObject", idName + '_not_hide', !e.target.checked, true);
+			caap.setDisplayById(idName);
+			
             switch (idName) {
                 case "AutoStatAdv":
                     con.log(9, "AutoStatAdv");
@@ -4090,6 +4135,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
     caap.textBoxListener = function (e) {
         try {
             var idName = e.target.id.stripCaap();
@@ -4152,89 +4198,40 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (e.target.selectedIndex > 0) {
                 var idName = e.target.id.stripCaap(),
                     value = e.target.options[e.target.selectedIndex].value,
-                    title = e.target.options[e.target.selectedIndex].title;
+                    title = e.target.options[e.target.selectedIndex].title,
+					worker = idName.replace('When', ''),
+					mess = worker.toLowerCase() + '_mess';
 
                 con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
-                if (idName.hasIndexOf('WhenTokens') >= 0) {
-                    caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
-                    caap.setDisplay("caapDivObject", idName + 'Burn_hide', value == 'Between Max/Min');
-                } else if (idName.hasIndexOf('When')) {
-                    caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Never');
-                    if (idName == 'WhenGuildBattle') {
-                        caap.setDisplay("caapDivObject", idName + 'FixedTimes_hide', value === 'At fixed times');
-                    } else if (!idName.hasIndexOf('Quest')) {
-                        if (!idName.hasIndexOf('Festival') && !idName.hasIndexOf('Conquest')) {
-                            caap.setDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
-                            caap.setDisplay("caapDivObject", idName + 'DelayStayHidden_hide', value === 'Stay Hidden', false);
-                        }
+				caap.setDisplayById(idName);
+				
+                if (/Attribute?/.test(idName)) {
+                    state.setItem("statsMatch", true);
+					return true;
+                }
 
-                        if (idName.hasIndexOf('Conquest')) {
-                            caap.setDisplay("caapDivObject", idName + 'XCoins_hide', value === 'At X Coins');
-                        }
-
-                        caap.setDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
-                        caap.setDisplay("caapDivObject", 'WhenMonsterStayHidden_hide', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
-                        caap.setDisplay("caapDivObject", 'DemiPointsFirst_hide', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
-                        switch (idName) {
-                            case 'WhenBattle':
-                                if (value === 'Never') {
-                                    caap.setDivContent('battle_mess', 'Battle off');
-                                } else {
-                                    caap.setDivContent('battle_mess', '');
-                                }
-
-                                break;
-                            case 'WhenConquest':
-                                if (value === 'Never') {
-                                    caap.setDivContent('conquest_mess', 'Conquest off');
-                                } else {
-                                    caap.setDivContent('conquest_mess', '');
-                                }
-
-                                break;
-                            case 'WhenMonster':
-                                if (value === 'Never') {
-                                    caap.setDivContent('monster_mess', 'Monster off');
-                                } else {
-                                    caap.setDivContent('monster_mess', '');
-                                }
-
-                                break;
-                            case 'WhenGuildMonster':
-                                if (value === 'Never') {
-                                    caap.setDivContent('guild_monster_mess', 'Guild Monster off');
-                                } else {
-                                    caap.setDivContent('guild_monster_mess', '');
-                                }
-
-                                break;
-                            case 'WhenGuildBattle':
-                                if (value === 'Never') {
-                                    caap.setDivContent('guild_battle_mess', 'Guild Battle off');
-                                } else {
-                                    caap.setDivContent('guild_battle_mess', '');
-                                }
-
-                                break;
-                            case 'WhenFestival':
-                                if (value === 'Never') {
-                                    caap.setDivContent('festival_mess', 'Festival off');
-                                } else {
-                                    caap.setDivContent('festival_mess', '');
-                                }
-
-                                break;
-                            default:
-                        }
-                    } else {
-                        caap.setDisplay("caapDivObject", idName + 'XEnergy_hide', value === 'At X Energy');
-                    }
-                } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
-                    state.setItem('AutoQuest', caap.newAutoQuest());
-                    caap.clearAutoQuest();
-                    if (idName === 'QuestArea') {
+				switch (idName) {
+					case 'WhenBattle':
+					case 'WhenConquest':
+					case 'WhenMonster':
+						caap.setDivContent(mess, value === 'Never' ? worker + ' off' : '');
+						if (worker == 'Monster' || worker == 'Battle') {
+							caap.setDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
+							caap.setDisplay("caapDivObject", 'WhenMonsterStayHidden_hide', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+						}
+						break;
+						
+					case 'WhenGuildMonster':
+						caap.setDivContent('guild_monster_mess', value === 'Never' ? 'Guild Monster off' : '');
+						break;
+						
+					case 'WhenGuildBattle': // Add in 10v10, 100v100?
+						caap.setDivContent('gbClassic_mess', value === 'Never' ? 'Classic off' : '');
+						break;
+						
+					case 'QuestArea':
                         switch (value) {
                             case "Quest":
                                 caap.changeDropDownList('QuestSubArea', caap.landQuestList);
@@ -4247,64 +4244,57 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                                 break;
                             default:
                         }
-                    }
-                } else if (idName === 'BattleType') {
-                    state.getItem('BattleChainId', 0);
-                } else if (idName === 'AutoBless' && value === 'None') {
-                    schedule.setItem('BlessingTimer', 0);
-                } else if(idName === 'doArenaBattle' && value === 'None') {
-                    schedule.setItem('arenaTimer', 0);
-                } else if (idName === 'festivalBless' && value === 'None') {
-                    schedule.setItem('festivalBlessTimer', 0);
-                } else if (idName === 'TargetType') {
-                    state.getItem('BattleChainId', 0);
-                    //caap.setDisplay("caapDivObject", 'TargetTypeFreshmeat_hide', value === "Freshmeat");
-                    caap.setDisplay("caapDivObject", 'TargetTypeUserId_hide', value === "Userid List");
-                    caap.setDisplay("caapDivObject", 'TargetTypeRaid_hide', value === "Raid");
-                } else if (idName === 'LevelUpGeneral') {
-                    caap.setDisplay("caapDivObject", idName + '_hide', value !== 'Use Current');
-                } else if (/Attribute?/.test(idName)) {
-                    state.setItem("statsMatch", true);
-                } else if (idName === 'chainFestival') {
-                    caap.setDisplay("caapDivObject", idName + '_hide', value !== '0');
-                } else if (idName === 'DisplayStyle') {
-                    caap.setDisplay("caapDivObject", idName + '_hide', value === 'Custom');
-                    switch (value) {
-                        case "Original":
-                            state.setItem("StyleBackgroundLight", "#EFEFFF");
-                            state.setItem("StyleBackgroundDark", "#FEEFFF");
-                            state.setItem("StyleOpacityLight", 1);
-                            state.setItem("StyleOpacityDark", 1);
-                            break;
-                        case "None":
-                            state.setItem("StyleBackgroundLight", "#FFFFFF");
-                            state.setItem("StyleBackgroundDark", "#FFFFFF");
-                            state.setItem("StyleOpacityLight", 1);
-                            state.setItem("StyleOpacityDark", 1);
-                            break;
-                        case "Custom":
-                            state.setItem("StyleBackgroundLight", config.getItem("CustStyleBackgroundLight", "#E0C691"));
-                            state.setItem("StyleBackgroundDark", config.getItem("CustStyleBackgroundDark", "#B09060"));
-                            state.setItem("StyleOpacityLight", config.getItem("CustStyleOpacityLight", 1));
-                            state.setItem("StyleOpacityDark", config.getItem("CustStyleOpacityDark", 1));
-                            break;
-                        default:
-                            state.setItem("StyleBackgroundLight", "#E0C691");
-                            state.setItem("StyleBackgroundDark", "#B09060");
-                            state.setItem("StyleOpacityLight", 1);
-                            state.setItem("StyleOpacityDark", 1);
-                    }
-
-                    caap.colorUpdate();
-                }
+					case 'QuestSubArea':
+					case 'WhyQuest':
+						state.setItem('AutoQuest', caap.newAutoQuest());
+						caap.clearAutoQuest();
+						break;
+						
+					case 'BattleType':
+					case 'TargetType':
+						state.setItem('BattleChainId', 0);
+						break;
+						
+					case 'DisplayStyle':
+						caap.setDisplay("caapDivObject", idName + '_hide', value === 'Custom');
+						switch (value) {
+							case "Original":
+								state.setItem("StyleBackgroundLight", "#EFEFFF");
+								state.setItem("StyleBackgroundDark", "#FEEFFF");
+								state.setItem("StyleOpacityLight", 1);
+								state.setItem("StyleOpacityDark", 1);
+								break;
+							case "None":
+								state.setItem("StyleBackgroundLight", "#FFFFFF");
+								state.setItem("StyleBackgroundDark", "#FFFFFF");
+								state.setItem("StyleOpacityLight", 1);
+								state.setItem("StyleOpacityDark", 1);
+								break;
+							case "Custom":
+								state.setItem("StyleBackgroundLight", config.getItem("CustStyleBackgroundLight", "#E0C691"));
+								state.setItem("StyleBackgroundDark", config.getItem("CustStyleBackgroundDark", "#B09060"));
+								state.setItem("StyleOpacityLight", config.getItem("CustStyleOpacityLight", 1));
+								state.setItem("StyleOpacityDark", config.getItem("CustStyleOpacityDark", 1));
+								break;
+							default:
+								state.setItem("StyleBackgroundLight", "#E0C691");
+								state.setItem("StyleBackgroundDark", "#B09060");
+								state.setItem("StyleOpacityLight", 1);
+								state.setItem("StyleOpacityDark", 1);
+						}
+						caap.colorUpdate();
+						break;
+						
+					default:
+				}
             }
-
             return true;
         } catch (err) {
             con.error("ERROR in dropBoxListener: " + err.stack);
             return false;
         }
     };
+
     caap.textAreaListener = function (e) {
         function commas() {
             // Change the boolean from false to true to enable BoJangles patch or
@@ -4953,6 +4943,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'fb_tab_land_on.jpg',
             CheckResultsFunction: 'checkResults_land'
         },
+        'territory': {
+            signaturePic: 'fbland_top.jpg',
+            CheckResultsFunction: 'checkResults_territory'
+        },
         'generals': {
             signaturePic: 'tab_generals_on.gif',
             CheckResultsFunction: 'checkResults_onGenerals'
@@ -5104,13 +5098,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'festival_achievement_monster_',
             CheckResultsFunction: 'checkResults_onMonster'
         },
-        'festival_battle_home': {
-            signaturePic: 'festival_button_rewards.gif',
-            CheckResultsFunction: 'checkResults_festival_battle_home'
+        'hundred_battle': {
+            signaturePic: 'fb_guild_btn_100_off.jpg',
+            CheckResultsFunction: 'checkResults_hundred_battle'
         },
-        'festival_guild_battle': {
-            signatureId: 'arena_battle_banner_section',
-            CheckResultsFunction: 'checkResults_festival_guild_battle'
+        'hundred_battle_view': {
+            signaturePic: 'guild_battle_banner.jpg',
+            CheckResultsFunction: 'checkResults_hundred_battle_view'
         },
         'army_news_feed': {
             signatureId: 'army_feed_body',
@@ -5137,10 +5131,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guild_formation'
         },
         'guildv2_conquest_command': {
-            signaturePic: 'guild_tab6_on.jpg',
-            CheckResultsFunction: 'checkResults_conquest'
+            signaturePic: 'conq2_mistnav_on3.gif',
+            CheckResultsFunction: 'checkResults_conquestMist'
         },
-        'onConquestEarth': {
+        'guildv2_conquest_castle': {
             signatureId: 'conq2_earthnav_on3.',
             CheckResultsFunction: 'checkResults_conquestEarth'
         },
@@ -5165,7 +5159,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_guildConquestMarket'
         },
         'arena' : {
-            signatureId : 'battle_tab_arena_on.jpg',
+            signatureId : 'arena9_homemid.jpg',
             CheckResultsFunction : 'checkResults_arenaBattle'
         },
         'player_loadouts' : {
@@ -5209,9 +5203,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var pageUrl = session.getItem('clickUrl', ''),
                 page2 = $u.setContent(pageUrl, 'none').basename(".php"),
                 page = session.getItem('page', ''),
-                demiPointsFirst = config.getItem('DemiPointsFirst', false),
-                whenMonster = config.getItem('WhenMonster', 'Never'),
-                whenBattle = config.getItem('whenBattle', 'Never'),
                 it = 0,
                 len = 0,
                 AFrecentAction = localStorage.AFrecentAction;
@@ -5223,21 +5214,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 AFrecentAction = true;
             }
 
-            // THIS doesn't work and make CAAP infinite loop if no monsters
-            //- reverting back to previous d27 behaviour -- magowiz
-
             if ((monster.records.length === 0) && ((AFrecentAction === true))) {
                 monster.select(true);
             }
 
-            if (general.quickSwitch) {
-//                general.GetEquippedStats();
-            }
-
-                // why? because we need to make sure things like highlight users damage and
-                // joinability are called in both and we update % bar values correctly when
-                // we are using the new whatclickedimgButton listener
-                // Also detect when there is an actual page match that is incorrect
+			// why? because we need to make sure things like highlight users damage and
+			// joinability are called in both and we update % bar values correctly when
+			// we are using the new whatclickedimgButton listener
+			// Also detect when there is an actual page match that is incorrect
             if (page !== page2) {
                 if ((page === 'onBattle' && page2 !== 'battle_monster') || (page === 'onRaid' && page2 === 'raid')) {
                     con.warn("page and page2 differ", page, page2, pageUrl);
@@ -5259,8 +5243,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
             
             session.setItem('page', page);
-            general.GetLoadouts();
-            general.GetEquippedStats();
+            general.getLoadouts();
+            general.getEquippedStats();
 
             if ($u.hasContent(caap.pageList[page])) {
                 con.log(3, 'caap.checkResults caap.resultsText', caap.resultsText);
@@ -5277,10 +5261,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             // Information updates
             caap.updateDashboard();
             caap.setNextLevelMessage();
-            caap.setDivContent('demipoint_mess',
-                (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never') || whenBattle === 'Demi Points Only' ?
-                    (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (whenBattle !== 'Never' && demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
-            caap.setDivContent('demibless_mess', schedule.check('BlessingTimer') ? 'Demi Blessing = none' : 'Next Demi Blessing: ' + $u.setContent(caap.displayTime('BlessingTimer'), "Unknown"));
+            caap.setDivContent('demipoint_mess', !battle.demisPointsToDo('set') ? 'Daily Demi Points: off' : battle.demisPointsToDo('left') ? 'Daily Demi Points in progress' : 'Daily Demi Points done');
             caap.setDivContent('essenceScan_mess', schedule.check('newEssenceListTimer') ? 'Essence Scan = none' : 'Next Scan: ' + $u.setContent(caap.displayTime('newEssenceListTimer'), "Unknown"));
             caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(caap.displayTime('festivalBlessTimer'), "Unknown"));
             if ($u.hasContent(general.List) && general.List.length <= 2) {
@@ -5296,8 +5277,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.setNextLevelMessage = function ()
-    {
+    caap.setNextLevelMessage = function () {
         if (config.getItem('NextLevelInDays', false)
         && (config.getItem('NextLevelThreshold', 5) * 24) < caap.stats.indicators.hrtl) {
             caap.setDivContent('level_mess', 'Expected next level: +' + (Math.floor(caap.stats.indicators.hrtl / 24 * 10) / 10) + ' days');
@@ -5514,7 +5494,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'defense' : 0,
             'damage' : 0,
             'health' : 0
-        }
+        },
+		'priorityGeneral' : 'Use Current'
     };
 
     caap.loadStats = function (FBID, AccName) {
@@ -5647,8 +5628,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.stats.exp) {
                 xS = gm ? gm.getItem("expStaminaRatio", 2.4, hiddenVar) : 2.4;
                 xE = state.getItem('AutoQuest', caap.newAutoQuest()).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
-                caap.stats.indicators.htl = ((caap.stats.level * 12.5) - (caap.stats.stamina.max * xS) - (caap.stats.energy.max * xE)) / (12 * (xS + xE));
-                caap.stats.indicators.hrtl = (caap.stats.exp.dif - (caap.stats.stamina.num * xS) - (caap.stats.energy.num * xE)) / (12 * (xS + xE));
+                caap.stats.indicators.htl = ((caap.stats.level * 12.5) - (caap.stats.stamina.max * xS) - (caap.stats.energy.max * xE)) / (24 * (xS + xE));
+                caap.stats.indicators.hrtl = (caap.stats.exp.dif - (caap.stats.stamina.num * xS) - (caap.stats.energy.num * xE)) / (24 * (xS + xE));
                 caap.stats.indicators.enl = Date.now() + Math.ceil(caap.stats.indicators.hrtl * 3600000);
             } else {
                 con.warn('Could not calculate time to next level. Missing experience stats!');
@@ -6663,6 +6644,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.maxStatsCheck = function() {
 		try {
+			caap.stats.priorityGeneral = 'Use Current';
 			var result = ['stamina', 'energy'].some( function(stat) {
 				if (!$u.isNumber(caap.stats[stat].norm) || caap.stats[stat].norm === 0) {
 					caap.navigateTo('keep');
@@ -7240,7 +7222,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (general.quickSwitch) {
-//                general.GetEquippedStats();
+//                general.getEquippedStats();
             }
 
             // Buy quest requires popup
@@ -7369,7 +7351,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
-            } else if (questGeneral && questGeneral !== general.GetCurrentGeneral()) {
+            } else if (questGeneral && questGeneral !== general.getCurrentGeneral()) {
                 if (general.LevelUpCheck("QuestGeneral")) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
@@ -7420,7 +7402,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 points = [],
                 success = true;
 
-            caap.blessingResults();
             if ($u.hasContent(demiDiv) && demiDiv.length === 5) {
                 demiDiv.each(function () {
                     var num = $u.setContent($j(this).children().next().eq(1).children().children().next().text(), '').trim().innerTrim().regex(/(\d+)/);
@@ -7485,7 +7466,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.symbolquestsClickListener = function (event) {
         con.log(2, "Clicked Demi Power blessing", event.target.parentNode.id);
         caap.setDomWaiting("symbolquests.php");
-        caap.blessingPerformed = true;
     };
 
     caap.checkResults_quests = function (pickQuestTF) {
@@ -8200,7 +8180,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return 0;
 			}
 
-			if ((caap.inLevelUpMode() || session.getItem('burnenergy')) && caap.stats.energy.num >= energyRequired) {
+			if (caap.inLevelUpMode() && caap.stats.energy.num >= energyRequired) {
 				if (msgdiv === "quest_mess") {
 					window.clearTimeout(caap.qtom);
 				}
@@ -8383,42 +8363,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'stamina': 5
     };
 
-    caap.blessingPerformed = false;
-
-    caap.blessingResults = function () {
-        try {
-            var hours = 0,
-                minutes = 0,
-                done = false;
-
-            if (caap.blessingPerformed) {
-                if (/Please come back in:/i.test(caap.resultsText)) {
-                    // Check time until next Oracle Blessing
-                    hours = $u.setContent(caap.resultsText.regex(/(\d+) hour/i), 3);
-                    minutes = $u.setContent(caap.resultsText.regex(/(\d+) minute/i), 0);
-                    done = true;
-                } else if (/You have paid tribute to/i.test(caap.resultsText)) {
-                    // Recieved Demi Blessing.  Wait X hours to try again.
-                    hours = /Azeron/i.test(caap.resultsText) ? 48 : 24;
-                    done = true;
-                } else {
-                    if ($u.hasContent(caap.resultsText)) {
-                        con.warn("Unknown blessing result text", caap.resultsText);
-                    }
-                }
-
-                if (done) {
-                    con.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + minutes.lpad("0", 2));
-                    schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
-                }
-
-                caap.blessingPerformed = false;
-            }
-        } catch (err) {
-            con.error("ERROR in blessingResults: " + err.stack);
-        }
-    };
-
     caap.pstDay = function () {
         var time = new Date();
         var pstMS = time.getTime() + ((-420) * 60000);
@@ -8528,7 +8472,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return attribute;
                     }
                 }
-                return 'attack';
+                return '';
             } catch (err) {
                 con.error("ERROR in autoBlessSelection: " + err.stack);
                 return 'none';
@@ -8540,10 +8484,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.autoBless = function () {
         try {
-            if (caap.blessingPerformed) {
-                return true;
-            }
-
             var autoBless = caap.autoBlessSelection(),
                 autoBlessN = caap.deityTable[autoBless.toLowerCase()],
                 picSlice = $j(),
@@ -8551,11 +8491,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 rVal;
 
 
-            if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
+            picSlice = $j("#mainHeaderTabs input[src*='header_persist_btn_pray.gif']");
+			if (!$u.hasContent(autoBlessN) || !$u.hasContent(picSlice)) { 
                 picSlice = null;
                 descSlice = null;
                 return false;
             }
+			
+			descSlice = $j("#mainHeaderTabs input[src*='demi_symbol_" + autoBlessN + ".gif']")
+			if ($u.hasContent(descSlice) && schedule.check('blessingTimer') && caap.ifClick(picSlice)) {
+				schedule.setItem('blessingTimer', 5 * 60);
+				return true;
+			}
 
             if (caap.navigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
                 picSlice = null;
@@ -8595,8 +8542,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Click deity blessing for', autoBless, autoBlessN);
-            schedule.setItem('BlessingTimer', 300, 300);
-            caap.blessingPerformed = true;
             caap.click(picSlice);
             picSlice = null;
             descSlice = null;
@@ -8889,8 +8834,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.bestLand = {};
 
     caap.sellLand = {};
+	
+	caap.checkResults_territory = function () {
+		// Nothing to see here
+    };
 
-    caap.checkResults_land = function () {
+    caap.checkResults_land = function () { //fbland_top.jpg
         function selectLands(div, val, type) {
             try {
                 type = type || 'Buy';
@@ -9062,13 +9011,25 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
+            var bestLandCost = {},
+				cashTotAvail = 0,
+                cashNeed = 0,
+                theGeneral = '',
+				result = false;
+				
+			if (schedule.check('territory')) {
+				result = caap.navigate2('territory,clickimg:fbland_btn_collect.gif');
+				if (result == 'fail') {
+					schedule.setItem('territory', 6 * 60 * 60);
+				} else if (result) {
+					con.log(1, 'Checking daily territory collect.');
+					return true;
+				}
+			}
+
             if (!config.getItem('autoBuyLand', false)) {
                 return false;
             }
-
-            var bestLandCost = {}, cashTotAvail = 0,
-                cashNeed = 0,
-                theGeneral = '';
 
             // Do we have lands above our max to sell?
             if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
@@ -9228,21 +9189,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.guildBattle = function () {
         try {
-			var fRecord = guild_battle.getItem(guild_battle.gf.festival),
-				gRecord = guild_battle.getItem(guild_battle.gf.guild_battle),
-				tRecord = guild_battle.getItem(guild_battle.gf.tenVten),
+			var fRecord = guild_battle.getItem(guild_battle.gf.gb100),
+				gRecord = guild_battle.getItem(guild_battle.gf.gbClassic),
+				tRecord = guild_battle.getItem(guild_battle.gf.gb10),
 				configSet = false;
 				
-			caap.stats.priorityGeneral = 'Use Current';
-
 			if (schedule.since(fRecord.startTime, 1 * 60) && !schedule.since(fRecord.startTime, 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('Fest_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Fest_ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('100v100_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('100v100_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -8 * 60) && !schedule.since(tRecord.startTime, -0 * 60)) {
 				caap.stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
-				caap.stats.priorityGeneral = config.getItem('GB_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_ClassGeneral','Use Current');
+				caap.stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
 			}
 			if (caap.stats.priorityGeneral != 'Use Current') {
 				con.log(2,' Pre battle class general',caap.stats.priorityGeneral);
@@ -9252,15 +9211,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 				
 			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB_Fest_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_Fest_IdleGeneral','Use Current');
+				caap.stats.battleIdle = config.getItem('GB_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_IdleGeneral','Use Current');
 			} else {
 				caap.stats.battleIdle = 'Use Current';
 			}
 
-			return ['festival', 'tenVten', 'guild_battle'].some( function(name) {
-				configSet =  config.getItem(guild_battle.gf[name].abbrev + 'whenTokens') != 'Never' ||
-					config.getItem(guild_battle.gf[name].abbrev + ' ClassGeneral', 'Use Current') != 'Use Current' ||
-					config.getItem(guild_battle.gf[name].abbrev + 'collect', false);
+			return ['gb100', 'gb10', 'gbClassic'].some( function(name) {
+				configSet =  config.getItem(guild_battle.gf[name].label + 'whenTokens') != 'Never' ||
+					config.getItem(guild_battle.gf[name].name + ' ClassGeneral', 'Use Current') != 'Use Current' ||
+					config.getItem(guild_battle.gf[name].label + 'collect', false);
 				if (configSet && guild_battle.work(guild_battle.gf[name])) {
 					return true;
 				}
@@ -9274,7 +9233,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkAllGenerals = function () {
         try {
-            return config.getItem('checkEachGeneral', false) ? general.GetAllStats() : false;
+            return config.getItem('checkEachGeneral', false) ? general.getAllStats() : false;
         } catch (err) {
             con.error("ERROR in checkAllGenerals: " + err.stack);
             return false;
@@ -9472,11 +9431,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var headerDiv = $j('#mainHeaderTabs');
 			if (config.getItem('AutoArchives', false) && caap.ifClick($j("input[src*='header_persist_btn_eneable.gif']", headerDiv))) {
 				return true;
-			} else if (config.getItem('doConquestCollect', false)
+			} else if (schedule.check('doConquestCollect') && config.getItem('doConquestCollect', false)
 				&& caap.ifClick($j("div[style*='header_persist_collect_container_wood.jpg'] input[src*='header_persist_btn_collect.gif']", headerDiv))) {
+				schedule.setItem('doConquestCollect', 5 * 60);
 				return true;
-			} else if (config.getItem('doConquestCrystalCollect', false) 
+			} else if (schedule.check('doConquestCrystalCollect') && config.getItem('doConquestCrystalCollect', false) 
 				&& caap.ifClick($j("div[style*='header_persist_collect_container_crystal.jpg'] input[src*='header_persist_btn_pray.gif']", headerDiv))) {
+				schedule.setItem('doConquestCrystalCollect', 5 * 60);
 				return true;
 			} 
 			if (conquest.collect()) {
@@ -9495,29 +9456,45 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var myIndex = caap.stats.LoMland,
 				myLand = {},
 				nextLand = -1,
-				result = false;
+				result = false,
+				defendable = function(land) {
+					return land.status == 'enter' && land.defenders < 25 && land.phaseLeft < land.timeLeft + 2;
+				};
 			
-			if (!config.getItem('doLoMmove', false) || (myIndex >= 0 && conquestLands.records[myIndex].status != 'enter') || !schedule.check('LoMmoveWait')) {
+			if (config.getItem('doLoMmove', 'Never') == 'Never' || (myIndex >= 0 && conquestLands.records[myIndex].status != 'enter') || !schedule.check('LoMmoveWait')) {
 				return false;
 			}
+			// Find the land with the least time until it goes into defend
 			nextLand = conquestLands.records.reduce( function(previous, land) {
-				return land.status == 'enter' && land.defenders < 25 
-					&& (previous == -1 || land.phaseLeft < previous.phaseLeft) ? land : previous;
+				return defendable(land)	&& (previous == -1 || land.phaseLeft < previous.phaseLeft) ? land : previous;
 			}, nextLand);
-			if (myIndex == -1 && nextLand !== -1) {
-				result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
-				//result = caap.navigate2("guildv2_conquest_command");
-				caap.stats.LoMland = result == 'done' ? nextLand.index : caap.stats.LoMland;
-			} else {
-				myLand = conquestLands.records[myIndex];
-				// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
-				if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
-					result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
-					caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
+			
+			// See if there is a land with more hours on it, that will be in defend during the same time
+			if (config.getItem('doLoMmove', 'Never') == 'Newest') {
+				if (nextLand !== -1) {
+					nextLand = conquestLands.records.reduce( function(previous, land) {
+						return defendable(land)	&& Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2 > land.phaseLeft 
+							&& land.timeLeft > previous.timeLeft ? land : previous;
+					}, nextLand);
 				}
 			}
-			if (result == 'fail') {
-				schedule.setItem('LoMmoveWait', 5 * 60);
+
+			if (nextLand != -1) {
+				if (myIndex == -1) {
+					result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
+					//result = caap.navigate2("guildv2_conquest_command");
+					caap.stats.LoMland = result == 'done' ? nextLand.index : caap.stats.LoMland;
+				} else {
+					myLand = conquestLands.records[myIndex];
+					// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
+					if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
+						result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
+						caap.stats.LoMland = result == 'done' ? -1 : caap.stats.LoMland;
+					}
+				}
+				if (result == 'fail') {
+					schedule.setItem('LoMmoveWait', 5 * 60);
+				}
 			}
             return result == 'done' || result === true;
         } catch (err) {
@@ -9526,7 +9503,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
-    caap.checkResults_conquest = function () {
+    caap.checkResults_conquestMist = function () {
 		try {
 			var infoDiv = $j("#app_body div[style*='conq3_top.jpg']"),
 				tempText = '';
@@ -9553,7 +9530,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			return true;
         } catch (err) {
-            con.error("ERROR in collectConquest: " + err.stack);
+            con.error("ERROR in checkResults_conquestMist: " + err.stack);
             return false;
         }
     };
@@ -9567,10 +9544,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.checkResults_conquestLand2 = function () {
 		// Here neither.
         //conquest.land();
-        return false;
-    };
-
-    caap.checkResults_conquestMist = function () {
         return false;
     };
 

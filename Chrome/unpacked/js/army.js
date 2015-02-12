@@ -545,11 +545,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
             htmlCode += caap.makeCheckTR('Enable Army Scan', 'EnableArmy', false, armyInstructions);
-            htmlCode += caap.startCheckHide('EnableArmy');
+            htmlCode += caap.display.start('EnableArmy');
             htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxArmy', true, "Check Army using AJAX rather than page navigation.");
             htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
             htmlCode += caap.makeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
-            htmlCode += caap.startCheckHide('ArmyIndicators');
+            htmlCode += caap.display.start('ArmyIndicators');
             htmlCode += caap.makeNumberFormTR("Recent", 'ArmyAgeDaysColor0', '', '#008000', '', 'color', false, false, 50);
             htmlCode += caap.makeNumberFormTR("Warn 1 (days)", 'ArmyAgeDays1', '', 7, '', '');
             htmlCode += caap.makeNumberFormTR("Warn 2", 'ArmyAgeDaysColor1', '', '#ADFF2F', '', 'color', false, false, 50);
@@ -559,8 +559,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor3', '', '#FF8C00', '', 'color', false, false, 50);
             htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
             htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
-            htmlCode += caap.endCheckHide('ArmyIndicators');
-            htmlCode += caap.endCheckHide('EnableArmy');
+            htmlCode += caap.display.end('ArmyIndicators');
+            htmlCode += caap.display.end('EnableArmy');
             htmlCode += caap.makeTD("Add these army codes to my army");
             htmlCode += caap.makeTextBox('army_codes', armyCodeInstructions, '', '');
             htmlCode += caap.endToggle;

@@ -46,30 +46,26 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeDropDown = function (idName, dropDownList, instructions, formatParms, defaultValue, css) {
         try {
-            var selectedItem = config.getItem(idName, 'defaultValue'),
+            var selectedItem = config.getItem(idName, false),
                 id = idName ? " id='caap_" + idName + "'" : '',
                 title = '',
                 htmlCode = '',
-                item = 0,
-                len = 0;
+                index = 0;
 
-            selectedItem = selectedItem !== 'defaultValue' ? selectedItem : (config.setItem(idName, $u.setContent(defaultValue, dropDownList[0])));
-            len = dropDownList.length;
-            for (item = 0; item < len; item += 1) {
-                if (selectedItem === dropDownList[item]) {
-                    break;
-                }
-            }
+			if (selectedItem === false || !dropDownList.hasIndexOf(selectedItem)) {
+				selectedItem = config.setItem(idName, $u.setContent(defaultValue, dropDownList[0]));
+			}
+            index = dropDownList.indexOf(selectedItem);
 
-            title = instructions[item] ? " title='" + instructions[item].toString().escapeHTML() + "'" : '';
+            title = instructions[index] ? " title='" + instructions[index].toString().escapeHTML() + "'" : '';
             css = css ? " style='" + css + "'" : '';
             formatParms = formatParms ? ' ' + formatParms : '';
             htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
             htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
-            for (item = 0; item < len; item += 1) {
-                title = instructions[item] ? " title='" + instructions[item].toString().escapeHTML() + "'" : '';
-                htmlCode += "<option value='" + dropDownList[item].toString().escapeHTML() + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item].toString().escapeHTML() + "</option>";
-            }
+            dropDownList.forEach( function(item, i) {
+                title = instructions[i] ? " title='" + instructions[i].toString().escapeHTML() + "'" : '';
+                htmlCode += "<option value='" + item.toString().escapeHTML() + "'" + (selectedItem === item ? " selected='selected'" : '') + title + ">" + item.toString().escapeHTML() + "</option>";
+            });
 
             htmlCode += "</select>";
             return htmlCode;
@@ -209,27 +205,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.startCheckHide = function (idName, not) {
-        try {
-            var id = idName ? " id='caap_" + idName + (not ? "_not" : '') + "_hide'" : '',
-                css = " style='display: " + (config.getItem(idName, false) ? (not ? 'none' : 'block') : (not ? 'block' : 'none')) + ";'";
-
-            return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
-        } catch (err) {
-            con.error("ERROR in startCheckHide: " + err);
-            return '';
-        }
-    };
-
-    caap.endCheckHide = function () {
-        try {
-            return "</div>";
-        } catch (err) {
-            con.error("ERROR in endCheckHide: " + err);
-            return '';
-        }
-    };
-
     caap.makeNumberFormTR = function (text, idName, instructions, initDefault, formatParms, subtype, indent, right, width) {
         try {
             indent = $u.setContent(indent, false);
@@ -263,27 +238,37 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.startDropHide = function (idName, idPlus, test, not) {
+	caap.display = {};
+	
+	// If config setting for idName is the same as test, display
+	// If display not defined, default is to display
+	// If test not defined, default is true
+    caap.display.start = function (idName, display, test) {
         try {
-            var value = config.getItem(idName, 'Never'),
-                result = not ? value !== test : value === test,
-                id = " id='caap_" + idName + idPlus + "_hide'",
-                css = " style='display: " + (result ? 'block' : 'none') + ";'";
-
+            var value = config.getItem(idName, 'Never').toString(),
+				result,
+				id,
+				css;
+			
+			if (idName.regex(/(\W)/)) {
+				con.warn('Config idName "' + idName + '" has a non-word character in it. Please remove');
+			}
+			
+			display = $u.setContent(display, 'is') && display != 'isnot';
+			test = $u.setContent(test, true).toString();
+			result = display == (value == test),
+			id = " id='caap_displayIf__" + idName + (display ? '__is__' : '__isnot__') + test.replace(/ /g,'_') + "'",
+			css = " style='display: " + (result ? 'block' : 'none') + ";'";
+			
             return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
         } catch (err) {
-            con.error("ERROR in startDropHide: " + err);
+            con.error("ERROR in caap.display.start: " + err);
             return '';
         }
     };
 
-    caap.endDropHide = function () {
-        try {
-            return "</div>";
-        } catch (err) {
-            con.error("ERROR in endDropHide: " + err);
-            return '';
-        }
+    caap.display.end = function () {
+        return "</div>";
     };
 
     caap.startToggle = function (controlId, staticText) {

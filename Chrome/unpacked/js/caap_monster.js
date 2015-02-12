@@ -129,11 +129,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						switch (engageButtonName) {
 							case 'collect':
 								feed.checkDeath(mR);
-								mR.status = mR.status || 'Dead or fled';
+								mR.status = mR.status == 'Attack' ? 'Dead or fled' : mR.status || 'Dead or fled';
 								mR.color = 'grey';
 								break;
 							case 'atk':
-								mR.status = mR.status || (lpage == "ajax:player_monster_list.php?monster_filter=2" ? 'Join' : 'Attack');
+								mR.status = mR.status || 'Attack';
 								break;
 							default:
 								con.warn("Unknown engageButtonName status", engageButtonName, newInputsDiv.attr("src"));
@@ -526,27 +526,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
             // Get damage done to monster
-            damageDiv = $j("#action_logs td[class='dragonContainer']:first", slice);
+            damageDiv = $j("#action_logs td[class='dragonContainer']:first tr", slice);
             if ($u.hasContent(damageDiv)) {
-				//con.log(2, 'Monster dragoncontainer found', damageDiv.text());
-				damageDiv = $j("td[valign='top']:first a[href*='user=" + caap.stats.FBID + "']:first", damageDiv);
+				damageDiv = $j(damageDiv).find("a[href$='keep.php?casuser=" + caap.stats.FBID + "']").last().closest('tr');
 				if ($u.hasContent(damageDiv)) { // Make sure player has done damage.
-					if (cM.fortify > -1) {
-						tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
-						if ($u.hasContent(tempArr) && tempArr.length === 2) {
-							cM.attacked = $u.setContent(tempArr[0], '0').numberOnly();
-							cM.defended = $u.setContent(tempArr[1], '0').numberOnly();
-							cM.damage = cM.attacked + cM.defended;
-						} else {
-							con.warn("Unable to get attacked and defended damage from #dragonContainer");
-						}
-					} else if (deathRuneSiegetf) {
-						cM.attacked = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
-						cM.damage = cM.attacked;
+					tempText = damageDiv.text().trim().innerTrim();
+					tempArr = tempText.regex(/([\d,]+) dmg \/ ([\d,]+) def/);
+					if ($u.isArray(tempArr) && tempArr.length > 1) {
+						cM.defended =  $u.setContent(tempArr.pop(), '0').numberOnly();
 					} else {
-						cM.attacked = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '0').numberOnly();
-						cM.damage = cM.attacked;
-						//con.log(2, 'Monster dragoncontainer player info read', cM.attacked, damageDiv.parent().parent().siblings(":last").text());
+						tempArr = tempText.regex(/([\d,]+)/g);
+					}
+					if ($u.isArray(tempArr) && tempArr.length) {
+						cM.attacked = $u.setContent(tempArr.pop(), '0').numberOnly();
+						cM.damage = cM.attacked + cM.defended;
+					} else {
+						con.warn("Unable to get attacked and defended damage from #dragonContainer");
 					}
 
 					if (visiblePageChangetf) {
@@ -690,7 +685,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							con.warn("Can't get tip", tempText);
 						} else {
 							cM.stunType = tStr.split(" ").pop().toLowerCase().replace('ion', '');
-							con.log(2, 'Stun type: ' + cM.stunType);
+							//con.log(2, 'Stun type: ' + cM.stunType);
 						}
 						
 						if (!["strengthen", "cripple", "heal", "deflect", "fortify"].hasIndexOf(cM.stunType)) {
@@ -831,54 +826,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
-	caap.checkResults_battle = function () {
-        try {
-            var symDiv = $j(),
-                points = [],
-                success = true;
-
-            battle.checkResults();
-            symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
-            if ($u.hasContent(symDiv) && symDiv.length === 5) {
-                symDiv.each(function () {
-                    var txt = '';
-
-                    txt = $j(this).parent().parent().next().text();
-                    txt = txt ? txt.replace(/\s/g, '') : '';
-                    if (txt) {
-                        points.push(txt);
-                    } else {
-                        success = false;
-                        con.warn('Demi temp text problem', txt);
-                    }
-                });
-
-                if (success) {
-                    caap.demi.ambrosia.daily = caap.getStatusNumbers(points[0]);
-                    caap.demi.malekus.daily = caap.getStatusNumbers(points[1]);
-                    caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
-                    caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
-                    caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
-                    schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6, hiddenVar) : 6) * 3600, 300);
-                    caap.SaveDemi();
-                }
-            } else {
-                con.warn('Demi symDiv problem');
-            }
-
-            //config.getItem('DoPlayerRecon', false)
-            if (battle.reconInProgress) {
-                battle.freshmeat("recon");
-            }
-
-            symDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_battle: " + err.stack);
-            return false;
-        }
-    };
-
     caap.inLevelUpMode = function () {
         try {
             if (!config.getItem('EnableLevelUpMode', true)) {
@@ -922,8 +869,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var when = config.getItem('When' + battleOrMonster, 'Never'),
                 maxIdleStamina = 0,
                 staminaMF = '',
-				burnStamina = caap.inLevelUpMode() || session.getItem('burnstamina'),
-                messDiv = battleOrMonster.toLowerCase() + "_mess";
+                messDiv = (battleOrMonster == 'battleOverride' ? 'battle' : battleOrMonster.toLowerCase()) + "_mess";
 
             if (when === 'Never') {
                 return false;
@@ -953,7 +899,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (when === 'At X Stamina') {
-                if (burnStamina && caap.stats.stamina.num >= attackMinStamina) {
+                if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
                     caap.setDivContent(messDiv, 'Burning stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
                     return caap.stats.stamina.num;
                 }
@@ -983,7 +929,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return caap.stats.stamina.num; 
                 }
 
-                if (burnStamina) {
+                if (caap.inLevelUpMode()) {
                     caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
                     return caap.stats.stamina.num;
                 }
@@ -1095,7 +1041,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-			//con.log(2,'monster review',caap.stats.reviewPages);
             if (config.getItem('WhenMonster', 'Never') === 'Never' && ['No Monster', 'Demi Points Only'].indexOf(config.getItem('WhenBattle', 'Never')) < 0 &&  config.getItem('TargetType', 'Freshmeat') != 'Raid') {
                 return false;
             }
@@ -1107,23 +1052,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cM = {},
 				message = 'Reviewing ';
 
-//caap.stats.reviewPages = {};
             for (i = 0; i < caap.stats.reviewPages.length; i++) {
                 if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
                     con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages,caap.stats.reviewPages[i].review);
                     return caap.navigateTo(caap.stats.reviewPages[i].path);
                 }
             }
-            //con.log(5,'monster review',caap.stats.reviewPages);
 
             if (monster.records.length === 0) {
                 return false;
             }
 
-            /*-------------------------------------------------------------------------------------\
-            Now we step through the monsterOl objects. We set monsterReviewCounter to the next
-            index for the next reiteration since we will be doing a click and return in here.
-            \-------------------------------------------------------------------------------------*/
             for (i = 0; i < monster.records.length; i++) {
                 cM = monster.records[i];
                 /*jslint continue: true */
@@ -1142,19 +1081,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     monster.save();
                 }
 
-                /*-------------------------------------------------------------------------------------\
-                If we looked at this monster more recently than an hour ago, skip it
-                \-------------------------------------------------------------------------------------*/
-				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 60) * 60;
-				//con.log(2,'PRE MONSTER REVIEW', cM.name, schedule.since(cM.review, time),  cM, time, monster.parseCondition('mnt', cM.conditions));
+				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 12 * 60) * 60;
 
 				link = "ajax:" + cM.link;
 
-				/*-------------------------------------------------------------------------------------\
-				If the autocollect token was specified then we set the link to do auto collect.
-				\-------------------------------------------------------------------------------------*/
-				if (['Collect', 'Dead or fled'].indexOf(cM.status)>=0) {
-					if (/:collect\b/.test(cM.conditions) || (!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false))) {
+				if (['Collect', 'Dead or fled'].hasIndexOf(cM.status)) {
+					if (/:collect\b/.test(cM.conditions) 
+						|| (/:collectsmall\b/.test(cM.conditions) && cM.damage < 200000)
+						|| (!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false))) {
 						if (general.Select('CollectGeneral')) {
 							return true;
 						}
@@ -1177,23 +1111,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					message = 'Sieging ';
 				}
 				
-                if (message === 'Reviewing ' && (cM.status === 'Done' || !schedule.since(cM.review, time))) {
+                if (message === 'Reviewing ' && !schedule.since(cM.review, time)) {
                     continue;
                 }
                 /*jslint continue: false */
 
-                /*-------------------------------------------------------------------------------------\
-                We get our monster link
-                \-------------------------------------------------------------------------------------*/
                 caap.setDivContent('monster_mess', message + (i + 1) + '/' + monster.records.length + ' ' + cM.name);
 
-                /*-------------------------------------------------------------------------------------\
-                If the link is good then we get the url and any conditions for monster
-                \-------------------------------------------------------------------------------------*/
-				
-				/*-------------------------------------------------------------------------------------\
-				Now we use ajaxSendLink to display the monsters page.
-				\-------------------------------------------------------------------------------------*/
 				con.log(1, message + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
 
 				result = caap.navigate2(link);
@@ -1204,14 +1128,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return result;
             }
 
-            /*-------------------------------------------------------------------------------------\
-            All done.  Set timer and tell monster.select and dashboard they need to do their thing.
-            We set the monsterReviewCounter to do a full refresh next time through.
-            \-------------------------------------------------------------------------------------*/
-
             caap.setDivContent('monster_mess', '');
-            caap.updateDashboard(true);
-
             return false;
         } catch (err) {
             con.error("ERROR in monsterReview: " + err.stack);
@@ -1264,7 +1181,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 energyRequire = 0,
                 cM = {},  // current monster
                 attackButton = null,
-                singleButtonList = [],
                 buttonList = [],
                 tacticsValue = 0,
                 useTactics = false,
@@ -1273,21 +1189,34 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 len = 0,
 				gMult = 1, // General multiplier, like Orc King = 5
 				minMax = 'min',
-                theGeneral = 'Use Current',
+				menuGeneral = 'Use Current',
+				specificGeneral = 'Use Current',
 				temp,
 				nodeNum = 0,
 				xpPerPt = 1,
 				statRequire = 0,
 				statRequireBig = 0,
 				statAvailable = 0,
+				goBig = false,
 				debtcM = {},
 				statList = 'energyList',
 				blankRecord = new monster.record().data,
 				result = false,
 				healPercStam = config.getItem('HealPercStam', 20) / 100,
-				staminaAvailable = Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? caap.stats.energy.num / healPercStam : 10000),
 				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
-				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available');
+				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
+				gMultFunc = function(gen) { 
+					return $u.setContent(general.getStat(general.getConfigMenuGeneral(gen), 'special').regex(/(\d)x power attacks/i), 1);
+				},
+				setGeneralVarsFunc = function(generalMenuSetting, stat) { 
+					menuGeneral = generalMenuSetting;
+					specificGeneral = general.getConfigMenuGeneral(generalMenuSetting);
+					gMult = gMultFunc(specificGeneral);
+					goBig = !general.ZinMisaCheck(generalMenuSetting) && (/:burn\b/i.test(cM.conditions) || general.charged(specificGeneral));
+					statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : statList == 'energyList' ? energyAvailable : goBig 
+						? caap.stats.stamina.num : Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? (caap.stats.energy.num / healPercStam) : caap.stats.stamina.num);
+					minMax = statList == 'staminaList' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
+				};
 
 			debtcM = healPercStam ? (monster.records.reduce(function(previous, redR) {
 				return redR.debt.stamina > previous.debt.stamina ? redR : previous;
@@ -1303,6 +1232,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					return false;
 				}
 				
+				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
+				setGeneralVarsFunc(fightMode + 'General', stat);
+
 				if (debtcM.debt.stamina > 0 && stat !== 'cover') { // We have a debt
 				
 					// If trying to hit or heal anyone other than the monster we need to cover, then don't, unless hitting and levelling up
@@ -1310,43 +1242,39 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						return false;
 					}
 					// If done over 10% damage to fort and have energy to heal and debt is at least one heal, then wait for cover
-					if (stat == 'stamina' && cM.fortify < cM.debt.start - 10 && debtcM.debt.stamina >= debtcM.energyList[0] / healPercStam && maxEnergy >= debtcM.energyList[0]) {
+					if (stat == 'stamina' && cM.fortify < cM.debt.start - 10 && debtcM.debt.stamina >= debtcM.energyList[0] * gMult / healPercStam && maxEnergy >= debtcM.energyList[0]) {
 						return false;
 					}
 				}
-				statList = stat == 'stamina' ? 'staminaList' : 'energyList';
-				theGeneral = general.getLoadoutGeneral(general.Select(fightMode + 'General', 'name only'));
-				gMult = $u.setContent(general.GetStat(theGeneral, 'special').regex(/power attacks? by (\d)x/i), 1);
-				xpPerPt = (statList == 'energyList' ? 3.6 : 5.5) * gMult;
+				xpPerPt = statList == 'energyList' ? 3.6 : 5.5;
 				//con.log(2, fightMode + ' ', state.getItem('targetFrom' + fightMode, ''));
 				
 				//con.log(2, cM.name + ' ', statList, cM, cM[statList]);
 
-				statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : statList == 'energyList' ? energyAvailable : staminaAvailable;
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
-					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMult);
+					statRequireBig = caap.minMaxArray(cM[statList], 'max', 1, (caap.stats.stamina.num + 1) / gMultFunc('LevelUpGeneral')) * gMultFunc('LevelUpGeneral');
 					
 					// Is there a smaller power attack that will work?
-					statRequire = caap.minMaxArray(cM[statList], 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult);
+					statRequire = caap.minMaxArray(cM[statList], 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
 					
 					if (statRequire && statRequire * xpPerPt < caap.stats.exp.dif) {
 						// Ok, small power hit is a go
 					// If power hit won't work, then do single hit
-					} else if (cM[statList][0] == 1 && 1 * xpPerPt < caap.stats.exp.dif) {
-						statRequire = 1;
+					} else if (cM[statList][0] == 1 && 1 * gMult * xpPerPt < caap.stats.exp.dif) {
+						statRequire = 1 * gMult;
 					} else {
 						// If too close to levelling for a power attack, do max attack to carry over xp
+						setGeneralVarsFunc('LevelUpGeneral', stat);
 						statRequire = statRequireBig;
 					}
-					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif, cM, cM[statList][0], cM[statList][0] == 1, 1 * xpPerPt < caap.stats.exp.dif);
+					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif, cM);
 				} else if (cM[statList][0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
-					statRequire = 1;
+					statRequire = 1 * gMult;
 				} else {
-					minMax = statList == 'staminaList' && config.getItem('PowerAttackMax', false) ? 'max' : 'min';
-					statRequire = caap.minMaxArray(cM[statList], minMax, 1, (statAvailable + 1) / gMult );
+					statRequire = caap.minMaxArray(cM[statList], minMax, 1, (statAvailable + 1) / gMult) * gMult ;
 				}
-				if (statRequire && statRequire * gMult <= statAvailable) {
+				if (statRequire && statRequire <= statAvailable) {
 					nodeNum = !cM.multiNode ? 0 : cM[statList].indexOf(statRequire);
 					con.log(2, 'NodeNum ' + nodeNum);
 					return true;
@@ -1361,11 +1289,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
             // Set general and go to monster page
-			result = caap.navigate2('@' + fightMode + 'General,ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
+			result = caap.navigate2('@' + menuGeneral + ',ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
             if (result !== false) {
-				attackButton = null;
-                singleButtonList = null;
-                buttonList = null;
                 if (result == 'fail') {
 					monster.deleteItem(cM.md5);
 					con.warn('Monster ' + cM.name + ' deleted after five attempts to navigate to it.', cM);
@@ -1376,8 +1301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             // Check if on engage monster page
             if ($u.hasContent($j("#app_body " + monster.onMonsterHeader))) {
-                singleButtonList = ['button_nm_p_attack.gif', 'attack_monster_button.jpg', 'event_attack1.gif', 'seamonster_attack.gif', 'event_attack2.gif', 'attack_monster_button2.jpg'];
-
+                
                 // Find the attack or fortify button
                 if (fightMode === 'Fortify') {
                     buttonList = ['seamonster_fortify.gif', 'button_dispel.gif', 'attack_monster_button3.jpg'];
@@ -1397,8 +1321,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 } else if (statRequire === 1) {
                     // not power attack only normal attacks
-                    buttonList = singleButtonList;
+                    buttonList = monster.singleButtons;
                 } else {
+					if (caap.ifClick('darkrage_button1.gif')) {
+						return true;
+					};
                     if (/:tac/i.test(cM.conditions) && caap.stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = monster.parseCondition("tac%", cM.conditions);
@@ -1414,13 +1341,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     if (useTactics && caap.hasImage('nm_button_tactics.gif')) {
                         con.log(2, "Attacking monster using tactics buttons");
-                        buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
+                        buttonList = ['nm_button_tactics.gif'].concat(monster.powerButtons);
                     } else {
                         con.log(2, "Attacking monster using regular buttons");
                         useTactics = false;
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
-                        buttonList = monster.powerButtons.concat(singleButtonList);
+                        buttonList = monster.powerButtons;
 
                         if (monster.getInfo(cM, 'attack_img')) {
                             if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
@@ -1441,11 +1368,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if ($u.hasContent(attackButton)) {
                     if (fightMode === 'Fortify') {
-                        attackMess = (cM.stunDo ? cM.stunType + 'ing ': 'Fortifying') + cM.name;
+                        attackMess = (cM.stunDo ? cM.stunType + 'ing ': 'Fortifying ') + cM.name;
                     } else {
-						if (general.GetStat(theGeneral, 'charge') == 100) {
-							general.getRecord(theGeneral).charge = 0;
-						}
+						general.resetCharge();
 						if (useTactics) {
 							attackMess = 'Tactic Attacking ' + cM.name;
 						} else {
@@ -1469,7 +1394,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     localStorage.AFrecentAction = true;
 
                     attackButton = null;
-                    singleButtonList = null;
                     buttonList = null;
 					state.setItem('fightMode', fightMode);
                     return true;
@@ -1478,7 +1402,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn('No button to attack/fortify with.');
                 schedule.setItem('NotargetFrombattle_monster', 60);
                 attackButton = null;
-                singleButtonList = null;
                 buttonList = null;
                 return false;
             }
@@ -1486,7 +1409,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             schedule.setItem('NotargetFrombattle_monster', 60);
             con.warn('Unable to find top banner for ' + cM.name, cM);
             attackButton = null;
-            singleButtonList = null;
             buttonList = null;
             return false;
         } catch (err) {

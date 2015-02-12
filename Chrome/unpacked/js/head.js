@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            260
+// @dev            264
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -23,7 +23,7 @@ var caapjQuery = "1.8.3",
     caapjQueryUI = "1.9.2",
     caapjQueryDataTables = "1.9.4",
     caapVersion = "141.0.0",
-    devVersion = "260",
+    devVersion = "264",
     hiddenVar = true,
     caap_timeout = 0,
     image64 = {},
@@ -63,6 +63,10 @@ String.prototype.stripCaap = function() {
 
 String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
+};
+
+Number.prototype.numberOnly = function() {
+    return this.valueOf();
 };
 
 String.prototype.parseTimer = function() {
