@@ -3,7 +3,7 @@ nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
 feed,battle,town,conquest,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,hiddenVar,
+$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,hiddenVar,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -104,17 +104,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             caap.updateDashboardWaitLog = true;
             con.log(3, "Updating Dashboard");
-            monster.dashboard();
+			worker.list.forEach( function(i) {
+				if ($u.isFunction(window[i].dashboard)) {
+					window[i].dashboard();
+				}
+			});
+
             guild_monster.dashboard();
-            guild_battle.dashboard();
             arena.dashboard();
             feed.dashboard();
-            army.dashboard();
-            battle.dashboard();
             conquest.dashboard();
             guilds.dashboard();
-            town.dashboard();
-            general.dashboard();
             gifting.queue.dashboard();
             gifting.history.dashboard();
 
@@ -973,9 +973,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'infoGuilds', false);
         caap.setDisplay("caapTopObject", 'userStats', false);
         caap.setDisplay("caapTopObject", 'generalsStats', false);
-        caap.setDisplay("caapTopObject", 'soldiersStats', false);
-        caap.setDisplay("caapTopObject", 'itemStats', false);
-        caap.setDisplay("caapTopObject", 'magicStats', false);
+        caap.setDisplay("caapTopObject", 'Town_Stats', false);
         caap.setDisplay("caapTopObject", 'giftStats', false);
         caap.setDisplay("caapTopObject", 'giftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonMonster', false);
@@ -1023,16 +1021,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDisplay("caapTopObject", 'buttonGenerals', true);
 
                 break;
-            case "Soldiers Stats":
-                caap.setDisplay("caapTopObject", 'soldiersStats', true);
-
-                break;
-            case "Item Stats":
-                caap.setDisplay("caapTopObject", 'itemStats', true);
-
-                break;
-            case "Magic Stats":
-                caap.setDisplay("caapTopObject", 'magicStats', true);
+            case "Town Stats":
+                caap.setDisplay("caapTopObject", 'Town_Stats', true);
 
                 break;
             case "Gifting Stats":

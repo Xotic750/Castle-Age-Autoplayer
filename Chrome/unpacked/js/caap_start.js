@@ -157,7 +157,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		if (caap.domain.which === 0 || caap.domain.which === 2) {
 			state.setItem('caapPause', 'none');
 			session.setItem('ReleaseControl', true);
-			window.setTimeout(caap.init, 200);
+			window.setTimeout(caap.initial, 200);
 		}
 
 		if (caap.domain.which === 1 || caap.domain.which === 2) {

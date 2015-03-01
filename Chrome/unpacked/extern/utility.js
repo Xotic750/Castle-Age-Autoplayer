@@ -4498,7 +4498,7 @@
         };
     }
 
-    // Turns text delimeted with new lines and commas into an array.
+    // Turns text delimited with new lines and commas into an array.
     // Primarily for use with user input text boxes.
     if (!('toList' in String.prototype)) {
         String.prototype['toList'] = function () {

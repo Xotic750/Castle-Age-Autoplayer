@@ -37,8 +37,8 @@ var caapjQuery = "1.8.3",
     ss = null,
     db = null,
     sort = {},
+	worker = {},
     schedule = null,
-    general = {},
     monster = {},
     guild_monster = {},
     guild_battle = {},
@@ -56,7 +56,7 @@ var caapjQuery = "1.8.3",
     conquestLands = {},
     guilds = {},
     retryDelay = 1000;
-
+	
 String.prototype.stripCaap = function() {
     return this.replace(/caap_/i, '');
 };
@@ -67,6 +67,57 @@ String.prototype.numberOnly = function() {
 
 Number.prototype.numberOnly = function() {
     return this.valueOf();
+};
+
+Array.prototype.flatten = function(f, lc) {
+	 return this.map( function(o) {
+		return lc ? o[f].toLowerCase() : o[f];
+	});
+};
+
+Array.prototype.getObjIndex = function(f, v, lc) {
+	 return this.flatten(f, lc).indexOf(v);
+};
+
+Array.prototype.hasObj = function(f, v) {
+	 return this.getObjIndex(f, v) >= 0;
+};
+
+Array.prototype.addToList = function(v) {
+	if (this.indexOf(v) < 0) {
+		this.push(v);
+	}
+	return this;
+};
+
+Array.prototype.removeFromList = function(v) {
+	var i = this.indexOf(v);
+	if (i > -1) {
+		this.splice(i, 1);
+	}
+	return i > -1;
+};
+
+Array.prototype.filterByField = function(f, v) {
+	 return this.filter( function(e) {
+		return e[f] === v;
+	});
+};
+
+Array.prototype.getObjByField = function(f, v, d) {
+	 var i = this.getObjIndex(f, v);
+    return i == -1 ? d : this[i];
+};
+
+Array.prototype.getObjByFieldLc = function(f, v, d) {
+	 var i = this.getObjIndex(f, v, true);
+    return i == -1 ? d : this[i];
+};
+
+Array.prototype.deleteObjs = function(f, v) {
+	return this.filter( function(e) {
+		return e[f] !== v;
+	});
 };
 
 String.prototype.parseTimer = function() {
