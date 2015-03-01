@@ -84,6 +84,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				break;
 			
 			case 'guildv2_battle' :
+				caap.checkMyGuildIds();
 				var text = $u.setContent($j('#app_body #guildv2_battle_middle').text().trim().innerTrim(), '');
 				
 				if (text.indexOf('submit the Guild for Auto-Matching') >= 0) {
@@ -102,8 +103,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				break;
 				
 			case 'guild_battle' :
-			case 'ten_battle' :
 			case 'hundred_battle_view' :
+			case 'ten_battle' :
 				fR = gb.onBattle(fR);
 				break;
 				

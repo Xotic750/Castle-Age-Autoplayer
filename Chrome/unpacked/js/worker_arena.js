@@ -17,6 +17,7 @@
         ],
         MaxLevelInstructions = "This sets the highest relative level, above yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you would code 20.",
         MinLevelInstructions = "This sets the lowest relative level, below yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent below level 60, you would code 40.",
+        arenaBlackListInstructions = "List of ID to not figth.",
 		revengeInstructions = "Put a number here to attack targets that you have beaten from your Battle Feed. This will take priority over searching for targets on the Arena Page, and will only attack targets that give at least this number. For instance, if you only wanted to attack opponents that give 100 points, put 100 here.",
 
         htmlCode = caap.startToggle('Arena', 'ARENA');
@@ -31,6 +32,9 @@
         htmlCode += caap.makeNumberFormTR("Opponent's Level Min", 'arenaLevelMin', MinLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Opponent's Level Max", 'arenaLevelMax', MaxLevelInstructions, '', '', '', true, false);
         htmlCode += caap.makeNumberFormTR("Revenge point limit", 'arenaRevengePoints', revengeInstructions, '', '', '', true, false);
+        htmlCode += caap.makeTD("List of ID to not fight:");
+        htmlCode += caap.makeTextBox('arena_blacklist', arenaBlackListInstructions, '', '');
+        htmlCode += caap.makeCheckTR('Use FP to burn Health', 'burnHealthArena', false, '');
 //      htmlCode += caap.makeCheckTR('Arena Recon', 'arenaRecon', false, '');
 //		htmlCode += caap.makeTD("Hit List");
 //		htmlCode += caap.makeTextBox('arenaHitList', 'List of targets to hit','', '');
@@ -70,6 +74,43 @@
 		return exportR;
 	};
 	
+	arena.checkBurnHealth = function () {
+		try {
+			if (config.getItem("burnHealthArena",false)) {
+				var arenaHealth = $j("div img[src*='graphics/orange_healthbar.jpg']"), arenaHealthWidth = "";
+				arenaHealthWidth=/width:\d+/i.exec(arenaHealth[0].outerHTML)[0];
+				if (!arenaHealthWidth.match("width:0")) {
+					var arenaTokens = $j("span[id*='guild_token_current_value']")[0].innerHTML;
+					con.log (1, "Have Arena Health");
+					arena.flagBurnHealth=true;
+					if (arenaTokens < 1 ) {
+						try {
+							var button = $j("input[src*='arenablood_btn_refill.jpg']");
+							con.log (1, "Refill to burn Arena Health");						
+							session.setItem('ReleaseControl', true);
+							arena.flagResult = false;
+							caap.setDomWaiting("arena.php");
+							caap.click(button);
+							return true;
+						} catch (err) {
+							con.error("ERROR in arena.click: " + err);
+							return false;
+						}
+					}
+				} else {
+					con.log (1, "Have no more Arena Health");
+					arena.flagBurnHealth=false;
+				}					
+			} else {
+				arena.flagBurnHealth=false;
+			}
+			return true;
+		} catch (err) {
+			con.error("ERROR in arena.checkBurnHealth: " + err);
+			return false;
+		}
+	};
+	
     arena.checkResults = function () {
         try {
             var bR = false, //battle record
@@ -107,7 +148,6 @@
 			arena.cT = false;
 			arena.fT = false;
 
-
             if (arenaTokens >= config.getItem("arenaTokenStart", 10)) {
                 con.log (2, "Arena Timer resetting");
                 schedule.setItem('arenaTimer', 0);
@@ -142,7 +182,7 @@
 						con.warn('Arena unknown message: ' + resultText);
 					}
 				}
-            }
+            } 
 			
 			tempDiv = $j("form[onsubmit*='arena.php']", resultsDiv).has("input[src*='battle_duel_again.gif']")
 			if (tempDiv.length) {
@@ -222,7 +262,24 @@
 				caap.regexDiv(thisDiv, /(.*) level: \d+ .+ \(Rank \d\) \d+/, fR, 'nameStr');
 				caap.regexDiv(thisDiv, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/, fR,
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
+
 				fR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
+				try {
+					var blackList = config.getList('arena_blacklist', '');
+					con.log(2, fR.nameStr + " (" + fR.userId + ") is looking in black listed !");
+					for (p = 0, len = blackList.length; p < len; p += 1) {
+						if (fR.userId.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
+							con.log(2, fR.nameStr + " (" + fR.userId + ") is black listed !");
+							return true;
+						}
+						if (fR.nameStr.trim().toLowerCase().match(new RegExp((" "+blackList[p]+" ").trim().toLowerCase()))) { 
+							con.log(2, fR.nameStr + " (" + fR.userId + ") is black listed !");
+							return true;
+						}
+					}
+				} catch (e) {
+					con.log(2, "Error in arena black listed search : ",e);
+				}
 
 				bR = battle.getItem(fR.userId);
 				if (config.getItem('arenaRecon', false) && !bR.duellossesNum && !bR.duelwinsNum
@@ -348,9 +405,12 @@
 			
 			session.setItem('ReleaseControl', true);
 			state.setItem("arenaTokens", arenaTokens);
-			
-			// If 0 health, stop
-			if (arenaPageTf && session.getItem('arenaHealth', 0) === 0 && arenaTokens < 10 - timer / 5) {
+
+			if (arenaPageTf && arena.checkBurnHealth()) { 
+				con.log (1, "arenaTokens",arenaTokens);
+				return true;
+			} else if (arenaPageTf && session.getItem('arenaHealth', 0) === 0 && arenaTokens < 10 - timer / 5) {
+				// If 0 health, stop
 				schedule.setItem('arenaTimer', Math.min(Math.min((10 - arenaTokens) * 5, timer + 0.5) * 60, recon));
 				session.setItem('arenaHit', '');
 				return false;
@@ -372,7 +432,7 @@
 					var randomNg =  session.getItem('arenaHit', '') ? false : randomNum > (hs.regex(/:(\d+)%/) || 100);
 					tR = battle.getItem(hs.regex(/^(\d+)/));
 					tempTxt = hs.regex(/@([\w ]+)/);
-					if (!tR || !valid(tR) || randomNg || (tempTxt && !general.getRecordVal(tempTxt, 'name'))) {
+					if (!tR || !valid(tR) || randomNg || (tempTxt && !general.getStat(tempTxt, 'name'))) {
 						if (tR && !schedule.since(tR.arenaDeadTime, 3 * 60) && hs.regex(/(:stalk)/)) {
 							con.log(1, "Full spend target " + tR.name + " not dead, just sleeping", hs, tR);
 							session.setItem('arenaWait', true);
@@ -542,4 +602,3 @@
 	};
 
 }());
-

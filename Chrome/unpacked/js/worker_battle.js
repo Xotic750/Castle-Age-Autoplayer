@@ -1,5 +1,3 @@
-
-
 /*jslint white: true, browser: true, devel: true, undef: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
@@ -1533,7 +1531,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (chainAttack) {
                     form = inputDiv.eq(0).parent().parent();
                     inp = $j("input[name='target_id']", form);
-                    if ($u.hasContent(inp)) {
+                    if ($u.hasContent(inp) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
                         inp.attr("value", chainId);
                         con.log(1, "Chain attacking: ", chainId);
                         battle.click(inputDiv.eq(0), type);
@@ -1552,7 +1550,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (plusOneSafe) {
                         form = inputDiv.eq(0).parent().parent();
                         inp = $j("input[name='target_id']", form);
-                        if ($u.hasContent(inp)) {
+                        if ($u.hasContent(inp) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
                             txt = inp.attr("value");
                             firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
@@ -1583,7 +1581,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
                         /*jslint continue: false */
 
-                        if ($u.isDefined(safeTargets[it].button)) {
+                        if ($u.isDefined(safeTargets[it].button) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
                             con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
                             battle.click(safeTargets[it].button, type);
                             delete safeTargets[it].score;

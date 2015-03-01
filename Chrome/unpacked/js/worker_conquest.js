@@ -1051,7 +1051,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (userId > 0)  {
                 con.log(1, "Searching targets on page");
                 for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
-                    if (conquest.targetsOnPage[it].userId === userId) {
+                    if (conquest.targetsOnPage[it].userId === userId && caap.getMyGuildIds().lastIndexOf(targetId) < 0) {
                         targetRecord = conquest.targetsOnPage[it];
                     }
                 }
