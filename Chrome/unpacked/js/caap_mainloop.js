@@ -16,234 +16,51 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
-    caap.actionDescTable = {
-        'autoIncome': 'Awaiting Income',
-        'autoStat': 'Upgrade Skill Points',
-        'maxStatsCheck': 'At Max Energy Quest',
-        'passiveGeneral': 'Setting Idle General',
-        'idle': 'Idle Tasks',
-        'immediateBanking': 'Immediate Banking',
-        'battle': 'Battling Players',
-        'conquestBattle': 'Conquesting Players',
-        'monsterReview': 'Review Monsters/Raids',
-        'guildMonsterReview': 'Review Guild Monsters',
-        'immediateAutoStat': 'Immediate Auto Stats',
-        'autoPotions': 'Auto Potions',
-        'autoKobo': 'Auto Kobo',
-        'autoAlchemy': 'Auto Alchemy',
-        'autoBless': 'Auto Bless',
-        'autoGift': 'Auto Gifting',
-        'demiPoints': 'Demi Points First',
-        'monsters': 'Fighting Monsters',
-        'guildMonster': 'Fight Guild Monster',
-        'heal': 'Auto Healing',
-        'bank': 'Auto Banking',
-        'lands': 'Land Operations',
-        'quests': 'Questing',
-        'guildBattle': 'Guild Battle',
-        'checkAllGenerals': 'Getting Generals Stats',
-        'checkArmy': 'Checking Army',
-        'checkKeep': 'Checking Keep',
-        'ajaxGiftCheck': 'Gift Check',
-        'ajaxCheckFeed': 'Feed Check',
-        'ajaxCheckGuild': 'Guild Check',
-        'ajaxCheckPublic': 'Check Public Monsters',
-        'feedScan': 'Scanning Monsters',
-        'checkAchievements': 'Achievements',
-        'reconPlayers': 'Player Recon',
-        'checkOracle': 'Checking Oracle',
-        'checkBattleRank': 'Battle Rank',
-        'checkWarRank': 'War Rank',
-        'checkConquestRank': 'Conquest Rank',
-        'checkSymbolQuests': 'Demi Blessing Stats',
-        'checkSoldiers': 'Getting Soldiers',
-        'checkItem': 'Getting Items',
-        'checkMagic': 'Getting Magic',
-        'checkCharacterClasses': 'Character Classes',
-        'festivalBless': 'Festival Feats',
-        'collectConquest': 'Collect Conquest Items',
-        'scoutGuildEssence': 'Scout Guild Essence',
-        'doArenaBattle' : 'Battling in Arena' 
-    };
-
     caap.checkLastAction = function (thisAction) {
         try {
-            var lastAction = state.getItem('LastAction', 'idle');
+            var lastAction = state.getItem('LastAction', 'caap.idle');
+			
+			thisAction = $u.isString(thisAction) ? worker.actionsList.getObjByField('fName', thisAction) : thisAction;
 
-            caap.setDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
-            if (lastAction !== thisAction) {
-                con.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
-                state.setItem('LastAction', thisAction);
+            caap.setDivContent('activity_mess', 'Activity: ' + thisAction.description);
+            if (lastAction !== thisAction.fName) {
+                con.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction.fName);
+                state.setItem('LastAction', thisAction.fName);
             }
-
-            return true;
         } catch (err) {
             con.error("ERROR in checkLastAction:" + err);
-            return false;
         }
     };
 
-    caap.masterActionList = {
-        0x01: 'heal',
-        0x02: 'collectConquest',
-        0x03: 'maxStatsCheck',
-        0x04: 'guildBattle',
-        0x05: 'immediateBanking',
-        0x06: 'immediateAutoStat',
-        0x07: 'doArenaBattle',
-        0x08: 'demiPoints',
-        0x09: 'guildMonsterReview',
-        0x0A: 'monsterReview',
-        0x0B: 'guildMonster',
-        0x0C: 'monsters',
-        0x0D: 'battle',
-        0x0E: 'quests',
-        0x0F: 'conquestBattle',
-        0x10: 'bank',
-        0x11: 'checkAllGenerals',
-        0x12: 'feedScan',
-        0x13: 'lands',
-        0x14: 'passiveGeneral',
-        0x15: 'autoBless',
-        0x16: 'autoStat',
-        0x17: 'LoMmove', 
-        0x18: 'autoGift',
-        0x19: 'checkKeep',
-        0x1A: 'autoPotions',
-        0x1B: 'autoAlchemy',
-        0x1C: 'checkAchievements',
-        0x1D: 'ajaxGiftCheck',
-        0x1E: 'reconPlayers',
-        0x1F: 'checkOracle',
-        0x20: 'checkBattleRank',
-        0x21: 'checkWarRank',
-        0x22: 'checkConquestRank',
-        0x23: 'checkSymbolQuests',
-        0x24: 'checkSoldiers',
-        0x25: 'checkItem',
-        0x26: 'checkMagic',
-        0x27: 'checkCharacterClasses',
-        0x28: 'festivalBless',
-        0x29: 'ajaxCheckFeed',
-        0x2A: 'ajaxCheckGuild',
-        0x2B: 'ajaxCheckPublic',
-        0x2E: 'checkArmy',
-        0x33: 'autoKobo',
-        0x34: 'scoutGuildEssence',
-        0x35: 'idle'
-    };
-
-    caap.actionsList = [];
-
     caap.makeActionsList = function () {
-        var action = '',
-            actionOrderArray = [],
-            masterActionListCount = 0,
-            actionOrderUser = '',
-            actionOrderArrayCount = 0,
-            itemCount = 0,
-            actionItem = '',
-            jt;
-
         try {
-            if (!$u.hasContent(caap.actionsList)) {
-                con.log(2, "Loading a fresh Action List");
-                // actionOrder is a comma seperated string of action numbers as
-                // hex pairs and can be referenced in the Master Action List
-                // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12"
+            if ($u.hasContent(caap.actionsList)) {
+				return;
+			}
+			var prioritiesList = worker.actionsList.flatten('priority');
 
-                actionOrderUser = config.getItem("actionOrder", '');
-                if ($u.hasContent(actionOrderUser)) {
-                    // We are using the user defined actionOrder set in the
-                    // Advanced Hidden Options
-                    con.log(2, "Trying user defined Action Order");
-                    // We take the User Action Order and convert it from a comma
-                    // separated list into an array
-                    actionOrderArray = actionOrderUser.split(",");
-                    // We count the number of actions contained in the
-                    // Master Action list
-
-                    /*jslint forin: true */
-                    for (action in caap.masterActionList) {
-                        if (caap.masterActionList.hasOwnProperty(action)) {
-                            masterActionListCount += 1;
-                            con.log(4, "Counting Action List", masterActionListCount);
-                        } else {
-                            con.warn("Error Getting Master Action List length!");
-                            con.warn("Skipping 'action' from masterActionList: ", action);
-                        }
-                    }
-                    /*jslint forin: false */
-                } else {
-                    // We are building the Action Order Array from the
-                    // Master Action List
-                    con.log(2, "Building the default Action Order");
-
-                    /*jslint forin: true */
-                    for (action in caap.masterActionList) {
-                        if (caap.masterActionList.hasOwnProperty(action)) {
-                            masterActionListCount = actionOrderArray.push(action);
-                            con.log(4, "Action Added", action);
-                        } else {
-                            con.warn("Error Building Default Action Order!");
-                            con.warn("Skipping 'action' from masterActionList: ", action);
-                        }
-                    }
-                    /*jslint forin: false */
-                }
-
-                // We notify if the number of actions are not sensible or the
-                // same as in the Master Action List
-                actionOrderArrayCount = actionOrderArray.length;
-                if (actionOrderArrayCount === 0) {
-                    throw "Action Order Array is empty! " + (actionOrderUser === "" ? "(Default)" : "(User)");
-                } else if (actionOrderArrayCount < masterActionListCount) {
-                    con.warn("Warning! Action Order Array has fewer orders than default!");
-                } else if (actionOrderArrayCount > masterActionListCount) {
-                    con.warn("Warning! Action Order Array has more orders than default!");
-                }
-
-                // We build the Action List
-                con.log(8, "Building Action List ...");
-                for (itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
-                    actionItem = '';
-                    if ($u.hasContent(actionOrderUser)) {
-                        // We are using the user defined comma separated list of hex pairs
-                        actionItem = caap.masterActionList[actionOrderArray[itemCount].parseInt(16)];
-                        con.log(4, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
-                    } else {
-                        // We are using the Master Action List
-                        actionItem = caap.masterActionList[actionOrderArray[itemCount]];
-                        con.log(4, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
-                    }
-
-                    // Check the Action Item
-                    if ($u.hasContent(actionItem)) {
-                        // We add the Action Item to the Action List
-                        caap.actionsList.push(actionItem);
-                        con.log(4, "Added action to the list", actionItem);
-                    } else {
-                        con.warn("Error! Skipping actionItem");
-                        con.warn("Action Item(" + itemCount + "): ", actionItem);
-                    }
-                }
-
-                if ($u.hasContent(actionOrderUser)) {
-                    con.log(1, "Get Action List: ", caap.actionsList);
-                }
-            }
-            return true;
+			// Check no two actions have same priority
+			prioritiesList.forEach( function(e, i) {
+				if (i !== prioritiesList.indexOf(e) && i == prioritiesList.lastIndexOf(e)) {
+					con.warn('Worker actions with same priority of ' + e + ': ' + worker.actionsList.filterByField('priority', e).flatten('description').join(', '));
+				}
+			});
+			
+			// Check all worker functions are defined
+			worker.actionsList.forEach( function(o) {
+				if (!$u.isFunction(window[o.worker][o.functionName])) {
+					con.warn('Worker function for ' + o.name + ': ' + o.worker + '.' + o.functionName + ' is not defined', o);
+					worker.actionsList.deleteObjs('fName', o.fName);
+				}
+			});
+					
+			worker.actionsList.sort($u.sortBy(true, "priority"));
+			
+			con.log(1, 'Action order: ' + worker.actionsList.flatten('description').join(', ')); 
+			
         } catch (err) {
             // Something went wrong, log it and use the emergency Action List.
-            con.error("ERROR in makeActionsList: " + err);
-
-            for (jt in caap.masterActionList) {
-                if (caap.masterActionList.hasOwnProperty(jt)) {
-                    caap.actionsList.push(caap.masterActionList[jt]);
-                }
-            }
-
-            return false;
+            con.error("ERROR in makeActionsList: " + err.stack);
         }
     };
 
@@ -420,6 +237,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 noWindowLoad = 0,
                 actionsListCopy = [],
 				releaseControl = true,
+				result = false,
                 action = 0,
                 len = 0,
                 dmc = 0;
@@ -516,29 +334,29 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             session.setItem("delayMainCnt", 0);
 
-            if (caap.autoIncome()) {
-                caap.checkLastAction('autoIncome');
+            if (chores.income()) {
+                caap.checkLastAction('chores.income');
                 caap.waitMainLoop();
                 return true;
             }
 
-            actionsListCopy = caap.actionsList.slice();
+            actionsListCopy = worker.actionsList.slice();
 			releaseControl = session.getItem('ReleaseControl', true)
 			if (!releaseControl) {
-				actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
+				actionsListCopy.unshift(worker.actionsList.getObjByField('fName', state.getItem('LastAction', 'caap.idle')));
 			}
-            actionsListCopy.some( function(action) {
-				state.setItem('ThisAction', action);
-                if (caap[action]()) {
+            result = actionsListCopy.some( function(action) {
+				session.setItem('ThisAction', action.fName);
+                if (window[action.worker][action.functionName]()) {
                     caap.checkLastAction(action);
 					return true;
                 }
-				return action == 'idle';
             });
 			
-			if (!releaseControl && action > 0) {
+			if (!releaseControl && result) {
 				session.setItem('ReleaseControl', true);
 			}
+			worker.list.forEach(worker.checkSave);
 
             caap.waitMainLoop();
             return true;
@@ -782,43 +600,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 gm.deleteItem("general.records");
             }
         },
-        'Soldiers': {
+        'Town': {
             'export': function () {
-                return town.soldiers;
+                return town.records;
             },
             'import': function (d) {
-                town.soldiers = d;
-                town.save('soldiers');
+                town.records = d;
+                town.save();
             },
             'delete': function () {
-                town.soldiers = [];
-                gm.deleteItem("soldiers.records");
-            }
-        },
-        'Item': {
-            'export': function () {
-                return town.item;
-            },
-            'import': function (d) {
-                town.item = d;
-                town.save('item');
-            },
-            'delete': function () {
-                town.item = [];
-                gm.deleteItem("item.records");
-            }
-        },
-        'Magic': {
-            'export': function () {
-                return town.magic;
-            },
-            'import': function (d) {
-                town.magic = d;
-                town.save('magic');
-            },
-            'delete': function () {
-                town.magic = [];
-                gm.deleteItem("magic.records");
+                town.records = [];
+                gm.deleteItem("town.records");
             }
         },
         'Gift Stats': {
@@ -1210,6 +1002,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	
+	// Not compatible yet with new action list, so disabling for now.
     caap.actionDialog = function () {
         try {
             var h = '',
