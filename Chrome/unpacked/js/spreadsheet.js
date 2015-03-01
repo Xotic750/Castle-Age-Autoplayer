@@ -227,7 +227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if ($u.hasContent(spreadsheet.records[tempIt].hero)) {
                     titleStr += ", Hero: " + spreadsheet.records[tempIt].hero;
-                    owned = general.owned(spreadsheet.records[tempIt].hero);
+                    owned = general.hasRecord(spreadsheet.records[tempIt].hero);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
@@ -239,7 +239,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     } else {
-                        owned = town.getCount(spreadsheet.records[tempIt].recipe1, spreadsheet.records[tempIt].recipe1image);
+                        owned = town.getCount(spreadsheet.records[tempIt].recipe1image);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
@@ -247,28 +247,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 if ($u.hasContent(spreadsheet.records[tempIt].recipe2)) {
                     titleStr += ", Recipe2: " + spreadsheet.records[tempIt].recipe2;
-                    owned = town.getCount(spreadsheet.records[tempIt].recipe2, spreadsheet.records[tempIt].recipe2image);
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe2image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
                 if ($u.hasContent(spreadsheet.records[tempIt].recipe3)) {
                     titleStr += ", Recipe3: " + spreadsheet.records[tempIt].recipe3;
-                    owned = town.getCount(spreadsheet.records[tempIt].recipe3, spreadsheet.records[tempIt].recipe3image);
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe3image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
                 if ($u.hasContent(spreadsheet.records[tempIt].recipe4)) {
                     titleStr += ", Recipe4: " + spreadsheet.records[tempIt].recipe4;
-                    owned = town.getCount(spreadsheet.records[tempIt].recipe4, spreadsheet.records[tempIt].recipe4image);
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe4image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
 
                 if ($u.hasContent(spreadsheet.records[tempIt].recipe5)) {
                     titleStr += ", Recipe5: " + spreadsheet.records[tempIt].recipe5;
-                    owned = town.getCount(spreadsheet.records[tempIt].recipe5, spreadsheet.records[tempIt].recipe5image);
+                    owned = town.getCount(spreadsheet.records[tempIt].recipe5image);
                     titleStr += " (Owned: " + owned + ")";
                     hide = (owned ? false : true);
                 }
@@ -289,7 +289,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 hide: hide
             };
         } catch (err) {
-            con.error("ERROR in spreadsheet.getTitle: " + err);
+            con.error("ERROR in spreadsheet.getTitle: " + err.stack);
             return undefined;
         }
     };

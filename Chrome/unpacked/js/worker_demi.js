@@ -72,17 +72,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	
+	worker.addAction({worker : 'caap', priority : 1200, description : 'Doing Demi Points', functionName : 'demiPoints'});
     caap.demiPoints = function () {
         try {
             if (caap.stats.level < 9 || !battle.demisPointsToDo('set')) {
                 return false;
             }
 
-            if (schedule.check("battle") && caap.navigateTo(caap.battlePage, 'battle_tab_battle_on.jpg')) {
+            if (schedule.check("battle") && caap.navigateTo(battle.page, 'battle_tab_battle_on.jpg')) {
 				return true;
             }
 
-            return battle.demisPointsToDo('left') ? caap.battle('DemiPoints') : false;
+            return battle.demisPointsToDo('left') ? battle.worker() : false;
         } catch (err) {
             con.error("ERROR in demiPoints: " + err);
             return false;

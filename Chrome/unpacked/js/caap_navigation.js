@@ -206,9 +206,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				lastStep = steps.length - 1,
 				result = false,
                 jq = $j(),
-                step = '';
+                step = '',
+				thisGeneral = $u.setContent(steps[0].regex(/@(.+)/), 'Use Current');
 			
-			if (general.Select($u.setContent(steps[0].regex(/@(.+)/), 'Use Current'))) {
+			if (general.Select(thisGeneral)) {
 				return true;
 			}
 
@@ -229,7 +230,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 								con.log(2, 'Navigate2: Go to page', jq, step, path, s);
 								caap.click(jq);
 								return caap.navigate2RepeatCheck(true, path, s);
-							} else {
+							} else if (s - (thisGeneral !== 'Use Current') === 0) {
 								con.warn('Unable to find path to page: ' + step, path);
 							}
 							//con.log(2,'Navigate2: Not on page ' + step + ', so going back another step', path, s, caap.pageList[step]);
