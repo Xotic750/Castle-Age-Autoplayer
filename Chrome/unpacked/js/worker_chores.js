@@ -711,7 +711,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			var list = $u.isString(page) ? [{'page' : page}] : worker.pagesList,
 				hours = 0;
 			return list.some( function(o) {
-				if (o.config && config.getItem(o.config, false)) {
+				if (o.config && !config.getItem(o.config, false)) {
 					return false;
 				}
 				hours = o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);

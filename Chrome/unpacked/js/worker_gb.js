@@ -397,7 +397,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 
 			$j("#globalContainer div[id*='" + which + "_new_guild_tab_']").each(function(stower) {
 				tStr = this.innerText.trim().innerTrim();
-				towerTypes.push(tStr.regex(/\d+\) (\w+)/));
+				towerTypes.push($u.setContent(tStr.regex(/\d+\) (\w+)/), ''));
 				towerPops.push(tStr.regex(/(\d+)/));
 				sealedTowers += $u.hasContent(fR[which].towers[stower]) ? fR[which].towers[stower].healthNum === 0 : towerPops[stower - 1] > 0;
 			});
@@ -510,7 +510,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							}
 							// First number is for multipliers, second is added
 							score = [1, 0];
-							sealCheck = false;
 							sealScore = [0, 0];
 							fullText = args[1];
 							
@@ -589,7 +588,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									score[args[2] == '*' ? 0 : 1] += args[3] == '-' ? -args[4].parseFloat() : args[4].parseFloat();
 								}
 								
-								if (sealCheck) {
+								if (sealCheck === true) {
 									sealCheck = args[1] == '!' ? 'normal' : 'seal';
 									sealScore = [score[0] - sealScore[0], score[1] - sealScore[1]];
 									score = [score[0] - sealScore[0], score[1] - sealScore[1]];
@@ -1207,18 +1206,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         }
     };
 
-	// Parses a string for the key, and adds/multiplies the score by according to the key
-	// For example ('cleric', true,  'cleric:+100', [500,100]) would return the score + 100, i.e. 600
-	// Default is to add, if */- not present
-	// Try/catch not used for performance since function called often
-    gb.parse = function(key, tf, text, score) {
-		var args = text.match(new RegExp('\\W(!?)' + key + ':(\\D?)([^,]+)'));
-		if (args && args.length == 4 && (tf != false) !== (args[1] == '!')) { // Deliberate avoidance of "tf !==" to catch 0 or undefined, etc.
-			score[args[2] == '*' ? 0 : 1] += args[2] == '-' ? -args[3].parseFloat() : args[3].parseFloat();
-		}
-		return score;
-    };
-	
     gb.target = function(t, total, mR, attack, general, team, tower, tokens) {
         try {
 			if (total > t.score) {

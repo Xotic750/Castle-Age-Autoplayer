@@ -14,10 +14,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
-	worker.add('army');
+	worker.add({ name: 'army', recordIndex: 'userId'});
 	
-	worker.addRecordFunctions('army');
-	army.recordIndex = 'userId';
     army.record = function () {
         this.data ={
             'userId': '',
@@ -174,7 +172,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 search.each(function () {
                     var el = $j(this);
 
-                    record = army.record();
+                    record = new army.record().data;
                     record.userId = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
                     tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
                     if (!useAjaxArmy) {
@@ -198,7 +196,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(search)) {
                         len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members? x(\d+)/), 0);
                         for (it = 1; it <= len; it += 1) {
-                            record = army.record();
+                            record = new army.record().data;
                             record.userId = -1 * it;
                             record.name = "Extra member " + it;
                             record.lvl = 0;

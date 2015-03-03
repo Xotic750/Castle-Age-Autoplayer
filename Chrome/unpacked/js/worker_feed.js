@@ -24,9 +24,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 			var keeps = config.getItem('feedKeeps', ''); 
 			
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=1', config: 'feedLowTier', cFreq: 'feedLowTierFreq'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=2', config: 'feedMediumTier', cFreq: 'feedMediumFreq'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=3', config: 'feedHighTier', cFreq: 'feedHighFreq'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=2', config: 'feedLowTier', cFreq: 'feedLowTierFreq'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=3', config: 'feedMediumTier', cFreq: 'feedMediumFreq'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=4', config: 'feedHighTier', cFreq: 'feedHighFreq'});
 			worker.addPageCheck({page : 'ajax:guild_priority_mlist.php', config: 'feedGuild', cFreq: 'feedGuildFreq'});
 			if (!$u.hasContent(keeps.trim())) {
 				return true;
