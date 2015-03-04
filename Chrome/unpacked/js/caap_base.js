@@ -2972,8 +2972,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-
-
     caap.addOtherOptionsMenu = function () {
         try {
             // Other controls
@@ -4252,6 +4250,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         session.setItem('ReleaseControl', true);
         session.setItem('resetselectMonster', true);
         session.setItem('resetselectGuildMonster', true);
+		worker.list.forEach( function(i) {
+			if ($u.isFunction(window[i].unpause)) {
+				window[i].unpause();
+			}
+		});
+		
         caap.clearDomWaiting();
     };
 
@@ -4902,9 +4906,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'conq2_mistnav_on3.gif',
             CheckResultsFunction: 'checkResults_conquestMist'
         },
-        'guildv2_conquest_castle': {
-            signatureId: 'conq2_earthnav_on3.',
+        'guildv2_conquest_castle': { 
+            signatureId: 'conq2_castle_body.jpg',
             CheckResultsFunction: 'checkResults_conquestEarth'
+        },
+        'guild_conquest_castle': { 
+            signatureId: 'conq2_capsule_loe.jpg'
+        },
+        'guildv2_conquest_expansion': { 
+            signatureId: 'conq2_castle_battletopwar.jpg'
         },
         'guildv2_conquest_expansion_fort': {
             signatureId: 'war_fort_topinfo.jpg',
@@ -4915,8 +4925,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_conquestLand2'
         },
         'conquest_duel': {
-            signatureId: 'war_conquest_header2.jpg',
-            CheckResultsFunction: 'checkResults_conquestBattle'
+            signatureId: 'war_conquest_header2.jpg'
         },
         'trade_market': {
             signatureId: 'trade_home_top.jpg',
@@ -5068,6 +5077,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Different uses are based on fact that more complex records would only want num/max
 	// updated. Dif should be calculated as needed. For simple records with no other values
 	// than num, max, dif, use the return approach
+	
+	caap.weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+	
+	caap.gameDay = function(offsetSeconds, time) {
+		time = new Date($u.setContent(time, Date.now()));
+		offsetSeconds = $u.setContent(offsetSeconds, 0); 				// Need to adjust from 7 to 8 when daylight savings time changes
+		return caap.weekdays[new Date(time.getTime() + ((time.getTimezoneOffset() / 60 - 8) * 3600 + offsetSeconds) * 1000).getDay()];
+	};
 	
     caap.getStatusNumbers = function (text, record) {
         try {
@@ -5306,8 +5323,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ststbDiv = $j('#globalContainer #main_sts_container'),
                 bntpDiv = $j('#globalContainer #main_bntp'),
                 tempDiv = $j("#gold_current_value", ststbDiv);
-
-			caap.checkCoins();
 
             // gold
             tempDiv = $j('#gold_current_value_amount', ststbDiv);
@@ -8945,21 +8960,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.checkResults_conquestEarth = function () {
         return false;
-    };
-
-    caap.checkResults_conquestBattle = function () {
-		//con.log(2, 'On Qonquest? ' + caap.stats.guildTokens.num, caap.stats.guildTokens);
-		var tempDiv = $j("#guild_token_current_value");
-		if ($u.hasContent(tempDiv)) {
-			tempDiv = $j($j("#guild_token_current_value")[0].parentNode);
-			 caap.stats.guildTokens = caap.getStatusNumbers(tempDiv.text());
-		} else {
-			con.warn("Unable to get Conquest Tokens Div", tempDiv);
-		}
-		caap.saveStats();
-		//con.log(2, 'CONQUEST TOKENS ' + caap.stats.guildTokens.num, caap.stats.guildTokens);
-        conquest.battle();
-        return true;
     };
 
     caap.doArenaBattle = function() {

@@ -24,10 +24,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 			var keeps = config.getItem('feedKeeps', ''); 
 			
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=2', config: 'feedLowTier', cFreq: 'feedLowTierFreq'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=3', config: 'feedMediumTier', cFreq: 'feedMediumFreq'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=4', config: 'feedHighTier', cFreq: 'feedHighFreq'});
-			worker.addPageCheck({page : 'ajax:guild_priority_mlist.php', config: 'feedGuild', cFreq: 'feedGuildFreq'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=2', config: 'feedLowTier', cFreq: 'feedLowTierFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=3', config: 'feedMediumTier', cFreq: 'feedMediumFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=4', config: 'feedHighTier', cFreq: 'feedHighFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'ajax:guild_priority_mlist.php', config: 'feedGuild', cFreq: 'feedGuildFreq', type: 'findKeep'});
 			if (!$u.hasContent(keeps.trim())) {
 				return true;
 			}
@@ -40,6 +40,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			con.error("ERROR in feed.deleteExpired: " + err.stack);
 			return false;
 		}
+	};
+	
+	feed.unpause = function() {
+		worker.deletePageCheck({type : 'findKeep'});
+		feed.init();
 	};
 	
 	feed.checkResults = function(page) {
@@ -229,6 +234,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     feed.scoring = function(cM) {
 		try {
 			var temp,
+				userid = caap.stats.FBID,
 				life = cM.life,
 				t2k = cM.t2k,
 				fortify = cM.fortify,

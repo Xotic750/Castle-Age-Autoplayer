@@ -190,6 +190,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 		worker.pagesList.push(o);
 	};
 	
+	worker.deletePageCheck = function(o) {
+		o = $u.isObject(o) ? o : {page : o};
+		var key = Object.keys(o).shift();
+		worker.pagesList = worker.pagesList.deleteObjs(key, o[key]);
+	};
+	
 	worker.checkResults = function(r) {
 		if ($u.isFunction(window[r].checkResults)) {
 			window[r].checkResults(session.getItem('page'));
