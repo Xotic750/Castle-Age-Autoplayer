@@ -18,19 +18,19 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	worker.add('loe');
 	
 	gb.loe = {
-		'name' : 'Land of Earth', // Used for user facing text
-		'label' : 'loe', // Used for internal naming
-		'stamina' : 0,
-		'enterButton' : '',
-		'infoDiv' : '',
-		'waitHours' : 24,
-		'collectHours' : 0,
-		'minHealth' : 0, 
+		name: 'Land of Earth', // Used for user facing text
+		label: 'loe', // Used for internal naming
+		stamina: 0,
+		enterButton: '',
+		infoDiv: '',
+		waitHours: 24,
+		collectHours: 0,
+		minHealth: 0, 
 		scoring : 'loeScoring',
-		'basePath' : 'ajax:guildv2_conquest_expansion.php?guild_id='
+		basePath: 'ajax:guildv2_conquest_expansion.php?guild_id='
 	};
 	
-	loe.checkResults = function(page) {
+	loe.checkResults = function(page, resultsText) {
         try {
 			switch (page) {
 			case 'guild_conquest_castle_battlelist' :
@@ -67,7 +67,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					con.warn('Loe guild id is undefined');
 					return;
 				}
-				gb.fightResult(fR);
+				session.setItem('gbWhich', fR.label);
+				battle.readWinLoss(resultsText, gb.testList);
 				
 				$j('#hover_tab_1_1').closest('.tower_tab').find('div[onmouseover*="hover_tab_1_"]').each( function() {
 					var t = $j(this).attr('onmouseover').regex(/hover_tab_1_(\d)/);
@@ -185,6 +186,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				gb.setRecord(fR);
 				return caap.navigate2('ajax:guild_conquest_castle_battlelist.php');
 			} else if (result == 'done') {
+				battle.setRecordVal(t.id, 'level', t.level);
+				state.setItem('lastBattleID', t.id);
 				fR.t = false;
 			}
 			gb.setRecord(fR);

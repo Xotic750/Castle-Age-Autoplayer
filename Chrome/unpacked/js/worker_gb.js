@@ -23,6 +23,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
         this.data = {
             label: label,
             guildId: '',
+			att : 0,
             ticker: '',
 			collectedTime: 0,
 			lastBattleTime: 0,
@@ -233,7 +234,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			{'name': 'smokebomb',
 			'self': false,
 			'base' : 'level',
-			image : 'rogue_smoke.jpg'}
+			image : 'rogue_smoke'}
 		],
 		warrior: [
 			{name: 'guardian',
@@ -344,22 +345,50 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 	
 	gb.init = function() {
 		try {
-			if (gm && gb.getRecord('winLoss').newRecord) {
-				// Should be ok to remove old record lookup after 2015/3/17 - Artifice
-				var records = gm.getItem('guild_battle.records', 'default');
-				if ($j.isArray(records) && records.length > 2) {
-					gb.records = [];
-					records[2].label = 'winLoss';
-					gb.setRecord(records[2]);
-					con.warn(gb.name + ': Imported old records and deleted them.');
-					gm.deleteItem('guild_battle.records');
-				} else {
-					con.warn(this.name + ': No records found for targets.');
-				}
+			if (!gb.getRecord('winLoss').newRecord) {
+				gb.deleteRecord('winLoss');
 			}
 			session.setItem("gbClassicDashUpdate", true);
 			session.setItem("gb10DashUpdate", true);
 			session.setItem("gb100DashUpdate", true);
+			
+			gb.testList = [
+				{	method : 'duel',
+					type : 'gb',
+					check : new RegExp('(POLYMORPH|CONFUSE)? ?(VICTORY|DEFEAT)?\\! .*' + caap.stats.PlayerName + " (.*) Battle Results:"),
+					vars : ['action', 'wl', 'name'],
+					func : function(r) {
+						var str = caap.resultsText.replace(r.name, '').replace(caap.stats.PlayerName, ''),
+							tStr = '';
+							
+						r.points = str.regex(/\+(\d+) Battle Activity Points/);
+						if (str.regex(/(Your target is freed from polymorph!)/i) || str.regex(/(yourself)/i)) {
+							return;
+						} else if ($u.hasContent(r.wl)) {
+							var fR = gb.getRecord(session.getItem('gbWhich','gb100'));
+							tStr = str.regex(/Defense increased by (\d+)% from Divine Favor/);
+							if (tStr) {
+								fR.att = (caap.stats.attack + caap.stats.bonus.attack + (caap.stats.defense + caap.stats.bonus.defense) * 0.7 * (tStr.numberOnly() / 100 + 1)).dp(0);
+							} else {
+								tStr = str.regex(/Attack increased by (\d+)% from Enrage/);
+								if (tStr) {
+									fR.att = ((caap.stats.attack + caap.stats.bonus.attack) * (tStr.numberOnly() / 100 + 1) + (caap.stats.defense + caap.stats.bonus.defense) * 0.7).dp(0);
+								}
+							}
+								
+							r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
+							r.att = (fR.att > 0 ? fR.att : caap.stats.bonus.api) * (r.action == 'CONFUSE' ? 1.5 : 1) * (r.action == 'POLYMORPH' ? 1.25 : 1);
+							gb.setRecord(fR);
+						} else {
+							r.wl = ($u.hasContent($j("#globalContainer #results_main_wrapper").find('div[style*="color:#ffdb59"]'))) ? 'won' : 'lost';
+							r.att = gb.getRecordVal(session.getItem('gbWhich','gb100'), 'att', caap.stats.bonus.api);
+						}
+					}
+				}
+			];
+
+			
+			
        } catch (err) {
             con.error("ERROR in gb.init: " + err.stack);
             return false;
@@ -417,8 +446,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				myStatsTxt = '',
 				index = 0,
 				tStr = '',
-				wlid = '',
-				wlR = {},
+				pics = [],
+				bR = {},
 				towerPops = [],
 				towerTypes = [],
 				sealedTowers = 0,
@@ -431,7 +460,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             tempDiv = $j("#globalContainer #guild_battle_banner_section");
 			myStatsTxt = $u.setContent(tempDiv.text().trim().innerTrim(), '');
-			fR.me.shout = $u.hasContent($j("img[src*='effect_shout']", tempDiv)) ? true : false;
 			//con.log(2,'Do I have Shout? ' + fR.me.shout);
 			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master .* Initiate More)/i) || myStatsTxt.regex(/your team.*was (defeated|victorious)/i);
@@ -440,7 +468,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				return fR;
 			}
 
-			gb.fightResult(fR);
+			session.setItem('gbWhich', fR.label);
+			battle.readWinLoss(caap.resultsText, gb.testList);
 
 			fR.nextTopReview = Math.max(now + 5 * 60 * 1000, fR.nextTopReview);
 
@@ -484,7 +513,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.me.healthMax = args[5] ? args[5].parseInt() : 1;
 				fR.me.battlePoints = args[7] ? args[7].parseInt() : 0;
 				fR.me.percent = ((fR.me.healthNum / fR.me.healthMax) * 100).dp(2);
-			} else if (myStatsTxt.indexOf('Battle Has Not Started') >= 0) {
+				pics = $j.makeArray(tempDiv.find('img').map(function(e) { return $j(this).attr('src').regex(/(\w+\.\w+)$/); }));
+				if (fR.att == 0 || (!pics.hasIndexOf('cleric_effect_divine_favor.gif') && !pics.hasIndexOf('mage_effect_enrage.gif'))) {
+					fR.att = caap.stats.bonus.api;
+				}
+				fR.me.shout = pics.hasIndexOf('warrior_effect_shout.gif') ? true : false;
+			} else if (myStatsTxt.hasIndexOf('Battle Has Not Started')) {
 				// Wait retry until started
 				return fR;
 			} else {
@@ -541,8 +575,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				//con.log(2,'EASY',fR.easy, sealedTowers + (fR.your.health > fR.enemy.health + 20), sealedTowers, towerPops);
 			}
 			
-			wl = fR.your.health > fR.enemy.health + 20 || fR.enemy.health > fR.your.health + 20;
-			
 			//con.log(2,'SIMTIS',fR.simtis,fR.easy,$u.isString(fR.me.tower),fR.me.tower, towerPops, towerPops[(fR.me.tower || 1) - 1]);
 			if (!gate) {
 				con.warn("No gates found");
@@ -559,72 +591,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             return false;
         }
     };
-
-	gb.fightResult = function(fR) {
-		try {
-			var tempDiv = $j('#globalContainer #results_main_wrapper'),
-				tStr = tempDiv.text().trim().innerTrim(),
-				tNum = fR.label == 'loe' ? 160 : $u.setContent(tStr.regex(/\+(\d+) Battle Activity Points/),0),
-				result = $u.setContent(tStr.regex(/^(\w+) (VICTORY|DEFEAT)!/), ''),
-				wlR = {},
-				wlRs = gb.getRecord('winLoss'),
-				wlid = $u.setContent($j("input[name='target_id']", tempDiv).attr('value'), false),
-				lastMove = result.hasIndexOf('POLYMORPH') ? 'poly' : result.hasIndexOf('CONFUSE') ? 'confuse' : tNum == 135 ? 'heal' : 'duel';
-			
-			
-			if (wlid && tNum) {
-				if (!$u.isObject(wlRs[wlid])) {
-					wlRs[wlid] = new gb.wlRecord().data;
-				}
-				wlR = wlRs[wlid];
-
-
-				if (tNum == 50) {
-					con.log(1, "You were polymorphed or confused", wlid, tStr, tNum, wlR, wlRs);
-				} else if (tStr.regex(/(Your target is freed from polymorph!)/i)) {
-					con.log(1, "Victory against polymorphed enemy", wlid, tStr, tNum, wlR, wlRs);
-				} else {
-
-					if (result.hasIndexOf('DEFEAT')) {
-						wlR[lastMove].losses += 1;
-						if (tNum == 135) {
-							con.log(1, "Defeat against ally", wlid, tStr, tNum, wlR, wlRs);
-						} else {
-							con.log(1, lastMove + " Defeated by enemy", wlid, tStr, tNum, wlR, wlRs);
-						}
-					} else if (result.hasIndexOf('VICTORY')) {
-						wlR[lastMove].wins += 1;
-						if (tNum == 135 || session.getItem('page', '') == 'guildv2_conquest_expansion_fort') {
-							con.log(1, "Victory against ally", wlid, tStr, tNum, wlR, wlRs);
-						} else { 
-							con.log(1, lastMove + " Victory against enemy", wlid, tStr, tNum, wlR, wlRs);
-						}
-					} else {
-						con.warn('Unknown battle result count', wlid, tStr, tNum, wlR, wlRs);
-					}
-					wlR[lastMove].total = wlR[lastMove].wins + wlR[lastMove].losses;
-					gb.setRecord(wlRs);
-				}
-			} else {
-				tStr = $j("#globalContainer div[class='results']").text();
-				if (tStr.regex(/(You do not have enough battle tokens for this action)/i)) {
-					con.log(1, "You didn't have enough battle tokens");
-				} else if (tStr.regex(/(does not have any health left to battle)/i)) {
-					con.log(1, "Enemy had no health left");
-				} else if (tStr.regex(/(You tried to attack but tripped while running)/i)) {
-					con.log(1, "Oops, you tripped");
-				} else if (tStr.regex(/(is stunned and cannot)/i)) {
-					con.log(1, "Ally is stunned");
-				} else if (tStr !== '') {
-					con.log(1, "Unknown win or loss or result", tStr);
-				}
-			}
-        } catch (err) {
-            con.error("ERROR in gb.fightResult: " + err.stack);
-            return false;
-        }
-    };
-
+	
 	gb.readTower = function (fR, which, tower, memberDivs, towerTypes, sealedTowers) {
 		try {
 			var towerList = fR.label == 'loe' ? Object.keys(fR.enemy.towers) : ['1','2','3','4'],
@@ -634,11 +601,12 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				gf = gb[fR.label], 
 				tempDiv = $j(),
 				mR = {}, // member record
-				wlRs = gb.getRecord('winLoss'),
-				wlid = 0,
 				isMe = false,
 				tStr = '',
+				wl = fR.your.health > fR.enemy.health + 20 || fR.enemy.health > fR.your.health + 20,
 				args = [],
+				pics = [],
+				bR = {}, // battle record
 				scoring = config.getItem(gf.scoring,''),
 				score = [],
 				sealScore = [0, 0],
@@ -657,25 +625,24 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				member = $j(memberDivs[n-1]);
 				mR = new gb.member().data;
 //					text = (which == 'enemy' ? 'basic_' : 'special_defense_') + tower + '_';
-				tStr = 'action_panel_';
-				tempDiv = member.find('div[class^="' + tStr + '"]').eq(0);
+				tempDiv = member.find('div[class^="action_panel_"]').eq(0);
 				if (tempDiv && tempDiv.length) {
 					//con.log(2,"Target_id for member", tempDiv.attr('id'), tempDiv);
-					mR.target_id = tempDiv.attr('class').replace(tStr,'');
+					mR.target_id = tempDiv.attr('class').replace('action_panel_','');
 					//con.log(2,"Target_id for member", mR.target_id, tempDiv.attr('id'), tempDiv);
 				} else {
 					mR.target_id = 0;
 					//con.log(2, "Unable to find target_id for member", tower, n, member, tempDiv);
 				}
 
-				tStr = member.children().text();
-				tStr = tStr ? tStr.trim().innerTrim() : '';
+				tStr = $u.setContent(member.children().text(), '').trim().innerTrim();
 				args = tStr.match(/(\d+)\. (.*) Level: (\d+) Status: (.*) (.+)\/(.+) .*Battle Points: (.*)/);
 
 				if (args && args.length === 8) {
-					mR.mclass = $j("img[src*='class_']", member).attr("title").match(/(\w+)/)[1].toLowerCase();
+					pics = $j.makeArray(member.find('img').map(function(e) { return $j(this).attr('src').regex(/(\w+\.\w+)$/); }));
+					mR.mclass = pics.listMatch(/class_(\w+)\.gif/);
 					tR.clerics += mR.mclass == 'cleric' ? 1 : 0;
-					mR.points = $u.setContent($j("img[src*='guild_bp_']", member).attr("title"),'160').match(/(\d+)/)[1];
+					mR.points = ['160', '200', '240'][['low','mid','high'].indexOf($u.setContent(pics.listMatch(/(guild_bp_(\w+)\.jpg)/), 'low'))];
 					mR.name = args[2] || '';
 					mR.level = args[3] ? args[3].parseInt() : 0;
 					mR.status = args[4] || '';
@@ -684,20 +651,14 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					mR.battlePoints = args[7] ? args[7].parseInt() : 0;
 					mR.percent = ((mR.healthNum / mR.healthMax) * 100).dp(2);
 
+					bR = battle.getRecord(mR.target_id);
+					bR.level = mR.level;
 					['duel', 'poly','confuse'].forEach(function(awin) {
-						var api = (awin == 'confuse' ? 1.5 : awin == 'poly' ? 1.25 : 1) * caap.stats.bonus.api,
-							numerator = 0,
-							denominator = 0,
-							winChance = Math.min((api / mR.level / 10 * 100).dp(1),100),
-							wlR = wlRs[mR.target_id];
 						if (mR.poly) {
 							mR.metrics[awin] = 100;
-						} else if ($u.hasContent(wlR) && $u.hasContent(wlR[awin]) && $u.isDefined(wlR[awin].total)) {
-							numerator = wlR.duel.wins + (awin != 'duel' ? wlR.poly.wins : 0) + (awin == 'confuse' ? wlR.confuse.wins : 0);
-							denominator = awin == 'confuse' ? wlR.confuse.total +  wlR.poly.wins +  wlR.duel.wins : awin == 'poly' ? wlR.confuse.losses +  wlR.poly.total +  wlR.duel.wins : wlR.confuse.losses +  wlR.poly.losses +  wlR.duel.total;
-							mR.metrics[awin] = ((winChance * 0.5 / 100 + numerator) / (0.5 + denominator) * 100).dp(1);
 						} else {
-							mR.metrics[awin] = winChance;
+							// If enrage or divine favor, assume has 100% bonus. Could do more detailed calc based on time passed in game and number of tokens possibly spent, but 100% bonus is a good place to start.
+							mR.metrics[awin] = battle.winChance(bR, (awin == 'confuse' ? 1.5 : awin == 'poly' ? 1.25 : 1) * fR.att, pics.hasIndexOf('mage_effect_enrage.gif') || pics.hasIndexOf('cleric_effect_divine_favor.gif'));
 						}
 					});
 					mR.winChance = mR.metrics.duel;
@@ -705,12 +666,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					mR.metrics.level = Math.atan(mR.level/1000)/Math.PI*2*100;
 					mR.metrics.rhealth = 100 - Math.atan(Math.max(mR.healthNum - gf.minHealth, 0)/1000)/Math.PI*2*100;
 					
-					if (mR.target_id && wlid == mR.target_id) {
-						wlRs[wlid].level = mR.level;
-						wlRs[wlid].name = mR.name;
-					}
-
-					//con.log(2, 'Member Record', mR);
 					tR.players += 1;
 					tR.actives += mR.battlePoints > 0 ? 1 : 0;
 					tR.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
@@ -739,8 +694,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							sealScore = [0, 0];
 							fullText = args[1];
 							
-							//member.find('img').map(function(e) { return $j(this).attr('src').regex(/(\w+\.\w+)$/); });
-							
 							$u.setContent(fullText.match(/(!?\w+:\D?[^,]+)/g),[]).forEach( function(text) {
 								var key = text.replace(/:.*/,'').replace('!','').toLowerCase(),
 									tf = false;
@@ -767,21 +720,21 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									case 'null' : 	
 									case 'gate' : 	
 									case 'sewer' : 		tf = $u.hasContent(towerTypes) && towerTypes.length ? towerTypes[tower - 1].toLowerCase() === key : false;					break;
-									case 'poly' : 		tf = $u.hasContent($j("img[src*='polymorph_effect.gif']", member)); 	break;
-									case 'poison' : 	tf = $u.hasContent($j("img[src*='effect_poison']", member)); 		break;
-									case 'confuse' : 	tf = $u.hasContent($j("img[src*='mage_effect_confuse.gif']", member)); 		break;
-									case 'guardian' : 	tf = $u.hasContent($j("img[src*='warrior_ability_sentinel.gif']", member)); 	break;
-									case 'revive' : 	tf = $u.hasContent($j("img[src*='cleric_effect_revive.gif']", member)); 		break;
-									case 'shout' : 		tf = $u.hasContent($j("img[src*='warrior_effect_shout.gif']", member)); 		break;
-									case 'confidence' : tf = $u.hasContent($j("img[src*='warrior_effect_confidence.gif']", member)); 	break;
-									case 'fortify' : 	tf = $u.hasContent($j("img[src*='effect_fort']", member)); 			break;
-									case 'smokebomb' : 	tf = $u.hasContent($j("img[src*='effect_smoke']", member)); 		break;
-									case 'enrage' : 	tf = $u.hasContent($j("img[src*='mage_effect_enrage.gif']", member)); 		break;
-									case 'divine_favor': tf = $u.hasContent($j("img[src*='cleric_effect_divine_favor.gif']", member)); 		break;
-									case 'attack' : 	tf = $u.hasContent($j("img[src*='targetting_attack']", member)); 	break;
-									case 'avoid' : 		tf = $u.hasContent($j("img[src*='targetting_avoid']", member)); 	break;
-									case 'defend' : 	tf = $u.hasContent($j("img[src*='targetting_defend']", member));	break;
-									case 'healFlag' : 	tf = $u.hasContent($j("img[src*='targetting_heal']", member)); 		break;
+									case 'poly' : 		tf = pics.hasIndexOf('polymorph_effect.gif'); 						break;
+									case 'poison' : 	tf = pics.hasIndexOf('rogue_effect_poison.gif'); 					break;
+									case 'confuse' : 	tf = pics.hasIndexOf('mage_effect_confuse.gif'); 					break;
+									case 'guardian' : 	tf = pics.hasIndexOf('warrior_ability_sentinel.gif'); 				break;
+									case 'revive' : 	tf = pics.hasIndexOf('cleric_effect_revive.gif'); 					break;
+									case 'shout' : 		tf = pics.hasIndexOf('warrior_effect_shout.gif'); 					break;
+									case 'confidence' : tf = pics.hasIndexOf('warrior_effect_confidence.gif'); 				break;
+									case 'fortify' : 	tf = pics.hasIndexOf('cleric_effect_fort.gif'); 					break;
+									case 'smokebomb' : 	tf = pics.hasIndexOf('effect_smoke'); 								break;
+									case 'enrage' : 	tf = pics.hasIndexOf('mage_effect_enrage.gif'); 					break;
+									case 'divine_favor': tf = pics.hasIndexOf('cleric_effect_divine_favor.gif'); 			break;
+									case 'attack' : 	tf = pics.hasIndexOf('targetting_attack.png'); 						break;
+									case 'avoid' : 		tf = pics.hasIndexOf('targetting_avoid.png'); 						break;
+									case 'defend' : 	tf = pics.hasIndexOf('targetting_defend.png');						break;
+									case 'healFlag' : 	tf = pics.hasIndexOf('targetting_heal.png'); 						break;
 									case 'me' : 		tf = isMe; 															break;
 									case 'active' : 	tf = mR.battlePoints; 												break;
 									case 'bs' : 		tf = mR.healthNum == mR.healthMax; 									break;
@@ -796,7 +749,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 									case 'unstunned' : 	tf = mR.healthNum > 200; 											break;
 									case 'meshout' : 	tf = fR.me.shout; 													break;
 									case 'afflicted' : 	
-										tf = $u.hasContent($j("img[src*='polymorph_effect']", member)) || $u.hasContent($j("img[src*='effect_poison']", member)) || $u.hasContent($j("img[src*='effect_confuse']", member)); 	break;
+										tf = pics.hasIndexOf('polymorph_effect.gif') || pics.hasIndexOf('rogue_effect_poison.gif') || pics.hasIndexOf('mage_effect_confuse.gif'); 	break;
 									case 'p160' : 		
 									case 'p200' : 		
 									case 'p240' : 		tf = mR.points == key.numberOnly(); 								break;
@@ -944,6 +897,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				teams = [],
 				tObj = {},
 				pgO = {},
+				bR = {},
 				mess = gf.label + '_mess',
 				towers = ['1','2','3','4'],
 				t = { 'score' : 0, 'tokens' : 1 },
@@ -1096,6 +1050,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						gb.setRecord(fR);
 						return caap.navigate2(gb.makePath(gf, t.team == 'enemy' ? 'your' : 'enemy', t.tower));
 					} else if (result == 'done') {
+						battle.setRecordVal(t.id, 'level', t.level);
+						state.setItem('lastBattleID', t.id);
 						fR.t = false;
 					}
 					gb.setRecord(fR);
@@ -1221,13 +1177,13 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			if (total > t.score) {
 				t.tower = tower;
 				t.tokens = tokens;
-				t.id = mR.target_id;
 				t.score = total;
-//				t.attack = attack.regex(/duel/) ? duel: attack;
 				t.attack = attack;
 				t.team = team;
 				t.general = general;
+				t.id = mR.target_id;
 				t.name = mR.name;
+				t.level = mR.level;
 			}
 			return t;
         } catch (err) {

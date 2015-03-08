@@ -69,6 +69,10 @@ Number.prototype.numberOnly = function() {
     return this.valueOf();
 };
 
+Number.prototype.r1000 = function() {
+    return (this / 1000).dp(0);
+};
+
 Array.prototype.flatten = function(f, lc) {
 	 return this.map( function(o) {
 		return lc ? o[f].toLowerCase() : o[f];
@@ -118,6 +122,12 @@ Array.prototype.deleteObjs = function(f, v) {
 	return this.filter( function(e) {
 		return e[f] !== v;
 	});
+};
+
+Array.prototype.listMatch = function(r) {
+	return this.reduce( function(p, c) {
+		return $u.setContent(p, c.regex(r));
+	}, null);
 };
 
 String.prototype.parseTimer = function() {

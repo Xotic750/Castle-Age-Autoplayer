@@ -253,22 +253,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
-        "conquest.records": {
-            "get": function () {
-                return conquest.records;
-            },
-
-            "set": function (value) {
-                conquest.records = value;
-            },
-
-            "save": function (src) {
-                conquest.save(src);
-            },
-
-            "loaded": false
-        },
-
         "conquestLands.records": {
             "get": function () {
                 return conquestLands.records;
@@ -405,7 +389,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.army = null;
             window.caap = null;
             window.con = null;
-            window.conquest = null;
             $u.reload();
         }
     };
@@ -2092,7 +2075,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				worker.recordsList.forEach( function(r) {
 					window[r].load();
 				});
-                conquest.load();
+				conquestLands.load();
                 guilds.load();
                 caap.loadDemi();
                 caap.addControl();
@@ -2155,9 +2138,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.regexDiv = function (div, regex, record, array) {
+    caap.bulkRegex = function (div, regex, record, array) {
         try {
-            var text = $u.setContent(div.text().trim().innerTrim(), ''),
+            var text = $u.isString(div) ? div : $u.setContent(div.text().trim().innerTrim(), ''),
 				args = text.regex(regex);
 			
 			if (typeof record == 'undefined' && typeof array == 'undefined') {
@@ -2177,7 +2160,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			//con.log(2, 'Regex div text to record', text, regex, array, record);
 			return true;
         } catch (err) {
-            con.error("ERROR in regexDiv: " + err + ' ' + err.stack);
+            con.error("ERROR in bulkRegex: " + err + ' ' + err.stack);
             return undefined;
         }
     };
@@ -5083,7 +5066,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	caap.gameDay = function(offsetSeconds, time) {
 		time = new Date($u.setContent(time, Date.now()));
 		offsetSeconds = $u.setContent(offsetSeconds, 0); 				// Need to adjust from 7 to 8 when daylight savings time changes
-		return caap.weekdays[new Date(time.getTime() + ((time.getTimezoneOffset() / 60 - 8) * 3600 + offsetSeconds) * 1000).getDay()];
+		return caap.weekdays[new Date(time.getTime() + ((time.getTimezoneOffset() / 60 - 7) * 3600 + offsetSeconds) * 1000).getDay()];
 	};
 	
     caap.getStatusNumbers = function (text, record) {
@@ -5260,6 +5243,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'guild': {
             'name': '',
             'id': '',
+			'ids' : [], // For your guild mates
             'level': 0,
             'levelPercent': 0,
             'mPoints': 0,
@@ -5623,11 +5607,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					caap.stats.indicators.bsi = ((caap.stats.attack + caap.stats.defense) / caap.stats.level).dp(2);
 					caap.stats.indicators.lsi = ((caap.stats.energy.max + (2 * caap.stats.stamina.max)) / caap.stats.level).dp(2);
 					caap.stats.indicators.sppl = ((caap.stats.energy.max + (2 * caap.stats.stamina.max) + caap.stats.attack + caap.stats.defense + caap.stats.health.max - 122) / caap.stats.level).dp(2);
-					caap.stats.indicators.api = (caap.stats.attack + (caap.stats.defense * 0.7)).dp(2);
-					caap.stats.bonus.api = caap.stats.indicators.api + (caap.stats.bonus.attack + (caap.stats.bonus.defense * 0.7)).dp(2);
-					caap.stats.indicators.dpi = ((caap.stats.defense + (caap.stats.attack * 0.7))).dp(2);
-					caap.stats.bonus.dpi = caap.stats.indicators.dpi + (caap.stats.bonus.defense + (caap.stats.bonus.attack * 0.7)).dp(2);
-					caap.stats.indicators.mpi = (((caap.stats.indicators.api + caap.stats.indicators.dpi) / 2)).dp(2);
+					caap.stats.indicators.api = (caap.stats.attack + (caap.stats.defense * 0.7)).dp(0);
+					caap.stats.bonus.api = caap.stats.indicators.api + (caap.stats.bonus.attack + (caap.stats.bonus.defense * 0.7)).dp(0);
+					caap.stats.indicators.dpi = ((caap.stats.defense + (caap.stats.attack * 0.7))).dp(0);
+					caap.stats.bonus.dpi = caap.stats.indicators.dpi + (caap.stats.bonus.defense + (caap.stats.bonus.attack * 0.7)).dp(0);
+					caap.stats.indicators.mpi = (((caap.stats.indicators.api + caap.stats.indicators.dpi) / 2)).dp(0);
 					caap.stats.indicators.mhbeq = ((caap.stats.attack + (2 * caap.stats.stamina.max)) / caap.stats.level).dp(2);
 					if (caap.stats.attack >= caap.stats.defense) {
 						temp = caap.stats.attack / caap.stats.defense;
@@ -8981,20 +8965,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         guilds.guildMarket();
         return true;
     };
-	caap.MyGuildIds=[];
-    caap.getMyGuildIds = function () {
-		try {
-			//Load caap.MyGuildIds
-			caap.MyGuildIds = gm.getItem('caap.MyGuildIds', 'default');
-			if (!$j.isArray(battle.records)) {
-				caap.MyGuildIds = gm.setItem('caap.MyGuildIds', []);
-			}
-			return caap.MyGuildIds;			
-		} catch (err) {
-			con.error("ERROR in getMyGuildIds: " + err.stack);
-			return [];			
-		}
-	};
+
     caap.checkMyGuildIds = function () {
 		try {
 			var tempDiv = $j("#guildv2_formation_middle");
@@ -9014,21 +8985,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 				}
 				
-				//Save caap.MyGuildIds
-				try {
-					if (caap.domain.which === 3) {
-						caap.messaging.setItem('caap.MyGuildIds', tempArray);
-					} else {
-						gm.setItem('caap.MyGuildIds', tempArray);
-						if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
-							caap.messaging.setItem('caap.MyGuildIds', tempArray);
-						}
-					}
-					con.log(3, "save caap.MyGuildIds", tempArray);
-				} catch (err) {
-					con.error("ERROR in battle.save: " + err.stack);
-					return false;
-				}
+				caap.stats.guild.ids = tempArray;
+				caap.saveStats();
 			}
 			return true;
 		} catch (err) {

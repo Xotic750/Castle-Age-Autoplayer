@@ -16,43 +16,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 	worker.add('conquest');
 	
-    conquest.records = [];
-
     conquest.targetsOnPage = [];
 
     conquest.targets = [];
 
-    conquest.record = function() {
-        this.data = {
-            'userId': 0,
-            'nameStr': '',
-            'rankNum': 0,
-            'levelNum': 0,
-            'armyNum': 0,
-            'invadewinsNum': 0,
-            'invadelossesNum': 0,
-            'ibp': 0,
-            'duelwinsNum': 0,
-            'duellossesNum': 0,
-            'dbp': 0,
-            'statswinsNum': 0,
-            'statslossesNum': 0,
-            'chainCount': 0,
-            'invadeLostTime': 0,
-            'duelLostTime': 0,
-            'deadTime': 0,
-            'chainTime': 0,
-            'ignoreTime': 0,
-            'aliveTime': 0,
-            'attackTime': 0,
-            'selectTime': 0,
-            'unknownTime': 0,
-            'score': 0,
-            'newRecord': true
-        };
-    };
-
-	conquest.checkResults = function(page) {
+	conquest.checkResults = function(page, resultsText) {
         try {
 			// Check coins
             var whenconquest = config.getItem('WhenConquest', 'Never');
@@ -60,13 +28,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 caap.setDivContent('conquest_mess', 'Conquest off');
                 return false;
             }
-            if (!caap.oneMinuteUpdate('checkConquestTokens')) {
-                return false;
-            }
-
 			switch (page) {
 			case 'conquest_duel' :
-				conquest.battle();
+				conquest.battle(page, resultsText);
 				// Deliberate lack of break;
 			case 'guild_conquest_castle_battlelist' :
 			case 'guild_conquest_castle' :
@@ -84,6 +48,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				break;
 				
 			default :
+				if (!caap.oneMinuteUpdate('checkConquestTokens')) {
+					return false;
+				}
 				caap.stats.guildTokens.num = $j('#persistHomeConquestPlateOpen').text().numberOnly();
 				caap.saveStats();
 				break;
@@ -110,7 +77,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if ($u.hasContent(inp)) {
                         inp.attr("value", record.userId);
                         con.log(1, 'Attacking', record);
-                        conquest.click(conquestButton);
+						battle.setRecord(record);
+                        conquest.click(conquestButton, record.userId);
                         conquestButton = null;
                         form = null;
                         inp = null;
@@ -142,7 +110,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     conquest.worker = function() {
         try {
             var whenconquest = '',
-                targetRecord = {},
+                bR = {},
                 targetId = 0,
                 conquesttype = '',
                 useGeneral = '',
@@ -310,7 +278,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(button) && $u.isNumber(conquestChainId) && conquestChainId > 0) {
                     caap.setDivContent('conquest_mess', 'Chain Attack In Progress');
                     con.log(1, 'Chaining Target', conquestChainId);
-                    conquest.click(button);
+                    conquest.click(button, conquestChainId);
                     state.setItem("ConquestChainId", 0);
                     button = null;
                     tempDiv = null;
@@ -334,21 +302,21 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
                 if (conquest.targetsOnPage[it].userId === targetId) {
-                    targetRecord = conquest.targetsOnPage[it];
+                    bR = conquest.targetsOnPage[it];
                 }
             }
 
-            if (!$u.hasContent(targetRecord)) {
-                con.log(1, 'No valid conquest target',targetId, targetRecord, conquest.targets);
+            if (!$u.hasContent(bR)) {
+                con.log(1, 'No valid conquest target',targetId, bR, conquest.targets);
                 state.setItem("ConquestChainId", 0);
                 button = null;
                 tempDiv = null;
                 return false;
             }
 
-            con.log(1, 'conquest Target', targetRecord);
-            if (conquest.conquestUserId(targetRecord)) {
-                caap.setDivContent('conquest_mess', 'Conquest Target: ' + targetRecord.userId);
+            con.log(1, 'conquest Target', bR);
+            if (conquest.conquestUserId(bR)) {
+                caap.setDivContent('conquest_mess', 'Conquest Target: ' + bR.userId);
                 button = null;
                 tempDiv = null;
                 return true;
@@ -431,252 +399,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         18: 'Duke'
     };
 
-    conquest.hbest = 2;
-
-    conquest.load = function() {
-        try {
-            conquest.records = gm.getItem('conquest.records', 'default');
-            if (conquest.records === 'default' || !$j.isArray(conquest.records)) {
-                conquest.records = gm.setItem('conquest.records', []);
-            }
-
-            conquest.hbest = conquest.hbest === false ? JSON.hbest(conquest.records) : conquest.hbest;
-            //con.log(2, "conquest.load Hbest", conquest.hbest);
-            session.setItem("ConquestDashUpdate", true);
-            con.log(3, "conquest.load", conquest.records);
-			conquestLands.load(); // Shouldn't be here, but putting here for now
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.load: " + err);
-            return false;
-        }
-    };
-
-    conquest.save = function(src) {
-        try {
-            var compress = false;
-
-            if (caap.domain.which === 3) {
-                caap.messaging.setItem('conquest.records', conquest.records);
-            } else {
-                gm.setItem('conquest.records', conquest.records, conquest.hbest, compress);
-                con.log(2, "conquest.save", conquest.records);
-                if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
-                    caap.messaging.setItem('conquest.records', conquest.records);
-                }
-            }
-
-            if (caap.domain.which !== 0) {
-                session.setItem("ConquestDashUpdate", true);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.save: " + err);
-            return false;
-        }
-    };
-
-    conquest.clear = function() {
-        try {
-            conquest.records = [];
-            conquest.save();
-            session.setItem("ConquestDashUpdate", true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.clear: " + err);
-            return false;
-        }
-    };
-
-    conquest.getItem = function(userId) {
-        try {
-            var it = 0,
-                len = 0,
-                success = false,
-                newRecord = null;
-
-            if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                con.warn("userId", userId);
-                throw "Invalid identifying userId!";
-            }
-
-            for (it = 0, len = conquest.records.length; it < len; it += 1) {
-                if (conquest.records[it].userId === userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            if (success) {
-                con.log(2, "Got conquest record", userId, conquest.records[it]);
-                conquest.records[it].newRecord = false;
-                return conquest.records[it];
-            }
-
-            newRecord = new conquest.record();
-            newRecord.data.userId = userId;
-            con.log(2, "New conquest record", userId, newRecord.data);
-            return newRecord.data;
-        } catch (err) {
-            con.error("ERROR in conquest.getItem: " + err);
-            return false;
-        }
-    };
-
-    conquest.setItem = function(record) {
-        try {
-            if (!record || !$j.isPlainObject(record)) {
-                throw "Not passed a record";
-            }
-
-            if (record.userId === '' || $u.isNaN(record.userId) || record.userId < 1) {
-                con.warn("userId", record.userId);
-                throw "Invalid identifying userId!";
-            }
-
-            var it = 0,
-                len = 0,
-                success = false;
-
-            for (it = 0, len = conquest.records.length; it < len; it += 1) {
-                if (conquest.records[it].userId === record.userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            record.newRecord = false;
-            if (success) {
-                conquest.records[it] = record;
-                con.log(1, "Updated conquest record", record, conquest.records);
-            } else {
-                conquest.records.push(record);
-                con.log(1, "Added conquest record", record, conquest.records);
-            }
-
-            conquest.save();
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.setItem: " + err, record);
-            return false;
-        }
-    };
-
-    conquest.deleteItem = function(userId) {
-        try {
-            var it = 0,
-                len = 0,
-                success = false;
-
-            if (userId === '' || $u.isNaN(userId) || userId < 1) {
-                con.warn("userId", userId);
-                throw "Invalid identifying userId!";
-            }
-
-            for (it = 0, len = conquest.records.length; it < len; it += 1) {
-                if (conquest.records[it].userId === userId) {
-                    success = true;
-                    break;
-                }
-            }
-
-            if (success) {
-                conquest.records.splice(it, 1);
-                conquest.save();
-                con.log(1, "Deleted conquest record", userId, conquest.records);
-                return true;
-            }
-
-            con.warn("Unable to delete conquest record", userId, conquest.records);
-            return false;
-        } catch (err) {
-            con.error("ERROR in conquest.deleteItem: " + err);
-            return false;
-        }
-    };
-
-    conquest.hashCheck = function(record) {
-        try {
-            var hash = '',
-                hashes = [
-                    "3f56e5f147545c2069f615aa2ebc80d2eef34d48",
-                    "8caeb4b385c1257419ee18dee47cfa3a1271ba77",
-                    "02752cf4b979dd5a77b53694917a60f944cb772f",
-                    "c644f2fdcf1a7d721b82efab5313df609442c4f9",
-                    "8d29caf6400807789964185405b0f442e6cacae7",
-                    "7f04c6d6d1110ce05532ca508efde5dbafe7ec17"
-                ];
-
-            if (!hashes.length || !(gm ? gm.getItem('AllowProtected', true, hiddenVar) : true)) {
-                return false;
-            }
-
-            if (record.userId === '' || $u.isNaN(record.userId) || record.userId < 1) {
-                con.warn("userId", record);
-                throw "Invalid identifying userId!";
-            }
-
-            hash = (record.userId.toString().SHA1() + record.nameStr).SHA1();
-            return (hashes.hasIndexOf(hash));
-        } catch (err) {
-            con.error("ERROR in conquest.hashCheck: " + err);
-            return false;
-        }
-    };
-
-    /*
-    conquest.deadCheck = function() {
-        try {
-            var targetRecord = {},
-                dead = false;
-
-            if (state.getItem("lastConquestID", 0)) {
-                targetRecord = conquest.getItem(state.getItem("lastConquestID", 0));
-            }
-
-            if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                if ($u.hasContent(caap.resultsText)) {
-                    if (/Your opponent is dead or too weak to conquest/.test(caap.resultsText)) {
-                        con.log(1, "This opponent is dead or hiding: ", state.getItem("lastConquestID", 0));
-                        if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
-                            targetRecord.deadTime = Date.now();
-                        }
-
-                        dead = true;
-                    }
-                } else {
-                    if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
-                        targetRecord.unknownTime = Date.now();
-                    }
-
-                    con.warn("Unable to determine if user is dead!");
-                    dead = null;
-                }
-            } else {
-                if ($j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
-                    targetRecord.unknownTime = Date.now();
-                }
-
-                con.warn("Unable to find any results!");
-                dead = null;
-            }
-
-            if (dead !== false && $j.isPlainObject(targetRecord) && !$j.isEmptyObject(targetRecord)) {
-                conquest.setItem(targetRecord);
-            }
-
-            return dead;
-        } catch (err) {
-            con.error("ERROR in conquest.deadCheck: " + err);
-            return undefined;
-        }
-    };
-    */
-
-    conquest.click = function(conquestButton) {
+    conquest.click = function(conquestButton, userId) {
         try {
             conquest.flagResult = true;
+			state.setItem('lastBattleID', userId);
             caap.setDomWaiting("conquest_duel.php");
             caap.click(conquestButton);
             return true;
@@ -841,9 +567,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     conquest.targeting = function() {
         function logOpponent(opponent, reason, conditions) {
-            con.log(2, (reason === 'sorted' ? 1 : 2), (opponent.nameStr.lpad(' ', 20) + opponent.userId.lpad(' ', 16) +
-                opponent.levelNum.lpad(' ', 4) + conquest.conquestRankTable[opponent.rankNum].lpad(' ', 16) +
-                opponent.armyNum.lpad(' ', 4) + opponent.score.dp().lpad(' ', 5)), reason, conditions);
+            con.log(2, (reason === 'sorted' ? 1 : 2), (opponent.name.lpad(' ', 20) + opponent.userId.lpad(' ', 16) +
+                opponent.level.lpad(' ', 4) + conquest.conquestRankTable[opponent.rank].lpad(' ', 16) +
+                opponent.army.lpad(' ', 4) + opponent.score.dp().lpad(' ', 5)), reason, conditions);
         }
 
         try {
@@ -949,7 +675,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     boxesDiv = opponentDiv.children("div"),
                     tempDiv = $j(),
                     tempText = '',
-                    battleRecord = {},
+                    bR = {},
                     levelMultiplier = 0,
                     armyRatio = 0,
                     tempTime = 0;
@@ -968,7 +694,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 var userId = parseInt($j("input[name='target_id']",idDiv)[0].defaultValue,10);
                 if (userId > 0) {
-                    battleRecord = conquest.getItem(userId);
+                    bR = battle.getRecord(userId);
                 } else {
                     con.warn("skipping opponent, unable to get userid", tempText);
                     opponentDiv = null;
@@ -983,15 +709,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(playerDiv)) {
                     tempText = $u.setContent(playerDiv.text(), '');
                     if ($u.hasContent(tempText)) {
-                        battleRecord.nameStr = $u.setContent(tempText.regex(/\s*(.+) \(Level/), '');
-                        battleRecord.levelNum = $u.setContent(tempText.regex(/Level (\d+)/i), -1);
-                        battleRecord.rankNum = $u.setContent(tempText.regex(/Rank (\d+)/i), -1);
+                        bR.name = $u.setContent(tempText.regex(/\s*(.+) \(Level/), '');
+                        bR.level = $u.setContent(tempText.regex(/Level (\d+)/i), -1);
+                        bR.conqRank = $u.setContent(tempText.regex(/Rank (\d+)/i), -1);
 
-                        if (battleRecord.nameStr === '') {
+                        if (bR.name === '') {
                             con.warn("Unable to match opponent's name", tempText);
                         }
 
-                        if (!$u.isNumber(battleRecord.levelNum) || !$u.isNumber(battleRecord.rankNum) || battleRecord.levelNum === -1 || battleRecord.rankNum === -1) {
+                        if (!$u.isNumber(bR.level) || !$u.isNumber(bR.conqRank) || bR.level === -1 || bR.conqRank === -1) {
                             con.warn("skipping opponent, unable to get level or rank", tempText);
                             opponentDiv = null;
                             boxesDiv = null;
@@ -1025,9 +751,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(armyDiv)) {
                     tempText = $u.setContent(armyDiv.text(), '');
                     if ($u.hasContent(tempText)) {
-                        battleRecord.armyNum = $u.setContent(tempText.regex(/(\d+)/i), -1);
+                        bR.army = $u.setContent(tempText.regex(/(\d+)/i), -1);
 
-                        if (battleRecord.armyNum=== -1) {
+                        if (bR.army=== -1) {
                             con.warn("skipping opponent, unable to get army", tempText);
                             opponentDiv = null;
                             boxesDiv = null;
@@ -1057,13 +783,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = null;
                     return;
                 }
-                levelMultiplier = caap.stats.level / battleRecord.levelNum;
-                battleRecord.score = battleRecord.rankNum - (battleRecord.armyNum / levelMultiplier / caap.stats.army.capped);
-                conquest.targetsOnPage.push(battleRecord);
-                if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > battleRecord.levelNum)) {
-                    logOpponent(battleRecord, "minLevel", {
-                        'level': battleRecord.levelNum,
-                        'levelDif': caap.stats.level - battleRecord.levelNum,
+                levelMultiplier = caap.stats.level / bR.level;
+                bR.score = bR.conqRank - (bR.army / levelMultiplier / caap.stats.army.capped);
+                conquest.targetsOnPage.push(bR);
+                if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > bR.level)) {
+                    logOpponent(bR, "minLevel", {
+                        'level': bR.level,
+                        'levelDif': caap.stats.level - bR.level,
                         'minLevel': minLevel
                     });
 
@@ -1076,11 +802,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.level) || (caap.stats.level + maxLevel <= battleRecord.levelNum)) {
-                    logOpponent(battleRecord, "maxLevel", {
-                        opponent: battleRecord,
-                        'level': battleRecord.levelNum,
-                        'levelDif': battleRecord.levelNum - caap.stats.level,
+                if (!$u.isNumber(caap.stats.level) || (caap.stats.level + maxLevel <= bR.level)) {
+                    logOpponent(bR, "maxLevel", {
+                        opponent: bR,
+                        'level': bR.level,
+                        'levelDif': bR.level - caap.stats.level,
                         'maxLevel': maxLevel
                     });
 
@@ -1093,10 +819,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest - minRank > battleRecord.rankNum)) {
-                    logOpponent(battleRecord, "minRank", {
-                        opponent: battleRecord,
-                        'rankDif': caap.stats.rank.conquest - battleRecord.rankNum,
+                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest - minRank > bR.conqRank)) {
+                    logOpponent(bR, "minRank", {
+                        opponent: bR,
+                        'rankDif': caap.stats.rank.conquest - bR.conqRank,
                         'minRank': minRank
                     });
 
@@ -1109,10 +835,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest + maxRank <= battleRecord.rankNum)) {
-                    logOpponent(battleRecord, "maxRank", {
-                        opponent: battleRecord,
-                        'rankDif': battleRecord.rankNum - caap.stats.rank.conquest,
+                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest + maxRank <= bR.conqRank)) {
+                    logOpponent(bR, "maxRank", {
+                        opponent: bR,
+                        'rankDif': bR.conqRank - caap.stats.rank.conquest,
                         'minRank': minRank
                     });
 
@@ -1125,7 +851,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                levelMultiplier = $u.setContent(caap.stats.level, 0) / $u.setContent(battleRecord.levelNum, 1);
+                levelMultiplier = $u.setContent(caap.stats.level, 0) / $u.setContent(bR.level, 1);
                 armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
@@ -1141,10 +867,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't conquest
-                if (conquesttype === 'Invade' && caap.stats.army.capped && (battleRecord.armyNum > (caap.stats.army.capped * armyRatio))) {
-                    logOpponent(battleRecord, "armyRatio", {
+                if (conquesttype === 'Invade' && caap.stats.army.capped && (bR.army > (caap.stats.army.capped * armyRatio))) {
+                    logOpponent(bR, "armyRatio", {
                         'armyRatio': armyRatio.dp(2),
-                        'armyNum': battleRecord.armyNum ,
+                        'army': bR.army ,
                         'armyMax': (caap.stats.army.capped * armyRatio).dp()
                     });
 
@@ -1157,37 +883,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                // don't conquest people we lost to in the last week
-                if (conquesttype === 'Invade') {
-                    tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
-                } else if (conquesttype === 'Duel') {
-                    tempTime = $u.setContent(battleRecord.duelLostTime, 0);
-                } else {
-                    con.warn("Conquest type unknown!", conquesttype);
-                    opponentDiv = null;
-                    boxesDiv = null;
-                    idDiv = null;
-                    playerDiv = null;
-                    armyDiv = null;
-                    tempDiv = null;
-                    return;
-                }
-
-                if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
-                    logOpponent(battleRecord, "We lost to this id this week", '');
-                    opponentDiv = null;
-                    boxesDiv = null;
-                    idDiv = null;
-                    playerDiv = null;
-                    armyDiv = null;
-                    tempDiv = null;
-                    return;
-                }
-
-                // don't conquest people that results were unknown in the last hour
-                tempTime = $u.setContent(battleRecord.unknownTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 3600)) {
-                    logOpponent(battleRecord, "User was conquestd but results unknown in the last hour", '');
+                if (!schedule.since(bR.lostTime, 604800)) {
+                    logOpponent(bR, "We lost to this id this week", '');
                     opponentDiv = null;
                     boxesDiv = null;
                     idDiv = null;
@@ -1198,9 +895,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // don't conquest people that were dead or hiding in the last hour
-                tempTime = $u.setContent(battleRecord.deadTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 3600)) {
-                    logOpponent(battleRecord, "User was dead in the last hour", '');
+                tempTime = $u.setContent(bR.deadTime, 0);
+                if (bR && !bR.newRecord && !schedule.since(tempTime, 3600)) {
+                    logOpponent(bR, "User was dead in the last hour", '');
                     opponentDiv = null;
                     boxesDiv = null;
                     idDiv = null;
@@ -1211,9 +908,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // don't conquest people we've already chained to max in the last 2 days
-                tempTime = $u.setContent(battleRecord.chainTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 86400)) {
-                    logOpponent(battleRecord, "We chained user within 2 days", '');
+                tempTime = $u.setContent(bR.chainTime, 0);
+                if (bR && !bR.newRecord && !schedule.since(tempTime, 86400)) {
+                    logOpponent(bR, "We chained user within 2 days", '');
                     opponentDiv = null;
                     boxesDiv = null;
                     idDiv = null;
@@ -1223,31 +920,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                // don't conquest people that didn't meet chain points in the last week
-                tempTime = $u.setContent(battleRecord.ignoreTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 604800)) {
-                    logOpponent(battleRecord, "User didn't meet chain requirements this week", '');
-                    opponentDiv = null;
-                    boxesDiv = null;
-                    idDiv = null;
-                    playerDiv = null;
-                    armyDiv = null;
-                    tempDiv = null;
-                    return;
-                }
-
-                if (battleRecord && conquest.hashCheck(battleRecord)) {
-                    opponentDiv = null;
-                    boxesDiv = null;
-                    idDiv = null;
-                    playerDiv = null;
-                    armyDiv = null;
-                    tempDiv = null;
-                    return;
-                }
-
-                conquest.targets.push(battleRecord.userId);
-                logOpponent(battleRecord, "match", '');
+                conquest.targets.push(bR.userId);
+                logOpponent(bR, "match", '');
 
                 opponentDiv = null;
                 boxesDiv = null;
@@ -1270,208 +944,93 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    conquest.getResults = function(slice) {
+	conquest.testList = [
+		{ method : 'invade',
+			type : 'conq',
+			check : / Army(\d+) .* Army(\d+) .*(\d+) Conquest Rank Pts.* (\+1)? XP.*Health (.*) .?\d+ Conquest Rank/i,
+			vars : ['myArmy', 'theirArmy', 'points', 'wl',  'name'],
+			func : function(r) {
+				r.wl = r.wl == '+1' ? 'won' : 'lost';
+				r.att = caap.stats.bonus.api * r.myArmy / r.theirArmy;
+			}
+		},
+		{ method : 'duel',
+			type : 'conq',
+			check : /(\d+) Conquest Rank Pts.* (\+1)? XP.*Health (.*) .?\d+ Conquest Rank/i,
+			vars : ['points', 'wl',  'name'],
+			func : function(r) {
+				r.wl = r.wl == '+1' ? 'won' : 'lost';
+				r.att = caap.stats.bonus.api;
+			}
+		}
+	];
+
+    conquest.getResults = function(page, resultsText) {
         try {
             var bottomDiv = $j(),
                 buttonDiv = $j(),
                 targetDiv = $j(),
                 tempText = '',
-                result = 'unknown',
-                type = 'unknown',
-                name = 'unknown',
-                userId = -1,
                 points = -1,
                 it = 0,
                 len = 0,
-                targetRecord = {},
+                r = {},
+				bR = {},
                 tempTime = 0,
                 chainBP = '',
                 maxChains = 0;
 
-            if (!$u.hasContent(slice)) {
-                con.warn("No slice passed to conquest.getResults");
-                bottomDiv = null;
-                buttonDiv = null;
-                targetDiv = null;
-                return;
-            }
+			r = battle.readWinLoss(resultsText, conquest.testList);
+			
+			if (!r) {
+				return false;
+			}
 
-            tempText = slice.attr('style');
-            if ($u.hasContent(tempText)) {
-                result = $u.setContent(tempText.regex(/war_fort_battle(\S+).jpg/), 'unknown');
-                if (!$u.hasContent(result) || (result !== 'victory' && result !== 'defeat')) {
-                    con.warn("conquest.battle: result unknown", tempText);
-                }
-            } else {
-                con.warn("conquest.battle: missing resultDiv");
-            }
+            con.log(1, "Conquest battle result: " + r.wl.ucWords() + ' against ' + r.name + ' in ' + r.type + ' for ' + r.points + ' Conquest Points', r);
+			
+			bR = battle.getRecord(r.userId);
 
-            bottomDiv = $j("#app_body div[style*='conqduel_battlebottom2.jpg']");
-            if ($u.hasContent(bottomDiv)) {
-                targetDiv = $j("input[name='target_id']", bottomDiv);
-                if ($u.hasContent(targetDiv)) {
-                    tempText = targetDiv.val();
-                    if ($u.hasContent(tempText)) {
-                        userId = $u.setContent(tempText.regex(/(\d+)/i), -1);
-                        if (!$u.hasContent(userId) || userId === -1) {
-                            con.warn("conquest.battle: userId unknown", tempText);
-                        }
-                    } else {
-                        con.warn("conquest.battle: missing targetDiv tempText");
-                    }
-                } else {
-                    con.warn("conquest.battle: missing targetDiv");
-                }
+			if (r.wl === 'won') {
+				session.setItem('ReleaseControl', false);
+				con.log(1, "Chain check");
+				//Test if we should chain this guy
+				tempTime = $u.setContent(bR.chainTime, 0);
+				chainBP = config.getItem('ConquestChainBP', '');
+				if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0))) {
+					if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
+						if (r.points >= chainBP) {
+							state.setItem("ConquestChainId", bR.userId);
+							con.log(1, "Chain Attack:", bR.userId, "Conquest Points: " + r.points);
+						} else {
+							con.log(1, "Ignore Chain Attack:", bR.userId, "Conquest Points: " + r.points);
+							bR.ignoreTime = Date.now();
+						}
+					}
+				}
 
-                targetDiv = bottomDiv.children().eq(1);
-                if ($u.hasContent(targetDiv)) {
-                    tempText = targetDiv.text();
-                    if ($u.hasContent(tempText)) {
-                        name = $u.setContent(tempText.regex(/\s+(.+)\s+\d+ Conquest Rank Pts/i), '').trim().innerTrim();
-                        if (!$u.hasContent(name) || name === '') {
-                            con.warn("conquest.battle: name unknown", tempText);
-                        }
-                    } else {
-                        con.warn("conquest.battle: missing name targetDiv tempText");
-                    }
-                } else {
-                    con.warn("conquest.battle: missing name targetDiv");
-                }
+				bR.chainCount = bR.chainCount ? bR.chainCount += 1 : 1;
+				maxChains = config.getItem('ConquestMaxChains', 4);
+				if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
+					maxChains = 4;
+				}
 
-                buttonDiv = $j('input[name="duel"]',bottomDiv);
+				if (bR.chainCount >= maxChains) {
+					con.log(1, "Lets give this guy a break. Chained", bR.chainCount);
+					bR.chainTime = Date.now();
+					bR.chainCount = 0;
+					bR.ignoreTime = 0;
+					bR.unknownTime = 0;
+				}
+			} else {
+				con.log(1, "Do Not Chain Attack:", bR.userId);
+				bR.chainCount = 0;
+				bR.chainTime = 0;
+				bR.ignoreTime = 0;
+				bR.unknownTime = 0;
+			}
 
-                if ($u.hasContent(buttonDiv)) {
-                    tempText = buttonDiv.val();
-                    type = tempText == 'true' ? 'duel' : 'invade';
-                } else {
-                    type = 'unknown';
-                    con.warn("conquest.battle: missing buttonDiv");
-                }
-
-                tempText = $u.setContent(bottomDiv.text(), '');
-                if ($u.hasContent(tempText)) {
-                    points = $u.setContent(tempText.regex(/(\d+) Conquest Rank Pts/), -1);
-                    if (!$u.hasContent(points) || points === -1) {
-                        con.warn("conquest.battle: missing Conquest Rank Pts", tempText);
-                    }
-                } else {
-                    con.warn("conquest.battle: missing bottomDiv tempText");
-                }
-            } else {
-                con.warn("conquest.battle: missing bottomDiv");
-            }
-
-            con.log(1, "conquest.getResults", userId, name, type, result, points);
-
-            if (userId > 0)  {
-                con.log(1, "Searching targets on page");
-                for (it = 0, len = conquest.targetsOnPage.length; it < len; it += 1) {
-                    if (conquest.targetsOnPage[it].userId === userId && caap.getMyGuildIds().lastIndexOf(userId) < 0) {
-                        targetRecord = conquest.targetsOnPage[it];
-                    }
-                }
-
-                if (!$u.hasContent(targetRecord)) {
-                    con.log(1, "No target record found, searching/creating conquest records");
-                    targetRecord = conquest.getItem(userId);
-                } else {
-                    con.log(1, "Target found on page", targetRecord);
-                }
-
-                targetRecord.attackTime = Date.now();
-                if ($u.hasContent(name) && name !== 'unknown' && name !== targetRecord.nameStr) {
-                    con.log(1, "Updating conquest record user name, from/to", targetRecord.nameStr, name);
-                    targetRecord.nameStr = name;
-                }
-
-                if ($u.hasContent(result) && (result === 'victory' || result === 'defeat')) {
-                    if ($u.hasContent(type) && (type === 'invade' || type === 'duel')) {
-                        if (type === 'invade') {
-                          if (result === 'victory') {
-                                targetRecord.statswinsNum += 1;
-                                targetRecord.invadewinsNum += 1;
-                                targetRecord.ibp += points;
-                            } else {
-                                targetRecord.statslossesNum += 1;
-                                targetRecord.invadelossesNum += 1;
-                                targetRecord.ibp -= points;
-                                targetRecord.invadeLostTime = Date.now();
-                            }
-                        } else {
-                            if (result === 'victory') {
-                                targetRecord.statswinsNum += 1;
-                                targetRecord.duelwinsNum += 1;
-                                targetRecord.dbp += points;
-                            } else {
-                                targetRecord.statslossesNum += 1;
-                                targetRecord.duellossesNum += 1;
-                                targetRecord.dbp -= points;
-                                targetRecord.duelLostTime = Date.now();
-                            }
-                        }
-
-                        if (result === 'victory') {
-                            session.setItem('ReleaseControl', false);
-                            con.log(1, "Chain check");
-                            //Test if we should chain this guy
-                            tempTime = $u.setContent(targetRecord.chainTime, 0);
-                            chainBP = config.getItem('ConquestChainBP', '');
-                            if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0))) {
-                                if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
-                                    if (points >= chainBP) {
-                                        state.setItem("ConquestChainId", targetRecord.userId);
-                                        con.log(1, "Chain Attack:", targetRecord.userId, "Conquest Points: " + points);
-                                    } else {
-                                        con.log(1, "Ignore Chain Attack:", targetRecord.userId, "Conquest Points: " + points);
-                                        targetRecord.ignoreTime = Date.now();
-                                    }
-                                }
-                            }
-
-                            targetRecord.chainCount = targetRecord.chainCount ? targetRecord.chainCount += 1 : 1;
-                            maxChains = config.getItem('ConquestMaxChains', 4);
-                            if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
-                                maxChains = 4;
-                            }
-
-                            if (targetRecord.chainCount >= maxChains) {
-                                con.log(1, "Lets give this guy a break. Chained", targetRecord.chainCount);
-                                targetRecord.chainTime = Date.now();
-                                targetRecord.chainCount = 0;
-                                targetRecord.ignoreTime = 0;
-                                targetRecord.unknownTime = 0;
-                            }
-                        } else {
-                            con.log(1, "Do Not Chain Attack:", targetRecord.userId);
-                            targetRecord.chainCount = 0;
-                            targetRecord.chainTime = 0;
-                            targetRecord.ignoreTime = 0;
-                            targetRecord.unknownTime = 0;
-                        }
-                    } else {
-                        con.warn("Setting unknown timer as conquest type unknown", type);
-                        targetRecord.chainCount = 0;
-                        targetRecord.chainTime = 0;
-                        targetRecord.ignoreTime = 0;
-                        targetRecord.unknownTime = Date.now();
-                    }
-                } else {
-                    con.warn("Setting unknown timer as conquest result unknown", result);
-                    targetRecord.chainCount = 0;
-                    targetRecord.chainTime = 0;
-                    targetRecord.ignoreTime = 0;
-                    targetRecord.unknownTime = Date.now();
-                }
-
-                conquest.setItem(targetRecord);
-            } else {
-                con.error("Unable to process records without valid userId", userId);
-            }
-
-            bottomDiv = null;
-            buttonDiv = null;
-            targetDiv = null;
-        } catch (err) {
+			battle.setRecord(bR);
+	} catch (err) {
             con.error("ERROR in conquest.getResults: " + err);
         }
     };
@@ -1558,16 +1117,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
-    conquest.battle = function() {
+    conquest.battle = function(page, resultsText) {
         try {
-            var slice = $j();
 
-            slice = $j("#app_body div[style*='war_fort_battledefeat.jpg'],div[style*='war_fort_battlevictory.jpg']");
-            if ($u.hasContent(slice)) {
-                conquest.getResults(slice);
-            }
+			conquest.getResults(page, resultsText);
 
-            slice = $j("#app_body div[style*='war_conquest_header2.jpg']");
+            var slice = $j("#app_body div[style*='war_conquest_header2.jpg']");
             if ($u.hasContent(slice)) {
                 conquest.getCommonInfos(slice);
                 conquest.targeting();
@@ -1641,198 +1196,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    conquest.dashboard = function() {
-        function points(num) {
-            num = $u.setContent(num, 0);
-            return num >= 0 ? "+" + num : num;
-        }
-
-        try {
-            /*-------------------------------------------------------------------------------------\
-            Next we build the HTML to be included into the 'caap_infoConquest' div. We set our
-            table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Conquest Stats' && session.getItem("ConquestDashUpdate", true)) {
-                var headers = ['UserId', 'Name', 'CR', 'Level', 'Army', 'Invade', 'Duel'],
-                    values = ['userId', 'nameStr', 'rankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'duelwinsNum'],
-                    pp = 0,
-                    i = 0,
-                    userIdLink = '',
-                    userIdLinkInstructions = '',
-                    len = 0,
-                    len1 = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    head = '',
-                    body = '',
-                    row = '';
-
-                for (pp = 0; pp < headers.length; pp += 1) {
-                    switch (headers[pp]) {
-                    case 'UserId':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '19%'
-                        });
-                        break;
-                    case 'Name':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '30%'
-                        });
-                        break;
-                    case 'Invade':
-                    case 'Duel':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '11%'
-                        });
-                        break;
-                    case 'BR':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '5%'
-                        });
-                        break;
-                    default:
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '7%'
-                        });
-                    }
-                }
-
-                head = caap.makeTr(head);
-                for (i = 0, len = conquest.records.length; i < len; i += 1) {
-                    row = "";
-                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                        switch (values[pp]) {
-                        case 'userId':
-                            userIdLinkInstructions = "Clicking this link will take you to the user keep of " + conquest.records[i][values[pp]];
-                            userIdLink = "keep.php?casuser=" + conquest.records[i][values[pp]];
-                            data = {
-                                text: '<span id="caap_conquest_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + conquest.records[i][values[pp]] + '</span>',
-                                color: 'blue',
-                                id: '',
-                                title: ''
-                            };
-
-                            row += caap.makeTd(data);
-                            break;
-                        case 'rankNum':
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: conquest.records[i].rankStr
-                            });
-                            break;
-                        case 'warRankNum':
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: conquest.records[i].warRankStr
-                            });
-                            break;
-                        case 'invadewinsNum':
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]] + "/" + conquest.records[i].invadelossesNum + " " + points(conquest.records[i].ibp),
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'duelwinsNum':
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]] + "/" + conquest.records[i].duellossesNum + " " + points(conquest.records[i].dbp),
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'warwinsNum':
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]] + "/" + conquest.records[i].warlossesNum + " " + points(conquest.records[i].wbp),
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        default:
-                            row += caap.makeTd({
-                                text: conquest.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                        }
-                    }
-
-                    body += caap.makeTr(row);
-                }
-
-                $j("#caap_infoConquest", caap.caapTopObject).html(
-                $j(caap.makeTable("conquest", head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false
-                }));
-
-                $j("span[id*='caap_conquest_']", caap.caapTopObject).click(function(e) {
-                    var visitUserIdLink = {
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                        len = 0;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            visitUserIdLink.arlink = visitUserIdLink.rlink;
-                        }
-                    }
-
-                    caap.clickAjaxLinkSend(visitUserIdLink.arlink);
-                });
-
-                session.setItem("ConquestDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in conquest.dashboard: " + err);
-            return false;
-        }
-    };
 }());
 
 (function() {
