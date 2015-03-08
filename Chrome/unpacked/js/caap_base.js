@@ -5279,7 +5279,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         session.setItem("UserDashUpdate", true);
     };
 
-
     caap.saveStats = function (src) {
         if (caap.domain.which === 3) {
            caap.messaging.setItem('caap.stats', caap.stats);

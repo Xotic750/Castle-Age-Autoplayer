@@ -1704,7 +1704,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.scoutGuildEssence = function() {
+	worker.addAction({worker : 'guilds', priority : -2600, description : 'Scout Guild Essence'});
+
+    guilds.worker = function() {
         try {
             if (config.getItem('EssenceScanCheck', false)) {
                 var guildId, link;
@@ -1722,7 +1724,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in caap.schoutGuilEssence: " + err);
+            con.error("ERROR in guilds.worker: " + err);
             return false;
         }
     }
