@@ -210,7 +210,7 @@
 				}
 
 				if ($u.hasContent(result.battleType)) {
-					result.points = caap.regexDiv(resultsDiv, /You have .* \+?(\d+) Arena Points/);
+					result.points = caap.bulkRegex(resultsDiv, /You have .* \+?(\d+) Arena Points/);
 					if (!$u.hasContent(result.points)) {
 						con.warn("Unable to match arena points", tempText);
 					}
@@ -258,9 +258,9 @@
 				var thisDiv    = $j(this),
 					fR = {}; // feed record
 				
-				// regexDiv broken into two parts because double-byte char names can cause regex match to fail
-				caap.regexDiv(thisDiv, /(.*) level: \d+ .+ \(Rank \d\) \d+/, fR, 'nameStr');
-				caap.regexDiv(thisDiv, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/, fR,
+				// bulkRegex broken into two parts because double-byte char names can cause regex match to fail
+				caap.bulkRegex(thisDiv, /(.*) level: \d+ .+ \(Rank \d\) \d+/, fR, 'nameStr');
+				caap.bulkRegex(thisDiv, /level: (\d+) (.+) \(Rank (\d)\) (\d+)/, fR,
 					['levelNum', 'rankStr', 'arenaRankNum', 'armyNum']);
 
 				fR.userId = $j("input[name*='target_id']", inputDiv[index].children[4].children[0].children[0])[0].value;
@@ -372,7 +372,7 @@
 				arenaPageTf = session.getItem('page', '') == 'arena',
 				arenaTokens = arenaPageTf ? $j("span[id*='guild_token_current_value']")[0].innerHTML : state.getItem("arenaTokens", 10),
 				inputDiv = arenaPageTf ? $j("div[style*='arena_infobar']") : $j(),
-				timer = arenaPageTf ? caap.regexDiv($j("#arena_health_bar_hover"), /(\d+)m until recharge/) : 0,
+				timer = arenaPageTf ? caap.bulkRegex($j("#arena_health_bar_hover"), /(\d+)m until recharge/) : 0,
 				pastWins = true,
 				recon = config.getItem('arenaRecon', false) ? 1 * 60 : 24 * 3600,
 				randomNum = Math.random() * 100,
@@ -584,9 +584,9 @@
 					return;
 				}
 				tempDiv = $j("#app_body #newsFeedSection div[id^='battle_messages_" + tR.userId + "']:contains('Arena Battle Points')");
-				tR.arenaPoints = tR.arenaPoints ? tR.arenaPoints : caap.regexDiv(tempDiv, /You have won (\d+) Arena Battle Points!/);
+				tR.arenaPoints = tR.arenaPoints ? tR.arenaPoints : caap.bulkRegex(tempDiv, /You have won (\d+) Arena Battle Points!/);
 				tR.arenaRevenge = true;
-				tR.duelwinsNum = tR.duelwinsNum ? tR.duelwinsNum : caap.regexDiv($j(infoDiv[index]).next(), /You won (\d+) times/) || 1;
+				tR.duelwinsNum = tR.duelwinsNum ? tR.duelwinsNum : caap.bulkRegex($j(infoDiv[index]).next(), /You won (\d+) times/) || 1;
 				battle.setItem(tR);
 				con.log(2, 'Arena victory in feed against ' + tR.nameStr + '. Last points: ' + tR.arenaPoints, tR);
 			});

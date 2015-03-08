@@ -38,6 +38,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			wO.recordIndex = $u.setContent(wO.recordIndex, o.recordIndex);
 			
 			wO.load = function() {
+				var newR = new wO.record().data;
+				
 				wO.records = gm.getItem(wO.name, 'default');
 				if (!$j.isArray(wO.records)) {
 					// Should be ok to remove old record lookup after 2015/3/17 - Artifice
@@ -53,17 +55,42 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					con.log(2, wO.name + ' records loaded', wO.records);
 				}
+				wO.records.forEach( function(r, i) {
+					wO.records[i] = $j.extend(true, {}, newR, r);
+				});
+
 				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
 					session.setItem(wO.name + 'DashUpdate', true);
 				}
 			};
 
 			wO.save = function(src) {
-				if (wO.hBest > 0) {
-					wO.records.forEach( function(r, i) {
-						wO.records[i] = $j.extend(true, {}, new wO.record().data, r);
+				var newR = new wO.record().data,
+					undefinedKeyList = [];
+					
+				if (wO.records.length) {
+					var newR = new wO.record().data;
+					Object.keys(wO.records[0]).forEach( function(e) {
+						if (!Object.keys(newR).hasIndexOf(e)) {
+							undefinedKeyList = undefinedKeyList.addToList(e);
+							delete wO.records[0].e;
+						}
 					});
+					undefinedKeyList.removeFromList('newRecord');
+					if (undefinedKeyList.length) {
+						con.warn(wO.name + ' warning: Following keys not in record template will be deleted: ' + undefinedKeyList.join(', '), o);
+					}
 				}
+				if (wO.hBest > 0) {
+/*					wO.records.forEach( function(r, i) {
+						Object.keys(r).forEach( function(e) {
+							if (!Object.keys(newR).hasIndexOf(e)) {
+								undefinedKeyList = undefinedKeyList.addToList(e);
+								delete r.e;
+							}
+						});
+					});
+*/				}
 				if (caap.domain.which === 3) {
 					caap.messaging.setItem(wO.name, wO.records);
 				} else {
@@ -83,9 +110,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.getRecord = function(n) {
+				if (!$u.isString(n)) {
+					con.error(wO.name + 'record index is not a string: ' + n);
+					return false;
+				}
 				var i = wO.records.getObjIndex(wO.recordIndex, n),
 					r = new wO.record(n).data;
 				if (i >= 0) {
+					wO.records[i].newRecord = false;
 					return $j.extend(true, {}, r, wO.records[i]);
 				} else {
 					r[wO.recordIndex] = n;
@@ -96,20 +128,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			wO.setRecord = function(o) {
 				var i = wO.records.getObjIndex(wO.recordIndex, o[wO.recordIndex]),
-					undefinedKeyList = [],
 					newR = new wO.record().data;
 					
 				o.newRecord = false;
 				if (i >= 0) {
-					if (o.label !== 'winLoss') {  // Remove winLoss exception once battle.getWinLoss routine worked out -- Artifice
-						undefinedKeyList = Object.keys(o).filter( function(e) {
-							return !Object.keys(newR).hasIndexOf(e);
-						});
-						undefinedKeyList.removeFromList('newRecord');
-						if (undefinedKeyList.length) {
-							con.warn(wO.name + ' warning: saving record with keys not defined in record template: ' + undefinedKeyList.join(', '), o);
-						}
-					}
 					wO.records[i] = o;
 				} else {
 					wO.records.push(o);
@@ -131,12 +153,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.setRecordVal = function(r, f, v) {
-				if ($u.isObject(r)) {
-					r[f] = v;
-					n = r[wO.recordIndex];
-				} else {
-					n = r;
-				}
+				var n = $u.isObject(r) ? r[wO.recordIndex] : r;
 				
 				var i = wO.records.getObjIndex(wO.recordIndex, n),
 					nr = new wO.record(n).data;
@@ -147,6 +164,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				if (i >= 0) {
 					if ($u.isObject(r)) {
+						r[f] = v;
 						wO.records[i] = r;
 					} else {
 						wO.records[i][f] = v;
@@ -198,7 +216,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 	worker.checkResults = function(r) {
 		if ($u.isFunction(window[r].checkResults)) {
-			window[r].checkResults(session.getItem('page'));
+			window[r].checkResults(session.getItem('page'), caap.resultsText);
 		}
 	};
 	

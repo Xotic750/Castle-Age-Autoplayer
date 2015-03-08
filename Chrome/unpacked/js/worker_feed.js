@@ -60,8 +60,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 						var picDiv = $j('img[src*="' + p + '"]');
 						if (picDiv) {
-							pR.image = picDiv.attr('src').regex(/(\w+\.\w+)$/);
-							pR.name = picDiv.attr('title');
+							pR = town.getRecord(picDiv.attr('src').regex(/(\w+\.\w+)$/));
+							pR.name = picDiv.attr('alt');
 							pR.owned = picDiv.closest('div').next().text().innerTrim().trim().regex(/(\d+)/);
 							town.setRecord(pR);
 						}
@@ -281,6 +281,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				},
 				needname = function(name, want) {
 					return want > nameowned(name);
+				},
+				userdamage = function(userId, damage) {
+					state.setItem('feedUserId', state.getItem('feedUserId', '').split('\n').addToList(name).join('\n'));
+					return $u.setContent(cM.userDamage.regex(new RegExp('\\b' + userId + ':(\\d+)'), 0) >= damage;
 				},
 				keep = worker.pagesList.flatten('page').hasIndexOf('ajax:' + cM.link),
 				achleft = 0,

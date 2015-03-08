@@ -845,8 +845,11 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 				if (!config.getItem('saveLoadouts', true)) {
 					con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '.  Changing setting to "Use Current"');
 					general.Clear(whichGeneral);
-					return returnNametf ? 'Use Current' : false;
+				} else {
+					con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '. Loadouts reset, maybe? Ignoring setting.');
 				}
+				return returnNametf ? 'Use Current' : false;
+					
             }
 			
             return general.selectSpecific(targetGeneral, returnNametf);
@@ -1013,14 +1016,16 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                 timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 i = 0,
                 coolDown = '',
-                htmlCode = '';
+                htmlCode = '',
+				gen = '';
 
             htmlCode += caap.startToggle('Generals', 'GENERALS');
 			htmlCode += caap.makeCheckTR("Do not clear Loadouts", 'saveLoadouts', true, saveLoadouts);
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);
             general.menuList.forEach( function(g) {
-                htmlCode += caap.makeDropDownTR(g, g.replace(/ /g,'_') + 'General', ['Use Current'].concat(general.lists[g]), '', '', 'Use Current', false, false, 62);
+				gen = g.replace(/ /g,'_') + 'General';
+                htmlCode += caap.makeDropDownTR(g, gen, ['Use Current'].concat(general.lists[g]), '', '', config.getItem(gen, 'Use Current'), false, false, 62);
                 coolDown = general.getCoolDownType(g);
                 htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
             });

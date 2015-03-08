@@ -70,7 +70,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         };
     };
 
-    monster.checkResults = function (page, ajax, aslice) {
+    monster.checkResults = function (page, resultsText, ajax, aslice) {
         try {
 			var lastClick = $u.setContent(monster.lastClick, session.getItem('clickUrl',''));
 			
@@ -292,7 +292,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (mR.lpage === lpage && !publicList && mR.status !== 'Join') {
 						if (mR.listReviewed < now) {
 							mR.lMissing += 1;
-							monster.setRecord(mR);
 							con.warn('Did not see monster ' + mR.name + ' on monster list ' + mR.lMissing + ' times.', mR);
 						} else {
 							mR.lMissing = 0;
@@ -713,6 +712,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							con.log(1, 'Joined a feed monster with ' + cM.damage, cM);
 						}
 						cM.status = 'Attack';
+						cM.color = cM.color == 'grey' ? '' : cM.color;
+						
 						// Character type stuff
 						if (cM.charClass) {
 

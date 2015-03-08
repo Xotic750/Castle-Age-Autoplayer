@@ -15,57 +15,50 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-	worker.add('battle');
+	worker.addRecordFunctions({name: 'battle', recordIndex: 'userId'});
 
-	worker.addRecordFunctions('battle');
-	battle.recordIndex = 'userId';
     battle.record = function(userId) {
         this.data = {
-            'userId': userId,
-            'nameStr': '',
-            'rankStr': '',
-            'rankNum': 0,
-            'conquestRankNum': 0,
-            'warRankStr': '',
-            'warRankNum': 0,
-            'levelNum': 0,
-            'armyNum': 0,
-            'deityNum': 0,
-            'deityStr': '',
-            'invadewinsNum': 0,
-            'invadelossesNum': 0,
-            'ibp': 0,
-            'duelwinsNum': 0,
-            'duellossesNum': 0,
-            'dbp': 0,
-            'warwinsNum': 0,
-            'warlossesNum': 0,
-            'wbp': 0,
-            'defendwinsNum': 0,
-            'defendlossesNum': 0,
-            'statswinsNum': 0,
-            'statslossesNum': 0,
-            'goldNum': 0,
-            'chainCount': 0,
-            'invadeLostTime': 0,
-            'duelLostTime': 0,
-            'warLostTime': 0,
-            'deadTime': 0,
-            'chainTime': 0,
-            'ignoreTime': 0,
-            'aliveTime': 0,
-            'attackTime': 0,
-            'selectTime': 0,
-            'unknownTime': 0,
-            'newRecord': true,
-            'arenaRankNum': 0,
-			'arenaRevenge' : false,
-			'arenaDeadTime' : 0,
-			'arenaPoints' : 0,
-			'arenaTotal' : 0,
-			'arenaInvalid' : false
-        };
+            userId: userId,
+            name: '',
+			minDef : 0,
+			maxDef : 1000000,
+            rank: 0,
+            warRank: 0,
+            conqRank: 0,
+			conqPoints : 0,
+			gbPoints : 0,
+            level: 0,
+            army: 0,
+            deity: 0,
+            deityStr: '',
+            invadeWon: 0,
+            invadeLost: 0,
+            invadePoints: 0,
+            duelWon: 0,
+            duelLost: 0,
+            duelPoints: 0,
+            warWon: 0,
+            warLost: 0,
+            warPoints: 0,
+            chainCount: 0,
+            wonTime: 0,
+            lostTime: 0,
+            deadTime: 0,
+            chainRestTime: 0,
+            newRecord: true,
+/*            arenaRank: 0,
+			arenaLost : 0,
+			arenaWon : 0,
+			arenaRevenge: false,
+			arenaDeadTime: 0,
+			arenaPoints: 0,
+			arenaTotal: 0,
+			arenaInvalid: false
+*/        };
     };
+	
+	battle.types = ['duel', 'invade', 'war', 'conq', 'gb'];
 
 	worker.addAction({worker : 'battle', priority : 700, description : 'Battling Players'});
 	
@@ -86,7 +79,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 whenMonster = config.getItem('WhenMonster', 'Never'),
                 targetType = config.getItem('TargetType', 'Invade'),
                 rejoinSecs = '',
-                battleRecord = {},
+                bR = {}, // Battle Record
                 tempTime = 0,
                 monsterObject = $u.hasContent(targetMonster) ? monster.getRecord(targetMonster) : {},
                 noSafeCountSet = 0,
@@ -234,9 +227,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.click(monster.completeButton.raid.button);
                     monster.deleteItem(monster.completeButton.raid.md5);
                     monster.completeButton.raid = {
-                        'md5': undefined,
-                        'name': undefined,
-                        'button': undefined
+                        md5: undefined,
+                        name: undefined,
+                        button: undefined
                     };
 
                     caap.updateDashboard(true);
@@ -343,10 +336,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			default:
                 if (!config.getItem("IgnoreBattleLoss", false)) {
-                    battleRecord = battle.getRecord(target);
-                    tempTime = battleRecord[battletype + 'LostTime'] || tempTime;
+                    bR = battle.getRecord(target);
+                    tempTime = bR[battletype + 'LostTime'] || tempTime;
 
-                    if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
+                    if (bR && bR.name !== '' && !schedule.since(tempTime, 604800)) {
                         con.log(1, 'Avoiding Losing Target', target);
                         battle.nextTarget();
                         return true;
@@ -372,11 +365,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 	
-    battle.checkResults = function(page) {
+    battle.checkResults = function(page, resultsText) {
         try {
 			switch (page) {
 			case 'battle' :
-				var battleRecord = {},
+				var bR = {}, // Battle Record
 					tempTime = 0,
 					chainBP = 0,
 					chainGold = 0,
@@ -390,16 +383,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					tNum = 0,
 					warWinLoseImg = '',
 					currentGeneral = general.getCurrentGeneral(),
-					result = {
-						userId: 0,
-						userName: '',
-						battleType: '',
-						points: 0,
-						gold: 0,
-						win: false,
-						hiding: false,
-						unknown: false
-					};
+					result = {};
 
 				// Check demi points
 				
@@ -441,70 +425,59 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 				battle.flagResult = false;
 				state.setItem("BattleChainId", 0);
-				result = battle.getWinLoss();
+				result = battle.readWinLoss(resultsText, battle.testList);
 
-				if (result.unknown === true) {
-					if (state.getItem("lastBattleID", 0)) {
-						battleRecord = battle.getRecord(state.getItem("lastBattleID", 0));
-						battleRecord.unknownTime = Date.now();
-						battle.setRecord(battleRecord);
-					}
-
+				if (!result) {
 					return true;
 				}
 
-				battleRecord = battle.getRecord(result.userId);
-				if (result.win) {
-					con.log(1, "We Defeated ", result.userName, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold);
+				bR = battle.getRecord(result.userId);
+				if (result.wl == 'won') {
 					//Test if we should chain this guy
-					tempTime = $u.setContent(battleRecord.chainTime, 0);
+					tempTime = $u.setContent(bR.chainRestTime, 0);
 					chainBP = config.getItem('ChainBP', '');
 					chainGold = config.getItem('ChainGold', '');
+					con.log(1, "We Defeated ", result.name, ((result.type === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold, bR);
 					if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
 						if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
 							if (result.points >= chainBP) {
 								state.setItem("BattleChainId", result.userId);
-								con.log(1, "Chain Attack:", result.userId, ((result.battleType === "War") ? "War Points: " : "Battle Points: ") + result.points);
+								con.log(1, "Chain Attack:", result.userId, ((result.type === "War") ? "War Points: " : "Battle Points: ") + result.points);
 							} else {
-								battleRecord.ignoreTime = Date.now();
+								bR.chainRestTime = Date.now();
 							}
 						}
 
 						if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
 							if (result.gold >= chainGold) {
 								state.setItem("BattleChainId", result.userId);
-								con.log(1, "Chain Attack:", result.userId, "Gold: " + result.goldnum);
+								con.log(1, "Chain Attack:", result.userId, "Gold: " + result.gold);
 							} else {
-								battleRecord.ignoreTime = Date.now();
+								bR.chainRestTime = Date.now();
 							}
 						}
 					}
 
-					battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
+					bR.chainCount = bR.chainCount ? bR.chainCount += 1 : 1;
 					maxChains = config.getItem('MaxChains', 4);
 					if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
 						maxChains = 4;
 					}
 
-					if (battleRecord.chainCount >= maxChains) {
-						con.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
-						battleRecord.chainTime = Date.now();
-						battleRecord.chainCount = 0;
+					if (bR.chainCount >= maxChains) {
+						con.log(1, "Lets give this guy a break. Chained", bR.chainCount);
+						bR.chainRestTime = Date.now();
+						bR.chainCount = 0;
 					}
 
-				} else {
-					con.log(1, "We Were Defeated By ", result.userName);
-					battleRecord.chainCount = 0;
-					battleRecord.chainTime = 0;
+				} else if (result.wl == 'lost') {
+					bR.chainCount = 0;
+					bR.chainRestTime = 0;
+					con.log(1, "We Were Defeated By " + result.name, bR);
 				}
 
-				if (battle.deadCheck() !== false) {
-					battleRecord.chainCount = 0;
-					battleRecord.chainTime = 0;
-				}
-	
-
-				battle.setRecord(battleRecord);
+				battle.setRecord(bR);
+				result = null;
 			default:
 				break;
 			}
@@ -513,271 +486,123 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+	
+	battle.testList = [
+		{ method : 'invade',
+			type : 'battle',
+			check : /Your Army of (\d+) fought with.* x\d+(.+)'s Army of (\d+) fought with.* You have (lost|won) (\d+) Battle Points.*\$([,\d]+)?/i,
+			vars : ['myArmy', 'name', 'theirArmy', 'wl', 'points', 'gold'],
+			func : function(r) {
+				r.att = caap.stats.bonus.api * r.myArmy / r.theirArmy;
+				r.gold = r.gold ? r.gold.numberOnly() : 0;
+			}
+		},
+		{ method : 'duel',
+			type : 'battle',
+			check : /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
+			vars : ['name', 'wl', 'points', 'gold'],
+			func : function(r) {
+				r.att = caap.stats.bonus.api;
+				r.gold = r.gold ? r.gold.numberOnly() : 0;
+			}
+		},
+		{ method : 'war',
+			type : 'battle',
+			check : /Gain (\+\d+ Experience)?.* (.* War Points)?.*total points\)(.*)?'s Defense/i,
+			vars : ['wl', 'points', 'name'],
+			func : function(r) {
+				r.wl = r.wl.hasIndexOf('Experience') ? 'won' : 'lost';
+				r.gold = caap.resultsText.regex(/\$([,\d]+)/).numberOnly();
+			}
+		}
+	];
 
 	// Check win/loss of battle
-    battle.getWinLoss = function() {
+    battle.readWinLoss = function(resultsText, testList) {
         try {
-            var tempDiv = $j(),
-                tempText = '',
-                tNum = 0,
-                battleRecord = {},
-                warWinLoseImg = '',
-				currentGeneral = general.getCurrentGeneral(),
-                result = {
-                    userId: 0,
-                    userName: '',
-                    battleType: '',
-                    points: 0,
-                    gold: 0,
-                    win: false,
-                    hiding: false,
-                    unknown: false
-                };
-
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
+            var userId = 0,
+				lastBattleID = state.getItem("lastBattleID", ''),
+				resultsDiv = lastBattleID ? $j() : $j("#app_body #results_main_wrapper"),
+				str = '',
+                bR = {}, // Battle Record
+                r = {};
+				
+			
+			state.deleteItem('lastBattleID');
+			
+			if (!$u.hasContent(resultsText)) {
+				return false;
+			}
+			
+			userId = $u.setContent(lastBattleID, $u.setContent($u.setContent($j(resultsDiv).find("input[name='target_id']").first().attr('value'), $u.setContent($u.setContent($j(resultsDiv).find("a[href*='keep.php?casuser=']").first().attr('href'), '').regex(/user=(\d+)/i), false))));
+			
+			if (!userId) {
+				return false;
+			}
+			
+			bR = battle.getRecord(userId);
+			
+			testList.some( function(o) {
+				if (caap.bulkRegex(resultsText, o.check, r, o.vars)) {
+					r.method = o.method;
+					r.type = o.type;
+					o.func(r);
+					return true;
+				}
+			});
+			
+			if (!r.wl) {
+				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for FB ID ' + tNum, resultsText, testList);
+				bR.deadTime =  Date.now();
+				bR.chainCount = 0;
+				bR.chainRestTime = 0;
+				battle.setRecord(bR);
+				return false;
+			}
+			
+			bR.name = r.name;
+			bR[r.wl + 'Time'] = Date.now();
+			bR[r.method + r.wl.ucWords()] += 1;
+			bR[r.type + 'Points'] += (r.wl == 'won' ? 1 : -1) * $u.setContent(r.points, 0);
+			if ($u.hasContent(r.att)) {
+				str = (r.wl == 'won' ? 'max' : 'min') + 'Def';
+				bR[str] = Math[r.wl == 'won' ? 'min' : 'max'](r.att, bR[str]).dp(0);
+			}
+			if (bR.minDef > bR.maxDef) {
+				if (str == 'maxDef') {
+					bR.minDef = 0;
+				} else { 
+					bR.maxDef = 1000000;
+				}
+			}
+			
+			general.resetCharge();
+			
+            if (r.wl == 'won') {
 				session.setItem('ReleaseControl', false);
-                warWinLoseImg = 'war_win_left.jpg';
-                result.win = true;
-            } else if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_defeat.gif']"))) {
-                warWinLoseImg = 'war_lose_left.jpg';
-            } else {
-                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                    if (/Your opponent is hiding, please try again/.test(caap.resultsText)) {
-                        result.hiding = true;
-                        con.log(1, "Your opponent is hiding");
-                        tempDiv = null;
-                        return result;
-                    }
-
-                    result.unknown = true;
-                    con.warn("Unable to determine won, lost or hiding!", caap.resultsText);
-                    tempDiv = null;
-                    return result;
-                }
-
-                result.unknown = true;
-                con.warn("Unable to determine won or lost!");
-                tempDiv = null;
-                return result;
-            }
-
-			if (warWinLoseImg) {
-				general.resetCharge();
 			}
 
-			if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='war_castle.jpg']"))) {
-                result.battleType = 'War';
-                if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                    tempDiv = $j("#app_body #results_main_wrapper img[src*='war_rank_small_icon']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.parent().text(), '').trim().innerTrim();
-                        if ($u.hasContent(tempText)) {
-                            tNum = tempText.regex(/(\d+)\s+War Points/i);
-                            if ($u.hasContent(tNum)) {
-                                result.points = tNum;
-                            } else {
-                                con.warn("Unable to match war points", tempText);
-                            }
-                        } else {
-                            con.warn("Unable to find war points text");
-                        }
-                    } else {
-                        con.log(3, "Unable to find war_rank_small_icon");
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
-                        if ($u.hasContent(tNum)) {
-                            result.gold = tNum;
-                        } else {
-                            con.warn("Unable to find gold text");
-                        }
-                    } else {
-                        con.warn("Unable to find gold element");
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper form[id*='fight_opp_'] input[name='target_id']").eq(0);
-                    if ($u.hasContent(tempDiv)) {
-                        tNum = $u.setContent(tempDiv.attr("value"), '0').parseInt();
-                        if ($u.hasContent(tNum) && tNum > 0) {
-                            result.userId = tNum;
-                        } else {
-                            con.warn("No value in tempDiv");
-                            tempDiv = null;
-                            throw "Unable to get userId!";
-                        }
-                    } else {
-                        con.warn("Unable to find target_id in $j('#app_body #results_main_wrapper')");
-                        tempDiv = null;
-                        throw "Unable to get userId!";
-                    }
-
-                    tempDiv = $j("#app_body #results_main_wrapper div[style*='" + warWinLoseImg + "']");
-                    if ($u.hasContent(tempDiv)) {
-                        tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
-                        if ($u.hasContent(tempText)) {
-                            result.userName = tempText;
-                        } else {
-                            con.warn("Unable to match user's name in", tempText);
-                        }
-                    } else {
-                        con.warn("Unable to find ", warWinLoseImg);
-                    }
-                } else {
-                    con.warn("Unable to find result div");
-                    tempDiv = null;
-                    throw "Unable to get userId!";
-                }
-            } else {
-                if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='battle_invade_again.gif']"))) {
-                    result.battleType = 'Invade';
-                } else if ($u.hasContent($j("#app_body #results_main_wrapper input[src*='battle_duel_again.gif']"))) {
-                    result.battleType = 'Duel';
-                } else {
-                    if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='icon_weapon.gif']"))) {
-                        result.battleType = 'Duel';
-                    } else if ($u.hasContent($j("#app_body #results_main_wrapper div[class='full_invade_results']"))) {
-                        result.battleType = 'Invade';
-                    }
-                }
-
-                if ($u.hasContent(result.battleType)) {
-                    if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                        tempDiv = $j("#app_body #results_main_wrapper img[src*='battle_rank_small_icon']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
-                            if ($u.hasContent(tempText)) {
-                                tNum = tempText.regex(/(\d+)\s+Battle Points/i);
-                                if ($u.hasContent(tNum)) {
-                                    result.points = tNum;
-                                } else {
-                                    con.warn("Unable to match battle points", tempText);
-                                }
-                            } else {
-                                con.warn("Unable to find battle points text in tempDiv.parent().parent()");
-                            }
-                        } else {
-                            con.log(3, "Unable to find battle_rank_small_icon in $j('#app_body #results_main_wrapper')");
-                        }
-
-                        tempDiv = $j("#app_body #results_main_wrapper b[class*='gold']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
-                            if ($u.hasContent(tNum)) {
-                                result.gold = tNum;
-                            } else {
-                                con.warn("Unable to find gold text in tempDiv");
-                            }
-                        } else {
-                            con.warn("Unable to find gold element in $j('#app_body #results_main_wrapper')");
-                        }
-
-                        tempDiv = $j("#app_body #results_main_wrapper a[href*='keep.php?casuser=']").eq(0);
-                        if ($u.hasContent(tempDiv)) {
-                            tempText = $u.setContent(tempDiv.attr("href"), '');
-                            if ($u.hasContent(tempText)) {
-                                tNum = tempText.regex(/user=(\d+)/i);
-                                if ($u.hasContent(tNum)) {
-                                    result.userId = tNum;
-                                } else {
-                                    con.warn("Unable to match user's id in", tempText);
-                                    tempDiv = null;
-                                    throw "Unable to get userId!";
-                                }
-
-                                tempText = $u.setContent(tempDiv.text(), '').trim();
-                                if ($u.hasContent(tempText)) {
-                                    result.userName = tempText;
-                                } else {
-                                    con.warn("Unable to match user's name in", tempText);
-                                }
-                            } else {
-                                con.warn("No href text in tempDiv");
-                                tempDiv = null;
-                                throw "Unable to get userId!";
-                            }
-                        } else {
-                            con.warn("Unable to find keep.php?casuser= $j('#app_body #results_main_wrapper')");
-                            tempDiv = null;
-                            throw "Unable to get userId!";
-                        }
-                    } else {
-                        con.warn("Unable to find result div");
-                        tempDiv = null;
-                        throw "Unable to get userId!";
-                    }
-                } else {
-                    con.warn("Unable to determine battle type");
-                    tempDiv = null;
-                    throw "Unable to get userId!";
-                }
-            }
-
-            battleRecord = battle.getRecord(result.userId);
-            battleRecord.attackTime = Date.now();
-            if (result.userName && result.userName !== battleRecord.nameStr) {
-                con.log(1, "Updating battle record user name, from/to", battleRecord.nameStr, result.userName);
-                battleRecord.nameStr = result.userName;
-            }
-
-            if (result.win) {
-                battleRecord.statswinsNum += 1;
-            } else {
-                battleRecord.statslossesNum += 1;
-            }
-
-            switch (result.battleType) {
-            case 'Invade':
-                if (result.win) {
-                    battleRecord.invadewinsNum += 1;
-                    battleRecord.ibp += result.points;
-                } else {
-                    battleRecord.invadelossesNum += 1;
-                    battleRecord.ibp -= result.points;
-                    battleRecord.invadeLostTime = Date.now();
-                }
-
-                break;
-            case 'Duel':
-                if (result.win) {
-                    battleRecord.duelwinsNum += 1;
-                    battleRecord.dbp += result.points;
-                } else {
-                    battleRecord.duellossesNum += 1;
-                    battleRecord.dbp -= result.points;
-                    battleRecord.duelLostTime = Date.now();
-                }
-
-                break;
-            case 'War':
-                if (result.win) {
-                    battleRecord.warwinsNum += 1;
-                    battleRecord.wbp += result.points;
-                    con.log(1, "War Win", battleRecord.warwinsNum);
-                } else {
-                    battleRecord.warlossesNum += 1;
-                    battleRecord.wbp -= result.points;
-                    battleRecord.warLostTime = Date.now();
-                    con.log(1, "War Loss", battleRecord.userId, battleRecord);
-                }
-
-                break;
-            default:
-                con.warn("Battle type unknown!", result.battleType);
-            }
-
-            battle.setRecord(battleRecord);
-            tempDiv = null;
-            return result;
+            battle.setRecord(bR);
+            return r;
         } catch (err) {
-            con.error("ERROR in battle.getWinLoss: " + err.stack);
+            con.error("ERROR in battle.readWinLoss: " + err.stack);
             return false;
         }
     };
+	
+    battle.winChance = function(bR, att, defBonus) {
+		var defMod = $u.setContent(defBonus, 0) + 1,
+			lowEst = bR.minDef * 0.95 * defMod,
+			highEst = Math.min(Math.max($u.setContent(bR.level, 0) * 10, lowEst * 1.5), bR.maxDef *1.05) * defMod;
+			// Math.max lowEst * 1.5 in highEst is used to prevent model breakage when opponents BSI > 10 causes you to think you have a 100% chance to beat someone even though you've never won at an effective Att of 10 * his level.
+		if (att > highEst) {
+			return 100;
+		} else if (att < lowEst) {
+			return 0;
+		}
+		return ((att - lowEst) / (highEst - lowEst) * 100).dp(0);
+    };
 
-	
-	
     battle.battleUserId = function(userid) {
         try {
             var battleButton = $j(),
@@ -820,49 +645,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     battle.battleWarnLevel = true;
 
-    battle.battleRankTable = {
-        0: 'Acolyte',
-        1: 'Scout',
-        2: 'Soldier',
-        3: 'Elite Soldier',
-        4: 'Squire',
-        5: 'Knight',
-        6: 'First Knight',
-        7: 'Legionnaire',
-        8: 'Centurion',
-        9: 'Champion',
-        10: 'Lieutenant Commander',
-        11: 'Commander',
-        12: 'High Commander',
-        13: 'Lieutenant General',
-        14: 'General',
-        15: 'High General',
-        16: 'Baron',
-        17: 'Earl',
-        18: 'Duke',
-        19: 'Prince',
-        20: 'King',
-        21: 'High King'
-    };
-
-    battle.warRankTable = {
-        0: 'No Rank',
-        1: 'Reserve',
-        2: 'Footman',
-        3: 'Corporal',
-        4: 'Lieutenant',
-        5: 'Captain',
-        6: 'First Captain',
-        7: 'Blackguard',
-        8: 'Warguard',
-        9: 'Master Warguard',
-        10: 'Lieutenant Colonel',
-        11: 'Colonel',
-        12: 'First Colonel',
-        13: 'Lieutenant Warchief',
-        14: 'Warchief',
-        15: 'High Warchief'
-    };
+    battle.ranks = {
+		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
+		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
+		conqRank: ['Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
+	};
 
     battle.clear = function() {
         try {
@@ -878,46 +665,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     battle.flagResult = false;
 	
-	// Check if target is dead
-    battle.deadCheck = function() {
-        try {
-            var battleRecord = {},
-                dead = false;
-
-            if (state.getItem("lastBattleID", 0)) {
-                battleRecord = battle.getRecord(state.getItem("lastBattleID", 0));
-            }
-
-            if ($u.hasContent($j("#app_body #results_main_wrapper"))) {
-                if ($u.hasContent(caap.resultsText)) {
-                } else {
-                    if ($j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
-                        battleRecord.unknownTime = Date.now();
-                    }
-
-                    con.warn("Unable to determine if user is dead!");
-                    dead = null;
-                }
-            } else {
-                if ($j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
-                    battleRecord.unknownTime = Date.now();
-                }
-
-                con.warn("Unable to find any results!");
-                dead = null;
-            }
-
-            if (dead !== false && $j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
-                battle.setRecord(battleRecord);
-            }
-
-            return dead;
-        } catch (err) {
-            con.error("ERROR in battle.deadCheck: " + err.stack);
-            return undefined;
-        }
-    };
-
     battle.nextTarget = function() {
         state.setItem('BattleTargetUpto', state.getItem('BattleTargetUpto', 0) + 1);
     };
@@ -949,17 +696,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (targetType === 'Arena') {
 				recon.records.some( function(bR) {
 					var eR = battle.getRecord(bR.userId);
-					if (eR.duellossesNum || eR.duelwinsNum) {
+					if (eR.duelLost || eR.duelWon) {
 						state.setItem('arenaReconned', state.getItem('arenaReconned','') + ',' + bR.userId);
 						recon.deleteRecord(bR.userId);
 						eR = $j.extend(true, eR, bR);
-						eR.arenaPoints = !eR.duellossesNum ? 100 + eR.arenaRankNum.numberOnly() : 0;
+						eR.arenaPoints = !eR.duelLost ? 100 + eR.arenaRank.numberOnly() : 0;
 						battle.setRecord(eR);
 					} else if (!schedule.since(eR.deadTime, 5 * 60)) {
 						return false;
-					} else if (bR.arenaRankNum >= config.getItem('arenaReconRankMin',1)
-						&& bR.arenaRankNum <= config.getItem('arenaReconRankMax',7)
-						&& bR.levelNum <= config.getItem('arenaReconLevelMax',1400)
+					} else if (bR.arenaRank >= config.getItem('arenaReconRankMin',1)
+						&& bR.arenaRank <= config.getItem('arenaReconRankMax',7)
+						&& bR.level <= config.getItem('arenaReconLevelMax',1400)
 						&& !state.getItem('arenaReconned','').hasIndexOf(',' + bR.userId + ',')) {
 						target = bR.userId;
 						con.log(2, 'Arena reconning ' + state.getItem('arenaReconned','').split(',').length);
@@ -1025,24 +772,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     battle.battles = {
-        'Raid': {
-            'Invade1': 'raid_attack_button.gif',
-            'Invade5': 'raid_attack_button3.gif',
-            'Duel1': 'raid_attack_button2.gif',
-            'Duel5': 'raid_attack_button4.gif',
-            'regex1': new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
-            'refresh': 'raid',
-            'image': 'battle_tab_raid_on.jpg'
+        Raid: {
+            Invade1: 'raid_attack_button.gif',
+            Invade5: 'raid_attack_button3.gif',
+            Duel1: 'raid_attack_button2.gif',
+            Duel5: 'raid_attack_button4.gif',
+            regex1: new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
+            refresh: 'raid',
+            image: 'battle_tab_raid_on.jpg'
         },
-        'Freshmeat': {
-            'Invade': 'battle_btn_invade.gif',
-            'Duel': 'battle_btn_duel.gif',
-            'War': 'battle_btn_war.gif',
-            'regex1': new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            'regex2': new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            'warLevel': true,
-            'refresh': 'battle_tab_battle_on.jpg',
-            'image': 'battle_tab_battle_on.jpg'
+        Freshmeat: {
+            Invade: 'battle_btn_invade.gif',
+            Duel: 'battle_btn_duel.gif',
+            War: 'battle_btn_war.gif',
+            regex1: new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+            regex2: new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+            warLevel: true,
+            refresh: 'battle_tab_battle_on.jpg',
+            image: 'battle_tab_battle_on.jpg'
         }
     };
 
@@ -1066,7 +813,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				deityStr = '',
                 levelMultiplier = 0,
                 armyRatio = 0,
-                battleRecord = {},
+                bR = {}, // Battle Record
                 it = 0,
                 itx,
                 len = 0,
@@ -1207,11 +954,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
 
-                    tempRecord.nameStr = $u.setContent(levelm[1], '').trim();
-                    tempRecord.rankNum = $u.setContent(levelm[2], '').parseInt();
-                    tempRecord.rankStr = battle.battleRankTable[tempRecord.rankNum];
-                    tempRecord.levelNum = $u.setContent(levelm[4], '').parseInt();
-                    tempRecord.armyNum = $u.setContent(levelm[6], '').parseInt();
+                    tempRecord.name = $u.setContent(levelm[1], '').trim();
+                    tempRecord.rank = $u.setContent(levelm[2], '').parseInt();
+                    tempRecord.rankStr = battle.battleRankTable[tempRecord.rank];
+                    tempRecord.level = $u.setContent(levelm[4], '').parseInt();
+                    tempRecord.army = $u.setContent(levelm[6], '').parseInt();
                 } else {
                     if (!$u.hasContent(tr)) {
                         con.warn("Can't find parent tr in tempRecord.button");
@@ -1225,14 +972,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     tempTxt = $u.setContent($j("img[src*='iphone_']", tr).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
                     if ($u.hasContent(tempTxt) && $u.hasContent(caap.deityTable[tempTxt] - 1)) {
-                        tempRecord.deityNum = caap.deityTable[tempTxt] - 1;
-						deityStr = caap.demiTable[tempRecord.deityNum];
+                        tempRecord.deity = caap.deityTable[tempTxt] - 1;
+						deityStr = caap.demiTable[tempRecord.deity];
                     } else {
                         con.warn("Unable to match demi number in tempTxt", tempTxt);
                     }
 
                     // If looking for demi points, and already full, continue
-                    if (type !== "recon" && demisLeft && !battle.demisPointsToDo(tempRecord.deityNum)) {
+                    if (type !== "recon" && demisLeft && !battle.demisPointsToDo(tempRecord.deity)) {
 						con.log(3, "Daily Demi Points done for", deityStr);
 						inputDiv = null;
 						inp = null;
@@ -1277,22 +1024,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
 
-                    tempRecord.nameStr = $u.setContent(levelm[1], '').trim();
-                    tempRecord.levelNum = $u.setContent(levelm[2], '').parseInt();
+                    tempRecord.name = $u.setContent(levelm[1], '').trim();
+                    tempRecord.level = $u.setContent(levelm[2], '').parseInt();
                     tempRecord.rankStr = $u.setContent(levelm[3], '').trim();
-                    tempRecord.rankNum = $u.setContent(levelm[4], '').parseInt();
+                    tempRecord.rank = $u.setContent(levelm[4], '').parseInt();
                     if (battle.battles.Freshmeat.warLevel) {
                         tempRecord.warRankStr = $u.setContent(levelm[5], '').trim();
-                        tempRecord.warRankNum = $u.setContent(levelm[6], '').parseInt();
-                        tempRecord.armyNum = $u.setContent(levelm[7], '').parseInt();
+                        tempRecord.warRank = $u.setContent(levelm[6], '').parseInt();
+                        tempRecord.army = $u.setContent(levelm[7], '').parseInt();
                     } else {
-                        tempRecord.armyNum = $u.setContent(levelm[5], '').parseInt();
+                        tempRecord.army = $u.setContent(levelm[5], '').parseInt();
                     }
                 }
 				
-				con.log(3, 'Battle target stats:', tempRecord.nameStr, tempRecord.levelNum, tempRecord.rankStr, tempRecord.rankNum, tempRecord.armyNum);
+				con.log(3, 'Battle target stats:', tempRecord.name, tempRecord.level, tempRecord.rankStr, tempRecord.rank, tempRecord.army);
 
-                levelMultiplier = caap.stats.level / (tempRecord.levelNum > 0 ? tempRecord.levelNum : 1);
+                levelMultiplier = caap.stats.level / (tempRecord.level > 0 ? tempRecord.level : 1);
                 armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
@@ -1306,11 +1053,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (tempRecord.levelNum - caap.stats.level > maxLevel) {
+                if (tempRecord.level - caap.stats.level > maxLevel) {
                     con.log(3, "Exceeds relative maxLevel", {
-                        'level': tempRecord.levelNum,
-                        'levelDif': tempRecord.levelNum - caap.stats.level,
-                        'maxLevel': maxLevel
+                        level: tempRecord.level,
+                        levelDif: tempRecord.level - caap.stats.level,
+                        maxLevel: maxLevel
                     });
 
                     inputDiv = null;
@@ -1321,11 +1068,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (caap.stats.level - tempRecord.levelNum > minLevel) {
+                if (caap.stats.level - tempRecord.level > minLevel) {
                     con.log(3, "Exceeds relative minLevel", {
-                        'level': tempRecord.levelNum,
-                        'levelDif': caap.stats.level - tempRecord.levelNum,
-                        'minLevel': minLevel
+                        level: tempRecord.level,
+                        levelDif: caap.stats.level - tempRecord.level,
+                        minLevel: minLevel
                     });
 
                     inputDiv = null;
@@ -1337,10 +1084,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
-                    if (caap.stats.rank.war && (caap.stats.rank.war - tempRecord.warRankNum > minRank)) {
+                    if (caap.stats.rank.war && (caap.stats.rank.war - tempRecord.warRank > minRank)) {
                         con.log(3, "Greater than war minRank", {
-                            'rankDif': caap.stats.rank.war - tempRecord.warRankNum,
-                            'minRank': minRank
+                            rankDif: caap.stats.rank.war - tempRecord.warRank,
+                            minRank: minRank
                         });
 
                         inputDiv = null;
@@ -1351,10 +1098,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
                 } else {
-                    if (caap.stats.rank.battle && (caap.stats.rank.battle - tempRecord.rankNum > minRank)) {
+                    if (caap.stats.rank.battle && (caap.stats.rank.battle - tempRecord.rank > minRank)) {
                         con.log(3, "Greater than battle minRank", {
-                            'rankDif': caap.stats.rank.battle - tempRecord.rankNum,
-                            'minRank': minRank
+                            rankDif: caap.stats.rank.battle - tempRecord.rank,
+                            minRank: minRank
                         });
 
                         inputDiv = null;
@@ -1367,11 +1114,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
-                if (config.getItem('BattleType', 'Invade') == 'Invade' && caap.stats.army.capped && (tempRecord.armyNum > (caap.stats.army.capped * armyRatio))) {
+                if (config.getItem('BattleType', 'Invade') == 'Invade' && caap.stats.army.capped && (tempRecord.army > (caap.stats.army.capped * armyRatio))) {
                     con.log(3, "Greater than armyRatio", {
-                        'armyRatio': armyRatio.dp(2),
-                        'armyNum': tempRecord.armyNum,
-                        'armyMax': (caap.stats.army.capped * armyRatio).dp()
+                        armyRatio: armyRatio.dp(2),
+                        army: tempRecord.army,
+                        armyMax: (caap.stats.army.capped * armyRatio).dp()
                     });
 
                     inputDiv = null;
@@ -1383,7 +1130,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (type === "recon") {
-                    tempRecord.aliveTime = Date.now();
                     entryLimit = config.getItem("LimitTargets", 100);
                     while (recon.records.length >= entryLimit) {
                         con.log(2, "Entry limit matched. Deleted an old record", recon.records.shift());
@@ -1403,34 +1149,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
-                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.levelNum.toString().rpad(" ", 4) +
-                        " War Rank: " + tempRecord.warRankNum.toString().rpad(" ", 2) + " Army: " + tempRecord.armyNum);
+                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.level.toString().rpad(" ", 4) +
+                        " War Rank: " + tempRecord.warRank.toString().rpad(" ", 2) + " Army: " + tempRecord.army);
                 } else {
-                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.levelNum.toString().rpad(" ", 4) +
-                        " Battle Rank: " + tempRecord.rankNum.toString().rpad(" ", 2) + " Army: " + tempRecord.armyNum);
+                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.level.toString().rpad(" ", 4) +
+                        " Battle Rank: " + tempRecord.rank.toString().rpad(" ", 2) + " Army: " + tempRecord.army);
                 }
 
                 // don't battle people we lost to in the last week
-                battleRecord = battle.getRecord(tempRecord.userId);
+                bR = battle.getRecord(tempRecord.userId);
                 if (!config.getItem("IgnoreBattleLoss", false)) {
-                    switch (config.getItem("BattleType", 'Invade')) {
-                    case 'Invade':
-                        tempTime = $u.setContent(battleRecord.invadeLostTime, 0);
+                    tempTime = $u.setContent(bR.lostTime, 0);
 
-                        break;
-                    case 'Duel':
-                        tempTime = $u.setContent(battleRecord.duelLostTime, 0);
-
-                        break;
-                    case 'War':
-                        tempTime = $u.setContent(battleRecord.warLostTime, 0);
-
-                        break;
-                    default:
-                        con.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                    }
-
-                    if (battleRecord && !battleRecord.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
+                    if (bR && !bR.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
                         con.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.userId);
                         inputDiv = null;
                         inp = null;
@@ -1442,8 +1173,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // don't battle people that results were unknown in the last hour
-                tempTime = $u.setContent(battleRecord.unknownTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 3600)) {
+                tempTime = $u.setContent(bR.deadTime, 0);
+                if (bR && !bR.newRecord && !schedule.since(tempTime, 3600)) {
                     con.log(1, "User was battled but results unknown in the last hour: ", tempRecord.userId);
                     inputDiv = null;
                     inp = null;
@@ -1454,8 +1185,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // don't battle people that were dead or hiding in the last hour
-                tempTime = $u.setContent(battleRecord.deadTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 3600)) {
+                tempTime = $u.setContent(bR.deadTime, 0);
+                if (bR && !bR.newRecord && !schedule.since(tempTime, 3600)) {
                     con.log(1, "User was dead in the last hour: ", tempRecord.userId);
                     inputDiv = null;
                     inp = null;
@@ -1465,9 +1196,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                // don't battle people we've already chained to max in the last 2 days
-                tempTime = $u.setContent(battleRecord.chainTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 86400)) {
+                // don't battle people we've already chained to max or didn't meet chain gold or chain points in the last 2 days
+                tempTime = $u.setContent(bR.chainRestTime, 0);
+                if (bR && !bR.newRecord && !schedule.since(tempTime, 86400)) {
                     con.log(1, "We chained user within 2 days: ", tempRecord.userId);
                     inputDiv = null;
                     inp = null;
@@ -1477,19 +1208,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                // don't battle people that didn't meet chain gold or chain points in the last week
-                tempTime = $u.setContent(battleRecord.ignoreTime, 0);
-                if (battleRecord && !battleRecord.newRecord && !schedule.since(tempTime, 604800)) {
-                    con.log(1, "User didn't meet chain requirements this week: ", tempRecord.userId);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rankNum) - (tempRecord.armyNum / levelMultiplier / caap.stats.army.capped);
+                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rank) - (tempRecord.army / levelMultiplier / caap.stats.army.capped);
                 if (tempRecord.userId === chainId) {
                     chainAttack = true;
                 }
@@ -1531,7 +1250,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (chainAttack) {
                     form = inputDiv.eq(0).parent().parent();
                     inp = $j("input[name='target_id']", form);
-                    if ($u.hasContent(inp) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
+                    if ($u.hasContent(inp) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
                         inp.attr("value", chainId);
                         con.log(1, "Chain attacking: ", chainId);
                         battle.click(inputDiv.eq(0), type);
@@ -1550,7 +1269,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (plusOneSafe) {
                         form = inputDiv.eq(0).parent().parent();
                         inp = $j("input[name='target_id']", form);
-                        if ($u.hasContent(inp) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
+                        if ($u.hasContent(inp) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
                             txt = inp.attr("value");
                             firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
@@ -1581,38 +1300,36 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
                         /*jslint continue: false */
 
-                        if ($u.isDefined(safeTargets[it].button) && !caap.getMyGuildIds().hasIndexOf(chainId)) {
+                        if ($u.isDefined(safeTargets[it].button) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
                             con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
                             battle.click(safeTargets[it].button, type);
                             delete safeTargets[it].score;
                             delete safeTargets[it].targetNumber;
                             delete safeTargets[it].button;
-                            battleRecord = battle.getRecord(safeTargets[it].userId);
-                            if (battleRecord.newRecord) {
+                            bR = battle.getRecord(safeTargets[it].userId);
+                            if (bR.newRecord) {
                                 state.setItem("lastBattleID", safeTargets[it].userId);
-                                $j.extend(true, battleRecord, safeTargets[it]);
-                                battleRecord.newRecord = false;
-                                battleRecord.aliveTime = Date.now();
+                                $j.extend(true, bR, safeTargets[it]);
+                                bR.newRecord = false;
                             } else {
-                                battleRecord.aliveTime = Date.now();
                                 for (itx in safeTargets[it]) {
                                     if (safeTargets[it].hasOwnProperty(itx)) {
-                                        if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
-                                            battleRecord[itx] = safeTargets[it][itx];
+                                        if (!$u.hasContent(bR[itx] && $u.hasContent(safeTargets[it][itx]))) {
+                                            bR[itx] = safeTargets[it][itx];
                                         }
 
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
-                                            battleRecord[itx] = safeTargets[it][itx];
+                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && bR[itx] !== safeTargets[it][itx]) {
+                                            bR[itx] = safeTargets[it][itx];
                                         }
 
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
-                                            battleRecord[itx] = safeTargets[it][itx];
+                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && bR[itx] < safeTargets[it][itx]) {
+                                            bR[itx] = safeTargets[it][itx];
                                         }
                                     }
                                 }
                             }
 
-                            battle.setRecord(battleRecord);
+                            battle.setRecord(bR);
                             caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                             state.setItem("notSafeCount", 0);
                             inputDiv = null;
@@ -1802,11 +1519,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     battle.dashboard = function(which) {
-        function points(num) {
-            num = $u.setContent(num, 0);
-            return num >= 0 ? "+" + num : num;
-        }
-
         try {
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
@@ -1815,8 +1527,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			which = which == 'Arena' ? which : 'Battle';
             if (config.getItem('DBDisplay', '') === (which + ' Stats') && session.getItem(which + "DashUpdate", true)) {
-                var headers = ['UserId', 'Name', 'BR', 'WR', 'Level', 'Army', 'Invade', 'Duel', 'War', '&nbsp;'],
-                    values = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'duelwinsNum', 'warwinsNum'],
+                var headers = ['UserId', 'Name', 'BR', 'WR', 'CR', 'Level', 'Army', 'Min Def', 'Max Def', 'Duel Win Chance', 'Invade', 'Duel', 'War', 'Points', '&nbsp;'],
+                    values = ['userId', 'name', 'rank', 'warRank', 'conqRank', 'level', 'army', 'minDef', 'maxDef', 'wc', 'invadeWon', 'duelWon', 'warWon', 'points'],
                     pp = 0,
                     i = 0,
                     userIdLink = '',
@@ -1836,19 +1548,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 				if (which == 'Arena') {
 					headers = ['UserId', 'Name', 'Points', 'Total', 'Duel', 'AR', 'Level', 'Army', '&nbsp;'];
-                    values = ['userId', 'nameStr', 'arenaPoints', 'arenaTotal', 'duelwinsNum', 'arenaRankNum', 'levelNum', 'armyNum'];
+                    values = ['userId', 'name', 'arenaPoints', 'arenaTotal', 'duelWon', 'arenaRank', 'level', 'army'];
 					var arenaers = battle.records.filter( function(bR) {
-							return bR.arenaRankNum;
+							return bR.arenaRank;
 						}),
 						winnerF = function(bR) {
-							return bR.duelwinsNum > 0 && !bR.duellossesNum;
+							return bR.duelWon > 0 && !bR.duelLost;
 						},
 						winners = arenaers.filter(winnerF),
 						report = '';
 					[1, 2, 3, 4, 5, 6, 7].forEach( function(rank) {
 						report += 'R' + rank + ': ';
 						var aRankArr = arenaers.filter( function(bR) {
-								return bR.arenaRankNum == rank;
+								return bR.arenaRank == rank;
 							}),
 							winnerSum = aRankArr.filter(winnerF).length;
 						report += winnerSum + '/' + aRankArr.length + ' ' + (winnerSum / aRankArr.length * 100).dp(1) + '% ';
@@ -1872,7 +1584,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             color: '',
                             id: '',
                             title: '',
-                            width: '30%'
+                            width: '20%'
                         });
                         break;
                     case 'Invade':
@@ -1883,9 +1595,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             color: '',
                             id: '',
                             title: '',
-                            width: '10%'
+                            width: '7%'
                         });
                         break;
+                    case 'CR':
                     case 'BR':
                     case 'WR':
                         head += caap.makeTh({
@@ -1934,44 +1647,58 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                             row += caap.makeTd(data);
                             break;
-                        case 'rankNum':
+                        case 'rank':
+                        case 'warRank':
+                        case 'conqRank':
                             row += caap.makeTd({
                                 text: battle.records[i][values[pp]],
                                 color: '',
                                 id: '',
-                                title: battle.records[i].rankStr
+                                title: battle.ranks[values[pp]][battle.records[i][values[pp]]]
                             });
                             break;
-                        case 'warRankNum':
+                        case 'wc':
                             row += caap.makeTd({
-                                text: battle.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: battle.records[i].warRankStr
-                            });
-                            break;
-                        case 'invadewinsNum':
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].invadelossesNum + " " + points(battle.records[i].ibp),
+                                text: battle.winChance(battle.records[i], caap.stats.bonus.api),
                                 color: '',
                                 id: '',
                                 title: ''
                             });
                             break;
-                        case 'duelwinsNum':
+                        case 'invadeWon':
                             row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].duellossesNum + " " + points(battle.records[i].dbp),
+                                text: battle.records[i][values[pp]] + "/" + battle.records[i].invadeLost,
                                 color: '',
                                 id: '',
                                 title: ''
                             });
                             break;
-                        case 'warwinsNum':
+                        case 'duelWon':
                             row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].warlossesNum + " " + points(battle.records[i].wbp),
+                                text: battle.records[i][values[pp]] + "/" + battle.records[i].duelLost,
                                 color: '',
                                 id: '',
                                 title: ''
+                            });
+                            break;
+                        case 'warWon':
+                            row += caap.makeTd({
+                                text: battle.records[i][values[pp]] + "/" + battle.records[i].warLost,
+                                color: '',
+                                id: '',
+                                title: ''
+                            });
+                            break;
+                        case 'points':
+                            row += caap.makeTd({
+                                text:  battle.types.reduce( function(p, c) {
+									return p + battle.records[i][c + 'Points'];
+								}, 0),
+                                color: '',
+                                id: '',
+                                title: battle.types.map( function(e) {
+									return e.ucWords() + ': ' + battle.records[i][e + 'Points'];
+								}).join(', ')
                             });
                             break;
                         default:

@@ -57,7 +57,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 //			con.log(2,"Idle Check equipped", timedLoadoutCheck, caap.stats.battleIdle);
 			if (caap.stats.battleIdle != 'Use Current' ? general.Select(caap.stats.battleIdle) 
-				: (config.getItem('IdleGeneral', 'Use Current') != 'Use Current') 
+				: (config.getItem('IdleGeneral', 'Use Current') == 'Use Current') 
 				? general.Select(state.getItem('lastLoadout', 'Use Current')) || general.Select(state.getItem('lastGeneral', 'Use Current'))
 				: general.Select('IdleGeneral')) {
 				return true;
