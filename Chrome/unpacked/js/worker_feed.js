@@ -183,8 +183,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				link += tR.link;
 				if (tR.charClass) {
 					if ($j("div[id='choose_class_screen']", slice).length) {
-						if ($u.hasContent(monster.characterClass[cM.charClass.ucWords()]) && hasClass(cM.charClass)) {
-							result = cM.charClass;
+						if ($u.hasContent(monster.characterClass[tR.charClass.ucWords()]) && hasClass(tR.charClass)) {
+							result = tR.charClass;
 						} else {
 							result = Object.keys(charStats).filter(hasClass).reduce(function(previous, key) {
 								if (charStats[key].percent < 100 && charStats[key].level + charStats[key].percent / 100 
@@ -195,13 +195,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							}, hasClass('Warlock') ? 'Warlock' : 'Cleric');
 						}
 						link = 'clickjq:#choose_class_screen .banner_' + result.toLowerCase() + ' input[src*="nm_class_select.gif"]';
-						con.log(1, 'Joining ' + cM.name + ' with class ' + result, cM, link);
+						con.log(1, 'Joining ' + tR.name + ' with class ' + result, tR, link);
 					} else {
 						link += ",clickimg:battle_enter_battle.gif";
 					}
 				}
 			
-				con.log(1, 'Joining ' + cM.name, cM, link);
+				con.log(1, 'Joining ' + tR.name, tR, link);
 				result = caap.navigate2(link);
 				if (result === 'fail') {
 					return caap.navigate2('player_monster_list');
