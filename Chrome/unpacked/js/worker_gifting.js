@@ -29,7 +29,7 @@
 
 		worker: function () {
 			try {
-				var checkIncome = $u.hasContent(caap.stats.gold.ticker) && caap.stats.gold.ticker[0] < 3;
+				var checkIncome = $u.hasContent(stats.gold.ticker) && stats.gold.ticker[0] < 3;
 				if (checkIncome || caap.inLevelUpMode() || /*config.getItem('bookmarkMode', false) ||*/ !config.getItem('AutoGift', false)) {
 					return false;
 				}

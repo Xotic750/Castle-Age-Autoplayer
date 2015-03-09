@@ -110,8 +110,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.getRecord = function(n) {
-				if (!$u.isString(n)) {
-					con.error(wO.name + 'record index is not a string: ' + n);
+				if (!$u.isString(n) && !$u.isNumber(n)) {
+					con.error(wO.name + 'record index is not a number or string: ' + n);
 					return false;
 				}
 				var i = wO.records.getObjIndex(wO.recordIndex, n),

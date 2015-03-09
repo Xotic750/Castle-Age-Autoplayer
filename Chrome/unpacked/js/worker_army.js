@@ -299,16 +299,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             currentPage = ss.getItem("army.currentPage", 1, true);
             expectedPageCount = state.getItem("ArmyPageCount", 0);
             if (!expectedPageCount) {
-                expectedPageCount = Math.ceil((caap.stats.army.actual - 1) / army.perPage);
+                expectedPageCount = Math.ceil((stats.army.actual - 1) / army.perPage);
                 expectedPageCount = expectedPageCount || 0;
             }
 
             if (currentPage > expectedPageCount) {
                 army.pageDone = false;
                 con.log(3, "army.run", expectedPageCount);
-                if (caap.stats.army.actual - 1 !== army.recordsTemp.length) {
+                if (stats.army.actual - 1 !== army.recordsTemp.length) {
                     schedule.setItem("army_member", 1800, 300);
-                    con.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats.army.actual - 1, army.recordsTemp.length);
+                    con.log(2, "Army size mismatch. Next schedule set 30 mins.", stats.army.actual - 1, army.recordsTemp.length);
                 } else {
                     schedule.setItem("army_member", scanDays * 86400, 300);
                     army.merge();

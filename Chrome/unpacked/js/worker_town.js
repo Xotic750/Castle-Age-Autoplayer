@@ -132,7 +132,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     town.getCount = function(image) {
-        return $u.setContent(town.getRecord(image).owned, 0);
+        return $u.isString(image) ? $u.setContent(town.getRecord(image).owned, 0) : 0;
     };
 
     town.dashboard = function() {

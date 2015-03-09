@@ -235,7 +235,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(spreadsheet.records[tempIt].recipe1)) {
                     titleStr += ", Recipe1: " + spreadsheet.records[tempIt].recipe1;
                     if (spreadsheet.records[tempIt].recipe1 === "Map of Atlantis") {
-                        owned = caap.stats.other.atlantis;
+                        owned = stats.other.atlantis;
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     } else {

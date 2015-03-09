@@ -163,55 +163,55 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             arr = $u.setContent($u.setContent(gtv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
-                caap.stats.gold.ticker = arr;
+                stats.gold.ticker = arr;
                 con.log(3, "stsPoll gtv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             arr = $u.setContent($u.setContent(stv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
-                caap.stats.stamina.ticker = arr;
+                stats.stamina.ticker = arr;
                 con.log(3, "stsPoll stv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             arr = $u.setContent($u.setContent(htv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
-                caap.stats.health.ticker = arr;
+                stats.health.ticker = arr;
                 con.log(3, "stsPoll htv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             arr = $u.setContent($u.setContent(etv, '').regex(/(\d+):(\d+)/), []);
             if ($u.hasContent(arr) && arr.length === 2) {
-                caap.stats.energy.ticker = arr;
+                stats.energy.ticker = arr;
                 con.log(3, "stsPoll etv", arr[0] + ":" + arr[1].lpad("0", 2));
             }
 
             num = $u.setContent($u.setContent(ecv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.energy.num = num;
+                stats.energy.num = num;
                 con.log(3, "stsPoll ecv", num);
             }
 
             num = $u.setContent($u.setContent(hcv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.health.num = num;
+                stats.health.num = num;
                 con.log(3, "stsPoll hcv", num);
             }
 
             num = $u.setContent($u.setContent(scv, '').parseInt(), -1);
             if (num > 0 && !$u.isNaN(num)) {
-                caap.stats.stamina.num = num;
+                stats.stamina.num = num;
                 con.log(3, "stsPoll scv", num);
             }
 			
 			// Check for lowpoints in energy stamina maxes at every level, for use with max stat checks
-			if (caap.stats.level !== caap.stats.lowpoint.level) {
-				caap.stats.lowpoint.level = caap.stats.level;
-				caap.stats.lowpoint.energy = caap.stats.energy.max > 0 ? caap.stats.energy.max : caap.stats.lowpoint.energy;
-				caap.stats.lowpoint.stamina = caap.stats.stamina.max > 0 ? caap.stats.stamina.max : caap.stats.lowpoint.stamina;
+			if (stats.level !== stats.lowpoint.level) {
+				stats.lowpoint.level = stats.level;
+				stats.lowpoint.energy = stats.energy.max > 0 ? stats.energy.max : stats.lowpoint.energy;
+				stats.lowpoint.stamina = stats.stamina.max > 0 ? stats.stamina.max : stats.lowpoint.stamina;
 			}
 			['energy', 'stamina'].forEach( function(stat) {
-				if (caap.stats[stat].max > 0 && caap.stats[stat].max < caap.stats.lowpoint[stat]) {
-					caap.stats.lowpoint[stat] = caap.stats[stat].max;
+				if (stats[stat].max > 0 && stats[stat].max < stats.lowpoint[stat]) {
+					stats.lowpoint[stat] = stats[stat].max;
 				}
 			});
 
@@ -576,14 +576,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         },
         'User': {
             'export': function () {
-                return caap.stats;
+                return stats;
             },
             'import': function (d) {
-                caap.stats = d;
-                caap.saveStats();
+                stats = d;
+                statsFunc.setRecord(stats);
             },
             'delete': function () {
-                caap.stats = {};
+                stats = {};
                 gm.deleteItem("stats.record");
             }
         },
