@@ -163,10 +163,10 @@
 					tempText = resultText.regex(/Your opponent is too (high|low) level for you to engage in an arena battle with!/);
 					if (tempText) {
 						tempText = 'arenaLevel' + (tempText == 'low' ? 'Min' : 'Max');
-						tNum = Math.abs(bR.levelNum - caap.stats.level);
+						tNum = Math.abs(bR.levelNum - stats.level);
 						$j('#caap_' + tempText).val(tNum);
 						config.setItem(tempText, tNum);
-						con.log(1, 'Arena: reset ' + (tempText == 'low' ? 'min' : 'max') + ' level to ' + tNum + ', so avoiding targets ' + (tempText == 'low' ? 'under' : 'over') + ' '+ (caap.stats.level + tNum), tempText, tNum);
+						con.log(1, 'Arena: reset ' + (tempText == 'low' ? 'min' : 'max') + ' level to ' + tNum + ', so avoiding targets ' + (tempText == 'low' ? 'under' : 'over') + ' '+ (stats.level + tNum), tempText, tNum);
 						bR.arenaInvalid = true;
 						battle.setItem(bR);
 						return false;
@@ -307,8 +307,8 @@
 				winner = bR.duelwinsNum && !bR.duellossesNum;
 				
 				if (!winner) {
-					if (fR.levelNum > caap.stats.level + v.arenaLevelMax) {
-						con.log(2, "Target level " + fR.levelNum + " exceeds max level of " + (caap.stats.level + v.arenaLevelMax), fR);
+					if (fR.levelNum > stats.level + v.arenaLevelMax) {
+						con.log(2, "Target level " + fR.levelNum + " exceeds max level of " + (stats.level + v.arenaLevelMax), fR);
 						return true;
 					}
 
@@ -323,8 +323,8 @@
 					}
 				}
 
-				if (fR.levelNum < caap.stats.level - v.arenaLevelMin) {
-					con.log(2, "Target level " + fR.levelNum + " below min level of " + (caap.stats.level - v.arenaLevelMin), fR);
+				if (fR.levelNum < stats.level - v.arenaLevelMin) {
+					con.log(2, "Target level " + fR.levelNum + " below min level of " + (stats.level - v.arenaLevelMin), fR);
 					return true;
 				}
 
@@ -335,14 +335,14 @@
 				
 				switch ('Duel') {
 				case 'Invade' :
-					tNum = fR.arenaRankNum - (fR.armyNum / caap.stats.army.capped);
+					tNum = fR.arenaRankNum - (fR.armyNum / stats.army.capped);
 					break;
 				case 'Duel' :
-					tNum = winner ? 100 : Math.min((caap.stats.bonus.api / fR.levelNum / 10 * 100).dp(1), 100);
+					tNum = winner ? 100 : Math.min((stats.bonus.api / fR.levelNum / 10 * 100).dp(1), 100);
 					tNum = fR.arenaRankNum * tNum - fR.armyNum / 5000;
 					break;
 				default :
-					tNum = fR.arenaRankNum - (fR.armyNum / caap.stats.army.capped);
+					tNum = fR.arenaRankNum - (fR.armyNum / stats.army.capped);
 				}
 				if (tNum > score) {
 					score = tNum;

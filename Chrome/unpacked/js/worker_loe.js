@@ -137,7 +137,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				result = false,
 				seal = fR[which].seal ? 'seal' : 'normal';
 				
-			if (when == 'Never' || !caap.stats.guildTokens.num || (when == 'Blue Crystals' && !loe.blueDay())) {
+			if (when == 'Never' || !stats.guildTokens.num || (when == 'Blue Crystals' && !loe.blueDay())) {
 				return false;
 			}
 			if (!fR.t.score) {

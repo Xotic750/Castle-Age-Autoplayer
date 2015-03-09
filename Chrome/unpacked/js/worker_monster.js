@@ -203,7 +203,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 					tempText = buttonsDiv.eq(0).parent().attr("href");
 					pageUserCheck = session.getItem('pageUserCheck', 0);
-					if (pageUserCheck && tempText && !(new RegExp('user=' + caap.stats.FBID).test(tempText) || /alchemy\.php/.test(tempText))) {
+					if (pageUserCheck && tempText && !(new RegExp('user=' + stats.FBID).test(tempText) || /alchemy\.php/.test(tempText))) {
 						con.log(2, "On another player's keep.", pageUserCheck);
 						buttonsDiv = null;
 						monsterRow = null;
@@ -391,7 +391,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				cM.rix = deathRuneSiegetf ? '&rix=' + $u.setContent(cM.link.regex(/rix=(\d+)/), 2) : '';
 
 				// Get the user name
-				if (id === caap.stats.FBID) {
+				if (id === stats.FBID) {
 					cM.userName = 'Your';
 					cM.name = 'Your ' + $u.setContent(cM.monster, 'Unknown Monster');
 				} else {
@@ -564,7 +564,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				// Get damage done to monster
 				damageDiv = $j("#action_logs td[class='dragonContainer']:first tr", slice);
 				if ($u.hasContent(damageDiv)) {
-					damageDiv = $j(damageDiv).find("a[href$='keep.php?casuser=" + caap.stats.FBID + "']").last().closest('tr');
+					damageDiv = $j(damageDiv).find("a[href$='keep.php?casuser=" + stats.FBID + "']").last().closest('tr');
 					if ($u.hasContent(damageDiv)) { // Make sure player has done damage.
 						tempText = damageDiv.text().trim().innerTrim();
 						tempArr = tempText.regex(/([\d,]+) dmg \/ ([\d,]+) def/);
@@ -588,7 +588,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				} else {
 					damageDiv = $j("div[id*='leaderboard_0']");
 					if ($u.hasContent(damageDiv)) {
-						damageDiv = $j("a[href*='user=" + caap.stats.FBID + "']", damageDiv[0].children);
+						damageDiv = $j("a[href*='user=" + stats.FBID + "']", damageDiv[0].children);
 						if ($u.hasContent(damageDiv)) {
 							tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/g);
 							if ($u.hasContent(tempArr) && tempArr.length > 0) {
@@ -854,7 +854,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						caap.setDivContent('monster_mess', '');
 					}, 2000);
 				}
-				con.log(2, "On Monster info: " + cM.name, link, cM, caap.stats.reviewPages);
+				con.log(2, "On Monster info: " + cM.name, link, cM, stats.reviewPages);
 
 				slice = null;
 				tempDiv = null;
@@ -880,14 +880,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 return false;
             }
 
-            if (!caap.stats.indicators.enl) {
+            if (!stats.indicators.enl) {
                 //if levelup mode is false then new level up mode is also false (kob)
                 state.setItem("newLevelUpMode", false);
                 return false;
             }
 
             // minutesBeforeLevelToUseUpStaEnergy : 5, = 30000
-            if (((caap.stats.indicators.enl - Date.now()) < 30000) || (caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 20))) {
+            if (((stats.indicators.enl - Date.now()) < 30000) || (stats.exp.dif <= config.getItem('LevelUpGeneralExp', 20))) {
                 //detect if we are entering level up mode for the very first time (kob)
                 if (!state.getItem("newLevelUpMode", false)) {
                     //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
@@ -921,74 +921,74 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 return false;
             }
 
-            if (!caap.stats.stamina || !caap.stats.health) {
+            if (!stats.stamina || !stats.health) {
                 caap.setDivContent(messDiv, 'Health or stamina not known yet.');
                 return false;
             }
 
-            if (caap.stats.health.num < 10) {
+            if (stats.health.num < 10) {
                 if (battleOrMonster === "Conquest") {
-                    schedule.setItem("conquest_delay_stats", (10 - caap.stats.health.num) *  180, 120);
+                    schedule.setItem("conquest_delay_stats", (10 - stats.health.num) *  180, 120);
                 }
 
-                caap.setDivContent(messDiv, "Need health to fight: " + caap.stats.health.num + "/10");
+                caap.setDivContent(messDiv, "Need health to fight: " + stats.health.num + "/10");
                 return false;
             }
 
-            if (((battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false)) || (battleOrMonster === "Conquest" && config.getItem("conquestWaitSafeHealth", false))) && caap.stats.health.num < 13) {
+            if (((battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false)) || (battleOrMonster === "Conquest" && config.getItem("conquestWaitSafeHealth", false))) && stats.health.num < 13) {
                 if (battleOrMonster === "Conquest") {
-                    schedule.setItem("conquest_delay_stats", (13 - caap.stats.health.num) *  180, 120);
+                    schedule.setItem("conquest_delay_stats", (13 - stats.health.num) *  180, 120);
                 }
 
-                caap.setDivContent(messDiv, "Unsafe. Need health to fight: " + caap.stats.health.num + "/13");
+                caap.setDivContent(messDiv, "Unsafe. Need health to fight: " + stats.health.num + "/13");
                 return false;
             }
 
             if (when === 'At X Stamina') {
-                if (caap.inLevelUpMode() && caap.stats.stamina.num >= attackMinStamina) {
+                if (caap.inLevelUpMode() && stats.stamina.num >= attackMinStamina) {
                     caap.setDivContent(messDiv, 'Burning stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
-                    return caap.stats.stamina.num;
+                    return stats.stamina.num;
                 }
 
                 staminaMF = battleOrMonster + 'Stamina';
-                if (state.getItem('BurnMode_' + staminaMF, false) || caap.stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
-                    if (caap.stats.stamina.num < attackMinStamina || caap.stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
+                if (state.getItem('BurnMode_' + staminaMF, false) || stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
+                    if (stats.stamina.num < attackMinStamina || stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
                         state.setItem('BurnMode_' + staminaMF, false);
                         return false;
                     }
 
                     state.setItem('BurnMode_' + staminaMF, true);
-                    return caap.stats.stamina.num - config.getItem('XMin' + staminaMF, 0);
+                    return stats.stamina.num - config.getItem('XMin' + staminaMF, 0);
                 }
 
                 state.setItem('BurnMode_' + staminaMF, false);
 
-                caap.setDivContent(messDiv, 'Waiting for stamina: ' + caap.stats.stamina.num + "/" + config.getItem('X' + staminaMF, 1));
+                caap.setDivContent(messDiv, 'Waiting for stamina: ' + stats.stamina.num + "/" + config.getItem('X' + staminaMF, 1));
                 return false;
             }
 
             if (when === 'At Max Stamina') {
                 maxIdleStamina = caap.maxStatCheck('stamina');
 
-                if (caap.stats.stamina.num >= maxIdleStamina) {
+                if (stats.stamina.num >= maxIdleStamina) {
                     caap.setDivContent(messDiv, 'Using max stamina');
-                    return caap.stats.stamina.num; 
+                    return stats.stamina.num; 
                 }
 
                 if (caap.inLevelUpMode()) {
                     caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
-                    return caap.stats.stamina.num;
+                    return stats.stamina.num;
                 }
 
-                caap.setDivContent(messDiv, 'Waiting for max stamina: ' + caap.stats.stamina.num + "/" + maxIdleStamina);
+                caap.setDivContent(messDiv, 'Waiting for max stamina: ' + stats.stamina.num + "/" + maxIdleStamina);
                 return false;
             }
 
-            if (caap.stats.stamina.num >= attackMinStamina) {
-                return caap.stats.stamina.num;
+            if (stats.stamina.num >= attackMinStamina) {
+                return stats.stamina.num;
             }
 
-            caap.setDivContent(messDiv, "Waiting for more stamina: " + caap.stats.stamina.num + "/" + attackMinStamina);
+            caap.setDivContent(messDiv, "Waiting for more stamina: " + stats.stamina.num + "/" + attackMinStamina);
             return false;
         } catch (err) {
             con.error("ERROR in checkStamina: " + err.stack);
@@ -1065,8 +1065,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             Else stamina is used for us to hide
 
             \-------------------------------------------------------------------------------------*/
-            //if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && (caap.stats.stamina.num * (5 / 3) >= 5)) {
-            if ((caap.stats.health.num - ((caap.stats.stamina.num - 1) * riskConstant) < 10) && ((caap.stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1, hiddenVar) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
+            //if ((stats.health.num - ((stats.stamina.num - 1) * riskConstant) < 10) && (stats.stamina.num * (5 / 3) >= 5)) {
+            if ((stats.health.num - ((stats.stamina.num - 1) * riskConstant) < 10) && ((stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1, hiddenVar) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
                 return false;
             }
 
@@ -1100,10 +1100,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				cM = {},
 				message = 'Reviewing ';
 
-            for (i = 0; i < caap.stats.reviewPages.length; i++) {
-                if (schedule.since(caap.stats.reviewPages[i].review, 60 * 60)) {
-                    con.log(2,'Reviewing monster list page',caap.stats.reviewPages[i].path, caap.stats.reviewPages,caap.stats.reviewPages[i].review);
-                    return caap.navigateTo(caap.stats.reviewPages[i].path);
+            for (i = 0; i < stats.reviewPages.length; i++) {
+                if (schedule.since(stats.reviewPages[i].review, 60 * 60)) {
+                    con.log(2,'Reviewing monster list page',stats.reviewPages[i].path, stats.reviewPages,stats.reviewPages[i].review);
+                    return caap.navigateTo(stats.reviewPages[i].path);
                 }
             }
 
@@ -1154,7 +1154,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monster.deleteRecord(cM.link);
 					}
 
-				} else if (cM.doSiege && caap.stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+				} else if (cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
 					link += ',clickimg:siege_btn.gif';
 					message = 'Sieging ';
 				}
@@ -1214,14 +1214,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             // Establish a delay timer when we are 1 stamina below attack level.
             // Timer includes 5 min for stamina tick plus user defined random interval
 
-            if (!caap.inLevelUpMode() && caap.stats.stamina.num === (state.getItem('MonsterStaminaReq', 1) - 1) && schedule.check('battleTimer') && config.getItem('seedTime', 0) > 0) {
+            if (!caap.inLevelUpMode() && stats.stamina.num === (state.getItem('MonsterStaminaReq', 1) - 1) && schedule.check('battleTimer') && config.getItem('seedTime', 0) > 0) {
                 schedule.setItem('battleTimer', 300, config.getItem('seedTime', 0));
                 caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                 return false;
             }
 
             if (!schedule.check('battleTimer')) {
-                if (caap.stats.stamina.num < caap.maxStatCheck('stamina')) {
+                if (stats.stamina.num < caap.maxStatCheck('stamina')) {
                     caap.setDivContent('monster_mess', 'Monster Delay Until ' + caap.displayTime('battleTimer'));
                     return false;
                 }
@@ -1265,7 +1265,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					gMult = gMultFunc(specificGeneral);
 					goBig = !general.ZinMisaCheck(generalMenuSetting) && (/:burn\b/i.test(cM.conditions) || general.charged(specificGeneral));
 					statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : whichStat == 'listEnergy' ? energyAvailable : goBig 
-						? caap.stats.stamina.num : Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? (caap.stats.energy.num / healPercStam) : caap.stats.stamina.num);
+						? stats.stamina.num : Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? (stats.energy.num / healPercStam) : stats.stamina.num);
 					minMax = whichStat == 'listStamina' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
 				};
 
@@ -1306,22 +1306,22 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
-					statRequireBig = caap.minMaxArray(statList, 'max', 1, (caap.stats.stamina.num + 1) / gMultFunc('Level_UpGeneral')) * gMultFunc('Level_UpGeneral');
+					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc('Level_UpGeneral')) * gMultFunc('Level_UpGeneral');
 					
 					// Is there a smaller power attack that will work?
-					statRequire = caap.minMaxArray(statList, 'min', 1, (caap.stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
+					statRequire = caap.minMaxArray(statList, 'min', 1, (stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
 					
-					if (statRequire && statRequire * xpPerPt < caap.stats.exp.dif) {
+					if (statRequire && statRequire * xpPerPt < stats.exp.dif) {
 						// Ok, small power hit is a go
 					// If power hit won't work, then do single hit
-					} else if (statList[0] == 1 && 1 * gMult * xpPerPt < caap.stats.exp.dif) {
+					} else if (statList[0] == 1 && 1 * gMult * xpPerPt < stats.exp.dif) {
 						statRequire = 1 * gMult;
 					} else {
 						// If too close to levelling for a power attack, do max attack to carry over xp
 						setGeneralVarsFunc('Level_UpGeneral', stat);
 						statRequire = statRequireBig;
 					}
-					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + caap.stats.stamina.num + ' xp ' + caap.stats.exp.dif, cM);
+					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
 				} else if (statList[0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
 					statRequire = 1 * gMult;
 				} else {
@@ -1381,10 +1381,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (caap.ifClick('darkrage_button1.gif')) {
 						return true;
 					};
-                    if (/:tac/i.test(cM.conditions) && caap.stats.level >= 50) {
+                    if (/:tac/i.test(cM.conditions) && stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = monster.parseCondition("tac%", cM.conditions);
-                    } else if (config.getItem('UseTactics', false) && caap.stats.level >= 50) {
+                    } else if (config.getItem('UseTactics', false) && stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = config.getItem('TacticsThreshold', false);
                     }
@@ -1766,14 +1766,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 con.warn("path", path);
                 throw "Invalid identifying path!";
             }
-            //caap.stats.reviewPages = config.getItem('caap.stats.reviewPages', []);
 
-            for (var it = 0; it < caap.stats.reviewPages.length; it++) {
-                if (caap.stats.reviewPages[it].path === path) {
+            for (var it = 0; it < stats.reviewPages.length; it++) {
+                if (stats.reviewPages[it].path === path) {
                     if ($u.hasContent(entry)) {
-                        caap.stats.reviewPages[it][entry] = value;
+                        stats.reviewPages[it][entry] = value;
                     }
-					caap.saveStats();
+					statsFunc.setRecord(stats);
                     return true;
                 }
             }
@@ -1781,9 +1780,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 rPage[entry] = value;
             }
 
-            caap.stats.reviewPages.push(rPage);
-			caap.saveStats();
-            //con.log(2,'setrPage',path, entry, value, caap.stats.reviewPages,rPage);
+            stats.reviewPages.push(rPage);
+			statsFunc.setRecord(stats);
+            //con.log(2,'setrPage',path, entry, value, stats.reviewPages,rPage);
             return false;
         } catch (err) {
             con.error("ERROR in monster.setrPage: " + err.stack);
@@ -1800,15 +1799,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
             var deleted = 0;
 
-            for (var i = caap.stats.reviewPages.length - 1; i >= 0; i += -1) {
-                if (caap.stats.reviewPages[i][entry] === value) {
+            for (var i = stats.reviewPages.length - 1; i >= 0; i += -1) {
+                if (stats.reviewPages[i][entry] === value) {
                     deleted += 1;
-                    con.log(2,'Monster review pages before',caap.stats.reviewPages, entry, i);
-                    caap.stats.reviewPages.splice(i,1);
-                    con.log(2,'Monster review pages after',caap.stats.reviewPages, entry, i, deleted);
+                    con.log(2,'Monster review pages before',stats.reviewPages, entry, i);
+                    stats.reviewPages.splice(i,1);
+                    con.log(2,'Monster review pages after',stats.reviewPages, entry, i, deleted);
                 }
             }
-			caap.saveStats();
+			statsFunc.setRecord(stats);
             return deleted;
 
         } catch (err) {
@@ -1832,25 +1831,23 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.init = function() {
         try {
-            caap.stats.reviewPages = $u.setContent(caap.stats.reviewPages, []);
-
 			var pageList = [
 				'player_monster_list',
 				'ajax:player_monster_list.php?monster_filter=2',
 				'ajax:player_monster_list.php?monster_filter=3',
 				'ajax:raid.php'];
 				
-			caap.stats.reviewPages.forEach( function(page) {
+			stats.reviewPages.forEach( function(page) {
 				if (pageList.indexOf(page.path) < 0) {
-					con.log(1, 'Deleted path ' + page.path + ' from monster pages review', caap.stats.reviewPages);
+					con.log(1, 'Deleted path ' + page.path + ' from monster pages review', stats.reviewPages);
 					monster.deleterPage('path', page.path);
 				}
             });
 			
-			monster.togglerPage(pageList[0], caap.stats.level > 6 || caap.stats.level === 0);
-			monster.togglerPage(pageList[1], caap.stats.level > 6 || caap.stats.level === 0);
-			monster.togglerPage(pageList[2], caap.stats.level > 6 || caap.stats.level === 0);
-			monster.togglerPage(pageList[3], caap.stats.level > 7 || caap.stats.level === 0);
+			monster.togglerPage(pageList[0], stats.level > 6 || stats.level === 0);
+			monster.togglerPage(pageList[1], stats.level > 6 || stats.level === 0);
+			monster.togglerPage(pageList[2], stats.level > 6 || stats.level === 0);
+			monster.togglerPage(pageList[3], stats.level > 7 || stats.level === 0);
 
             return true;
         } catch (err) {
@@ -1965,14 +1962,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 
 			//disable kob if in level up mode or if we are within 5 stamina of max potential stamina
-			if (caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.stamina.max - 5) {
+			if (caap.inLevelUpMode() || stats.stamina.num >= stats.stamina.max - 5) {
 				KOBenable = false;
 			}
 
 			if (KOBenable) {
 				con.log(2, 'Level Up Mode: ', caap.inLevelUpMode());
-				con.log(2, 'Stamina Avail: ', caap.stats.stamina.num);
-				con.log(2, 'Stamina Max: ', caap.stats.stamina.max);
+				con.log(2, 'Stamina Avail: ', stats.stamina.num);
+				con.log(2, 'Stamina Max: ', stats.stamina.max);
 
 				//log results of previous two tests
 				con.log(2, 'KOBenable: ', KOBenable);
@@ -2101,7 +2098,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				}
 			}
 			if (which != 'Feed') {
-				caap.stats.reviewPages.forEach( function(page) {
+				stats.reviewPages.forEach( function(page) {
 					monster.setrPage(page.path,'review',0);
 				});
 				schedule.setItem('NotargetFrombattle_monster', 0);
@@ -2118,7 +2115,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.select = function(force) {
         try {
-            if (!caap.oneMinuteUpdate('selectMonster', force) || caap.stats.level < 7) {
+            if (!caap.oneMinuteUpdate('selectMonster', force) || stats.level < 7) {
                 return false;
             }
 
@@ -2268,7 +2265,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						
 						if (cM.siegeLevel > 0) {
 							siegeLimit = conditions.regex(/:!s\b/) ? 0 : !conditions.regex(/:fs\b/) ? monster.parseCondition("s", cM.conditions) 
-								: (caap.stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
+								: (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
 							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 

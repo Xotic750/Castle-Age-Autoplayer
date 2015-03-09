@@ -124,7 +124,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
 				},
 				result,
-				charStats = caap.stats.character,
+				charStats = stats.character,
 				currentGeneralObj = general.getRecord(general.getCurrentGeneral()),
 				joinable = function(cM) {
 					return cM.join && cM.status == 'Join';
@@ -135,7 +135,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			tR = monster.records.filter(joinable).reduce( function(previous, tarM) {
 				return tarM.score > previous.score ? tarM : previous;
 			}, {'score' : 0, conditions : ''});
-			attackReady = tR.score && caap.stats.stamina.num > tR.listStamina[0];
+			attackReady = tR.score && stats.stamina.num > tR.listStamina[0];
 			
 			if (attackReady && general.Select('MonsterGeneral')) {
 				return true;
@@ -156,7 +156,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.lastClick = cM.link;
 					return true;
 				}
-				//con.log(2, 'SCAN2', cM.name, !cM , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , caap.stats.stamina.num > monster.parseCondition('stam', cM.conditions));
+				//con.log(2, 'SCAN2', cM.name, !cM , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , stats.stamina.num > monster.parseCondition('stam', cM.conditions));
 			}
 			feed.isScan = false;
 			feed.scanRecord = {};
@@ -234,7 +234,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     feed.scoring = function(cM) {
 		try {
 			var temp,
-				userid = caap.stats.FBID,
+				userid = stats.FBID,
 				life = cM.life,
 				t2k = cM.t2k,
 				fortify = cM.fortify,
@@ -261,11 +261,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				cleric = 'Cleric',
 				ranger = 'Ranger',
 				levelup = caap.inLevelUpMode(),
-				energy = caap.stats.energy.num,
-				atmaxenergy = caap.stats.energy.num >= caap.maxStatCheck('energy'),
-				atmaxstamina = caap.stats.stamina.num >= caap.maxStatCheck('stamina'),
-				stamina = caap.stats.stamina.num,
-				exp = caap.stats.exp.dif,
+				energy = stats.energy.num,
+				atmaxenergy = stats.energy.num >= caap.maxStatCheck('energy'),
+				atmaxstamina = stats.stamina.num >= caap.maxStatCheck('stamina'),
+				stamina = stats.stamina.num,
+				exp = stats.exp.dif,
 				killed = monster.getInfo(cM.monster, 'achTitle', false),
 				achnum = monster.getInfo(cM.monster, 'achNum'),
 				picowned = function(pic) {
@@ -284,12 +284,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				},
 				userdamage = function(userId, damage) {
 					state.setItem('feedUserId', state.getItem('feedUserId', '').split('\n').addToList(name).join('\n'));
-					return $u.setContent(cM.userDamage.regex(new RegExp('\\b' + userId + ':(\\d+)'), 0) >= damage;
+					return $u.setContent(cM.userDamage.regex(new RegExp('\\b' + userId + ':(\\d+)')), 0) >= damage;
 				},
 				keep = worker.pagesList.flatten('page').hasIndexOf('ajax:' + cM.link),
 				achleft = 0,
 				conq = cM.lpage == "ajax:player_monster_list.php?monster_filter=2",
-				achrecords = caap.stats.achievements.monster;
+				achrecords = stats.achievements.monster;
 				
 				killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {
 					return previous || (current.hasIndexOf(cM.monster) && !current.regex(/'s/) ? achrecords[current] : 0);

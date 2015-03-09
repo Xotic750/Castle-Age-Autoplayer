@@ -355,10 +355,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			gb.testList = [
 				{	method : 'duel',
 					type : 'gb',
-					check : new RegExp('(POLYMORPH|CONFUSE)? ?(VICTORY|DEFEAT)?\\! .*' + caap.stats.PlayerName + " (.*) Battle Results:"),
+					check : new RegExp('(POLYMORPH|CONFUSE)? ?(VICTORY|DEFEAT)?\\! .*' + stats.PlayerName + " (.*) Battle Results:"),
 					vars : ['action', 'wl', 'name'],
 					func : function(r) {
-						var str = caap.resultsText.replace(r.name, '').replace(caap.stats.PlayerName, ''),
+						var str = caap.resultsText.replace(r.name, '').replace(stats.PlayerName, ''),
 							tStr = '';
 							
 						r.points = str.regex(/\+(\d+) Battle Activity Points/);
@@ -368,20 +368,20 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							var fR = gb.getRecord(session.getItem('gbWhich','gb100'));
 							tStr = str.regex(/Defense increased by (\d+)% from Divine Favor/);
 							if (tStr) {
-								fR.att = (caap.stats.attack + caap.stats.bonus.attack + (caap.stats.defense + caap.stats.bonus.defense) * 0.7 * (tStr.numberOnly() / 100 + 1)).dp(0);
+								fR.att = (stats.attack + stats.bonus.attack + (stats.defense + stats.bonus.defense) * 0.7 * (tStr.numberOnly() / 100 + 1)).dp(0);
 							} else {
 								tStr = str.regex(/Attack increased by (\d+)% from Enrage/);
 								if (tStr) {
-									fR.att = ((caap.stats.attack + caap.stats.bonus.attack) * (tStr.numberOnly() / 100 + 1) + (caap.stats.defense + caap.stats.bonus.defense) * 0.7).dp(0);
+									fR.att = ((stats.attack + stats.bonus.attack) * (tStr.numberOnly() / 100 + 1) + (stats.defense + stats.bonus.defense) * 0.7).dp(0);
 								}
 							}
 								
 							r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
-							r.att = (fR.att > 0 ? fR.att : caap.stats.bonus.api) * (r.action == 'CONFUSE' ? 1.5 : 1) * (r.action == 'POLYMORPH' ? 1.25 : 1);
+							r.att = (fR.att > 0 ? fR.att : stats.bonus.api) * (r.action == 'CONFUSE' ? 1.5 : 1) * (r.action == 'POLYMORPH' ? 1.25 : 1);
 							gb.setRecord(fR);
 						} else {
 							r.wl = ($u.hasContent($j("#globalContainer #results_main_wrapper").find('div[style*="color:#ffdb59"]'))) ? 'won' : 'lost';
-							r.att = gb.getRecordVal(session.getItem('gbWhich','gb100'), 'att', caap.stats.bonus.api);
+							r.att = gb.getRecordVal(session.getItem('gbWhich','gb100'), 'att', stats.bonus.api);
 						}
 					}
 				}
@@ -422,7 +422,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}
 
 			fR.nextTopReview = fR.nextTopReview < now ? now + 5 * 60 * 1000 : fR.nextTopReview;
-			//con.log(2, gf.name + ' state ' + fR.state + ', next top page review: ' + new Date(fR.nextTopReview + 5 * 60 * 1000).toLocaleString(), fR, caap.stats.priorityGeneral, text);
+			//con.log(2, gf.name + ' state ' + fR.state + ', next top page review: ' + new Date(fR.nextTopReview + 5 * 60 * 1000).toLocaleString(), fR, stats.priorityGeneral, text);
 			gb.setRecord(fR);
 			return fR;
 
@@ -515,7 +515,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.me.percent = ((fR.me.healthNum / fR.me.healthMax) * 100).dp(2);
 				pics = $j.makeArray(tempDiv.find('img').map(function(e) { return $j(this).attr('src').regex(/(\w+\.\w+)$/); }));
 				if (fR.att == 0 || (!pics.hasIndexOf('cleric_effect_divine_favor.gif') && !pics.hasIndexOf('mage_effect_enrage.gif'))) {
-					fR.att = caap.stats.bonus.api;
+					fR.att = stats.bonus.api;
 				}
 				fR.me.shout = pics.hasIndexOf('warrior_effect_shout.gif') ? true : false;
 			} else if (myStatsTxt.hasIndexOf('Battle Has Not Started')) {
@@ -671,7 +671,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					tR.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
 					tR.healthNum += mR.healthNum;
 					tR.healthMax += mR.healthMax;
-					isMe = which == 'your' && mR.name == caap.stats.PlayerName && mR.level == caap.stats.level;
+					isMe = which == 'your' && mR.name == stats.PlayerName && mR.level == stats.level;
 					if (isMe) {
 						fR.me.tower = tower;
 					}
@@ -844,25 +844,25 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				configSet = false;
 				
 			if (schedule.since(fRecord.startTime, 1 * 60) && !schedule.since(fRecord.startTime, 4* 60)) {
-				caap.stats.priorityGeneral = config.getItem('100v100_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('100v100_ClassGeneral','Use Current');
+				stats.priorityGeneral = config.getItem('100v100_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('100v100_ClassGeneral','Use Current');
 			}
-			if (caap.stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -8 * 60) && !schedule.since(tRecord.startTime, -0 * 60)) {
-				caap.stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
+			if (stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -8 * 60) && !schedule.since(tRecord.startTime, -0 * 60)) {
+				stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
 			}
-			if (caap.stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
-				caap.stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
+			if (stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
+				stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
 			}
-			if (caap.stats.priorityGeneral != 'Use Current') {
-				con.log(2,' Pre battle class general',caap.stats.priorityGeneral);
-				if (general.selectSpecific(caap.stats.priorityGeneral)) {
+			if (stats.priorityGeneral != 'Use Current') {
+				con.log(2,' Pre battle class general',stats.priorityGeneral);
+				if (general.selectSpecific(stats.priorityGeneral)) {
 					return true;
 				}
 			}
 				
 			if (fRecord.state == 'Active' || gRecord.state == 'Active' || tRecord.state == 'Active') {
-				caap.stats.battleIdle = config.getItem('GB_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_IdleGeneral','Use Current');
+				stats.battleIdle = config.getItem('GB_IdleGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('GB_IdleGeneral','Use Current');
 			} else {
-				caap.stats.battleIdle = 'Use Current';
+				stats.battleIdle = 'Use Current';
 			}
 
 			return ['gb100', 'gb10', 'gbClassic'].some( function(label) {
@@ -921,7 +921,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				fR.paths = [];
 				if (stateMsg == 'Uncollected' && config.getItem(gf.label + 'collect',false) && !(caap.gameDay(-2 * 60) == 'Mon' 
 					&& caap.gameDay(gf.collectHours * 3600, (gf.name == 'Classic' ? fR.lastBattleTime : fR.endTime)) == 'Tue')) {
-					gb.setrPage(fR, (caap.stats.exp.dif < 60 ? '@Level_UpGeneral,' : '') + gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif');
+					gb.setrPage(fR, (stats.exp.dif < 60 ? '@Level_UpGeneral,' : '') + gf.basePath + ',clickimg:guild_battle_collectbtn_small.gif');
 					stateMsg = 'Collecting'
 				}
 			} else if (fR.state == 'No battle') {
@@ -947,7 +947,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				if (config.getItem(gf.label + 'whenTokens','Never') != 'Never') {
 					if (stateMsg == 'Not entered') {
 						fR.paths = [];
-						if (caap.stats.stamina.num >= gf.stamina) {
+						if (stats.stamina.num >= gf.stamina) {
 							stateMsg = 'Entering battle';
 							gb.setrPage(fR, gf.basePath + ',clickimg:' + gf.enterButton, 'general', true);
 						} else {
@@ -990,7 +990,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							} else if (gf.name == 'Classic') {
 								state.setItem('GB_Active', true);
 							}
-							if (caap.stats.priorityGeneral == 'Use Current' && general.Select(caap.stats.battleIdle)) {
+							if (stats.priorityGeneral == 'Use Current' && general.Select(stats.battleIdle)) {
 								caap.setDivContent(mess, gf.name + ': ' + fR.tokens + '/10, setting idle general');
 								gb.setRecord(fR);
 								return true;
@@ -1015,7 +1015,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
             /*jslint continue: false */
 			
 			//con.log(2,'pre ATTACK!',doAttack, whenTokens, fR.tokens > tokenMax, fR.state, fR.me.healthNum > gf.minHealth);
-			if (whenTokens !== 'Never' && caap.stats.priorityGeneral == 'Use Current') {
+			if (whenTokens !== 'Never' && stats.priorityGeneral == 'Use Current') {
 				
 				if (doAttack && !waitForGB) {
 					teams = stun == 'stunned' ? ['enemy'] : ['your','enemy'];
@@ -1238,8 +1238,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				}
 			}
 			if (match) {
-				caap.stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
-				return caap.navigate2((caap.stats.priorityGeneral !== 'Use Current' ? '@' + caap.stats.priorityGeneral + ',' : '') + 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_startbattle.gif');
+				stats.priorityGeneral = config.getItem('Classic_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('Classic_ClassGeneral','Use Current');
+				return caap.navigate2((stats.priorityGeneral !== 'Use Current' ? '@' + stats.priorityGeneral + ',' : '') + 'tenxten_gb_formation,guildv2_battle,clickimg:sort_btn_startbattle.gif');
 			}
 
 			//con.log(5, 'No time match to current time', now);

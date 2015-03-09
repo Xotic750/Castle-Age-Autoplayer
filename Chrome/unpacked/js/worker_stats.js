@@ -7,17 +7,17 @@ $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,spreadsheet,ss,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
-////////////////////////////////////////////////////////////////////
-//                          Stats OBJECT
-// this is the main object for dealing with stats
-/////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
+    //                          GET STATS
+    // Functions that records all of base game stats, energy, stamina, etc.
+    /////////////////////////////////////////////////////////////////////
 
 (function() {
     "use strict";
 
-	worker.addRecordFunctions({name: 'statsFunc', recordIndex: 'FBID', recordsAreObj: true});
+	worker.add({name: 'statsFunc', recordIndex: 'FBID', recordsAreObj: true});
 
-    stats.record = function (FBID) {
+    statsFunc.record = function (FBID) {
         this.data = {
 			'FBID': FBID,
 			'account': '',
@@ -179,6 +179,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				'bRank': '',
 				'members': []
 			},
+			'battleIdle' : 'Use Current',
+			reviewPages : [],
 			'essence' : {
 				'attack': 0,
 				'defense' : 0,
@@ -191,207 +193,780 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 	statsFunc.init = function() {
 		try {
-			window.stats = statsFunc.getRecord(FBID);
+			var accountName = stats.account;
+			stats = statsFunc.getRecord(stats.FBID);
+			stats.account = accountName;
+			
+			session.setItem("UserDashUpdate", true);
        } catch (err) {
             con.error("ERROR in gb.init: " + err.stack);
             return false;
         }
 	};
 	
-	statsFunc.checkResults = function(page) {
+	statsFunc.check = function(page) {
         try {
-			switch (page) {
-			case 'soldiers' :
-			case 'item' :
-			case 'magic' :
-				$j("#app_body form[id*='itemBuy'] select[name='amount']").val("5");
-				schedule.setItem(page, 72 * 3600, 300);
+            var passed = true,
+                tNum = 0,
+                xS = 0,
+                xE = 0,
+                max = 0,
+                ststbDiv = $j('#globalContainer #main_sts_container'),
+                bntpDiv = $j('#globalContainer #main_bntp'),
+                tempDiv = $j("#gold_current_value", ststbDiv);
 
-				$j("#app_body div[style*='town_unit_bar.jpg'],div[style*='town_unit_bar_owned.jpg']").each(function() {
-					var row = $j(this),
-						current = new stats.record().data,
-						tempDiv = $j("strong", row).eq(0),
-						tStr = '';
+            // gold
+            tempDiv = $j('#gold_current_value_amount', ststbDiv);
+            if ($u.hasContent(tempDiv)) {
+                stats.gold.cash = parseInt(tempDiv.val(),10);
+            } else {
+                con.warn("Unable to get cashDiv");
+                passed = false;
+            }
 
-					if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-						current.name = $u.setContent(tempDiv.text(), '').trim().innerTrim();
-						current.type = page == 'item' ? $u.setContent(spreadsheet.getItem(current.name).type, 'Unknown') : page.ucFirst();
-					} else {
-						con.warn("Unable to get item name in");
-						return;
+            ['energy','stamina','health'].forEach(function(stat) {
+                tempDiv = $j($j("#" + stat + "_current_value", ststbDiv)[0].parentNode);
+                if ($u.hasContent(tempDiv) && caap.getStatusNumbers(tempDiv.text(), stats[stat])) {
+					if (tempDiv.html().indexOf('color') == -1) {
+						stats[stat].norm = stats[stat].max;
 					}
-					tempDiv = $j("img", row).eq(0);
-					if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-						current.image = $u.setContent(tempDiv.attr("src"), '').basename();
-					} else {
-						con.log(3, "No image found for", current.name);
-					}
+                } else {
+                    con.warn("Unable to get " + stat + " Div");
+                    passed = false;
+                }
+            });
 
-					tempDiv = $j("span[class='negative']", row);
-					if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-						current.upkeep = $u.setContent(tempDiv.text(), '0').numberOnly();
-					} else {
-						con.log(4, "No upkeep found for", current.name);
-					}
+            // experience
+            tempDiv = $j("#header_player_xp_totals", ststbDiv);
+            if ($u.hasContent(tempDiv) && caap.getStatusNumbers(tempDiv.text(), stats.exp)) {
+				stats.exp.dif = stats.exp.max - stats.exp.num;
+            } else {
+                con.warn("Unable to get expDiv");
+                passed = false;
+            }
 
-					tStr = row.children().eq(2).text().trim().innerTrim();
-					if ($u.hasContent(tStr)) {
-						current.atk = $u.setContent(tStr.regex(/(\d+) Attack/), 0);
-						current.def = $u.setContent(tStr.regex(/(\d+) Defense/), 0);
-						current.api = (current.atk + (current.def * 0.7)).dp(2);
-						current.dpi = (current.def + (current.atk * 0.7)).dp(2);
-						current.mpi = ((current.api + current.dpi) / 2).dp(2);
-					} else {
-						con.warn("No atk/def found for", current.name);
-					}
+            // level
+            tempDiv = $j("[title*='level']", ststbDiv);
+            if ($u.hasContent(tempDiv)) {
+                tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                if (tNum > stats.level) {
+                    con.log(2, 'New level. Resetting Best Land Cost.');
+                    caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
+                    state.setItem('KeepLevelUpGeneral', true);
+                }
 
-					tempDiv = $j("strong[class='gold']", row);
-					if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-						current.cost = $u.setContent(tempDiv.text(), '0').numberOnly();
-					} else {
-						con.log(4, "No cost found for", current.name);
-					}
+                stats.level = tNum;
+            } else {
+                con.warn("Unable to get levelDiv");
+                passed = false;
+            }
 
-					tStr = row.children().eq(3).text().trim().innerTrim();
-					if ($u.hasContent(tStr)) {
-						current.owned = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
-						current.hourly = current.owned * current.upkeep;
-					} else {
-						con.warn("No number owned found for", current.name);
-					}
+            // army
+            tempDiv = $j("a[href*='army.php']", bntpDiv);
+            if ($u.hasContent(tempDiv)) {
+                stats.army.actual = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                tNum = Math.min(stats.army.actual, 501);
+                if (tNum >= 1 && tNum <= 501) {
+                    stats.army.capped = tNum;
+                } else {
+                    con.warn("Army count not in limits");
+                    passed = false;
+                }
+            } else {
+                con.warn("Unable to get armyDiv");
+                passed = false;
+            }
 
-					stats.setRecord(current);
-				});
+            // upgrade points
+            tempDiv = $j("a[href*='keep.php']", bntpDiv);
+            if ($u.hasContent(tempDiv)) {
+                tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                if (tNum > stats.points.skill) {
+                    con.log(2, 'New points. Resetting AutoStat.');
+                    state.setItem("statsMatch", true);
+                }
 
-			default :
-				break;
+                stats.points.skill = tNum;
+            } else {
+                con.warn("Unable to get pointsDiv");
+                passed = false;
+            }
+
+            // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
+            if (stats.exp) {
+                xS = gm ? gm.getItem("expStaminaRatio", 2.4, hiddenVar) : 2.4;
+                xE = state.getItem('AutoQuest', caap.newAutoQuest()).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
+                stats.indicators.htl = ((stats.level * 12.5) - (stats.stamina.max * xS) - (stats.energy.max * xE)) / (24 * (xS + xE));
+                stats.indicators.hrtl = (stats.exp.dif - (stats.stamina.num * xS) - (stats.energy.num * xE)) / (24 * (xS + xE));
+                stats.indicators.enl = Date.now() + Math.ceil(stats.indicators.hrtl * 3600000);
+            } else {
+                con.warn('Could not calculate time to next level. Missing experience stats!');
+                passed = false;
+            }
+			
+			if (caap.oneMinuteUpdate('saveStats')) {
+				statsFunc.setRecord(stats);
 			}
+
+            if (!passed && stats.energy.max === 0 && stats.health.max === 0 && stats.stamina.max === 0) {
+                $j().alert("<div style='text-align: center;'>" + con.warn("Paused as this account may have been disabled!", stats) + "</div>");
+                caap.pauseListener();
+            }
+
+            return passed;
         } catch (err) {
             con.error("ERROR in stats.checkResults: " + err.stack);
             return false;
         }
     };
 
-    stats.getCount = function(image) {
-        return $u.setContent(stats.getRecord(image).owned, 0);
-    };
-
-    stats.dashboard = function() {
+    statsFunc.dashboard = function() {
         try {
+            var headers = [],
+                values = [],
+                pp = 0,
+                i = 0,
+                count = 0,
+                userIdLink = '',
+                userIdLinkInstructions = '',
+                valueCol = 'red',
+                len = 0,
+                data = {
+                    text: '',
+                    color: '',
+                    bgcolor: '',
+                    id: '',
+                    title: ''
+                },
+                handler = null,
+                head = '',
+                body = '',
+                row = '',
+                rows = [];
+
             /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
-                We set our table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Town Stats' && session.getItem("townDashUpdate", true)) {
-                var headers = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
-                    values = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                    pp = 0,
-                    i = 0,
-                    it = 0,
-                    len = 0,
-                    len1 = 0,
-                    len2 = 0,
-                    str = '',
-                    num = 0,
-                    header = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: '',
+            Next we build the HTML to be included into the 'caap_userStats' div. We set our
+            table and then build the header row.
+            \-------------------------------------------------------------------------------------*/
+            if (config.getItem('DBDisplay', '') === 'User Stats' && session.getItem("UserDashUpdate", true)) {
+                head = "";
+                body = "";
+                headers = ['Name', 'Value', 'Name', 'Value'];
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
+                    head += caap.makeTh({
+                        text: headers[pp],
                         width: ''
-                    },
-                    head = '',
-                    body = '',
-                    row = '';
+                    });
+                }
 
-				for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
+                head = caap.makeTr(head);
+                rows = [
+                    [{
+                        text: 'Facebook ID'
+                    }, {
+                        text: stats.FBID
+                    }, {
+                        text: 'Account Name'
+                    }, {
+                        text: caap.fbData.me.name
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;'
+                    }],
+                    [{
+                        text: 'Character Name'
+                    }, {
+                        text: stats.PlayerName
+                    }, {
+                        text: 'Energy',
+                        title: 'Current/Max'
+                    }, {
+                        text: stats.energy.num + '/' + stats.energy.max,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Level'
+                    }, {
+                        text: stats.level,
+                        color: valueCol
+                    }, {
+                        text: 'Stamina',
+                        title: 'Current/Max'
+                    }, {
+                        text: stats.stamina.num + '/' + stats.stamina.max,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Battle Rank'
+                    }, {
+                        text: battle.battleRankTable[stats.rank.battle] + ' (' + stats.rank.battle + ')',
+                        color: valueCol
+                    }, {
+                        text: 'Attack',
+                        title: 'Current/Max'
+                    }, {
+                        text: stats.attack.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Battle Rank Points'
+                    }, {
+                        text: stats.rank.battlePoints.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Defense'
+                    }, {
+                        text: stats.defense.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'War Rank'
+                    }, {
+                        text: battle.warRankTable[stats.rank.war] + ' (' + stats.rank.war + ')',
+                        color: valueCol
+                    }, {
+                        text: 'Health',
+                        title: 'Current/Max'
+                    }, {
+                        text: stats.health.num + '/' + stats.health.max,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'War Rank Points'
+                    }, {
+                        text: stats.rank.warPoints.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Army'
+                    }, {
+                        text: stats.army.actual.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Conquest Rank'
+                    }, {
+                        text: conquest.conquestRankTable[stats.rank.conquest] + ' (' + stats.rank.conquest + ')',
+                        color: valueCol
+                    }, {
+                        text: 'Generals'
+                    }, {
+                        text: $u.hasContent(stats.generals) ? stats.generals.total : 'N/A',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Conquest Rank Points'
+                    }, {
+                        text: stats.rank.conquestPoints.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Generals When Invade',
+                        title: 'For every 5 army members you have, one of your generals will also join the fight.'
+                    }, {
+                        text: $u.hasContent(stats.generals) ? stats.generals.invade : 'N/A',
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Gold In Bank'
+                    }, {
+                        text: '$' + stats.gold.bank.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Total Income Per Hour'
+                    }, {
+                        text: '$' + stats.gold.income.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Gold In Cash'
+                    }, {
+                        text: '$' + stats.gold.cash.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Upkeep'
+                    }, {
+                        text: '$' + stats.gold.upkeep.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Total Gold'
+                    }, {
+                        text: '$' + stats.gold.total.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Cash Flow Per Hour'
+                    }, {
+                        text: '$' + stats.gold.flow.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Skill Points'
+                    }, {
+                        text: stats.points.skill,
+                        color: valueCol
+                    }, {
+                        text: 'Energy Potions'
+                    }, {
+                        text: stats.potions.energy,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Favor Points'
+                    }, {
+                        text: stats.points.favor,
+                        color: valueCol
+                    }, {
+                        text: 'Stamina Potions'
+                    }, {
+                        text: stats.potions.stamina,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Experience To Next Level (ETNL)'
+                    }, {
+                        text: stats.exp.dif.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Battle Strength Index (BSI)'
+                    }, {
+                        text: stats.indicators.bsi,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Hours To Level (HTL)'
+                    }, {
+                        text: $u.minutes2hours(stats.indicators.htl),
+                        color: valueCol
+                    }, {
+                        text: 'Levelling Speed Index (LSI)'
+                    }, {
+                        text: stats.indicators.lsi,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Hours Remaining To Level (HRTL)'
+                    }, {
+                        text: $u.minutes2hours(stats.indicators.hrtl),
+                        color: valueCol
+                    }, {
+                        text: 'Skill Points Per Level (SPPL)'
+                    }, {
+                        text: stats.indicators.sppl,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Expected Next Level (ENL)'
+                    }, {
+                        text: $u.makeTime(stats.indicators.enl, caap.timeStr()),
+                        color: valueCol
+                    }, {
+                        text: 'Attack Power Index (API)'
+                    }, {
+                        text: stats.indicators.api,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Build Type'
+                    }, {
+                        text: stats.indicators.build,
+                        color: valueCol
+                    }, {
+                        text: 'Defense Power Index (DPI)'
+                    }, {
+                        text: stats.indicators.dpi,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'PvP Class'
+                    }, {
+                        text: stats.indicators.pvpclass,
+                        color: valueCol
+                    }, {
+                        text: 'Mean Power Index (MPI)'
+                    }, {
+                        text: stats.indicators.mpi,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: 'Monster Hunting Build Effective Quotent (MHBEQ)'
+                    }, {
+                        text: stats.indicators.mhbeq,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Battles/Wars Won'
+                    }, {
+                        text: stats.other.bww.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Times eliminated'
+                    }, {
+                        text: stats.other.te.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Battles/Wars Lost'
+                    }, {
+                        text: stats.other.bwl.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Times you eliminated an enemy'
+                    }, {
+                        text: stats.other.tee.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Battles/Wars Win/Loss Ratio (WLR)'
+                    }, {
+                        text: stats.other.wlr,
+                        color: valueCol
+                    }, {
+                        text: 'Enemy Eliminated/Eliminated Ratio (EER)'
+                    }, {
+                        text: stats.other.eer,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Invasions Won'
+                    }, {
+                        text: stats.achievements.battle.invasions.won.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Duels Won'
+                    }, {
+                        text: stats.achievements.battle.duels.won.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Invasions Lost'
+                    }, {
+                        text: stats.achievements.battle.invasions.lost.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Duels Lost'
+                    }, {
+                        text: stats.achievements.battle.duels.lost.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Invasions Streak'
+                    }, {
+                        text: stats.achievements.battle.invasions.streak.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Duels Streak'
+                    }, {
+                        text: stats.achievements.battle.duels.streak.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Invasions Win/loss Ratio (IWLR)'
+                    }, {
+                        text: stats.achievements.battle.invasions.ratio,
+                        color: valueCol
+                    }, {
+                        text: 'Duels Win/loss Ratio (DWLR)'
+                    }, {
+                        text: stats.achievements.battle.duels.ratio,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Quests Completed'
+                    }, {
+                        text: stats.other.qc.addCommas(),
+                        color: valueCol
+                    }, {
+                        text: 'Alchemy Performed'
+                    }, {
+                        text: stats.achievements.other.alchemy.addCommas(),
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }]
+                ];
 
-					header = {
-						text: headers[pp],
-						color: '',
-						id: '',
-						title: '',
-						width: ''
-					};
+                $j.each(rows, function () {
+                    var _row = '';
 
-					switch (headers[pp]) {
-					case 'Name':
-						header.width = '30%';
-						break;
-					case 'Type':
-						header.width = '7%';
-						break;
-					case 'Own':
-						header.width = '6%';
-						break;
-					case 'Atk':
-						header.width = '6%';
-						break;
-					case 'Def':
-						header.width = '6%';
-						break;
-					case 'API':
-						header.width = '6%';
-						break;
-					case 'DPI':
-						header.width = '6%';
-						break;
-					case 'MPI':
-						header.width = '6%';
-						break;
-					case 'Cost':
-						header.width = '9%';
-						break;
-					case 'Upkeep':
-						header.width = '9%';
-						break;
-					case 'Hourly':
-						header.width = '9%';
-						break;
-					default:
-					}
+                    $j.each(this, function () {
+                        _row += caap.makeTd(this);
+                    });
 
-					head += caap.makeTh(header);
-				}
+                    body += caap.makeTr(_row);
+                });
 
-				head = caap.makeTr(head);
-				for (it = 0, len1 = stats.records.length; it < len1; it += 1) {
-					row = "";
-					for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
+                count = 0;
+                for (pp in stats.achievements.monster) {
+                    if (stats.achievements.monster.hasOwnProperty(pp)) {
+                        row = count % 2 === 0 ? '' : row;
+                        row += caap.makeTd({
+                            text: pp.escapeHTML()
+                        });
 
-						if ($u.isNaN(stats.records[it][values[pp]]) || !$u.hasContent(stats.records[it][values[pp]])) {
-							str = $u.setContent(stats.records[it][values[pp]], '');
-						} else {
-							num = stats.records[it][values[pp]];
-							str = $u.hasContent(num) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + num.SI() : num.addCommas();
-						}
+                        row += caap.makeTd({
+                            text: stats.achievements.monster[pp],
+                            color: valueCol
+                        });
 
-						row += caap.makeTd({
-							text: str,
-							color: '',
-							id: '',
-							title: ''
-						});
-					}
+                        body += count % 2 === 1 ? caap.makeTr(row) : '';
+                        count += 1;
+                    }
+                }
 
-					body += caap.makeTr(row);
-				}
+                if (count % 2 === 1) {
+                    row += caap.makeTd({
+                        text: '&nbsp;'
+                    });
 
-				$j("#caap_Town_Stats", caap.caapTopObject).html(
-				$j(caap.makeTable('Town', head, body)).dataTable({
-					"bAutoWidth": false,
-					"bFilter": false,
-					"bJQueryUI": false,
-					"bInfo": false,
-					"bLengthChange": false,
-					"bPaginate": false,
-					"bProcessing": false,
-					"bStateSave": true,
-					"bSortClasses": false
-				}));
+                    row += caap.makeTd({
+                        text: '&nbsp;',
+                        color: valueCol
+                    });
 
-				session.setItem("townDashUpdate", false);
+                    body += caap.makeTr(row);
+                }
+
+                rows = [
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Ambrosia Daily Points'
+                    }, {
+                        text: caap.demi.ambrosia.daily.num + '/' + caap.demi.ambrosia.daily.max,
+                        color: valueCol
+                    }, {
+                        text: 'Malekus Daily Points'
+                    }, {
+                        text: caap.demi.malekus.daily.num + '/' + caap.demi.malekus.daily.max,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Ambrosia Total Points'
+                    }, {
+                        text: caap.demi.ambrosia.power.total,
+                        color: valueCol
+                    }, {
+                        text: 'Malekus Total Points'
+                    }, {
+                        text: caap.demi.malekus.power.total,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Corvintheus Daily Points'
+                    }, {
+                        text: caap.demi.corvintheus.daily.num + '/' + caap.demi.corvintheus.daily.max,
+                        color: valueCol
+                    }, {
+                        text: 'Aurora Daily Points'
+                    }, {
+                        text: caap.demi.aurora.daily.num + '/' + caap.demi.aurora.daily.max,
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Corvintheus Total Points'
+                    }, {
+                        text: caap.demi.corvintheus.power.total,
+                        color: valueCol
+                    }, {
+                        text: 'Aurora Total Points'
+                    }, {
+                        text: caap.demi.aurora.power.total,
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Azeron Daily Points'
+                    }, {
+                        text: caap.demi.azeron.daily.num + '/' + caap.demi.azeron.daily.max,
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: 'Azeron Total Points'
+                    }, {
+                        text: caap.demi.azeron.power.total,
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }],
+                    [{
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }, {
+                        text: '&nbsp;'
+                    }, {
+                        text: '&nbsp;',
+                        color: valueCol
+                    }]
+                ];
+
+                $j.each(rows, function () {
+                    var _row = '';
+
+                    $j.each(this, function () {
+                        _row += caap.makeTd(this);
+                    });
+
+                    body += caap.makeTr(_row);
+                });
+
+                body += caap.makeTr(row);
+                count = 0;
+                for (pp in stats.character) {
+                    if (stats.character.hasOwnProperty(pp)) {
+                        row = count % 2 === 0 ? '' : row;
+                        row += caap.makeTd({
+                            text: pp
+                        });
+
+                        row += caap.makeTd({
+                            text: "Level " + stats.character[pp].level + " (" + stats.character[pp].percent + "%)",
+                            color: valueCol
+                        });
+
+                        body += count % 2 === 1 ? caap.makeTr(row) : '';
+                        count += 1;
+                    }
+                }
+
+                if (count % 2 === 1) {
+                    row += caap.makeTd({
+                        text: '&nbsp;'
+                    });
+
+                    row += caap.makeTd({
+                        text: '&nbsp;',
+                        color: valueCol
+                    });
+
+                    body += caap.makeTr(row);
+                }
+
+                $j("#caap_userStats", caap.caapTopObject).html(caap.makeTable("user", head, body));
+                session.setItem("UserDashUpdate", false);
             }
 
             return true;

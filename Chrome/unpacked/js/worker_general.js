@@ -142,8 +142,8 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                 timeStrings = '',
                 now = new Date();
             // Priority generals, such as Guild Battle class generals, outrank timed generals.
-            if (caap.stats.priorityGeneral != 'Use Current') {
-                timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + caap.stats.priorityGeneral;
+            if (stats.priorityGeneral != 'Use Current') {
+                timeStrings = now.toLocaleTimeString().replace(/:\d+ /,' ') + '@' + stats.priorityGeneral;
                 timedLoadoutsList.unshift(timeStrings);
                 con.log(2,'Priority gen set', timeStrings, timedLoadoutsList);
             }
@@ -264,7 +264,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             con.log(2, 'Building Generals Lists');
 			
 			['energy', 'stamina', 'health'].forEach(function(stat) {
-				caap.stats[stat].min = 0;
+				stats[stat].min = 0;
 			});
 			
 			generalNames = general.records.flatten('name');
@@ -287,13 +287,13 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 					uGR = general.getRecord(usedGen);
 					['energy', 'stamina', 'health'].forEach(function(stat) {
 						if (general.isLoadout(usedGen)) {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
+							stats[stat].min = Math.min(stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else if (defaultLoadout == 'Use Current') {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat], 0));
+							stats[stat].min = Math.min(stats[stat].min, $u.setContent(uGR[stat], 0));
 						} else {
-							caap.stats[stat].min = Math.min(caap.stats[stat].min, $u.setContent(uGR[stat] + general.getRecord(defaultLoadout)[stat], 0));
+							stats[stat].min = Math.min(stats[stat].min, $u.setContent(uGR[stat] + general.getRecord(defaultLoadout)[stat], 0));
 						}
-						//con.log(2, 'Min loadout/general en/sta adjustment calc', uGR, caap.stats[stat].min, caap.stats[stat]);
+						//con.log(2, 'Min loadout/general en/sta adjustment calc', uGR, stats[stat].min, stats[stat]);
 					});
                 }
                 general.lists[item] = ($u.isArray(general.filters[item]) && config.getItem("filterGeneral", true)) ? general.filters[item].filter(crossList) : generalList;
@@ -301,7 +301,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 
             general.coolDownList = [''].concat(general.getCoolDownNames());
 
-            con.log(2, 'Built lists',general.LoadoutsList, general.lists, general.usedGenerals, caap.stats);
+            con.log(2, 'Built lists',general.LoadoutsList, general.lists, general.usedGenerals, stats);
 
             return true;
         } catch (err) {
@@ -321,11 +321,11 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             generalRecord.edpi = (generalRecord.edef + (generalRecord.eatk * 0.7)).dp(2);
             generalRecord.empi = ((generalRecord.eapi + generalRecord.edpi) / 2).dp(2);
 			['energy', 'stamina', 'health'].forEach(function(stat) {
-				if (caap.stats[stat].norm && caap.stats[stat].max) {
-					generalRecord[stat] = caap.stats[stat].max - caap.stats[stat].norm;
-					//con.log(2, 'Updated ' + stat + ' adjustement for ' + generalRecord.name + ' to ' + generalRecord[stat], generalRecord, caap.stats[stat]);
+				if (stats[stat].norm && stats[stat].max) {
+					generalRecord[stat] = stats[stat].max - stats[stat].norm;
+					//con.log(2, 'Updated ' + stat + ' adjustement for ' + generalRecord.name + ' to ' + generalRecord[stat], generalRecord, stats[stat]);
 					if (general.usedGenerals.indexOf(generalRecord.name) > 0) {
-						caap.stats[stat].min = Math.min(caap.stats[stat].min, generalRecord[stat]);
+						stats[stat].min = Math.min(stats[stat].min, generalRecord[stat]);
 					}
 				}
 			});
@@ -438,7 +438,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                         general.doSave = true;
                     }
                 }
-                caap.stats.records.total = general.records.length;
+                stats.records.total = general.records.length;
                 if (general.doSave) {
                     caap.updateDashboard(true);
                     general.UpdateDropDowns();
@@ -448,7 +448,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 
                 con.log(5, "loadoutslist done", general.records);
                 return true;
-            } else if (caap.stats.level > 100) {
+            } else if (stats.level > 100) {
                 con.warn("Couldn't get 'loadouts'.");
             }
             return false;
@@ -617,10 +617,10 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 					});
 
 					if (general.doSave) {
-						caap.stats.generals = caap.stats.generals || {};
-						caap.stats.generals.total = general.records.length;
-						caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).dp(), general.records.length);
-						caap.saveStats();
+						stats.generals = stats.generals || {};
+						stats.generals.total = general.records.length;
+						stats.generals.invade = Math.min((stats.army.actual / 5).dp(), general.records.length);
+						statsFunc.setRecord(stats);
 						if (update) {
 							caap.updateDashboard(true);
 							general.UpdateDropDowns();
@@ -696,7 +696,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                 keepGeneral = false;
 
             generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
-            if ((caap.stats.stamina.num > caap.stats.stamina.max || caap.stats.energy.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
+            if ((stats.stamina.num > stats.stamina.max || stats.energy.num > stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
                     con.log(2, "Keep Level Up General");
                     keepGeneral = true;
@@ -709,7 +709,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             }
 
             if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.menuList.hasIndexOf(generalType) || generalType === 'Quest')) {
-                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
+                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && stats.exp.dif && stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
                     use = true;
                 }
             }
@@ -760,7 +760,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             var loadoutName = $j('#hot_swap_loadouts_div select[name="choose_loadout"] option:selected').text().trim();
 
             if (!loadoutName) {
-				if (caap.stats.level < 101) {
+				if (stats.level < 101) {
 					return 'Loadouts Unavailable';
 				}
                 con.warn("Couldn't get current 'loadout'. Using 'Use Current'");
@@ -807,13 +807,13 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 				useStaminaAction = !['arena.doArenaBattle', 'caap.conquestBattle'].hasIndexOf(session.getItem('ThisAction', 'none'))
 					&& !caap.inLevelUpMode() && ['InvadeGeneral', 'DuelGeneral'].hasIndexOf(whichGeneral)
 					&& config.getItem("useZinMisaFirst", false),
-                useZin =  useStaminaAction && general.charged("Zin") && caap.stats.stamina.num <= (caap.stats.stamina.max - 15),
-                useMisa =  useStaminaAction && general.charged("Misa") && caap.stats.energy.num <= (caap.stats.energy.max - 30),
+                useZin =  useStaminaAction && general.charged("Zin") && stats.stamina.num <= (stats.stamina.max - 15),
+                useMisa =  useStaminaAction && general.charged("Misa") && stats.energy.num <= (stats.energy.max - 30),
                 coolType = general.getCoolDownType(whichGeneral),
                 coolName = useZin ? 'Zin' : useMisa ? 'Misa' : coolType ? config.getItem(coolType, '') : '';
 
-            if (general.records.length <= (caap.stats.level >= 100 ? 20 : 1)) {
-                con.log(1, "Generals count of " + general.records.length + " <= " + (caap.stats.level >= 100 ? 20 : 2) + ', checking Generals page');
+            if (general.records.length <= (stats.level >= 100 ? 20 : 1)) {
+                con.log(1, "Generals count of " + general.records.length + " <= " + (stats.level >= 100 ? 20 : 2) + ', checking Generals page');
                 return caap.navigateTo('generals');
             }
 
@@ -864,8 +864,8 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 		return ['stamina', 'energy'].reduce( function(p, s) {
 			var nextGenS = general.getRecordVal(g, s),
 				curGenS = general.getRecordVal(general.getCurrentGeneral(), s);
-			if (nextGenS < curGenS && caap.stats[s].num > caap.stats[s].norm + nextGenS) {
-				con.warn('Overrode general change to ' + g + ' because ' + caap.stats[s].num + ' ' + s + ' greater than max ' + caap.stats[s].norm + ' plus general mod of  ' + nextGenS);
+			if (nextGenS < curGenS && stats[s].num > stats[s].norm + nextGenS) {
+				con.warn('Overrode general change to ' + g + ' because ' + stats[s].num + ' ' + s + ' greater than max ' + stats[s].norm + ' plus general mod of  ' + nextGenS);
 				return true;
 			}
 			return p;
@@ -927,7 +927,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             }
 
             // Confirm loadout is ok
-			if (caap.stats.level > 100) {
+			if (stats.level > 100) {
 				targetLoadout = general.isLoadout(targetGeneral) ? targetGeneral : defaultLoadout;
 				targetLoadout = (targetLoadout === "Use Current") ? currentLoadout : targetLoadout;
 				lRecord = general.getRecord(targetLoadout);

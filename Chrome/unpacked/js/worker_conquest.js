@@ -40,19 +40,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				var tempDiv = $j("#guild_token_current_value");
 				if ($u.hasContent(tempDiv)) {
 					tempDiv = $j($j("#guild_token_current_value")[0].parentNode);
-					 caap.stats.guildTokens = caap.getStatusNumbers(tempDiv.text());
+					 stats.guildTokens = caap.getStatusNumbers(tempDiv.text());
 				} else {
 					con.warn("Unable to get Conquest Tokens Div", tempDiv);
 				}
-				caap.saveStats();
+				statsFunc.setRecord(stats);
 				break;
 				
 			default :
 				if (!caap.oneMinuteUpdate('checkConquestTokens')) {
 					return false;
 				}
-				caap.stats.guildTokens.num = $j('#persistHomeConquestPlateOpen').text().numberOnly();
-				caap.saveStats();
+				stats.guildTokens.num = $j('#persistHomeConquestPlateOpen').text().numberOnly();
+				statsFunc.setRecord(stats);
 				break;
 			}
 
@@ -127,8 +127,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
- 			if 	(caap.stats.guildTokens.num > caap.stats.guildTokens.max) {
-                con.log(1, 'Checking max conquest coins', $u.setContent(caap.displayTime('conquest_token'), "Unknown"), caap.stats.guildTokens.num, caap.stats.guildTokens.max);
+ 			if 	(stats.guildTokens.num > stats.guildTokens.max) {
+                con.log(1, 'Checking max conquest coins', $u.setContent(caap.displayTime('conquest_token'), "Unknown"), stats.guildTokens.num, stats.guildTokens.max);
                 caap.setDivContent('conquest_mess', 'Checking coins');
                 if (caap.navigateTo('conquest_duel')) {
                     return true;
@@ -141,7 +141,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (caap.stats.level >= 8 && caap.stats.health.num >= 10 && caap.stats.stamina < 0) {
+            if (stats.level >= 8 && stats.health.num >= 10 && stats.stamina < 0) {
                 schedule.setItem("conquest_delay_stats", 0);
             }
 
@@ -155,42 +155,42 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return true;
 			}
 
-			if (whenconquest === 'At Max Coins' && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num !== caap.stats.guildTokens.max) {
-				con.log(4, 'Waiting for Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max);
-				caap.setDivContent('conquest_mess', 'Waiting Max coins ' + caap.stats.guildTokens.num + '/' + caap.stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+			if (whenconquest === 'At Max Coins' && stats.guildTokens.max >= 10 && stats.guildTokens.num !== stats.guildTokens.max) {
+				con.log(4, 'Waiting for Max coins ' + stats.guildTokens.num + '/' + stats.guildTokens.max);
+				caap.setDivContent('conquest_mess', 'Waiting Max coins ' + stats.guildTokens.num + '/' + stats.guildTokens.max + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				return false;
 			}
 
-			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num >= config.getItem('ConquestXCoins', 1)) {
+			if (whenconquest === 'At X Coins' && stats.guildTokens.num >= config.getItem('ConquestXCoins', 1)) {
 				state.setItem('conquest_burn', true);
-				con.log(1, 'Burn tokens ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+				con.log(1, 'Burn tokens ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
 			}
 
 			con.log(4, 'Waiting X coins burn', state.getItem('conquest_burn', false));
-			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0)) {
+			if (whenconquest === 'At X Coins' && stats.guildTokens.num <= config.getItem('ConquestXMinCoins', 0)) {
 				state.setItem('conquest_burn', false);
-				con.log(4, '1:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-				caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				con.log(4, '1:Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+				caap.setDivContent('conquest_mess', 'Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
 				tempDiv = null;
 				return false;
 			}
 
-			if (whenconquest === 'At X Coins' && caap.stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)) {
+			if (whenconquest === 'At X Coins' && stats.guildTokens.num < config.getItem('ConquestXCoins', 1) && !state.getItem('conquest_burn', false)) {
 				state.setItem('conquest_burn', false);
-				con.log(4, '2:Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
-				caap.setDivContent('conquest_mess', 'Waiting X coins ' + caap.stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+				con.log(4, '2:Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins'));
+				caap.setDivContent('conquest_mess', 'Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
 				tempDiv = null;
 				return false;
 			}
 
-			if (whenconquest === 'Coins Available' && caap.stats.guildTokens.num < 1) {
-				con.log(4, 'Waiting Coins Available ' + caap.stats.guildTokens.num + '/1');
-				caap.setDivContent('conquest_mess', 'Coins Available ' + caap.stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
+			if (whenconquest === 'Coins Available' && stats.guildTokens.num < 1) {
+				con.log(4, 'Waiting Coins Available ' + stats.guildTokens.num + '/1');
+				caap.setDivContent('conquest_mess', 'Coins Available ' + stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
 				tempDiv = null;
@@ -199,7 +199,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			caap.setDivContent('conquest_mess', 'Conquest Ready');
 
-            if (caap.stats.level < 8) {
+            if (stats.level < 8) {
                 schedule.setItem("conquest_token", 86400, 300);
                 schedule.setItem("conquest_delay_stats", 86400, 300);
                 if (conquest.conquestWarnLevel) {
@@ -216,7 +216,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             conquesttype = config.getItem('ConquestType', 'Invade');
             if (!caap.checkStamina('Conquest', 1)) {
                 con.log(1, 'Not enough stamina for ', conquesttype);
-                schedule.setItem("conquest_delay_stats", (caap.stats.stamina.ticker[0] * 60) + caap.stats.stamina.ticker[1], 300);
+                schedule.setItem("conquest_delay_stats", (stats.stamina.ticker[0] * 60) + stats.stamina.ticker[1], 300);
                 state.setItem("ConquestChainId", 0);
                 button = null;
                 tempDiv = null;
@@ -445,10 +445,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.hasImage('guild_tab6_on.jpg')) {
                 tempText = slice.text();
                 if ($u.hasContent(tempText)) {
-                    caap.stats.resources.lumber = $u.setContent(tempText.regex(/^\s+(\d+)\s+\d+/i), 0);
-                    caap.stats.resources.iron = $u.setContent(tempText.regex(/^\s+\d+\s+(\d+)/i), 0);
-                    caap.stats.guild.level = $u.setContent(tempText.regex(/\s+GUILD LEVEL:\s+(\d+)/i), 0);
-                    caap.stats.rank.conquestLevel = $u.setContent(tempText.regex(/\s+CONQUEST LV:\s+(\d+)/i), 0);
+                    stats.resources.lumber = $u.setContent(tempText.regex(/^\s+(\d+)\s+\d+/i), 0);
+                    stats.resources.iron = $u.setContent(tempText.regex(/^\s+\d+\s+(\d+)/i), 0);
+                    stats.guild.level = $u.setContent(tempText.regex(/\s+GUILD LEVEL:\s+(\d+)/i), 0);
+                    stats.rank.conquestLevel = $u.setContent(tempText.regex(/\s+CONQUEST LV:\s+(\d+)/i), 0);
                 } else {
                     con.warn("Unable to get slice text", slice);
                     passedStats = false;
@@ -456,7 +456,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             } else if (caap.hasImage('conqduel_on.jpg')) {
                 levelDiv = $j("div[style*='width:160px;height:12px;color:#80cfec']", slice);
                 if ($u.hasContent(levelDiv)) {
-                    caap.stats.rank.conquestLevel = $u.setContent(levelDiv.text(), '').regex(/(\d+)/);
+                    stats.rank.conquestLevel = $u.setContent(levelDiv.text(), '').regex(/(\d+)/);
                 } else {
                     con.warn("Unable to get conquest levelDiv");
                     levelDiv = null;
@@ -473,9 +473,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             percentageDiv = $j("div[style*='war_redbar.jpg']", slice);
             if ($u.hasContent(percentageDiv && percentageDiv.length === 2)) {
-                caap.stats.guild.levelPercent = $u.setContent(percentageDiv.getPercent('width'), 0);
+                stats.guild.levelPercent = $u.setContent(percentageDiv.getPercent('width'), 0);
             } else if ($u.hasContent(percentageDiv) && percentageDiv.length === 1) {
-                caap.stats.rank.conquestLevelPercent = $u.setContent(percentageDiv.getPercent('width'), 0);
+                stats.rank.conquestLevelPercent = $u.setContent(percentageDiv.getPercent('width'), 0);
             } else {
                 con.warn("Unable to get conquest percentageDiv");
                 passedStats = false;
@@ -485,8 +485,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if ($u.hasContent(tokensDiv)) {
                 tempText = $u.setContent(tokensDiv.text(), '').stripTRN();
                 if ($u.hasContent(tempText)) {
-                    caap.stats.guildTokens.num = $u.setContent(tempText.regex(/(\d+)\/\d+/), 0);
-                    caap.stats.guildTokens.max = $u.setContent(tempText.regex(/\d+\/(\d+)/), 0);
+                    stats.guildTokens.num = $u.setContent(tempText.regex(/(\d+)\/\d+/), 0);
+                    stats.guildTokens.max = $u.setContent(tempText.regex(/\d+\/(\d+)/), 0);
                 } else {
                     con.warn("Unable to get tokensDiv text", tokensDiv);
                     passedStats = false;
@@ -496,7 +496,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(tokensDiv)) {
                     tempText = $u.setContent(tokensDiv.val(), '');
                     if ($u.hasContent(tempText)) {
-                        caap.stats.guildTokens.num = $u.setContent(tempText.regex(/(\d+)/), 0);
+                        stats.guildTokens.num = $u.setContent(tempText.regex(/(\d+)/), 0);
                     } else {
                         con.warn("Unable to get guild_token_current_value_amount text", tokensDiv);
                         passedStats = false;
@@ -510,9 +510,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(tokensDiv)) {
                     tempText = $u.setContent(tokensDiv.val(), '');
                     if ($u.hasContent(tempText)) {
-                        caap.stats.guildTokens.max = $u.setContent(tempText.regex(/(\d+)/), 0);
-                        if (caap.stats.guildTokens.max < 10){
-                            con.warn("guild_token_current_max is too low", caap.stats.guildTokens.max);
+                        stats.guildTokens.max = $u.setContent(tempText.regex(/(\d+)/), 0);
+                        if (stats.guildTokens.max < 10){
+                            con.warn("guild_token_current_max is too low", stats.guildTokens.max);
                             passedStats = false;
                         }
                     } else {
@@ -525,14 +525,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            caap.stats.guildTokens.dif = caap.stats.guildTokens.max - caap.stats.guildTokens.num;
+            stats.guildTokens.dif = stats.guildTokens.max - stats.guildTokens.num;
 
-            con.log(1, "conquest.battle", caap.stats.rank, caap.stats.guildTokens);
+            con.log(1, "conquest.battle", stats.rank, stats.guildTokens);
             if (passedStats) {
-                caap.saveStats();
+                statsFunc.setRecord(stats);
             }
 
-            if (passedStats && caap.stats.guildTokens.max >= 10 && caap.stats.guildTokens.num < caap.stats.guildTokens.max) {
+            if (passedStats && stats.guildTokens.max >= 10 && stats.guildTokens.num < stats.guildTokens.max) {
                 rechargeDiv = $j("#guild_token_current_recharge_time", slice);
                 if ($u.hasContent(rechargeDiv)) {
                     rechargeSecs = $u.setContent(rechargeDiv.val(), '').regex(/(\d+)/);
@@ -553,7 +553,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 schedule.setItem("conquest_token", 300, 0);
             }
 
-            con.log(1, "conquest.getCommonInfos", caap.stats, rechargeSecs, timeSecs);
+            con.log(1, "conquest.getCommonInfos", stats, rechargeSecs, timeSecs);
 
             levelDiv = null;
             percentageDiv = null;
@@ -586,7 +586,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 conquesttype = config.getItem('ConquestType', 'Invade'),
                 targets = [];
 
-            con.log(1, "conquest.targeting begins", caap.stats);
+            con.log(1, "conquest.targeting begins", stats);
 
             conquest.targetsOnPage = [];
             conquest.targets = [];
@@ -668,7 +668,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ARMax = 99999;
             }
 
-            con.log(1, "My rank/type is", conquest.conquestRankTable[caap.stats.rank.conquest], caap.stats.rank.conquest, conquesttype);
+            con.log(1, "My rank/type is", conquest.conquestRankTable[stats.rank.conquest], stats.rank.conquest, conquesttype);
 
             opponentsSlice.each(function() {
                 var opponentDiv = $j(this),
@@ -783,13 +783,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     tempDiv = null;
                     return;
                 }
-                levelMultiplier = caap.stats.level / bR.level;
-                bR.score = bR.conqRank - (bR.army / levelMultiplier / caap.stats.army.capped);
+                levelMultiplier = stats.level / bR.level;
+                bR.score = bR.conqRank - (bR.army / levelMultiplier / stats.army.capped);
                 conquest.targetsOnPage.push(bR);
-                if (!$u.isNumber(caap.stats.level) || (caap.stats.level - minLevel > bR.level)) {
+                if (!$u.isNumber(stats.level) || (stats.level - minLevel > bR.level)) {
                     logOpponent(bR, "minLevel", {
                         'level': bR.level,
-                        'levelDif': caap.stats.level - bR.level,
+                        'levelDif': stats.level - bR.level,
                         'minLevel': minLevel
                     });
 
@@ -802,11 +802,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.level) || (caap.stats.level + maxLevel <= bR.level)) {
+                if (!$u.isNumber(stats.level) || (stats.level + maxLevel <= bR.level)) {
                     logOpponent(bR, "maxLevel", {
                         opponent: bR,
                         'level': bR.level,
-                        'levelDif': bR.level - caap.stats.level,
+                        'levelDif': bR.level - stats.level,
                         'maxLevel': maxLevel
                     });
 
@@ -819,10 +819,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest - minRank > bR.conqRank)) {
+                if (!$u.isNumber(stats.rank.conquest) || (stats.rank.conquest - minRank > bR.conqRank)) {
                     logOpponent(bR, "minRank", {
                         opponent: bR,
-                        'rankDif': caap.stats.rank.conquest - bR.conqRank,
+                        'rankDif': stats.rank.conquest - bR.conqRank,
                         'minRank': minRank
                     });
 
@@ -835,10 +835,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                if (!$u.isNumber(caap.stats.rank.conquest) || (caap.stats.rank.conquest + maxRank <= bR.conqRank)) {
+                if (!$u.isNumber(stats.rank.conquest) || (stats.rank.conquest + maxRank <= bR.conqRank)) {
                     logOpponent(bR, "maxRank", {
                         opponent: bR,
-                        'rankDif': bR.conqRank - caap.stats.rank.conquest,
+                        'rankDif': bR.conqRank - stats.rank.conquest,
                         'minRank': minRank
                     });
 
@@ -851,7 +851,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return;
                 }
 
-                levelMultiplier = $u.setContent(caap.stats.level, 0) / $u.setContent(bR.level, 1);
+                levelMultiplier = $u.setContent(stats.level, 0) / $u.setContent(bR.level, 1);
                 armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
@@ -867,11 +867,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't conquest
-                if (conquesttype === 'Invade' && caap.stats.army.capped && (bR.army > (caap.stats.army.capped * armyRatio))) {
+                if (conquesttype === 'Invade' && stats.army.capped && (bR.army > (stats.army.capped * armyRatio))) {
                     logOpponent(bR, "armyRatio", {
                         'armyRatio': armyRatio.dp(2),
                         'army': bR.army ,
-                        'armyMax': (caap.stats.army.capped * armyRatio).dp()
+                        'armyMax': (stats.army.capped * armyRatio).dp()
                     });
 
                     opponentDiv = null;
@@ -951,7 +951,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			vars : ['myArmy', 'theirArmy', 'points', 'wl',  'name'],
 			func : function(r) {
 				r.wl = r.wl == '+1' ? 'won' : 'lost';
-				r.att = caap.stats.bonus.api * r.myArmy / r.theirArmy;
+				r.att = stats.bonus.api * r.myArmy / r.theirArmy;
 			}
 		},
 		{ method : 'duel',
@@ -960,7 +960,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			vars : ['points', 'wl',  'name'],
 			func : function(r) {
 				r.wl = r.wl == '+1' ? 'won' : 'lost';
-				r.att = caap.stats.bonus.api;
+				r.att = stats.bonus.api;
 			}
 		}
 	];
@@ -1045,7 +1045,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			activePathlist = [];
 		
 		tmp = $j("#app_body #header_garrison_tab a[href*='slot=']");
-		caap.stats.LoMland = $u.hasContent(tmp) ? tmp.attr('href').regex(/slot=(\d+)/) - 1 : -1;
+		stats.LoMland = $u.hasContent(tmp) ? tmp.attr('href').regex(/slot=(\d+)/) - 1 : -1;
 		landCapsules.each(function(index) {
 			var currentCapsule = $j(this),
 				arr = [],
@@ -1091,8 +1091,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			check = false;
 			if (schedule.check('conquestFail')) {
 				conquest.categories.some( function(category) {
-					if (caap.stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
-						con.log(1, category + ' points are ' + caap.stats.conquest[category] + ', which is over ' 
+					if (stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
+						con.log(1, category + ' points are ' + stats.conquest[category] + ', which is over ' 
 							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
 						check = caap.navigate2("guildv2_conquest_command,clickjq:input[name*='Report Collect!']");
 						if (!check || check != 'fail') {
@@ -1102,7 +1102,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							con.warn('Unable to complete conquest points Collect, waiting an hour to try again');
 						} else if (check == 'done') {
 							conquest.categories.forEach( function(category) {
-								caap.stats.conquest[category] = 0;
+								stats.conquest[category] = 0;
 							});
 						}
 						check = true;
@@ -1439,7 +1439,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var guildButtonLevel, energyButtonLevel, runeButtonLevel, buttonLevel, essence, n, essenceValue, target, buttonString;
 
-            energyButtonLevel = Math.min ((Math.floor (caap.stats.energy.num - config.getItem('EssenceEnergyMin') / 25)), 4);
+            energyButtonLevel = Math.min ((Math.floor (stats.energy.num - config.getItem('EssenceEnergyMin') / 25)), 4);
             for (n = 0; n <= 4; n += 1) {
                 essence = config.getItem('Rune' + n, '');
                 if (essence === '') {
@@ -1451,12 +1451,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 guildButtonLevel = Math.min (Math.floor ((guildRecord[essence + 'Max'] - guildRecord[essence]) / 200), 4);
 
                     // update the essence totals
-                caap.stats.essence.Attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
-                caap.stats.essence.Defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
-                caap.stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
-                caap.stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
+                stats.essence.Attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
+                stats.essence.Defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
+                stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
+                stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
 
-                runeButtonLevel = Math.min (Math.floor ((caap.stats.essence[essence] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
+                runeButtonLevel = Math.min (Math.floor ((stats.essence[essence] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
                 buttonLevel = Math.min (Math.min (guildButtonLevel, energyButtonLevel), runeButtonLevel);
 
                 if (buttonLevel >= 1) {

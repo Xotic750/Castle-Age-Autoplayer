@@ -52,11 +52,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 minStamToHeal = 0;
             }
 
-            if (!caap.stats.health || $j.isEmptyObject(caap.stats.health)) {
+            if (!stats.health || $j.isEmptyObject(stats.health)) {
                 return false;
             }
 
-            if (!caap.stats.stamina || $j.isEmptyObject(caap.stats.stamina)) {
+            if (!stats.stamina || $j.isEmptyObject(stats.stamina)) {
                 return false;
             }
 
@@ -64,18 +64,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 battleHealth = (config.getItem('WhenBattle', 'Never') !== 'Never' && config.getItem('waitSafeHealth', false) ? 13 : 10);
                 conquesthealth = (config.getItem('WhenConquest', 'Never') !== 'Never' && config.getItem('ConquestWaitSafeHealth', false) ? 13 : 10);
                 highest = battleHealth >= conquesthealth ? battleHealth : conquesthealth;
-                if ((caap.inLevelUpMode() || caap.stats.stamina.num >= caap.stats.stamina.max) && caap.stats.health.num < highest) {
+                if ((caap.inLevelUpMode() || stats.stamina.num >= stats.stamina.max) && stats.health.num < highest) {
                     con.log(1, 'Heal');
                     return caap.navigateTo('keep,keep_healbtn.gif');
                 }
             }
 
-            if (caap.stats.health.num >= caap.stats.health.max || caap.stats.health.num >= minToHeal) {
+            if (stats.health.num >= stats.health.max || stats.health.num >= minToHeal) {
                 return false;
             }
 
-            if (caap.stats.stamina.num < minStamToHeal) {
-                caap.setDivContent('heal_mess', 'Waiting for stamina to heal: ' + caap.stats.stamina.num + '/' + minStamToHeal);
+            if (stats.stamina.num < minStamToHeal) {
+                caap.setDivContent('heal_mess', 'Waiting for stamina to heal: ' + stats.stamina.num + '/' + minStamToHeal);
                 return false;
             }
 
@@ -227,7 +227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if ($u.hasContent(caap.stats.gold.ticker) && caap.stats.gold.ticker[0] < 1
+            if ($u.hasContent(stats.gold.ticker) && stats.gold.ticker[0] < 1
 				&& config.getItem('IncomeGeneral', 'Use Current') !== 'Use Current') {
                 general.Select('IncomeGeneral');
                 return true;
@@ -317,7 +317,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             attrAdjustNew = attrAdjust;
             logTxt = attrAdjust;
-            level = caap.stats.level;
+            level = stats.level;
 
             attrCurrent = getValue(button);
             energy = getValue(energyDiv);
@@ -327,9 +327,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 defense = getValue(defenseDiv);
                 health = getValue(healthDiv);
             } else {
-                attack = caap.stats.attack;
-                defense = caap.stats.defense;
-                health = caap.stats.health.norm;
+                attack = stats.attack;
+                defense = stats.defense;
+                health = stats.health.norm;
             }
 
             con.log(2, "level/energy/stamina/attack/defense/health/health", level, energy, stamina, attack, defense, health, health);
@@ -343,7 +343,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(2, "logTxt", logTxt);
             }
 
-            if ((attribute === 'stamina') && (caap.stats.points.skill < 2)) {
+            if ((attribute === 'stamina') && (stats.points.skill < 2)) {
                 if (attrAdjustNew <= attrCurrent) {
                     con.log(2, "Stamina at requirement: Next");
                     energyDiv = null;
@@ -420,7 +420,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 value = 0,
                 passed = false;
 
-            if (!config.getItem('AutoStat', false) || !caap.stats.points.skill) {
+            if (!config.getItem('AutoStat', false) || !stats.points.skill) {
                 return ['', 0];
             }
 
@@ -439,7 +439,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     continue;
                 }
 
-                if (caap.stats.level < 10) {
+                if (stats.level < 10) {
                     if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
                         con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                         continue;
@@ -449,12 +449,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 attrValue = config.getItem('AttrValue' + n, 0);
                 attrAdjust = attrValue;
-                level = caap.stats.level;
-                energy = caap.stats.energy.norm;
-                stamina = caap.stats.stamina.norm;
-                attack = caap.stats.attack;
-                defense = caap.stats.defense;
-                health = caap.stats.health.norm;
+                level = stats.level;
+                energy = stats.energy.norm;
+                stamina = stats.stamina.norm;
+                attack = stats.attack;
+                defense = stats.defense;
+                health = stats.health.norm;
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
@@ -464,16 +464,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (attribute === "attack" || attribute === "defense") {
-                    value = caap.stats[attribute];
+                    value = stats[attribute];
                 } else {
-                    value = caap.stats[attribute].norm;
+                    value = stats[attribute].norm;
                 }
 
                 // current thinking is that continue should not be used as it can cause reader confusion
                 // therefore when linting, it throws a warning
                 /*jslint continue: true */
                 if (attrAdjust > value) {
-                    if (attribute === 'stamina' && caap.stats.points.skill < 2) {
+                    if (attribute === 'stamina' && stats.points.skill < 2) {
     					if (config.getItem("StatSpendAll", false)) {
 							continue;
 						} else {
@@ -507,7 +507,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     chores.stats = function () {
         try {
-            if (!config.getItem('AutoStat', false) || !caap.stats.points.skill) {
+            if (!config.getItem('AutoStat', false) || !stats.points.skill) {
                 return false;
             }
 
@@ -590,7 +590,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             maxInCash = config.getItem('MaxInCash', -1);
             minInCash = config.getItem('MinInCash', 0);
-            if (!maxInCash || maxInCash < 0 || caap.stats.gold.cash <= minInCash || caap.stats.gold.cash < maxInCash || caap.stats.gold.cash < 10) {
+            if (!maxInCash || maxInCash < 0 || stats.gold.cash <= minInCash || stats.gold.cash < maxInCash || stats.gold.cash < 10) {
 
                 depositButton = null;
                 numberInput = null;
@@ -622,7 +622,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            deposit = caap.stats.gold.cash - minInCash;
+            deposit = stats.gold.cash - minInCash;
             numberInput.attr("value", deposit);
             con.log(1, 'Depositing into bank:', deposit);
             caap.click(depositButton);
@@ -656,7 +656,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             minInStore = config.getItem('minInStore', 0);
-            if (!(minInStore || minInStore <= caap.stats.gold.bank - num)) {
+            if (!(minInStore || minInStore <= stats.gold.bank - num)) {
 				retrieveButton = null;
                 numberInput = null;
                 return false;
@@ -715,7 +715,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					return false;
 				}
 				hours = o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);
-				if (schedule.since('page_' + o.page, hours * 3600) && (!$u.hasContent(o.level) || caap.stats.level >= o.level)
+				if (schedule.since('page_' + o.page, hours * 3600) && (!$u.hasContent(o.level) || stats.level >= o.level)
 					&& config.getItem($u.setContent(o.config, 'NoNe'), true)) {
 					con.log(2, 'Reviewing ' + o.page, o);
 					var result = caap.navigateTo($u.setContent(o.path, o.page));
