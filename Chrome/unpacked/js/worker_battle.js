@@ -15,7 +15,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
     "use strict";
 
-	worker.addRecordFunctions({name: 'battle', recordIndex: 'userId'});
+	worker.add({name: 'battle', recordIndex: 'userId'});
 
     battle.record = function(userId) {
         this.data = {
@@ -63,7 +63,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	worker.addAction({worker : 'battle', priority : 700, description : 'Battling Players'});
 	
 	battle.init = function() {
-		battle.page = caap.stats.level < 10 ? 'battle_train;battle_off' : 'battle';
+		battle.page = stats.level < 10 ? 'battle_train;battle_off' : 'battle';
 	};
 	
     battle.worker = function() {
@@ -85,7 +85,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 noSafeCountSet = 0,
 				battleOrOverride = 'Battle';
 
-            if (caap.stats.level < 8) {
+            if (stats.level < 8) {
                 if (battle.battleWarnLevel) {
                     con.log(1, "Battle: Unlock at level 8");
                     battle.battleWarnLevel = false;
@@ -137,13 +137,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
             /*
-            if (caap.stats.health.num < 10) {
-                con.log(5, 'Health is less than 10: ', caap.stats.health.num);
+            if (stats.health.num < 10) {
+                con.log(5, 'Health is less than 10: ', stats.health.num);
                 return false;
             }
 
-            if (config.getItem("waitSafeHealth", false) && caap.stats.health.num < 13) {
-                con.log(5, 'Unsafe. Health is less than 13: ', caap.stats.health.num);
+            if (config.getItem("waitSafeHealth", false) && stats.health.num < 13) {
+                con.log(5, 'Unsafe. Health is less than 13: ', stats.health.num);
                 return false;
             }
             */
@@ -493,7 +493,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			check : /Your Army of (\d+) fought with.* x\d+(.+)'s Army of (\d+) fought with.* You have (lost|won) (\d+) Battle Points.*\$([,\d]+)?/i,
 			vars : ['myArmy', 'name', 'theirArmy', 'wl', 'points', 'gold'],
 			func : function(r) {
-				r.att = caap.stats.bonus.api * r.myArmy / r.theirArmy;
+				r.att = stats.bonus.api * r.myArmy / r.theirArmy;
 				r.gold = r.gold ? r.gold.numberOnly() : 0;
 			}
 		},
@@ -502,7 +502,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			check : /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
 			vars : ['name', 'wl', 'points', 'gold'],
 			func : function(r) {
-				r.att = caap.stats.bonus.api;
+				r.att = stats.bonus.api;
 				r.gold = r.gold ? r.gold.numberOnly() : 0;
 			}
 		},
@@ -561,6 +561,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 			
 			bR.name = r.name;
+			r.userId = userId;
 			bR[r.wl + 'Time'] = Date.now();
 			bR[r.method + r.wl.ucWords()] += 1;
 			bR[r.type + 'Points'] += (r.wl == 'won' ? 1 : -1) * $u.setContent(r.points, 0);
@@ -648,7 +649,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.ranks = {
 		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
 		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
-		conqRank: ['Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
+		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
 	};
 
     battle.clear = function() {
@@ -1039,7 +1040,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				
 				con.log(3, 'Battle target stats:', tempRecord.name, tempRecord.level, tempRecord.rankStr, tempRecord.rank, tempRecord.army);
 
-                levelMultiplier = caap.stats.level / (tempRecord.level > 0 ? tempRecord.level : 1);
+                levelMultiplier = stats.level / (tempRecord.level > 0 ? tempRecord.level : 1);
                 armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
@@ -1053,10 +1054,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (tempRecord.level - caap.stats.level > maxLevel) {
+                if (tempRecord.level - stats.level > maxLevel) {
                     con.log(3, "Exceeds relative maxLevel", {
                         level: tempRecord.level,
-                        levelDif: tempRecord.level - caap.stats.level,
+                        levelDif: tempRecord.level - stats.level,
                         maxLevel: maxLevel
                     });
 
@@ -1068,10 +1069,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                if (caap.stats.level - tempRecord.level > minLevel) {
+                if (stats.level - tempRecord.level > minLevel) {
                     con.log(3, "Exceeds relative minLevel", {
                         level: tempRecord.level,
-                        levelDif: caap.stats.level - tempRecord.level,
+                        levelDif: stats.level - tempRecord.level,
                         minLevel: minLevel
                     });
 
@@ -1084,9 +1085,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
-                    if (caap.stats.rank.war && (caap.stats.rank.war - tempRecord.warRank > minRank)) {
+                    if (stats.rank.war && (stats.rank.war - tempRecord.warRank > minRank)) {
                         con.log(3, "Greater than war minRank", {
-                            rankDif: caap.stats.rank.war - tempRecord.warRank,
+                            rankDif: stats.rank.war - tempRecord.warRank,
                             minRank: minRank
                         });
 
@@ -1098,9 +1099,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
                 } else {
-                    if (caap.stats.rank.battle && (caap.stats.rank.battle - tempRecord.rank > minRank)) {
+                    if (stats.rank.battle && (stats.rank.battle - tempRecord.rank > minRank)) {
                         con.log(3, "Greater than battle minRank", {
-                            rankDif: caap.stats.rank.battle - tempRecord.rank,
+                            rankDif: stats.rank.battle - tempRecord.rank,
                             minRank: minRank
                         });
 
@@ -1114,11 +1115,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
-                if (config.getItem('BattleType', 'Invade') == 'Invade' && caap.stats.army.capped && (tempRecord.army > (caap.stats.army.capped * armyRatio))) {
+                if (config.getItem('BattleType', 'Invade') == 'Invade' && stats.army.capped && (tempRecord.army > (stats.army.capped * armyRatio))) {
                     con.log(3, "Greater than armyRatio", {
                         armyRatio: armyRatio.dp(2),
                         army: tempRecord.army,
-                        armyMax: (caap.stats.army.capped * armyRatio).dp()
+                        armyMax: (stats.army.capped * armyRatio).dp()
                     });
 
                     inputDiv = null;
@@ -1208,7 +1209,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rank) - (tempRecord.army / levelMultiplier / caap.stats.army.capped);
+                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rank) - (tempRecord.army / levelMultiplier / stats.army.capped);
                 if (tempRecord.userId === chainId) {
                     chainAttack = true;
                 }
@@ -1250,7 +1251,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (chainAttack) {
                     form = inputDiv.eq(0).parent().parent();
                     inp = $j("input[name='target_id']", form);
-                    if ($u.hasContent(inp) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
+                    if ($u.hasContent(inp) && !stats.guild.ids.hasIndexOf(chainId)) {
                         inp.attr("value", chainId);
                         con.log(1, "Chain attacking: ", chainId);
                         battle.click(inputDiv.eq(0), type);
@@ -1269,7 +1270,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (plusOneSafe) {
                         form = inputDiv.eq(0).parent().parent();
                         inp = $j("input[name='target_id']", form);
-                        if ($u.hasContent(inp) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
+                        if ($u.hasContent(inp) && !stats.guild.ids.hasIndexOf(chainId)) {
                             txt = inp.attr("value");
                             firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
@@ -1300,7 +1301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
                         /*jslint continue: false */
 
-                        if ($u.isDefined(safeTargets[it].button) && !caap.stats.guild.ids.hasIndexOf(chainId)) {
+                        if ($u.isDefined(safeTargets[it].button) && !stats.guild.ids.hasIndexOf(chainId)) {
                             con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
                             battle.click(safeTargets[it].button, type);
                             delete safeTargets[it].score;
@@ -1659,7 +1660,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             break;
                         case 'wc':
                             row += caap.makeTd({
-                                text: battle.winChance(battle.records[i], caap.stats.bonus.api),
+                                text: battle.winChance(battle.records[i], stats.bonus.api),
                                 color: '',
                                 id: '',
                                 title: ''

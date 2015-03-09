@@ -26,6 +26,23 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 
         con.log(1, 'DOM load completed');
         con.log(1, 'mutationTypes', $u.mutationTypes);
+
+		if ([0, 1].indexOf(caap.domain.which) >= 0) {
+			FBID = $u.setContent(caap.fbEnv.id, 0).parseInt();
+			aName = $j('#pageNav .headerTinymanName').text();
+		} else if (caap.domain.which == 2 && caap.hasImage('tab_stats_on.gif') && $j("#app_body a[href*='keep.php?user=']")) {
+			FBID = $j("#app_body a[href*='keep.php?user=']").attr("href").basename().regex(/(\d+)/);
+			aName = $j("#app_body #main_bntp").text().regex(/Welcome (.*)\(Logout\)/)
+		} else {
+			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
+			aName = $u.setContent(caap.fbData.me.name, '');
+		}
+
+        if (caap.domain.which === 0 || caap.domain.which == 2 || caap.domain.which == 3) {
+			stats.FBID = FBID;
+			stats.account = aName;
+        }
+
         window.clearTimeout(caap_timeout);
         for (it = 0; it < caap.removeLibs.length; it += 1) {
             (document.head || document.getElementsByTagName('head')[0]).removeChild(caap.removeLibs[it]);
@@ -55,19 +72,8 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 			return;
 		}
 
-		if ([0, 1].indexOf(caap.domain.which) >= 0) {
-			FBID = $u.setContent(caap.fbEnv.id, 0).parseInt();
-			aName = $j('#pageNav .headerTinymanName').text();
-		} else if (caap.domain.which == 2 && caap.hasImage('tab_stats_on.gif') && $j("#app_body a[href*='keep.php?user=']")) {
-			FBID = $j("#app_body a[href*='keep.php?user=']").attr("href").basename().regex(/(\d+)/);
-			aName = $j("#app_body #main_bntp").text().regex(/Welcome (.*)\(Logout\)/)
-		} else {
-			FBID = $u.setContent(caap.fbData.me.id, '0').parseInt();
-			aName = $u.setContent(caap.fbData.me.name, '');
-		}
-
 		if ($u.isNumber(FBID) && FBID > 0) {
-			caap.stats.FBID = FBID;
+//			stats.FBID = FBID;
 			idOk = true;
 		}
 
@@ -92,20 +98,14 @@ caap_timeout,retryDelay,devVersion,caapVersion */
                                     window.db = null;
                                     window.sort = null;
                                     window.schedule = null;
-                                    window.general = null;
-                                    window.monster = null;
+									worker.list.forEach( function(w) {
+										window[w] = null;
+									});
                                     window.guild_monster = null;
                                     //window.arena = null;
-                                    window.festival = null;
-                                    window.feed = null;
-                                    window.battle = null;
-                                    window.town = null;
                                     window.spreadsheet = null;
                                     window.gifting = null;
-                                    window.army = null;
-                                    window.caap = null;
                                     window.con = null;
-                                    window.conquest = null;
 									if (window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0 
 										|| window.location.href.indexOf('apps.facebook.com/castle_age') >= 0) {
 										window.location.href = 'https://web3.castleagegame.com/castle_ws/keep.php';
@@ -129,11 +129,7 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		caap.lsUsed();
 		schedule.setItem("clickedOnSomething", 3600);
 
-        if (caap.domain.which === 0 || caap.domain.which == 2) {
-            caap.loadStats(FBID, aName);
-        }
-
-        //caap.saveStats();
+		
 		gifting.init();
 		gifting.loadCurrent();
 

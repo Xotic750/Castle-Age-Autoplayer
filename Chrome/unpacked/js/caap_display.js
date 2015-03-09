@@ -319,7 +319,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             } else {
                 if (config.getItem('SetTitle', false) && idName === "activity_mess") {
                     var DocumentTitle = config.getItem('SetTitleAction', false) ? mess.replace("Activity: ", '') + " - " : '';
-                    DocumentTitle += config.getItem('SetTitleName', false) ? caap.stats.PlayerName + " - " : '';
+                    DocumentTitle += config.getItem('SetTitleName', false) ? stats.PlayerName + " - " : '';
                     document.title = DocumentTitle + caap.documentTitle;
                 }
 

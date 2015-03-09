@@ -32,7 +32,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					schedule.setItem("ajaxGiftCheck", time * 60, 300);
 				}
 				
-				arena.revengeCheck();
 				break;
 
 			default :
@@ -55,8 +54,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 //				con.log(5,"Idle Check paused",timedLoadoutCheck);
 				return timedLoadoutCheck === 'change';
 			}
-//			con.log(2,"Idle Check equipped", timedLoadoutCheck, caap.stats.battleIdle);
-			if (caap.stats.battleIdle != 'Use Current' ? general.Select(caap.stats.battleIdle) 
+//			con.log(2,"Idle Check equipped", timedLoadoutCheck, stats.battleIdle);
+			if (stats.battleIdle != 'Use Current' ? general.Select(stats.battleIdle) 
 				: (config.getItem('IdleGeneral', 'Use Current') == 'Use Current') 
 				? general.Select(state.getItem('lastLoadout', 'Use Current')) || general.Select(state.getItem('lastGeneral', 'Use Current'))
 				: general.Select('IdleGeneral')) {
@@ -144,17 +143,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (caap.stats.exp.dif <= config.getItem("potionsExperience", 20)) {
+            if (stats.exp.dif <= config.getItem("potionsExperience", 20)) {
                 con.log(2, "AutoPotions, ENL condition. Delaying 10 minutes");
                 schedule.setItem('AutoPotionTimerDelay', 600);
                 return false;
             }
 
-            if (caap.stats.energy.num < caap.stats.energy.max - 10 && caap.stats.potions.energy >= config.getItem("energyPotionsSpendOver", 39) && caap.stats.potions.energy > config.getItem("energyPotionsKeepUnder", 35)) {
+            if (stats.energy.num < stats.energy.max - 10 && stats.potions.energy >= config.getItem("energyPotionsSpendOver", 39) && stats.potions.energy > config.getItem("energyPotionsKeepUnder", 35)) {
                 return consumePotion('energy');
             }
 
-            if (caap.stats.stamina.num < caap.stats.stamina.max - 10 && caap.stats.potions.stamina >= config.getItem("staminaPotionsSpendOver", 39) && caap.stats.potions.stamina > config.getItem("staminaPotionsKeepUnder", 35)) {
+            if (stats.stamina.num < stats.stamina.max - 10 && stats.potions.stamina >= config.getItem("staminaPotionsSpendOver", 39) && stats.potions.stamina > config.getItem("staminaPotionsKeepUnder", 35)) {
                 return consumePotion('stamina');
             }
 
@@ -331,7 +330,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
-            if ((gm ? gm.getItem("ajaxCTA", false, hiddenVar) : false) || caap.waitAjaxCTA || caap.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
+            if ((gm ? gm.getItem("ajaxCTA", false, hiddenVar) : false) || caap.waitAjaxCTA || stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
                 return false;
             }
 
@@ -427,13 +426,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             guildTxt = $j("#globalContainer #guild_achievement").text().trim().innerTrim();
             if ($u.hasContent(guildTxt)) {
                 tStr = guildTxt.regex(/Monster ([\d,]+)/);
-                caap.stats.guild.mPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                stats.guild.mPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
                 tStr = guildTxt.regex(/Battle ([\d,]+)/);
-                caap.stats.guild.bPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                stats.guild.bPoints = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
                 tStr = guildTxt.regex(/Monster [\d,]+ points \(Top (\d+\-\d+%)\)/);
-                caap.stats.guild.mRank = $u.hasContent(tStr) ? tStr : '';
+                stats.guild.mRank = $u.hasContent(tStr) ? tStr : '';
                 tStr = guildTxt.regex(/Battle [\d,]+ points \(Top (\d+\-\d+%)\)/);
-                caap.stats.guild.bRank = $u.hasContent(tStr) ? tStr : '';
+                stats.guild.bRank = $u.hasContent(tStr) ? tStr : '';
                 save = true;
             } else {
                 con.warn('Using stored guild Monster and Battle points.');
@@ -441,7 +440,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             guildTxt = $j("#globalContainer #guild_blast input[name='guild_id']").attr("value");
             if ($u.hasContent(guildTxt)) {
-                caap.stats.guild.id = guildTxt;
+                stats.guild.id = guildTxt;
                 save = true;
             } else {
                 con.warn('Using stored guild_id.');
@@ -449,7 +448,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             guildTxt = $j("#globalContainer #guild_banner_section").text().trim();
             if ($u.hasContent(guildTxt)) {
-                caap.stats.guild.name = guildTxt;
+                stats.guild.name = guildTxt;
                 save = true;
             } else {
                 con.warn('Using stored guild name.');
@@ -462,7 +461,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         uid = t.attr("href").regex(/casuser=(\d+)/),
                         name = t.text().trim();
 
-                    if (uid !== caap.stats.FBID) {
+                    if (uid !== stats.FBID) {
                         members.push({
                             'userId': uid,
                             'name': name
@@ -472,15 +471,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     t = null;
                 });
 
-                caap.stats.guild.members = members.slice();
+                stats.guild.members = members.slice();
                 save = true;
             } else {
                 con.warn('Using stored guild member count.');
             }
 
-            con.log(2, "checkResults_guild", caap.stats.guild);
+            con.log(2, "checkResults_guild", stats.guild);
             if (save) {
-                caap.saveStats();
+                statsFunc.setRecord(stats);
             }
 
             guildDiv = null;

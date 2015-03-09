@@ -1,4 +1,3 @@
-
 /*jslint white: true, browser: true, devel: true, undef: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
@@ -137,7 +136,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				result = false,
 				seal = fR[which].seal ? 'seal' : 'normal';
 				
-			if (when == 'Never' || !caap.stats.guildTokens.num || (when == 'Blue Crystals' && !loe.blueDay())) {
+			if (when == 'Never' || !stats.guildTokens.num || (when == 'Blue Crystals' && !loe.blueDay())) {
 				return false;
 			}
 			if (!fR.t.score) {
