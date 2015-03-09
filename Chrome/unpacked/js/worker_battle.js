@@ -649,7 +649,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.ranks = {
 		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
 		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
-		conqRank: ['Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
+		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
 	};
 
     battle.clear = function() {

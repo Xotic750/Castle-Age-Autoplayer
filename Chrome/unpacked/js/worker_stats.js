@@ -404,7 +404,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Battle Rank'
                     }, {
-                        text: battle.battleRankTable[stats.rank.battle] + ' (' + stats.rank.battle + ')',
+                        text: battle.ranks.rank[stats.rank.battle] + ' (' + stats.rank.battle + ')',
                         color: valueCol
                     }, {
                         text: 'Attack',
@@ -427,7 +427,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'War Rank'
                     }, {
-                        text: battle.warRankTable[stats.rank.war] + ' (' + stats.rank.war + ')',
+                        text: battle.ranks.warRank[stats.rank.war] + ' (' + stats.rank.war + ')',
                         color: valueCol
                     }, {
                         text: 'Health',
@@ -450,7 +450,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     [{
                         text: 'Conquest Rank'
                     }, {
-                        text: conquest.conquestRankTable[stats.rank.conquest] + ' (' + stats.rank.conquest + ')',
+                        text: battle.ranks.conqRank[stats.rank.conquest] + ' (' + stats.rank.conquest + ')',
                         color: valueCol
                     }, {
                         text: 'Generals'
@@ -971,7 +971,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in stats.dashboard: " + err);
+            con.error("ERROR in statsFunc.dashboard: " + err.stack);
             return false;
         }
     };
