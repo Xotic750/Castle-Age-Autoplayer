@@ -337,6 +337,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			worker.list.forEach( function(r) {
 				window[r] = null;
 			});
+			window.worker = null;
             window.image64 = null;
             window.offline = null;
             window.profiles = null;
@@ -351,10 +352,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.schedule = null;
             window.arena = null;
             window.festival = null;
-            window.feed = null;
             window.spreadsheet = null;
             window.gifting = null;
-            window.army = null;
             window.caap = null;
             window.con = null;
             $u.reload();
@@ -1158,6 +1157,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (done) {
+				// Re initialize, since some values get lost in iFrame
+				worker.list.forEach( function(i) {
+					if ($u.isFunction(window[i].init)) {
+						window[i].init();
+					}
+				});
                 con.log_level = config.getItem('DebugLevel', 1);
                 con.log(1, "iframe all data loaded");
 				statsFunc.init();  // This shouldn't be needed here, but putting here for the setGift stuff below

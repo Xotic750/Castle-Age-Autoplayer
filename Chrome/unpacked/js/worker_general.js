@@ -617,9 +617,6 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 					});
 
 					if (general.doSave) {
-						stats.generals = stats.generals || {};
-						stats.generals.total = general.records.length;
-						stats.generals.invade = Math.min((stats.army.actual / 5).dp(), general.records.length);
 						statsFunc.setRecord(stats);
 						if (update) {
 							caap.updateDashboard(true);
@@ -938,6 +935,9 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 					targetGeneral = general.isLoadout(targetGeneral) ? lRecord.general : targetGeneral;
 					if (general.changeStatCheck(targetLoadout)) {
 						con.log(1, 'Overriding loadout change to ' + targetLoadout + ' since it would cause stat loss');
+					} else if (general.clickedLoadout !== false) {
+						general.records[general.clickedLoadout].general = currentGeneral;
+						general.clickedLoadout = false;
 					} else if (targetLoadout !== currentLoadout || (targetLoadout == currentLoadout && lRecord.general == targetGeneral
 						&& currentGeneral !== targetGeneral && targetGeneral !== 'Use Current')) {
 						if (returnNametf) {

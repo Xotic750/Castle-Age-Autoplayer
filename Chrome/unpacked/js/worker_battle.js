@@ -552,7 +552,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 			
 			if (!r.wl) {
-				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for FB ID ' + tNum, resultsText, testList);
+				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for FB ID ' + userId, resultsText, testList);
 				bR.deadTime =  Date.now();
 				bR.chainCount = 0;
 				bR.chainRestTime = 0;

@@ -1094,7 +1094,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
 						con.log(1, category + ' points are ' + stats.conquest[category] + ', which is over ' 
 							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
-						check = caap.navigate2("guildv2_conquest_command,clickjq:input[name*='Report Collect!']");
+						check = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:input[name*='Report Collect!']");
 						if (!check || check != 'fail') {
 							schedule.setItem('conquestFail', 3600);
 							check = false;

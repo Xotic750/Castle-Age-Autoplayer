@@ -479,6 +479,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							cM.fortify = (100 - tempDiv.getPercent('width')).dp(2);
 							tempDiv = tempDiv.parent().parent().siblings().eq(0).children().eq(0).children().eq(1);
 						} else {
+							cM.fortify = 100;
 							con.warn("Unable to find defence bar", defImage);
 						}
 
@@ -647,6 +648,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 					} else {
 						con.warn("Missing nm_bottom to find class");
+						cM.charClass = '';
 					}
 
 					// if the monster has parts, hit the weakest minion first, and then hit the part with the least health next
