@@ -143,7 +143,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'army', false);
         caap.setDisplay("caapTopObject", 'infoTargets1', false);
         caap.setDisplay("caapTopObject", 'infoBattle', false);
-        caap.setDisplay("caapTopObject", 'infoConquest', false);
         caap.setDisplay("caapTopObject", 'infoGuilds', false);
         caap.setDisplay("caapTopObject", 'userStats', false);
         caap.setDisplay("caapTopObject", 'generalsStats', false);
@@ -157,7 +156,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'buttonTargets', false);
         caap.setDisplay("caapTopObject", 'buttonGenerals', false);
         caap.setDisplay("caapTopObject", 'buttonBattle', false);
-        caap.setDisplay("caapTopObject", 'buttonConquest', false);
         caap.setDisplay("caapTopObject", 'buttonGuilds', false);
         caap.setDisplay("caapTopObject", 'buttonGifting', false);
         caap.setDisplay("caapTopObject", 'buttonGiftQueue', false);
@@ -175,11 +173,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             case "Arena Stats" :
                 caap.setDisplay("caapTopObject", 'infoArena', true);
                 //caap.setDisplay("caapTopObject", 'buttonBattle', true);
-                break;
-            case "Conquest Stats":
-                caap.setDisplay("caapTopObject", 'infoConquest', true);
-                caap.setDisplay("caapTopObject", 'buttonConquest', true);
-
                 break;
             case "Guild Essence":
                 caap.setDisplay("caapTopObject", 'infoGuilds', true);
@@ -346,11 +339,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.updateDashboard(true);
     };
 
-    caap.clearConquestButtonListener = function () {
-        conquest.clear();
-        caap.updateDashboard(true);
-    };
-
     caap.clearGuildsButtonListener = function () {
         guilds.clear();
         caap.updateDashboard(true);
@@ -398,7 +386,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j('#caap_fastHeal', caap.caapTopObject).on('click', caap.fastHealButtonListener);
             $j('#caap_clearTargets', caap.caapTopObject).on('click', caap.clearTargetsButtonListener);
             $j('#caap_clearBattle', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
-            $j('#caap_clearConquest', caap.caapTopObject).on('click', caap.clearConquestButtonListener);
             $j('#caap_clearGuilds', caap.caapTopObject).on('click', caap.clearGuildsButtonListener);
             $j('#caap_rescanGuilds', caap.caapTopObject).on('click', caap.rescanGuildsButtonListener);
             $j('#caap_clearGifting', caap.caapTopObject).on('click', caap.clearGiftingButtonListener);

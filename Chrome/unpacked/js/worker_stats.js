@@ -211,44 +211,43 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 xS = 0,
                 xE = 0,
                 max = 0,
-                ststbDiv = $j('#globalContainer #main_sts_container'),
-                bntpDiv = $j('#globalContainer #main_bntp'),
-                tempDiv = $j("#gold_current_value", ststbDiv);
+                statDiv = $j("#globalContainer #main_sts_container"),
+				tempDiv = $j(),
+                text = statDiv.text().trim().innerTrim(),
+                topText = $j('#globalContainer #main_bntp').text().trim().innerTrim();
 
+			if (!$u.hasContent(text) || !$u.hasContent(topText)) {
+				return false;
+			}
+			
             // gold
-            tempDiv = $j('#gold_current_value_amount', ststbDiv);
-            if ($u.hasContent(tempDiv)) {
-                stats.gold.cash = parseInt(tempDiv.val(),10);
-            } else {
-                con.warn("Unable to get cashDiv");
-                passed = false;
-            }
+            stats.gold.cash = $u.setContent(text.regex(/to bank ([\d,]+) gold/), 0).numberOnly();
 
             ['energy','stamina','health'].forEach(function(stat) {
-                tempDiv = $j($j("#" + stat + "_current_value", ststbDiv)[0].parentNode);
-                if ($u.hasContent(tempDiv) && caap.getStatusNumbers(tempDiv.text(), stats[stat])) {
-					if (tempDiv.html().indexOf('color') == -1) {
-						stats[stat].norm = stats[stat].max;
+				tNum = stats[stat].max;
+                if (caap.getStatusNumbers(text.regex(new RegExp(stat.ucWords() + '(?: \\+\\d\\:\\d+)? (\\d+\\/\\d+)')), stats[stat])) {
+					if (stats[stat].max != tNum) {
+						tempDiv = $j($j("#" + stat + "_current_value", statDiv)[0].parentNode);
+						if ($u.hasContent(tempDiv) && tempDiv.html().indexOf('color') == -1) {
+								stats[stat].norm = stats[stat].max;
+						}
 					}
-                } else {
-                    con.warn("Unable to get " + stat + " Div");
+				} else {
+                    con.warn("Unable to get stat " + stat);
                     passed = false;
                 }
             });
 
             // experience
-            tempDiv = $j("#header_player_xp_totals", ststbDiv);
-            if ($u.hasContent(tempDiv) && caap.getStatusNumbers(tempDiv.text(), stats.exp)) {
-				stats.exp.dif = stats.exp.max - stats.exp.num;
-            } else {
-                con.warn("Unable to get expDiv");
+            if (!caap.bulkRegex(text, /XP: (\d+)\/(\d+) XP needed: (\d+)/,
+				stats.exp, ['num', 'max', 'dif'])) {
+                con.warn("Unable to get experience numbers");
                 passed = false;
             }
 
             // level
-            tempDiv = $j("[title*='level']", ststbDiv);
-            if ($u.hasContent(tempDiv)) {
-                tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+            tNum = text.regex(/Level: (\d+)/)
+            if (tNum) {
                 if (tNum > stats.level) {
                     con.log(2, 'New level. Resetting Best Land Cost.');
                     caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
@@ -257,14 +256,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 stats.level = tNum;
             } else {
-                con.warn("Unable to get levelDiv");
+                con.warn("Unable to get level");
                 passed = false;
             }
 
             // army
-            tempDiv = $j("a[href*='army.php']", bntpDiv);
-            if ($u.hasContent(tempDiv)) {
-                stats.army.actual = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+            tNum = topText.regex(/Army \((\d+)\)/)
+            if (tNum) {
+                stats.army.actual = tNum;
                 tNum = Math.min(stats.army.actual, 501);
                 if (tNum >= 1 && tNum <= 501) {
                     stats.army.capped = tNum;
@@ -273,23 +272,19 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     passed = false;
                 }
             } else {
-                con.warn("Unable to get armyDiv");
+                con.warn("Unable to get army numbers");
                 passed = false;
             }
 
-            // upgrade points
-            tempDiv = $j("a[href*='keep.php']", bntpDiv);
-            if ($u.hasContent(tempDiv)) {
-                tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+            // upgrade points  My Stats (+5) 
+            tNum = topText.regex(/My Stats \(\+(\d+)\)/)
+            if (tNum) {
                 if (tNum > stats.points.skill) {
                     con.log(2, 'New points. Resetting AutoStat.');
                     state.setItem("statsMatch", true);
                 }
 
                 stats.points.skill = tNum;
-            } else {
-                con.warn("Unable to get pointsDiv");
-                passed = false;
             }
 
             // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
@@ -455,7 +450,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }, {
                         text: 'Generals'
                     }, {
-                        text: $u.hasContent(stats.generals) ? stats.generals.total : 'N/A',
+                        text: general.records.length,
                         color: valueCol
                     }],
                     [{
@@ -467,7 +462,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         text: 'Generals When Invade',
                         title: 'For every 5 army members you have, one of your generals will also join the fight.'
                     }, {
-                        text: $u.hasContent(stats.generals) ? stats.generals.invade : 'N/A',
+                        text: Math.min((stats.army.actual / 5).dp(), general.records.length),
                         color: valueCol
                     }],
                     [{

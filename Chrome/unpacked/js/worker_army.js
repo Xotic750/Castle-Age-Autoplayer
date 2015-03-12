@@ -73,7 +73,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				break;
 			}
 		} catch (err) {
-			con.error("ERROR in army.checkResults: " + err);
+			con.error("ERROR in army.checkResults: " + err.stack);
 			return false;
 		}
 	};
@@ -105,15 +105,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     army.init = function () {
         try {
-            army.recordsTemp = ss.getItem('army.recordsTemp', 'default', true);
-            if (army.recordsTemp === 'default' || !$j.isArray(army.recordsTemp)) {
-                army.recordsTemp = ss.setItem('army.recordsTemp', []);
-            }
-
-            con.log(3, "army.loadTemp", army.recordsTemp);
+			if ($u.hasContent(ss)) {
+				army.recordsTemp = ss.getItem('army.recordsTemp', 'default', true);
+				if (army.recordsTemp === 'default' || !$j.isArray(army.recordsTemp)) {
+					army.recordsTemp = ss.setItem('army.recordsTemp', []);
+				}
+	
+				con.log(3, "army.loadTemp", army.recordsTemp);
+			}
             return true;
         } catch (err) {
-            con.error("ERROR in army.loadTemp: " + err);
+            con.error("ERROR in army.loadTemp: " + err.stack);
             return false;
         }
     };
@@ -124,7 +126,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "army.saveTemp", army.recordsTemp);
             return true;
         } catch (err) {
-            con.error("ERROR in army.saveTemp: " + err);
+            con.error("ERROR in army.saveTemp: " + err.stack);
             return false;
         }
     };
@@ -137,7 +139,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "army.deleteTemp deleted");
             return true;
         } catch (err) {
-            con.error("ERROR in army.saveTemp: " + err);
+            con.error("ERROR in army.saveTemp: " + err.stack);
             return false;
         }
     };
@@ -217,7 +219,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in army.page: " + err);
+            con.error("ERROR in army.page: " + err.stack);
             army.pageDone = true;
             caap.clearDomWaiting();
             return false;
@@ -277,7 +279,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			caap.setDivContent('army_mess', 'Army Add: ' + (armyCodesLeft - 1) + ' codes and ' + $u.setContent($j("#app_body b").text(), 0) + ' invites left.');
 			return true;
         } catch (err) {
-            con.error("ERROR in army.add: " + err);
+            con.error("ERROR in army.add: " + err.stack);
             return false;
         }
     };
@@ -330,7 +332,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in army.run: " + err);
+            con.error("ERROR in army.run: " + err.stack);
             return false;
         }
     };
@@ -399,7 +401,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             army.deleteTemp();
             return true;
         } catch (err) {
-            con.error("ERROR in army.merge: " + err);
+            con.error("ERROR in army.merge: " + err.stack);
             return false;
         }
     };
@@ -418,7 +420,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return list;
         } catch (err) {
-            con.error("ERROR in army.getIdList: " + err);
+            con.error("ERROR in army.getIdList: " + err.stack);
             return undefined;
         }
     };
@@ -440,7 +442,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(3, "getDiffList", a, f, list);
             return list;
         } catch (err) {
-            con.error("ERROR in army.getDiffList: " + err);
+            con.error("ERROR in army.getDiffList: " + err.stack);
             return undefined;
         }
     };
@@ -459,7 +461,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return f;
         } catch (err) {
-            con.error("ERROR in army.getFBList: " + err);
+            con.error("ERROR in army.getFBList: " + err.stack);
             return undefined;
         }
     };
@@ -494,7 +496,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in army.menu: " + err);
+            con.error("ERROR in army.menu: " + err.stack);
             return '';
         }
     };
@@ -763,7 +765,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in army.dashboard: " + err);
+            con.error("ERROR in army.dashboard: " + err.stack);
             return false;
         }
     };

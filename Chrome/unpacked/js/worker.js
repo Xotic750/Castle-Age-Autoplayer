@@ -68,29 +68,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				var newR = new wO.record().data,
 					undefinedKeyList = [];
 					
-				if (wO.records.length) {
-					var newR = new wO.record().data;
-					Object.keys(wO.records[0]).forEach( function(e) {
+				wO.records.forEach( function(r, i) {
+					Object.keys(r).forEach( function(e) {
 						if (!Object.keys(newR).hasIndexOf(e)) {
 							undefinedKeyList = undefinedKeyList.addToList(e);
-							delete wO.records[0].e;
+							delete r.e;
 						}
 					});
-					undefinedKeyList.removeFromList('newRecord');
-					if (undefinedKeyList.length) {
-						con.warn(wO.name + ' warning: Following keys not in record template will be deleted: ' + undefinedKeyList.join(', '), o);
-					}
+				});
+				undefinedKeyList.removeFromList('newRecord');
+				if (undefinedKeyList.length) {
+					con.warn(wO.name + ' warning: Keys not in record template will be deleted: ' + undefinedKeyList.join(', '), o);
 				}
-				if (wO.hBest > 0) {
-/*					wO.records.forEach( function(r, i) {
-						Object.keys(r).forEach( function(e) {
-							if (!Object.keys(newR).hasIndexOf(e)) {
-								undefinedKeyList = undefinedKeyList.addToList(e);
-								delete r.e;
-							}
-						});
-					});
-*/				}
 				if (caap.domain.which === 3) {
 					caap.messaging.setItem(wO.name, wO.records);
 				} else {
@@ -111,7 +100,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			wO.getRecord = function(n) {
 				if (!$u.isString(n) && !$u.isNumber(n)) {
-					con.error(wO.name + 'record index is not a number or string: ' + n);
+					con.error(wO.name + ' record index is not a number or string: ' + n);
 					return false;
 				}
 				var i = wO.records.getObjIndex(wO.recordIndex, n),

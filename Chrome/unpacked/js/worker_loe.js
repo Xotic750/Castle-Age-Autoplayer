@@ -73,7 +73,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					var t = $j(this).attr('onmouseover').regex(/hover_tab_1_(\d)/);
 					if ($u.hasContent($j(this).find('div[title="Officer Tagged"]'))) {
 						gb.readTower(fR, 'enemy', guild_id + ':' + t, 
-							$j('#tower_' + t).find("div[style*='fb_guildbattle_container.gif'],div[style*='conq3_fort_structure.gif']"));
+							$j('#tower_' + t));
 						gb.setRecord(fR);
 						haveBattle = true;
 					} else {
@@ -89,6 +89,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 					gb.deleterPage(fR, gb.makePath(gb['loe'], guild_id));
 				}
 				
+				gb.setRecord(fR);
 				break;
 				
 			default :
@@ -132,6 +133,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				mess = 'conquest_mess',
 				stateMsg = '',
 				t = {score : 0},
+				n = 0,
 				pgO = {},
 				result = false,
 				seal = fR[which].seal ? 'seal' : 'normal';
@@ -178,7 +180,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			
 			caap.setDivContent(mess, stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
 			con.log(2,  stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
-			result = caap.navigate2(t.general + ',' + gb.makePath(gf, t.team, t.tower) + ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
+			n = t.tower.regex(/:(\d)/);
+			result = caap.navigate2(t.general + ',' + gb.makePath(gf, t.team, t.tower)
+				+ ',clickjq:div[onclick^="towerTabClick(' + "'" + n + "'" + ')"]:visible,jq:#tower_' 
+				+ n + ':visible,clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 			if (result == 'fail') {
 				con.warn(stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.getCurrentGeneral() + ' has ' + t.attack + ', reloading page', general.getCurrentGeneral(), general.getCurrentLoadout());
 				caap.setDivContent(mess, stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.getCurrentGeneral() + ' has ' + t.attack);

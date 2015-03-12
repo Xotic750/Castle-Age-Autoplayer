@@ -337,6 +337,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			worker.list.forEach( function(r) {
 				window[r] = null;
 			});
+			window.worker = null;
             window.image64 = null;
             window.offline = null;
             window.profiles = null;
@@ -351,10 +352,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.schedule = null;
             window.arena = null;
             window.festival = null;
-            window.feed = null;
             window.spreadsheet = null;
             window.gifting = null;
-            window.army = null;
             window.caap = null;
             window.con = null;
             $u.reload();
@@ -1158,6 +1157,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (done) {
+				// Re initialize, since some values get lost in iFrame
+				worker.list.forEach( function(i) {
+					if ($u.isFunction(window[i].init)) {
+						window[i].init();
+					}
+				});
                 con.log_level = config.getItem('DebugLevel', 1);
                 con.log(1, "iframe all data loaded");
 				statsFunc.init();  // This shouldn't be needed here, but putting here for the setGift stuff below
@@ -3104,7 +3109,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Arena Stats',
                     'Army',
                     'Battle Stats',
-                    'Conquest Stats',
                     'Feed',
                     '100v100',
                     'Generals Stats',
@@ -3122,7 +3126,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 displayInst = [
                     'Display your Army Members, the last time they leveled up and choose priority Elite Guard.',
                     'Display your Battle history statistics, who you fought and if you won or lost.',
-                    'Display your Conquest history statistics, who you fought and if you won or lost.',
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
                     'Display the 100v100 battle in progress.',
                     'Display information about your Generals.',
@@ -3201,13 +3204,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<input type='button' id='caap_clearArena' value='Clear Arena Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";*/
 
             /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Conquest Stats button which will only show when we have
-            selected the Conquest Stats display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonConquest' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearConquest' value='Clear Conquest Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
             Next we put in the Clear Guild Essence button which will only show when we have
             selected the Guild Essence display
             \-------------------------------------------------------------------------------------*/
@@ -3283,7 +3279,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb100' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoConquest' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Conquest Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoGuilds' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
 
@@ -4858,8 +4853,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_conquestMist'
         },
         'guildv2_conquest_castle': { 
-            signatureId: 'conq2_castle_body.jpg',
-            CheckResultsFunction: 'checkResults_conquestEarth'
+            signatureId: 'conq2_castle_body.jpg'
         },
         'guild_conquest_castle': { 
             signatureId: 'conq2_capsule_loe.jpg'
@@ -4868,12 +4862,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signatureId: 'conq2_castle_battletopwar.jpg'
         },
         'guildv2_conquest_expansion_fort': {
-            signatureId: 'war_fort_topinfo.jpg',
-            CheckResultsFunction: 'checkResults_conquestLand'
+            signatureId: 'war_fort_topinfo.jpg'
         },
         'guildv2_conquest_expansion_demi': {
-            signatureId: 'war_fort_topinfo.jpg',
-            CheckResultsFunction: 'checkResults_conquestLand2'
+            signatureId: 'war_fort_topinfo.jpg'
         },
         'conquest_duel': {
             signatureId: 'war_conquest_header2.jpg'
@@ -8566,22 +8558,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in checkResults_conquestMist: " + err.stack);
             return false;
         }
-    };
-
-    caap.checkResults_conquestLand = function () {
-		// Nothing to see here for now. Move along.
-        //conquest.land();
-        return false;
-    };
-
-    caap.checkResults_conquestLand2 = function () {
-		// Here neither.
-        //conquest.land();
-        return false;
-    };
-
-    caap.checkResults_conquestEarth = function () {
-        return false;
     };
 
     caap.doArenaBattle = function() {
