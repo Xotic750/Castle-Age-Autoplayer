@@ -949,10 +949,10 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				tRecord = gb.getRecord('gb10'),
 				configSet = false;
 				
-			if (schedule.since(fRecord.startTime, -15 * 60) && !schedule.since(fRecord.startTime, -5 * 60)) {
+			if (schedule.since(fRecord.startTime, -11 * 60) && !schedule.since(fRecord.startTime, -1 * 60)) {
 				stats.priorityGeneral = config.getItem('100v100_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('100v100_ClassGeneral','Use Current');
 			}
-			if (stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -15 * 60) && !schedule.since(tRecord.startTime, -5 * 60)) {
+			if (stats.priorityGeneral == 'Use Current' && schedule.since(tRecord.startTime, -11 * 60) && !schedule.since(tRecord.startTime, -1 * 60)) {
 				stats.priorityGeneral = config.getItem('10v10_ClassGeneral','Use Current') == 'Use Current' ? 'Use Current' : config.getItem('10v10_ClassGeneral','Use Current');
 			}
 			if (stats.priorityGeneral == 'Use Current' && gRecord.state == 'Auto-match') {
