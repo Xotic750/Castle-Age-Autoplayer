@@ -23,7 +23,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				schedule.setItem('page_' + url, Date.now());
 			}
         } catch (err) {
-            con.error("ERROR in chores.heal: " + err.stack);
+            con.error("ERROR in chores.checkResults: " + err.stack);
             return false;
         }
     };
@@ -706,9 +706,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 	worker.addPageCheck({page : 'keep', hours : 1});
 
-    chores.checkPages = function(page) {
+    chores.checkPages = function(page, value) {
         try {
-			var list = $u.isString(page) ? [{'page' : page}] : worker.pagesList,
+			var list = $u.isDefined(value) ? worker.pagesList.filterByField(page, value) 
+				: $u.isString(page) ? [{page : page}] : worker.pagesList,
 				hours = 0;
 			return list.some( function(o) {
 				if (o.config && !config.getItem(o.config, false)) {

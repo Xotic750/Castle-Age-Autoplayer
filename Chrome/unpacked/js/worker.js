@@ -72,7 +72,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					Object.keys(r).forEach( function(e) {
 						if (!Object.keys(newR).hasIndexOf(e)) {
 							undefinedKeyList = undefinedKeyList.addToList(e);
-							delete r.e;
+							delete r[e];
 						}
 					});
 				});
@@ -112,6 +112,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					r[wO.recordIndex] = n;
 					r.newRecord = true;
 					return r;
+				}
+			};
+
+			wO.getRecordByField = function(f, v) {
+				if (!$u.isString(f) ) {
+					con.error(wO.name + ' field is not string: ' + f);
+					return false;
+				}
+				var flat = wO.records.flatten(f),
+					i = -1;
+				if ($u.isRegExp(v)) {
+					flat.some( function(e, ii) {
+						i = e.match(v) ? ii : -1;
+						return i >= 0;
+					});
+				} else {
+					i = flat.indexOf(v);
+				}
+				
+				if (i >= 0) {
+					wO.records[i].newRecord = false;
+					return $j.extend(true, {}, new wO.record().data, wO.records[i]);
+				} else {
+					return false;
 				}
 			};
 

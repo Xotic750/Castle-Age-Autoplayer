@@ -1330,7 +1330,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					statRequire = caap.minMaxArray(statList, minMax, 1, (statAvailable + 1) / gMult) * gMult ;
 				}
 				if (statRequire && statRequire <= statAvailable) {
-					nodeNum = !cM.multiNode ? 0 : statList.indexOf(statRequire.toString());
+					nodeNum = !cM.multiNode ? 0 : statList.indexOf((statRequire / gMult).toString());
 					con.log(2, 'NodeNum ' + nodeNum);
 					return true;
 				} else {

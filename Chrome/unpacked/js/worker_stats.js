@@ -19,175 +19,182 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     statsFunc.record = function (FBID) {
         this.data = {
-			'FBID': FBID,
-			'account': '',
-			'PlayerName': '',
-			'level': 0,
-			'army': {
-				'actual': 0,
-				'capped': 0
+			FBID: FBID,
+			account: '',
+			PlayerName: '',
+			level: 0,
+			army: {
+				actual: 0,
+				capped: 0
 			},
-			'records': {
-				'total': 0,
-				'invade': 0
+			records: {
+				total: 0,
+				invade: 0
 			},
-			'attack': 0,
-			'defense': 0,
-			'bonus' : {
-				'attack': 0,
-				'defense': 0,
-				'dpi' : 0,
-				'api' : 0
+			attack: 0,
+			defense: 0,
+			bonus: {
+				attack: 0,
+				defense: 0,
+				dpi: 0,
+				api: 0
 			},
-			'points': {
-				'skill': 0,
-				'favor': 0,
-				'guild': 0
+			points: {
+				skill: 0,
+				favor: 0,
+				guild: 0
 			},
-			'indicators': {
-				'bsi': 0,
-				'lsi': 0,
-				'sppl': 0,
-				'api': 0,
-				'dpi': 0,
-				'mpi': 0,
-				'mhbeq': 0,
-				'htl': 0,
-				'hrtl': 0,
-				'enl': 0,
-				'pvpclass': '',
-				'build': ''
+			indicators: {
+				bsi: 0,
+				lsi: 0,
+				sppl: 0,
+				api: 0,
+				dpi: 0,
+				mpi: 0,
+				mhbeq: 0,
+				htl: 0,
+				hrtl: 0,
+				enl: 0,
+				pvpclass: '',
+				build: ''
 			},
-			'gold': {
-				'cash': 0,
-				'bank': 0,
-				'total': 0,
-				'income': 0,
-				'upkeep': 0,
-				'flow': 0,
-				'ticker': []
+			gold: {
+				cash: 0,
+				bank: 0,
+				total: 0,
+				income: 0,
+				upkeep: 0,
+				flow: 0,
+				ticker: []
 			},
-			'rank': {
-				'battle': 0,
-				'battlePoints': 0,
-				'war': 0,
-				'warPoints': 0,
-				'conquest': 0,
-				'conquestPoints': 0,
-				'conquestLevel': 0,
-				'conquestLevelPercent': 0
+			rank: {
+				battle: 0,
+				battlePoints: 0,
+				war: 0,
+				warPoints: 0,
+				conquest: 0,
+				conquestPoints: 0,
+				conquestLevel: 0,
+				conquestLevelPercent: 0
 			},
-			'potions': {
-				'energy': 0,
-				'stamina': 0
+			potions: {
+				energy: 0,
+				stamina: 0
 			},
-			'energy': {
-				'norm': 0,
-				'num': 0,
-				'min': 0,
-				'max': 0,
-				'ticker': []
+			energy: {
+				norm: 0,
+				num: 0,
+				min: 0,
+				max: 0,
+				ticker: []
 			},
-			'health': {
-				'norm': 0,
-				'num': 0,
-				'min': 0,
-				'max': 0,
-				'ticker': []
+			health: {
+				norm: 0,
+				num: 0,
+				min: 0,
+				max: 0,
+				ticker: []
 			},
-			'stamina': {
-				'norm': 0,
-				'num': 0,
-				'min': 0,
-				'max': 0,
-				'ticker': []
+			stamina: {
+				norm: 0,
+				num: 0,
+				min: 0,
+				max: 0,
+				ticker: []
 			},
-			'lowpoints' : {
-				'level' : 0,
-				'stamina' : 0,
-				'energy' : 0
+			lowpoints: {
+				level: 0,
+				stamina: 0,
+				energy: 0
 			},
-			'exp': {
-				'num': 0,
-				'max': 0,
-				'dif': 0
+			exp: {
+				num: 0,
+				max: 0,
+				dif: 0
 			},
-			'guildTokens': {
-				'num': 0,
-				'max': 0,
-				'dif': 0
+			guildTokens: {
+				num: 0,
+				max: 0,
+				dif: 0
 			},
-			'resources': {
-				'lumber': 0,
-				'iron': 0
+			resources: {
+				lumber: 0,
+				iron: 0
 			},
-			'conquest': {
-				'Conqueror': 0,
-				'Guardian': 0,
-				'Hunter': 0,
-				'Engineer': 0
+			conquest: {
+				Conqueror: 0,
+				Guardian: 0,
+				Hunter: 0,
+				Engineer: 0
 			},
-			'LoMland' : -1,
-			'other': {
-				'qc': 0,
-				'bww': 0,
-				'bwl': 0,
-				'te': 0,
-				'tee': 0,
-				'wlr': 0,
-				'eer': 0,
-				'atlantis': false
+			LoMland: -1,
+			other: {
+				qc: 0,
+				bww: 0,
+				bwl: 0,
+				te: 0,
+				tee: 0,
+				wlr: 0,
+				eer: 0,
+				atlantis: false
 			},
-			'achievements': {
-				'battle': {
-					'invasions': {
-						'won': 0,
-						'lost': 0,
-						'streak': 0,
-						'ratio': 0
+			achievements: {
+				battle: {
+					invasions: {
+						won: 0,
+						lost: 0,
+						streak: 0,
+						ratio: 0
 					},
-					'duels': {
-						'won': 0,
-						'lost': 0,
-						'streak': 0,
-						'ratio': 0
+					duels: {
+						won: 0,
+						lost: 0,
+						streak: 0,
+						ratio: 0
 					}
 				},
-				'monster': {},
-				'other': {
-					'alchemy': 0
+				monster: {},
+				other: {
+					alchemy: 0
 				},
-				'feats': {
-					'attack': 0,
-					'defense': 0,
-					'health': 0,
-					'energy': 0,
-					'stamina': 0,
-					'army': 0
+				feats: {
+					attack: 0,
+					defense: 0,
+					health: 0,
+					energy: 0,
+					stamina: 0,
+					army: 0
 				}
 			},
-			'character': {},
-			'guild': {
-				'name': '',
-				'id': '',
-				'ids' : [], // For your guild mates
-				'level': 0,
-				'levelPercent': 0,
-				'mPoints': 0,
-				'mRank': '',
-				'bPoints': 0,
-				'bRank': '',
-				'members': []
+			character: {},
+			guild: {
+				name: '',
+				id: '',
+				ids: [], // For your guild mates
+				level: 0,
+				levelPercent: 0,
+				mPoints: 0,
+				mRank: '',
+				bPoints: 0,
+				bRank: '',
+				powers: '',
+				members: []
 			},
-			'battleIdle' : 'Use Current',
+			battleIdle: 'Use Current',
 			reviewPages : [],
-			'essence' : {
-				'attack': 0,
-				'defense' : 0,
-				'damage' : 0,
-				'health' : 0
+			rune: {
+				attack: 0,
+				defense: 0,
+				damage: 0,
+				health: 0
 			},
-			'priorityGeneral' : 'Use Current'
+			essence: {
+				attack: 0,
+				defense: 0,
+				damage: 0,
+				health: 0
+			},
+			priorityGeneral: 'Use Current'
 		};
     };
 
@@ -310,11 +317,502 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return passed;
         } catch (err) {
-            con.error("ERROR in stats.checkResults: " + err.stack);
+            con.error("ERROR in stats.check: " + err.stack);
             return false;
         }
     };
 
+    stats.checkResults = function (page) {
+        try {
+			switch (page) {
+			case 'keep' :
+				var attrDiv = $j("#app_body #keepAltStats"),
+					statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
+					//keepTable1 = $j("#app_body .keepTable1 tr"),
+					statCont = $j("#app_body div[style*='keep_bgv2.jpg']>div>div>div"),
+					recordsTxt = $j(),
+					args = [],
+					backgroundDiv = $j(),
+					tempDiv = $j(),
+					temp,
+					row,
+					head,
+					body;
+
+				if ($u.hasContent(attrDiv)) {
+					con.log(2, "Getting new values from player keep");
+					// rank
+					tempDiv = $j("#app_body img[src*='gif/rank']");
+					if ($u.hasContent(tempDiv)) {
+						stats.rank.battle = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored rank.');
+					}
+
+					// PlayerName
+					tempDiv = $j("#app_body div[style*='keep_top.jpg'] div").first();
+					if ($u.hasContent(tempDiv)) {
+						stats.PlayerName = tempDiv.text().trim();
+						//con.log(1, stats.PlayerName);
+					} else {
+						con.warn('Using stored PlayerName.');
+					}
+
+					// FBID
+					tempDiv = $j("#app_body a[href*='keep.php?user=']");
+					if ($u.hasContent(tempDiv)) {
+						stats.FBID = tempDiv.attr("href").basename().regex(/(\d+)/);
+						//con.log(1, stats.FBID);
+					} else {
+						con.warn('Using stored PlayerName.');
+					}
+
+					// war rank
+					if (stats.level >= 100) {
+						tempDiv = $j("#app_body img[src*='war_rank_']");
+						if ($u.hasContent(tempDiv)) {
+							stats.rank.war = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+						} else {
+							con.warn('Using stored warRank.');
+						}
+					}
+					// conquest rank
+					if (stats.level >= 100) {
+						tempDiv = $j("#app_body img[src*='conquest_rank_']");
+						if ($u.hasContent(tempDiv)) {
+							stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+						} else {
+							con.warn('Using stored conquestRank.');
+						}
+					}
+
+					if ($u.hasContent(statCont) && statCont.length >= 6) {
+						if (stats.level >= 10) {
+							// Attack
+							tempDiv = statCont.eq(2);
+							if ($u.hasContent(tempDiv)) {
+								stats.attack = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+								stats.bonus.attack = $u.setContent($u.setContent(tempDiv.text(), '').regex(/\(\+(\d+)\)/), 0);
+								//con.log(2,'KEEP Attack', stats.attack, stats.attackbonus);
+							} else {
+								con.warn('Using stored attack value.');
+							}
+
+							// Defense
+							tempDiv = statCont.eq(3);
+							if ($u.hasContent(tempDiv)) {
+								stats.defense = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+								stats.bonus.defense = $u.setContent($u.setContent(tempDiv.text(), '').regex(/\(\+(\d+)\)/), 0);
+								//con.log(2,'KEEP Defense', stats.defense, stats.defensebonus);
+							} else {
+								con.warn('Using stored defense value.');
+							}
+						}
+
+						// Health
+						tempDiv = statCont.eq(4);
+						if ($u.hasContent(tempDiv)) {
+							stats.health.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+							
+						} else {
+							con.warn('Unable to find unadjusted Health value.');
+						}
+						
+						// Energy
+						tempDiv = statCont.eq(0);
+						if ($u.hasContent(tempDiv)) {
+							stats.energy.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+						} else {
+							con.warn('Unable to find unadjusted Energy value.');
+						}
+
+						// Stamina
+						tempDiv = statCont.eq(1);
+						if ($u.hasContent(tempDiv)) {
+							stats.stamina.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+						} else {
+							con.warn('Unable to find unadjusted Stamina value.');
+						}
+					} else {
+						con.warn("Can't find stats containers! Using stored stats values.");
+					}
+
+					// Check for Gold Stored
+					tempDiv = statsTB.eq(4);
+					if ($u.hasContent(tempDiv)) {
+						stats.gold.bank = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+						stats.gold.total = stats.gold.bank + stats.gold.cash;
+						tempDiv.attr({
+							title: "Click to copy value to retrieve"
+						}).css({
+							color: "blue",
+							cursor: "pointer"
+						}).on("click", function () {
+							$j("#app_body #getGold").val(stats.gold.bank);
+						});
+					} else {
+						con.warn('Using stored inStore.');
+					}
+
+					// Check for income
+					tempDiv = statsTB.eq(5);
+					if ($u.hasContent(tempDiv)) {
+						stats.gold.income = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+					} else {
+						con.warn('Using stored income.');
+					}
+
+					// Check for upkeep
+					tempDiv = statsTB.eq(6);
+					if ($u.hasContent(tempDiv)) {
+						stats.gold.upkeep = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+					} else {
+						con.warn('Using stored upkeep.');
+					}
+
+					// Cash Flow
+					stats.gold.flow = stats.gold.income - stats.gold.upkeep;
+
+					// Energy potions
+					tempDiv = $j("div[title='Energy Potion']").children().eq(1);
+					if ($u.hasContent(tempDiv)) {
+						stats.potions.energy = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+					} else {
+						stats.potions.energy = 0;
+					}
+
+					// Stamina potions
+					tempDiv = $j("div[title='Stamina Potion']").children().eq(1);
+					if ($u.hasContent(tempDiv)) {
+						stats.potions.stamina = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+					} else {
+						stats.potions.stamina = 0;
+					}
+
+					// Other stats
+					// Atlantis Open
+					stats.other.atlantis = $u.hasContent(caap.checkForImage("seamonster_map_finished.jpg")) ? true : false;
+
+					recordsTxt = $u.setContent($j("#globalContainer #records_tab").text().trim().innerTrim(), '');
+					args = recordsTxt.match(new RegExp("Quests Completed (\\d+) Battles/Wars Won (\\d+) Battles/Wars Lost (\\d+) Kills (\\d+) Deaths (\\d+)"));
+					if (args && args.length === 6) {
+						stats.other.qc = args[1].numberOnly();
+						stats.other.bww = args[2].numberOnly();
+						stats.other.bwl = args[3].numberOnly();
+						stats.other.te = args[4].numberOnly();
+						stats.other.tee = args[5].numberOnly();
+						//con.log(2, "my stats", args, recordsTxt, stats.other);
+					} else {
+						con.warn("Unable to read quests completed and battle stats", args, recordsTxt);
+					}
+
+					// Win/Loss Ratio (WLR)
+					stats.other.wlr = stats.other.bwl !== 0 ? (stats.other.bww / stats.other.bwl).dp(2) : Infinity;
+					// Enemy Eliminated Ratio/Eliminated (EER)
+					stats.other.eer = stats.other.tee !== 0 ? (stats.other.tee / stats.other.te).dp(2) : Infinity;
+					// Indicators
+					if (stats.level >= 10) {
+						stats.indicators.bsi = ((stats.attack + stats.defense) / stats.level).dp(2);
+						stats.indicators.lsi = ((stats.energy.max + (2 * stats.stamina.max)) / stats.level).dp(2);
+						stats.indicators.sppl = ((stats.energy.max + (2 * stats.stamina.max) + stats.attack + stats.defense + stats.health.max - 122) / stats.level).dp(2);
+						stats.indicators.api = (stats.attack + (stats.defense * 0.7)).dp(0);
+						stats.bonus.api = stats.indicators.api + (stats.bonus.attack + (stats.bonus.defense * 0.7)).dp(0);
+						stats.indicators.dpi = ((stats.defense + (stats.attack * 0.7))).dp(0);
+						stats.bonus.dpi = stats.indicators.dpi + (stats.bonus.defense + (stats.bonus.attack * 0.7)).dp(0);
+						stats.indicators.mpi = (((stats.indicators.api + stats.indicators.dpi) / 2)).dp(0);
+						stats.indicators.mhbeq = ((stats.attack + (2 * stats.stamina.max)) / stats.level).dp(2);
+						if (stats.attack >= stats.defense) {
+							temp = stats.attack / stats.defense;
+							if (temp === stats.attack) {
+								stats.indicators.pvpclass = 'Destroyer';
+							} else if (temp >= 2 && temp < 7.5) {
+								stats.indicators.pvpclass = 'Aggressor';
+							} else if (temp < 2 && temp > 1.01) {
+								stats.indicators.pvpclass = 'Offensive';
+							} else if (temp <= 1.01) {
+								stats.indicators.pvpclass = 'Balanced';
+							}
+						} else {
+							temp = stats.defense / stats.attack;
+							if (temp === stats.defense) {
+								stats.indicators.pvpclass = 'Wall';
+							} else if (temp >= 2 && temp < 7.5) {
+								stats.indicators.pvpclass = 'Paladin';
+							} else if (temp < 2 && temp > 1.01) {
+								stats.indicators.pvpclass = 'Defensive';
+							} else if (temp <= 1.01) {
+								stats.indicators.pvpclass = 'Balanced';
+							}
+						}
+					}
+
+					// added rune totals
+					temp = $j('#runes_2').text().trim().innerTrim();
+					caap.bulkRegex(temp, / (\d+).*Atk.* (\d+).*Def.* (\d+).*Dmg.* (\d+).*Hth/, stats.rune, ['attack', 'defense', 'damage', 'health']);
+					caap.bulkRegex(temp, /x(\d+) x(\d+) x(\d+) x(\d+)/, stats.essence, ['Attack', 'Defense', 'Damage', 'Health']);
+
+					statsFunc.setRecord(stats);
+					if (config.getItem("displayKStats", true)) {
+						tempDiv = $j("div[style*='keep_top']");
+						backgroundDiv = $j("div[style*='keep_tabheader']");
+
+						temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+						temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
+						row = caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '5%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '10%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '20%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '10%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '20%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '10%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '20%'
+						});
+
+						row += caap.makeTh({
+							text: '&nbsp;',
+							color: '',
+							bgcolor: '',
+							id: '',
+							title: '',
+							width: '5%'
+						});
+
+						head = caap.makeTr(row);
+
+						row = caap.makeTd({
+							text: '',
+							color: '',
+							id: '',
+							title: ''
+						});
+
+						row += caap.makeTd({
+							text: 'BSI',
+							color: '',
+							id: '',
+							title: 'Battle Strength Index'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.bsi,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'LSI',
+							color: '',
+							id: '',
+							title: 'Leveling Speed Index'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.lsi,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'SPPL',
+							color: '',
+							id: '',
+							title: 'Skill Points Per Level (More accurate than SPAEQ)'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.sppl,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						body = caap.makeTr(row);
+
+						row = caap.makeTd({
+							text: '',
+							color: '',
+							id: '',
+							title: ''
+						});
+
+						row += caap.makeTd({
+							text: 'API',
+							color: '',
+							id: '',
+							title: 'Attack Power Index'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.api,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'DPI',
+							color: '',
+							id: '',
+							title: 'Defense Power Index'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.dpi,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'MPI',
+							color: '',
+							id: '',
+							title: 'Mean Power Index'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.mpi,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						body += caap.makeTr(row);
+
+						row = caap.makeTd({
+							text: '',
+							color: '',
+							id: '',
+							title: ''
+						});
+
+						row += caap.makeTd({
+							text: 'MHBEQ',
+							color: '',
+							id: '',
+							title: 'Monster Hunting Build Effective Quotent'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.mhbeq,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'Build',
+							color: '',
+							id: '',
+							title: 'Character build type'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.build,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: 'PvP Class',
+							color: '',
+							id: '',
+							title: 'Player vs. Player character class'
+						}, "font-size:14px;");
+
+						row += caap.makeTd({
+							text: stats.indicators.pvpclass,
+							color: '',
+							id: '',
+							title: ''
+						}, "font-size:14px;");
+
+						body += caap.makeTr(row);
+
+						temp += caap.makeTable("keepstats", head, body, "Statistics", "font-size:16px;");
+						temp += "</div></div>";
+						tempDiv.after(temp);
+					} else {
+						tempDiv = $j(".keep_stat_title_inc", attrDiv);
+						tempDiv = $u.hasContent(tempDiv) ? tempDiv.html($u.setContent(tempDiv.html(), '').trim() + ", <span style='white-space: nowrap;'>BSI: " +
+							stats.indicators.bsi + " LSI: " + stats.indicators.lsi + "</span>") : tempDiv;
+					}
+				} else {
+					tempDiv = $j("#app_body a[href*='keep.php?user=']");
+					if ($u.hasContent(tempDiv)) {
+						con.log(2, "On another player's keep", $u.setContent($u.setContent(tempDiv.attr("href"), '').basename().regex(/(\d+)/), 0));
+					} else {
+						con.warn("Attribute section not found and not identified as another player's keep!");
+					}
+				}
+				break;
+			default :
+				break;
+			}
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in stats.checkResults: " + err.stack);
+            return false;
+        }
+    };
+	
     statsFunc.dashboard = function() {
         try {
             var headers = [],

@@ -1451,12 +1451,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 guildButtonLevel = Math.min (Math.floor ((guildRecord[essence + 'Max'] - guildRecord[essence]) / 200), 4);
 
                     // update the essence totals
-                stats.essence.Attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
-                stats.essence.Defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
-                stats.essence.Health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
-                stats.essence.Damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
+                stats.essence.attack = parseInt ($j("div[title*='Attack Essence']")[0].title.replace('Attack Essence - ', ''), 10);
+                stats.essence.defense = parseInt ($j("div[title*='Defense Essence']")[0].title.replace('Defense Essence - ', ''), 10);
+                stats.essence.health = parseInt ($j("div[title*='Health Essence']")[0].title.replace('Health Essence - ', ''), 10);
+                stats.essence.damage = parseInt ($j("div[title*='Damage Essence']")[0].title.replace('Damage Essence - ', ''), 10);
 
-                runeButtonLevel = Math.min (Math.floor ((stats.essence[essence] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
+                runeButtonLevel = Math.min (Math.floor ((stats.essence[essence.toLowerCase()] - essenceValue) / 200), config.getItem('maxEssenceTrade'));
                 buttonLevel = Math.min (Math.min (guildButtonLevel, energyButtonLevel), runeButtonLevel);
 
                 if (buttonLevel >= 1) {

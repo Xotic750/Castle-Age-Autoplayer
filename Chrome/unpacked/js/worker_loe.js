@@ -185,8 +185,8 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				+ ',clickjq:div[onclick^="towerTabClick(' + "'" + n + "'" + ')"]:visible,jq:#tower_' 
 				+ n + ':visible,clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
 			if (result == 'fail') {
-				con.warn(stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.getCurrentGeneral() + ' has ' + t.attack + ', reloading page', general.getCurrentGeneral(), general.getCurrentLoadout());
-				caap.setDivContent(mess, stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.getCurrentGeneral() + ' has ' + t.attack);
+				con.warn(stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.current + ' has ' + t.attack + ', reloading page', general.current, general.loadout);
+				caap.setDivContent(mess, stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.current + ' has ' + t.attack);
 				gb.setRecord(fR);
 				return caap.navigate2('ajax:guild_conquest_castle_battlelist.php');
 			} else if (result == 'done') {

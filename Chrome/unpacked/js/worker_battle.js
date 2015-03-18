@@ -382,7 +382,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					tempText = '',
 					tNum = 0,
 					warWinLoseImg = '',
-					currentGeneral = general.getCurrentGeneral(),
 					result = {};
 
 				// Check demi points
@@ -957,7 +956,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     tempRecord.name = $u.setContent(levelm[1], '').trim();
                     tempRecord.rank = $u.setContent(levelm[2], '').parseInt();
-                    tempRecord.rankStr = battle.battleRankTable[tempRecord.rank];
                     tempRecord.level = $u.setContent(levelm[4], '').parseInt();
                     tempRecord.army = $u.setContent(levelm[6], '').parseInt();
                 } else {
@@ -1027,10 +1025,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     tempRecord.name = $u.setContent(levelm[1], '').trim();
                     tempRecord.level = $u.setContent(levelm[2], '').parseInt();
-                    tempRecord.rankStr = $u.setContent(levelm[3], '').trim();
                     tempRecord.rank = $u.setContent(levelm[4], '').parseInt();
                     if (battle.battles.Freshmeat.warLevel) {
-                        tempRecord.warRankStr = $u.setContent(levelm[5], '').trim();
                         tempRecord.warRank = $u.setContent(levelm[6], '').parseInt();
                         tempRecord.army = $u.setContent(levelm[7], '').parseInt();
                     } else {
@@ -1038,7 +1034,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     }
                 }
 				
-				con.log(3, 'Battle target stats:', tempRecord.name, tempRecord.level, tempRecord.rankStr, tempRecord.rank, tempRecord.army);
+				con.log(3, 'Battle target stats:', tempRecord.name, tempRecord.level, tempRecord.rank, tempRecord.army);
 
                 levelMultiplier = stats.level / (tempRecord.level > 0 ? tempRecord.level : 1);
                 armyRatio = ARBase * levelMultiplier;
