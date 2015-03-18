@@ -37,7 +37,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				
 			return true;
 		} catch (err) {
-			con.error("ERROR in feed.deleteExpired: " + err.stack);
+			con.error("ERROR in feed.init: " + err.stack);
 			return false;
 		}
 	};
@@ -125,7 +125,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				},
 				result,
 				charStats = stats.character,
-				currentGeneralObj = general.getRecord(general.getCurrentGeneral()),
+				currentGeneralObj = general.getRecord(general.current),
 				joinable = function(cM) {
 					return cM.join && cM.status == 'Join';
 				},

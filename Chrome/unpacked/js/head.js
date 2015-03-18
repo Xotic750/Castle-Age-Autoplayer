@@ -86,6 +86,12 @@ Array.prototype.addToList = function(v) {
 	return this;
 };
 
+Array.prototype.sum = function() {
+	return this.reduce(function(a,b) {
+		return a+b;
+	});
+}
+
 Array.prototype.removeFromList = function(v) {
 	var i = this.indexOf(v);
 	if (i > -1) {
@@ -117,9 +123,12 @@ Array.prototype.deleteObjs = function(f, v) {
 };
 
 Array.prototype.listMatch = function(r) {
-	return this.reduce( function(p, c) {
-		return $u.setContent(p, c.regex(r));
-	}, null);
+	var m = false;
+	this.some( function(c) {
+		m = c.regex(r); 
+		return m;
+	});
+	return m;
 };
 
 String.prototype.parseTimer = function() {
