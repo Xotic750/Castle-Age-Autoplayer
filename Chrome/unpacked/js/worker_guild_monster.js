@@ -14,13 +14,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 (function() {
     "use strict";
 
+	worker.add('guild_monster');	
+	
     guild_monster.records = [];
 
     guild_monster.record = function() {
         this.data = {
+            'slot': 0,
             'name': '',
             'guildId': '',
-            'slot': 0,
             'ticker': '',
             'minions': [],
             'attacks': 1,
@@ -34,7 +36,587 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             'color': $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"))
         };
     };
+	
+     guild_monster.checkResults = function(page) {
+        try {
+			switch (page) {
+			case 'guild_current_monster_battles' :
+				$j("#globalContainer input[src*='guild_battle_']").off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
 
+				var buttons = $j("input[src*='guild_battle_']"),
+					slotArr = [],
+					it = 0;
+
+				if (buttons && buttons.length) {
+					buttons.each(function() {
+						var button = $j(this),
+							form = null,
+							currentRecord = {},
+							imageName = '',
+							slot = 0,
+							name = '',
+							guildId = '',
+							passed = true;
+
+						form = button.parents("form").eq(0);
+						if (form && form.length) {
+							slot = form.find("input[name='slot']").eq(0).val();
+							slot = slot ? slot.parseInt() : 0;
+							if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
+								con.log(3, "slot", slot);
+								slotArr.push(slot);
+								currentRecord = guild_monster.getItem(slot);
+								name = button.parents().eq(4).text();
+								name = name.replace("has  been summoned!", "");
+								name = name.replace("Join Battle!", "");
+								name = name.replace("Collect Now!", "");
+								name = name ? name.trim() : '';
+								if (name) {
+									if (currentRecord.name !== name) {
+										con.log(1, "Updated name", currentRecord.name, name);
+										currentRecord.name = name;
+									}
+								} else {
+									con.warn("name error", name);
+									passed = false;
+								}
+
+								guildId = form.find("input[name='guild_id']").eq(0).val();
+								if (stats.guild.id && guildId === stats.guild.id) {
+									if (currentRecord.guildId !== guildId) {
+										con.log(2, "Updated guildId", currentRecord.guildId, guildId);
+										currentRecord.guildId = guildId;
+									}
+								} else {
+									con.warn("guildId error", guildId, stats.guild.id);
+									passed = false;
+								}
+
+								imageName = button.attr("src").basename();
+								if (imageName) {
+									switch (imageName) {
+									case "guild_battle_joinbtn.gif":
+										currentRecord.color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
+										currentRecord.state = "Alive";
+
+										break;
+										// Need to find the image for dragon_list_btn_4.jpg. Its view or fail, might no longer be in use
+									case "guild_battle_collectbtn.gif":
+									case "dragon_list_btn_4.jpg":
+										currentRecord.color = "grey";
+										if (currentRecord.state !== "Completed") {
+											con.log(2, "Updated state", currentRecord.state, "Collect");
+											currentRecord.state = "Collect";
+										}
+
+										break;
+									default:
+										currentRecord.state = "Error";
+										con.warn("state error", imageName);
+										passed = false;
+									}
+								} else {
+									con.warn("imageName error", button.attr("src"), imageName);
+									passed = false;
+								}
+							} else {
+								con.warn("slot error", slot);
+								passed = false;
+							}
+						} else {
+							con.warn("form error", button);
+							passed = false;
+						}
+
+						if (passed) {
+							con.log(2, "currentRecord/button", currentRecord, button);
+							guild_monster.setItem(currentRecord);
+						} else {
+							con.warn("populate record failed", currentRecord, button);
+						}
+
+						button = null;
+						form = null;
+					});
+
+					for (it = guild_monster.records.length - 1; it >= 0; it -= 1) {
+						if (!slotArr.hasIndexOf(guild_monster.records[it].slot)) {
+							guild_monster.deleteItem(guild_monster.records[it].slot);
+						}
+					}
+
+					guild_monster.select(true);
+					buttons = null;
+				} else {
+					con.log(1, "No buttons found");
+					guild_monster.clear();
+				}
+
+				caap.updateDashboard(true);
+				break;
+			case 'guild_monster_summon_list' :
+				if (config.getItem("enableSpider", true)) {
+					guild_monster.enableSpider();
+				}
+				break;
+			case 'guild_battle_monster' :
+				$j("#globalContainer input[src*='guild_duel_button']").off('click', caap.guildMonsterEngageListener).on('click', caap.guildMonsterEngageListener);
+				break;
+				var gates = $j(),
+					health = $j(),
+					healthGuild = $j(),
+					healthEnemy = $j(),
+					allowedDiv = $j(),
+					bannerDiv = $j(),
+					collectDiv = $j(),
+					tempDiv = $j(),
+					tempTxt = '',
+					collect = false,
+					myStatsTxt = '',
+					myStatsArr = [],
+					slot = 0,
+					currentRecord = {},
+					minionRegEx = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
+
+
+				caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+				slot = $u.setContent($j("input[name='slot']").eq(0).val(), '0').parseInt();
+				if (!$u.isNumber(slot) || slot < 1 || slot > 5) {
+					tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+					slot = $u.setContent(tempDiv.attr("href"), 'slot=0').regex(/slot=(\d)/i);
+				}
+
+				bannerDiv = $j("#guild_battle_banner_section");
+				myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
+				myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
+				if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
+					con.log(1, "slot", slot);
+					currentRecord = guild_monster.getItem(slot);
+					currentRecord.minions = [];
+					currentRecord.ticker = '';
+					currentRecord.guildHealth = 0;
+					currentRecord.enemyHealth = 0;
+					if (!bannerDiv.attr("style").match(/_dead/)) {
+						currentRecord.ticker = $j("#monsterTicker").text();
+						currentRecord.ticker = currentRecord.ticker ? currentRecord.ticker.trim() : '';
+						if (myStatsTxt) {
+							con.log(1, "myStatsTxt", myStatsTxt);
+							myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Battle Damage: (\\d+)"));
+							if (myStatsArr && myStatsArr.length === 8) {
+								con.log(1, "myStatsArr", myStatsArr);
+								currentRecord.damage = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
+								currentRecord.myStatus = myStatsArr[6] ? myStatsArr[6].trim() : '';
+							} else {
+								con.warn("myStatsArr error", myStatsArr, myStatsTxt);
+							}
+						}
+
+						allowedDiv = $j("#allowedAttacks");
+						if (allowedDiv && allowedDiv.length) {
+							currentRecord.attacks = allowedDiv.val() ? allowedDiv.val().parseInt() : 1;
+							if (currentRecord.attacks < 1 || currentRecord.attacks > 5) {
+								currentRecord.attacks = 1;
+								con.warn("Invalid allowedAttacks");
+							}
+						} else {
+							con.warn("Could not find allowedAttacks");
+						}
+
+						health = $j("#guild_battle_health");
+						if (health && health.length) {
+							healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
+							if ($u.hasContent(healthEnemy)) {
+								currentRecord.enemyHealth = (100 - healthEnemy.getPercent('width')).dp(2);
+							} else {
+								con.warn("guild_battle_bar_enemy.gif not found");
+							}
+
+							healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
+							if ($u.hasContent(healthGuild)) {
+								currentRecord.guildHealth = (100 - healthGuild.getPercent('width')).dp(2);
+							} else {
+								con.warn("guild_battle_bar_you.gif not found");
+							}
+
+							tempDiv = $j("span", health);
+							if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
+								tempTxt = tempDiv.eq(0).text().trim();
+								tempDiv.eq(0).text(tempTxt + " (" + currentRecord.guildHealth + "%)");
+								tempTxt = tempDiv.eq(1).text().trim();
+								tempDiv.eq(1).text(tempTxt + " (" + currentRecord.enemyHealth + "%)");
+							}
+						} else {
+							con.warn("guild_battle_health error");
+						}
+
+						gates = $j("div[id*='enemy_guild_member_list_']");
+						if (!gates || !gates.length) {
+							con.warn("No gates found");
+						} else if (gates && gates.length !== 4) {
+							con.warn("Not enough gates found");
+						} else {
+							gates.each(function(gIndex) {
+								var memberDivs = $j(this).children();
+
+								if (!memberDivs || !memberDivs.length) {
+									con.warn("No members found");
+								} else if (memberDivs && memberDivs.length !== guild_monster.info[currentRecord.name].enemy / 4) {
+									con.warn("Not enough members found", memberDivs);
+								} else {
+									memberDivs.each(function() {
+										var member = $j(this),
+											memberText = '',
+											memberArr = [],
+											targetIdDiv = $j(),
+											memberRecord = new guild_monster.minion().data;
+
+										memberRecord.attacking_position = (gIndex + 1);
+										targetIdDiv = member.find("input[name='target_id']").eq(0);
+										if (targetIdDiv && targetIdDiv.length) {
+											memberRecord.target_id = targetIdDiv.val() ? targetIdDiv.val().parseInt() : 1;
+										} else {
+											con.warn("Unable to find target_id for minion!", member);
+										}
+
+										memberText = member.children().eq(1).text();
+										memberText = memberText ? memberText.trim().innerTrim() : '';
+										memberArr = memberText.match(minionRegEx);
+										con.log(1, 'memberArr', memberArr);
+										if (memberArr && memberArr.length === 7) {
+											memberRecord.name = memberArr[1] || '';
+											memberRecord.level = memberArr[2] ? memberArr[2].parseInt() : 0;
+											memberRecord.mclass = memberArr[3] || '';
+											memberRecord.healthNum = memberArr[4] ? memberArr[4].parseInt() : 0;
+											memberRecord.healthMax = memberArr[5] ? memberArr[5].parseInt() : 1;
+											memberRecord.status = memberArr[6] || '';
+											memberRecord.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
+										}
+
+										con.log(1, 'memberRecord', memberRecord);
+										currentRecord.minions.push(memberRecord);
+
+										member = null;
+										targetIdDiv = null;
+									});
+								}
+
+								memberDivs = null;
+							});
+						}
+					} else {
+						collectDiv = $j("input[src*='collect_reward_button2.jpg']");
+						if (collectDiv && collectDiv.length) {
+							con.log(1, "Monster is dead and ready to collect");
+							currentRecord.state = 'Collect';
+							if (config.getItem('guildMonsterCollect', false)) {
+								collect = true;
+							}
+						} else {
+							con.log(1, "Monster is completed");
+							currentRecord.state = 'Completed';
+						}
+
+						currentRecord.color = "grey";
+					}
+
+					currentRecord.reviewed = Date.now();
+					con.log(2, "currentRecord", currentRecord);
+					guild_monster.setItem(currentRecord);
+					if (collect) {
+						caap.click(collectDiv);
+					}
+				} else {
+					if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
+					//tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
+					//if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(stats.guild.id)) {
+						slot = state.getItem('guildMonsterReviewSlot', 0);
+						if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
+							con.log(1, "monster expired", slot);
+							guild_monster.deleteItem(slot);
+						} else {
+							con.warn("monster expired slot error", slot);
+						}
+					} else {
+						con.log(1, "On another guild's monster", myStatsTxt);
+					}
+				}
+
+				gates = null;
+				health = null;
+				healthGuild = null;
+				healthEnemy = null;
+				allowedDiv = null;
+				bannerDiv = null;
+				collectDiv = null;
+				tempDiv = null;
+				break;
+			default :
+				break;
+			}
+        } catch (err) {
+            con.error("ERROR in checkResults_guild_battle_monster: " + err);
+            return false;
+        }
+    };
+
+    /*-------------------------------------------------------------------------------------\
+    guild_monster.review is a primary action subroutine to mange the guild monster on the dashboard
+    \-------------------------------------------------------------------------------------*/
+	
+	worker.addAction({
+		worker : 'guild_monster',
+		priority : 1100,
+		description : 'Reviewing Guild Monsters',
+		functionName : 'review'
+	});
+
+    guild_monster.review = function() {
+        try {
+            /*-------------------------------------------------------------------------------------\
+            We do guild monster review once an hour.  Some routines may reset this timer to drive
+            GuildMonsterReview immediately.
+            \-------------------------------------------------------------------------------------*/
+            if (!schedule.check("guildMonsterReview") || config.getItem('WhenGuildMonster', 'Never') === 'Never') {
+                return false;
+            }
+
+            if (!stats.guild.id) {
+                con.log(2, "Going to guild to get Guild Id");
+                if (caap.navigateTo('guild')) {
+                    return true;
+                }
+            }
+
+            var record = {},
+                url = '',
+                objective = '';
+
+            if (state.getItem('guildMonsterBattlesRefresh', true)) {
+                if (guild_monster.navigate_to_battles_refresh()) {
+                    return true;
+                }
+            }
+
+            if (!state.getItem('guildMonsterBattlesReview', false)) {
+                if (guild_monster.navigate_to_battles()) {
+                    return true;
+                }
+
+                state.setItem('guildMonsterBattlesReview', true);
+            }
+
+            record = guild_monster.getReview();
+            if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                con.log(1, "Reviewing Slot (" + record.slot + ") Name: " + record.name);
+                if (stats.stamina.num > 0 && config.getItem("doGuildMonsterSiege", true)) {
+                    objective = "&action=doObjective";
+                }
+            url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
+                state.setItem('guildMonsterReviewSlot', record.slot);
+                caap.clickAjaxLinkSend(url);
+                return true;
+            }
+
+            schedule.setItem("guildMonsterReview", (gm ? gm.getItem('guildMonsterReviewMins', 60, hiddenVar) : 60) * 60, 300);
+            state.setItem('guildMonsterBattlesRefresh', true);
+            state.setItem('guildMonsterBattlesReview', false);
+            state.setItem('guildMonsterReviewSlot', 0);
+            guild_monster.select(true);
+            con.log(1, 'Done with guild monster review.');
+            return false;
+        } catch (err) {
+            con.error("ERROR in guild_monster.review: " + err);
+            return false;
+        }
+    };
+
+ 	worker.addAction({
+		worker : 'guild_monster',
+		priority : 900,
+		description : 'Fighting Guild Monsters'
+	});
+
+	guild_monster.worker = function() {
+        function doClassicFirst() {
+            if (config.getItem('doClassicMonstersFirst', false) && config.getItem("WhenMonster", 'Never') !== 'Never') {
+                if (state.getItem('targetFrombattle_monster', '') || state.getItem('targetFromraid', '')) {
+                    return true;
+                }
+                var WhenBattle = config.getItem("WhenBattle", 'Never');
+            }
+
+            return false;
+        }
+		
+        try {
+            var when = '',
+                record = {},
+                minion = {},
+                form = $j(),
+                key = $j(),
+                url = '',
+                attack = 0,
+                stamina = 0;
+
+            when = config.getItem("WhenGuildMonster", 'Never');
+            if (when === 'Never') {
+                form = null;
+                key = null;
+                return false;
+            }
+
+            if (!stats.guild.id) {
+                con.log(2, "Going to guild to get Guild Id");
+                if (caap.navigateTo('guild')) {
+                    form = null;
+                    key = null;
+                    return true;
+                }
+            }
+
+            if (caap.inLevelUpMode()) {
+                if (stats.stamina.num < 5) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + stats.stamina.num + '/' + 5);
+                    form = null;
+                    key = null;
+                    return false;
+                }
+
+                if (doClassicFirst()) {
+                    form = null;
+                    key = null;
+                    return false;
+                }
+            } else if (when === 'Stamina Available') {
+                stamina = state.getItem('staminaGuildMonster', 0);
+                if (stats.stamina.num < stamina) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + stats.stamina.num + '/' + stamina);
+                    form = null;
+                    key = null;
+                    return false;
+                }
+
+                state.setItem('staminaGuildMonster', 0);
+                record = state.getItem('targetGuildMonster', {});
+                if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                    minion = guild_monster.getTargetMinion(record);
+                    if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                        stamina = guild_monster.getStaminaValue(record, minion);
+                        state.setItem('staminaGuildMonster', stamina);
+                        if (stats.stamina.num < stamina) {
+                            caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + stats.stamina.num + '/' + stamina);
+                            form = null;
+                            key = null;
+                            return false;
+                        }
+                    } else {
+                        form = null;
+                        key = null;
+                        return false;
+                    }
+                } else {
+                    form = null;
+                    key = null;
+                    return false;
+                }
+
+                if (doClassicFirst()) {
+                    form = null;
+                    key = null;
+                    return false;
+                }
+            } else if (when === 'At X Stamina') {
+                if (stats.stamina.num >= config.getItem("MaxStaminaToGMonster", 20)) {
+                    state.setItem('guildMonsterBattlesBurn', true);
+                }
+
+                if (stats.stamina.num <= config.getItem("MinStaminaToGMonster", 0) || stats.stamina.num < 1) {
+                    state.setItem('guildMonsterBattlesBurn', false);
+                }
+
+                if (!state.getItem('guildMonsterBattlesBurn', false)) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + stats.stamina.num + '/' + config.getItem("MaxStaminaToGMonster", 20));
+                    form = null;
+                    key = null;
+                    return false;
+                }
+
+                if (doClassicFirst()) {
+                    form = null;
+                    key = null;
+                    return false;
+                }
+            } else if (when === 'At Max Stamina') {
+                if (stats.stamina.num < stats.stamina.max || stats.stamina.num < 1) {
+                    caap.setDivContent('guild_monster_mess', 'Guild Monster stamina ' + stats.stamina.num + '/' + stats.stamina.max);
+                    form = null;
+                    key = null;
+                    return false;
+                }
+
+                if (doClassicFirst()) {
+                    form = null;
+                    key = null;
+                    return false;
+                }
+            }
+
+            caap.setDivContent('guild_monster_mess', '');
+            record = guild_monster.select(false);
+            //record = guild_monster.select(true);
+            //record = state.setItem('targetGuildMonster', {});
+            //con.log(1, "record", record);
+            if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                if (general.Select('Guild_MonsterGeneral')) {
+                    form = null;
+                    key = null;
+                    return true;
+                }
+
+                if (!guild_monster.checkPage(record)) {
+                    con.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
+                    caap.setDivContent('guild_monster_mess', "Fighting (" + record.slot + ") " + record.name);
+                    url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + "&slot=" + record.slot;
+                    caap.clickAjaxLinkSend(url);
+                    form = null;
+                    key = null;
+                    return true;
+                }
+
+                minion = guild_monster.getTargetMinion(record);
+                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                    con.log(1, "Fighting target_id (" + minion.target_id + ") Name: " + minion.name);
+                    caap.setDivContent('guild_monster_mess', "Fighting (" + minion.target_id + ") " + minion.name);
+                    key = $j("#attack_key_" + minion.target_id);
+                    if (key && key.length) {
+                        attack = guild_monster.getAttackValue(record, minion);
+                        if (!attack) {
+                            form = null;
+                            key = null;
+                            return false;
+                        }
+
+                        key.attr("value", attack);
+                        form = key.parents("form").eq(0);
+                        if (form && form.length) {
+                            caap.click(form.find("input[src*='gb_btn_duel.gif'],input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
+                            form = null;
+                            key = null;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            form = null;
+            key = null;
+            return false;
+        } catch (err) {
+            con.error("ERROR in guildMonster: " + err);
+            return false;
+        }
+    };
+	
     guild_monster.minion = function() {
         this.data = {
             'attacking_position': 0,
@@ -354,321 +936,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 
     guild_monster.navigate_to_battles = function() {
         return caap.navigateTo('guildv2_monster_summon_list,guildv2_current_monster_battles', 'guild_monster_list_on.jpg');
-    };
-
-    guild_monster.populate = function() {
-        try {
-            var buttons = $j("input[src*='guild_battle_']"),
-                slotArr = [],
-                it = 0;
-
-            if (buttons && buttons.length) {
-                buttons.each(function() {
-                    var button = $j(this),
-                        form = null,
-                        currentRecord = {},
-                        imageName = '',
-                        slot = 0,
-                        name = '',
-                        guildId = '',
-                        passed = true;
-
-                    form = button.parents("form").eq(0);
-                    if (form && form.length) {
-                        slot = form.find("input[name='slot']").eq(0).val();
-                        slot = slot ? slot.parseInt() : 0;
-                        if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
-                            con.log(3, "slot", slot);
-                            slotArr.push(slot);
-                            currentRecord = guild_monster.getItem(slot);
-                            name = button.parents().eq(4).text();
-                            name = name.replace("has  been summoned!", "");
-                            name = name.replace("Join Battle!", "");
-                            name = name.replace("Collect Now!", "");
-                            name = name ? name.trim() : '';
-                            if (name) {
-                                if (currentRecord.name !== name) {
-                                    con.log(1, "Updated name", currentRecord.name, name);
-                                    currentRecord.name = name;
-                                }
-                            } else {
-                                con.warn("name error", name);
-                                passed = false;
-                            }
-
-                            guildId = form.find("input[name='guild_id']").eq(0).val();
-                            if (caap.stats.guild.id && guildId === caap.stats.guild.id) {
-                                if (currentRecord.guildId !== guildId) {
-                                    con.log(2, "Updated guildId", currentRecord.guildId, guildId);
-                                    currentRecord.guildId = guildId;
-                                }
-                            } else {
-                                con.warn("guildId error", guildId, caap.stats.guild.id);
-                                passed = false;
-                            }
-
-                            imageName = button.attr("src").basename();
-                            if (imageName) {
-                                switch (imageName) {
-                                case "guild_battle_joinbtn.gif":
-                                    currentRecord.color = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
-                                    currentRecord.state = "Alive";
-
-                                    break;
-                                    // Need to find the image for dragon_list_btn_4.jpg. Its view or fail, might no longer be in use
-                                case "guild_battle_collectbtn.gif":
-                                case "dragon_list_btn_4.jpg":
-                                    currentRecord.color = "grey";
-                                    if (currentRecord.state !== "Completed") {
-                                        con.log(2, "Updated state", currentRecord.state, "Collect");
-                                        currentRecord.state = "Collect";
-                                    }
-
-                                    break;
-                                default:
-                                    currentRecord.state = "Error";
-                                    con.warn("state error", imageName);
-                                    passed = false;
-                                }
-                            } else {
-                                con.warn("imageName error", button.attr("src"), imageName);
-                                passed = false;
-                            }
-                        } else {
-                            con.warn("slot error", slot);
-                            passed = false;
-                        }
-                    } else {
-                        con.warn("form error", button);
-                        passed = false;
-                    }
-
-                    if (passed) {
-                        con.log(2, "currentRecord/button", currentRecord, button);
-                        guild_monster.setItem(currentRecord);
-                    } else {
-                        con.warn("populate record failed", currentRecord, button);
-                    }
-
-                    button = null;
-                    form = null;
-                });
-
-                for (it = guild_monster.records.length - 1; it >= 0; it -= 1) {
-                    if (!slotArr.hasIndexOf(guild_monster.records[it].slot)) {
-                        guild_monster.deleteItem(guild_monster.records[it].slot);
-                    }
-                }
-
-                guild_monster.select(true);
-                buttons = null;
-            } else {
-                con.log(1, "No buttons found");
-                guild_monster.clear();
-            }
-
-            caap.updateDashboard(true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_monster.populate: " + err);
-            return false;
-        }
-    };
-
-    guild_monster.onMonster = function() {
-        try {
-            var gates = $j(),
-                health = $j(),
-                healthGuild = $j(),
-                healthEnemy = $j(),
-                allowedDiv = $j(),
-                bannerDiv = $j(),
-                collectDiv = $j(),
-                tempDiv = $j(),
-                tempTxt = '',
-                collect = false,
-                myStatsTxt = '',
-                myStatsArr = [],
-                slot = 0,
-                currentRecord = {},
-                minionRegEx = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
-
-
-            caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            slot = $u.setContent($j("input[name='slot']").eq(0).val(), '0').parseInt();
-            if (!$u.isNumber(slot) || slot < 1 || slot > 5) {
-                tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
-                slot = $u.setContent(tempDiv.attr("href"), 'slot=0').regex(/slot=(\d)/i);
-            }
-
-            bannerDiv = $j("#guild_battle_banner_section");
-            myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
-            myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
-            if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
-                con.log(1, "slot", slot);
-                currentRecord = guild_monster.getItem(slot);
-                currentRecord.minions = [];
-                currentRecord.ticker = '';
-                currentRecord.guildHealth = 0;
-                currentRecord.enemyHealth = 0;
-                if (!bannerDiv.attr("style").match(/_dead/)) {
-                    currentRecord.ticker = $j("#monsterTicker").text();
-                    currentRecord.ticker = currentRecord.ticker ? currentRecord.ticker.trim() : '';
-                    if (myStatsTxt) {
-                        con.log(1, "myStatsTxt", myStatsTxt);
-                        myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Battle Damage: (\\d+)"));
-                        if (myStatsArr && myStatsArr.length === 8) {
-                            con.log(1, "myStatsArr", myStatsArr);
-                            currentRecord.damage = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
-                            currentRecord.myStatus = myStatsArr[6] ? myStatsArr[6].trim() : '';
-                        } else {
-                            con.warn("myStatsArr error", myStatsArr, myStatsTxt);
-                        }
-                    }
-
-                    allowedDiv = $j("#allowedAttacks");
-                    if (allowedDiv && allowedDiv.length) {
-                        currentRecord.attacks = allowedDiv.val() ? allowedDiv.val().parseInt() : 1;
-                        if (currentRecord.attacks < 1 || currentRecord.attacks > 5) {
-                            currentRecord.attacks = 1;
-                            con.warn("Invalid allowedAttacks");
-                        }
-                    } else {
-                        con.warn("Could not find allowedAttacks");
-                    }
-
-                    health = $j("#guild_battle_health");
-                    if (health && health.length) {
-                        healthEnemy = $j("div[style*='guild_battle_bar_enemy.gif']", health).eq(0);
-                        if ($u.hasContent(healthEnemy)) {
-                            currentRecord.enemyHealth = (100 - healthEnemy.getPercent('width')).dp(2);
-                        } else {
-                            con.warn("guild_battle_bar_enemy.gif not found");
-                        }
-
-                        healthGuild = $j("div[style*='guild_battle_bar_you.gif']", health).eq(0);
-                        if ($u.hasContent(healthGuild)) {
-                            currentRecord.guildHealth = (100 - healthGuild.getPercent('width')).dp(2);
-                        } else {
-                            con.warn("guild_battle_bar_you.gif not found");
-                        }
-
-                        tempDiv = $j("span", health);
-                        if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
-                            tempTxt = tempDiv.eq(0).text().trim();
-                            tempDiv.eq(0).text(tempTxt + " (" + currentRecord.guildHealth + "%)");
-                            tempTxt = tempDiv.eq(1).text().trim();
-                            tempDiv.eq(1).text(tempTxt + " (" + currentRecord.enemyHealth + "%)");
-                        }
-                    } else {
-                        con.warn("guild_battle_health error");
-                    }
-
-                    gates = $j("div[id*='enemy_guild_member_list_']");
-                    if (!gates || !gates.length) {
-                        con.warn("No gates found");
-                    } else if (gates && gates.length !== 4) {
-                        con.warn("Not enough gates found");
-                    } else {
-                        gates.each(function(gIndex) {
-                            var memberDivs = $j(this).children();
-
-                            if (!memberDivs || !memberDivs.length) {
-                                con.warn("No members found");
-                            } else if (memberDivs && memberDivs.length !== guild_monster.info[currentRecord.name].enemy / 4) {
-                                con.warn("Not enough members found", memberDivs);
-                            } else {
-                                memberDivs.each(function() {
-                                    var member = $j(this),
-                                        memberText = '',
-                                        memberArr = [],
-                                        targetIdDiv = $j(),
-                                        memberRecord = new guild_monster.minion().data;
-
-                                    memberRecord.attacking_position = (gIndex + 1);
-                                    targetIdDiv = member.find("input[name='target_id']").eq(0);
-                                    if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord.target_id = targetIdDiv.val() ? targetIdDiv.val().parseInt() : 1;
-                                    } else {
-                                        con.warn("Unable to find target_id for minion!", member);
-                                    }
-
-                                    memberText = member.children().eq(1).text();
-                                    memberText = memberText ? memberText.trim().innerTrim() : '';
-                                    memberArr = memberText.match(minionRegEx);
-                                    con.log(1, 'memberArr', memberArr);
-                                    if (memberArr && memberArr.length === 7) {
-                                        memberRecord.name = memberArr[1] || '';
-                                        memberRecord.level = memberArr[2] ? memberArr[2].parseInt() : 0;
-                                        memberRecord.mclass = memberArr[3] || '';
-                                        memberRecord.healthNum = memberArr[4] ? memberArr[4].parseInt() : 0;
-                                        memberRecord.healthMax = memberArr[5] ? memberArr[5].parseInt() : 1;
-                                        memberRecord.status = memberArr[6] || '';
-                                        memberRecord.percent = ((memberRecord.healthNum / memberRecord.healthMax) * 100).dp(2);
-                                    }
-
-                                    con.log(1, 'memberRecord', memberRecord);
-                                    currentRecord.minions.push(memberRecord);
-
-                                    member = null;
-                                    targetIdDiv = null;
-                                });
-                            }
-
-                            memberDivs = null;
-                        });
-                    }
-                } else {
-                    collectDiv = $j("input[src*='collect_reward_button2.jpg']");
-                    if (collectDiv && collectDiv.length) {
-                        con.log(1, "Monster is dead and ready to collect");
-                        currentRecord.state = 'Collect';
-                        if (config.getItem('guildMonsterCollect', false)) {
-                            collect = true;
-                        }
-                    } else {
-                        con.log(1, "Monster is completed");
-                        currentRecord.state = 'Completed';
-                    }
-
-                    currentRecord.color = "grey";
-                }
-
-                currentRecord.reviewed = Date.now();
-                con.log(2, "currentRecord", currentRecord);
-                guild_monster.setItem(currentRecord);
-                if (collect) {
-                    caap.click(collectDiv);
-                }
-            } else {
-                if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
-                //tempDiv = $j("#guild_battle_guild_tabs a[href*='guild_battle_monster.php?guild_id=']");
-                //if ($u.hasContent(tempDiv) && tempDiv.attr('href').hasIndexOf(caap.stats.guild.id)) {
-                    slot = state.getItem('guildMonsterReviewSlot', 0);
-                    if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
-                        con.log(1, "monster expired", slot);
-                        guild_monster.deleteItem(slot);
-                    } else {
-                        con.warn("monster expired slot error", slot);
-                    }
-                } else {
-                    con.log(1, "On another guild's monster", myStatsTxt);
-                }
-            }
-
-            gates = null;
-            health = null;
-            healthGuild = null;
-            healthEnemy = null;
-            allowedDiv = null;
-            bannerDiv = null;
-            collectDiv = null;
-            tempDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_monster.onMonster: " + err);
-            return false;
-        }
     };
 
     guild_monster.getReview = function() {
@@ -1000,13 +1267,13 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.hasIndexOf(minion.target_id) && $u.isNaN(minion.healthNum)) {
-                if (caap.stats.stamina.num < 5) {
+                if (stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
+                } else if (stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
+                } else if (stats.stamina.num < 20) {
                     attack = 3;
-                } else if (caap.stats.stamina.num < 50) {
+                } else if (stats.stamina.num < 50) {
                     attack = 4;
                 } else {
                     attack = 5;
@@ -1014,37 +1281,37 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             } else if (minion.healthNum < recordInfo.health[0]) {
                 attack = 1;
             } else if (minion.healthNum < recordInfo.health[1]) {
-                if (caap.stats.stamina.num < 5) {
+                if (stats.stamina.num < 5) {
                     attack = 1;
                 } else {
                     attack = 2;
                 }
             } else if (minion.healthNum < recordInfo.health[2]) {
-                if (caap.stats.stamina.num < 5) {
+                if (stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
+                } else if (stats.stamina.num < 10) {
                     attack = 2;
                 } else {
                     attack = 3;
                 }
             } else if (minion.healthNum < recordInfo.health[3]) {
-                if (caap.stats.stamina.num < 5) {
+                if (stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
+                } else if (stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
+                } else if (stats.stamina.num < 20) {
                     attack = 3;
                 } else {
                     attack = 4;
                 }
             } else {
-                if (caap.stats.stamina.num < 5) {
+                if (stats.stamina.num < 5) {
                     attack = 1;
-                } else if (caap.stats.stamina.num < 10) {
+                } else if (stats.stamina.num < 10) {
                     attack = 2;
-                } else if (caap.stats.stamina.num < 20) {
+                } else if (stats.stamina.num < 20) {
                     attack = 3;
-                } else if (caap.stats.stamina.num < 50) {
+                } else if (stats.stamina.num < 50) {
                     attack = 4;
                 } else {
                     attack = 5;

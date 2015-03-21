@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            264
+// @dev            269
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
@@ -23,7 +23,7 @@ var caapjQuery = "1.8.3",
     caapjQueryUI = "1.9.2",
     caapjQueryDataTables = "1.9.4",
     caapVersion = "141.0.0",
-    devVersion = "264",
+    devVersion = "269",
     hiddenVar = true,
     caap_timeout = 0,
     image64 = {},
@@ -37,26 +37,18 @@ var caapjQuery = "1.8.3",
     ss = null,
     db = null,
     sort = {},
+	worker = {},
+	stats = {},
     schedule = null,
-    general = {},
-    monster = {},
     guild_monster = {},
-    guild_battle = {},
-    arena = {},
-    festival = {},
-    feed = {},
-    battle = {},
-    town = {},
     spreadsheet = {},
     gifting = {},
-    army = {},
     caap = {},
     con = {},
-    conquest = {},
     conquestLands = {},
     guilds = {},
     retryDelay = 1000;
-
+	
 String.prototype.stripCaap = function() {
     return this.replace(/caap_/i, '');
 };
@@ -67,6 +59,76 @@ String.prototype.numberOnly = function() {
 
 Number.prototype.numberOnly = function() {
     return this.valueOf();
+};
+
+Number.prototype.r1000 = function() {
+    return (this / 1000).dp(0);
+};
+
+Array.prototype.flatten = function(f, lc) {
+	 return this.map( function(o) {
+		return lc ? o[f].toLowerCase() : o[f];
+	});
+};
+
+Array.prototype.getObjIndex = function(f, v, lc) {
+	 return this.flatten(f, lc).indexOf(v);
+};
+
+Array.prototype.hasObj = function(f, v) {
+	 return this.getObjIndex(f, v) >= 0;
+};
+
+Array.prototype.addToList = function(v) {
+	if (this.indexOf(v) < 0) {
+		this.push(v);
+	}
+	return this;
+};
+
+Array.prototype.sum = function() {
+	return this.reduce(function(a,b) {
+		return a+b;
+	});
+}
+
+Array.prototype.removeFromList = function(v) {
+	var i = this.indexOf(v);
+	if (i > -1) {
+		this.splice(i, 1);
+	}
+	return i > -1;
+};
+
+Array.prototype.filterByField = function(f, v) {
+	 return this.filter( function(e) {
+		return e[f] === v;
+	});
+};
+
+Array.prototype.getObjByField = function(f, v, d) {
+	 var i = this.getObjIndex(f, v);
+    return i == -1 ? d : this[i];
+};
+
+Array.prototype.getObjByFieldLc = function(f, v, d) {
+	 var i = this.getObjIndex(f, v, true);
+    return i == -1 ? d : this[i];
+};
+
+Array.prototype.deleteObjs = function(f, v) {
+	return this.filter( function(e) {
+		return e[f] !== v;
+	});
+};
+
+Array.prototype.listMatch = function(r) {
+	var m = false;
+	this.some( function(c) {
+		m = c.regex(r); 
+		return m;
+	});
+	return m;
 };
 
 String.prototype.parseTimer = function() {
