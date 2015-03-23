@@ -397,6 +397,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 							tStr = '';
 							
 						r.points = str.regex(/\+([\d\.]+) Battle Activity Points/);
+						r.name = r.name.replace(/ CONQUEROR PATH CREDIT: \w+/,'');
 						if (str.regex(/(Your target is freed from polymorph!)/i) || str.regex(/(yourself)/i)) {
 							return;
 						} else if ($u.hasContent(r.wl)) {
@@ -827,7 +828,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 								case 'shout' : 		tf = pics.hasIndexOf('warrior_effect_shout.gif'); 					break;
 								case 'confidence' : tf = pics.hasIndexOf('warrior_effect_confidence.gif'); 				break;
 								case 'fortify' : 	tf = pics.hasIndexOf('cleric_effect_fort.gif'); 					break;
-								case 'smokebomb' : 	tf = pics.hasIndexOf('effect_smoke'); 								break;
+								case 'smokebomb' : 	tf = pics.hasIndexOf('rogue_effect_smoke.gif');						break;
 								case 'enrage' : 	tf = pics.hasIndexOf('mage_effect_enrage.gif'); 					break;
 								case 'divine_favor': tf = pics.hasIndexOf('cleric_effect_divine_favor.gif'); 			break;
 								case 'attack' : 	tf = pics.hasIndexOf('targetting_attack.png'); 						break;

@@ -947,7 +947,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	conquest.testList = [
 		{ method : 'invade',
 			type : 'conq',
-			check : / Army(\d+) .* Army(\d+) .*(\d+) Conquest Rank Pts.* (\+1)? XP.*Health (.*) .?\d+ Conquest Rank/i,
+			check : / Army(\d+) .* Army(\d+) .*(-?\d+) Conquest Rank Pts.* (\+1)? XP.*Health (.*) .?\d+ Conquest Rank/i,
 			vars : ['myArmy', 'theirArmy', 'points', 'wl',  'name'],
 			func : function(r) {
 				r.wl = r.wl == '+1' ? 'won' : 'lost';

@@ -710,18 +710,6 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
         }
     };
 
-    general.Clear = function (whichGeneral) {
-        try {
-            con.log(1, 'Setting ' + whichGeneral + ' to "Use Current"');
-            config.setItem(whichGeneral, 'Use Current');
-            general.UpdateDropDowns();
-            return true;
-        } catch (err) {
-            con.error("ERROR in general.Clear: " + err.stack);
-            return false;
-        }
-    };
-
     general.LevelUpCheck = function (whichGeneral) {
         try {
             var generalType = '',
@@ -838,12 +826,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             }
 
             if (general.getRecord(targetGeneral).newRecord) {
-				if (!config.getItem('saveLoadouts', true)) {
-					con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '.  Changing setting to "Use Current"');
-					general.Clear(whichGeneral);
-				} else {
-					con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '. Loadouts reset, maybe? Ignoring setting.');
-				}
+				con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '. Loadouts reset, maybe? Ignoring setting.');
 				return returnNametf ? 'Use Current' : false;
 					
             }
@@ -912,8 +895,8 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             }
 
 			if (defaultLoadout != 'Use Current' && !general.hasRecord(defaultLoadout)) {
-                con.warn('Unable to find ' + defaultLoadout + ' record for the default Loadout.  Changing setting to "Use Current"');
-                general.Clear('DefaultLoadout');
+				// Unable to equip, but remember setting in case it was a loadouts reset
+				defaultLoadout = 'Use Current';
             }
 
             if (targetGeneral == 'Use Current') {
@@ -1018,7 +1001,6 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 				gen = '';
 
             htmlCode += caap.startToggle('Generals', 'GENERALS');
-			htmlCode += caap.makeCheckTR("Do not clear Loadouts", 'saveLoadouts', true, saveLoadouts);
             htmlCode += caap.makeCheckTR("Filter Generals", 'filterGeneral', true, "Filter General lists for most useable in category.");
             htmlCode += caap.makeDropDownTR("Default Loadout", 'DefaultLoadout', ['Use Current'].concat(general.LoadoutsList), '', '', 'Use Current', false, false, 62);
             general.menuList.forEach( function(g) {

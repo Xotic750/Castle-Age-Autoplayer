@@ -2075,7 +2075,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.domain.which === 2 || caap.domain.which === 3) {
                 caap.addDBListener();
                 caap.checkResultsTop();
-                chores.statCheck();
+                statsFunc.check();
                 caap.bestLand = new caap.landRecord().data;
                 caap.sellLand = {};
                 offline.bga.sort($u.sortBy(false, 'n'));
@@ -2127,7 +2127,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 			
 			array.forEach( function(entry, index) {
-				record[entry] = args[index];
+				if (entry.match(/\./)) {
+					record[entry.split('.')[0]][entry.split('.')[1]] = args[index];
+				} else {
+					record[entry] = args[index];
+				}
 			});
 			
 			//con.log(2, 'Regex div text to record', text, regex, array, record);
@@ -2511,21 +2515,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.addPauseMenu();
             htmlCode += caap.addDisableMenu();
-            htmlCode += caap.addCashHealthMenu();
+            htmlCode += general.menu();
             htmlCode += caap.addQuestMenu();
             htmlCode += battle.menu();
-            htmlCode += conquest.menu();
             htmlCode += monster.menu();
             htmlCode += guild_monster.menu();
-            htmlCode += gb.menu();
             htmlCode += feed.menu();
+            htmlCode += gb.menu();
+            htmlCode += conquest.menu();
+            htmlCode += caap.addConquestOptionsMenu();
             //htmlCode += arena.menu();
 			if (config.getItem("When100v100", "Never") !== "Never") {
 				config.setItem("When100v100", "Never");
 			}
 
-            htmlCode += general.menu();
-            htmlCode += caap.addSkillPointsMenu();
+            htmlCode += caap.addCashHealthMenu();
+            htmlCode += caap.addAutoOptionsMenu();
+            htmlCode += statsFunc.upgradeMenu();
+            htmlCode += caap.addEssenceMenu();
             htmlCode += army.menu();
             if (caap.domain.which === 0) {
                 htmlCode += gifting.menu();
@@ -2534,9 +2541,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 config.setItem("watchBeeper", false);
             }
 
-            htmlCode += caap.addAutoOptionsMenu();
-            htmlCode += caap.addConquestOptionsMenu();
-            htmlCode += caap.addEssenceMenu();
             htmlCode += caap.addOtherOptionsMenu();
             //htmlCode += caap.addFooterMenu();
             caap.setDivContent('control', htmlCode, caapDiv);
@@ -2725,7 +2729,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             htmlCode += caap.makeDropDownTR("Quest For", 'WhyQuest', questForList, questForListInstructions, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR("Switch Quest Area", 'switchQuestArea', true, 'Allows switching quest area after Advancement or Max Influence');
-            htmlCode += caap.makeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, forceSubGen);
             htmlCode += caap.makeCheckTR("Perform Excavation Quests", 'ExcavateMines', false, 'If quest is for a mine, go ahead and excavate it.');
             htmlCode += caap.makeCheckTR("Quest For Orbs", 'GetOrbs', false, 'Perform the Boss quest in the selected land for orbs you do not have.');
             htmlCode += "<a id='caap_stopAutoQuest' style='display: " + (autoQuestName ? "block" : "none") + "' href='javascript:;' title='" + stopInstructions + "'>";
@@ -2736,57 +2739,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return htmlCode;
         } catch (err) {
             con.error("ERROR in addQuestMenu: " + err.stack);
-            return '';
-        }
-    };
-
-    caap.addSkillPointsMenu = function () {
-        try {
-            var statusInstructions = "Automatically increase attributes when " + "upgrade skill points are available.",
-                statusAdvInstructions = "USE WITH CAUTION: You can use numbers or " +
-                    "formulas(ie. level * 2 + 10). Variable keywords include energy, " +
-                    "health, stamina, attack, defense, and level. JS functions can be " +
-                    "used (Math.min, Math.max, etc) !!!Remember your math class: " +
-                    "'level + 20' not equals 'level * 2 + 10'!!!",
-                statImmedInstructions = "Update Stats Immediately",
-                statSpendAllInstructions = "If selected then spend all possible points and do not save for stamina upgrade.",
-                attrList = ['', 'Energy', 'Attack', 'Defense', 'Stamina', 'Health'],
-                it = 0,
-                htmlCode = '';
-
-            htmlCode += caap.startToggle('Status', 'UPGRADE SKILL POINTS');
-            htmlCode += caap.makeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, statusInstructions);
-            htmlCode += caap.display.start('AutoStat');
-            htmlCode += caap.makeCheckTR("Spend All Possible", 'StatSpendAll', false, statSpendAllInstructions);
-            htmlCode += caap.makeCheckTR("Upgrade Immediately", 'StatImmed', false, statImmedInstructions);
-            htmlCode += caap.makeCheckTR("Advanced Settings <a href='http://caaplayer.freeforums.org/help-for-upgrade-points-control-t418.html' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, statusAdvInstructions);
-            htmlCode += caap.display.start('AutoStatAdv', 'isnot', true);
-            for (it = 0; it < 5; it += 1) {
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("Increase", false, false, "width: 27%; display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%; display: inline-block;");
-                htmlCode += caap.makeTD("to", false, false, "text-align: center; width: 10%; display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, 0), false, true, "width: 20%; display: inline-block;");
-                htmlCode += caap.endTR;
-            }
-
-            htmlCode += caap.display.end('AutoStatAdv', 'isnot', true);
-            htmlCode += caap.display.start('AutoStatAdv');
-            for (it = 5; it < 10; it += 1) {
-                htmlCode += caap.startTR();
-                htmlCode += it === 5 ? caap.makeTD("Increase", false, false, "width: 25%; display: inline-block;") : caap.makeTD("Then", false, false, "width: 25%; display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
-                htmlCode += caap.makeTD("using", true, false, "width: 25%; display: inline-block;");
-                htmlCode += caap.endTR;
-                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'));
-            }
-
-            htmlCode += caap.display.end('AutoStatAdv');
-            htmlCode += caap.display.end('AutoStat');
-            htmlCode += caap.endToggle;
-            return htmlCode;
-        } catch (err) {
-            con.error("ERROR in addSkillPointsMenu: " + err.stack);
             return '';
         }
     };
@@ -3466,10 +3418,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			caap.setDisplayById(idName);
 			
             switch (idName) {
-                case "AutoStatAdv":
-                    con.log(9, "AutoStatAdv");
-                    state.setItem("statsMatch", true);
-                    break;
                 case "NextLevelInDays":
                     caap.setNextLevelMessage();
                     break;
@@ -3670,10 +3618,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     break;
                 case "StatSpendAll":
-                    con.log(9, "StatSpendAll");
-                    state.setItem("statsMatch", true);
                     state.setItem("autoStatRuleLog", true);
-
                     break;
                 case "enableTitles":
                 case "goblinHinting":
@@ -3897,10 +3842,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             var idName = e.target.id.stripCaap();
 
             con.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
-            if (/AttrValue+/.test(idName)) {
-                state.setItem("statsMatch", true);
-            }
-
             config.setItem(idName, String(e.target.value));
             return true;
         } catch (err) {
@@ -3928,9 +3869,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Change: setting "' + idName + '" to ', number);
-            if (/AttrValue+/.test(idName)) {
-                state.setItem("statsMatch", true);
-            } else if (/MaxToFortify/.test(idName)) {
+            if (/MaxToFortify/.test(idName)) {
                 monster.select(true);
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
@@ -3964,11 +3903,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 e.target.title = title;
 				caap.setDisplayById(idName);
 				
-                if (/Attribute?/.test(idName)) {
-                    state.setItem("statsMatch", true);
-					return true;
-                }
-
 				switch (idName) {
 					case 'WhenBattle':
 					case 'WhenConquest':
@@ -4893,12 +4827,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(4, 'caap.checkResultsTop');
             // Check page to see if we should go to a page specific check function
 			
-            if (!schedule.check('CheckResultsTimer')) {
-                con.warn('caap.checkResultsTop: Page check results called twice within 1 second.');
-                return false;
-            }
-
-            schedule.setItem('CheckResultsTimer', 1);
             caap.resultsText = $u.setContent($j("#app_body #results_main_wrapper").text(), '').trim().innerTrim();
 
             if (!session.setItem("pageLoadOK", statsFunc.check())) {
@@ -5905,18 +5833,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            if (state.getItem('AutoQuest', caap.newAutoQuest()).general === 'none' || config.getItem('ForceSubGeneral', false)) {
-                if (general.Select('SubQuestGeneral')) {
-                    return true;
-                }
-            } else if (general.LevelUpCheck('QuestGeneral')) {
-                if (general.Select('LevelUpGeneral')) {
-                    return true;
-                }
-
-                con.log(2, 'Using level up general');
-            }
-
             pathToPage = 'quests';
             imageOnPage = 'quest_back_1.jpg';
             subQArea = 'Land of Fire';
@@ -6043,17 +5959,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             bDisp = $u.setContent(bDiv.css("display"), 'none');
             button = $j();
 
-            if (bDisp !== 'none') {
-                button = $j("input[src*='quick_switch_button.gif']", bDiv);
-                if ($u.hasContent(button) && !config.getItem('ForceSubGeneral', false)) {
-                    con.log(2, 'Clicking on quick switch general button.');
-					general.logGeneral();
-                    caap.click(button);
-                    general.quickSwitch = true;
-                    return true;
-                }
-            }
-
             // Buy quest requires popup
             itemBuyPopUp = $j('#globalContainer form[id*="itemBuy"]');
             costToBuy = 0;
@@ -6175,29 +6080,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            questGeneral = state.getItem('AutoQuest', caap.newAutoQuest()).general;
-            if (questGeneral === 'none' || config.getItem('ForceSubGeneral', false)) {
-                if (general.Select('SubQuestGeneral')) {
-                    return true;
-                }
-            } else if (questGeneral && questGeneral !== general.current) {
-                if (general.LevelUpCheck("QuestGeneral")) {
-                    if (general.Select('LevelUpGeneral')) {
-                        return true;
-                    }
-
-                    con.log(2, 'Using level up general');
-                } else {
-                    if ($u.hasContent(autoQuestDivs.genDiv)) {
-                        con.log(2, 'Clicking on general', questGeneral);
-                        caap.click(autoQuestDivs.genDiv);
-                        caap.clearDomWaiting();
-                        return true;
-                    }
-
-                    con.warn('Can not click on general', questGeneral);
-                    return false;
-                }
+            if (general.LevelUpCheck("QuestGeneral")) {
+				if (general.Select('LevelUpGeneral')) {
+					con.log(2, 'Using level up general');
+					return true;
+				}
+			} else if (general.Select('SubQuestGeneral')) {
+				con.log(2, 'Setting subquest general');
+				return true;
             }
 
             if ($u.hasContent(autoQuestDivs.click)) {

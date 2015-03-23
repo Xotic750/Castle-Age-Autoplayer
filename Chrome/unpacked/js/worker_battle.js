@@ -63,8 +63,29 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	worker.addAction({worker : 'battle', priority : 700, description : 'Battling Players'});
 	
 	battle.init = function() {
-		battle.page = stats.level < 10 ? 'battle_train;battle_off' : 'battle';
-	};
+		try {
+			var arr = [],
+				haveWonLost = false;
+			battle.page = stats.level < 10 ? 'battle_train;battle_off' : 'battle';
+			
+			battle.records = battle.records.filter( function(r) {
+				haveWonLost = ['duel', 'invade', 'war'].some( function(e) {
+					return r[e + 'Won'] || r[e + 'Lost'];
+				});
+				if (!haveWonLost) {
+					arr.push(r.name);
+				}
+				return haveWonLost;
+			});
+			if (arr.length) {
+				con.warn('Battle: Removed records we have no win/loss results from: ' + arr.join(', '));
+				battle.doSave = true;
+			}
+        } catch (err) {
+            con.error("ERROR in battle.init: " + err.stack);
+            return false;
+        }
+    };
 	
     battle.worker = function() {
         try {
@@ -494,6 +515,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			func : function(r) {
 				r.att = stats.bonus.api * r.myArmy / r.theirArmy;
 				r.gold = r.gold ? r.gold.numberOnly() : 0;
+				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
 			}
 		},
 		{ method : 'duel',
@@ -503,6 +525,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			func : function(r) {
 				r.att = stats.bonus.api;
 				r.gold = r.gold ? r.gold.numberOnly() : 0;
+				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
 			}
 		},
 		{ method : 'war',
@@ -512,6 +535,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			func : function(r) {
 				r.wl = r.wl.hasIndexOf('Experience') ? 'won' : 'lost';
 				r.gold = caap.resultsText.regex(/\$([,\d]+)/).numberOnly();
+				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
 			}
 		}
 	];
@@ -563,7 +587,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			r.userId = userId;
 			bR[r.wl + 'Time'] = Date.now();
 			bR[r.method + r.wl.ucWords()] += 1;
-			bR[r.type + 'Points'] += (r.wl == 'won' ? 1 : -1) * $u.setContent(r.points, 0);
+			bR[r.type + 'Points'] += $u.setContent(r.points, 0);
 			if ($u.hasContent(r.att)) {
 				str = (r.wl == 'won' ? 'max' : 'min') + 'Def';
 				bR[str] = Math[r.wl == 'won' ? 'min' : 'max'](r.att, bR[str]).dp(0);

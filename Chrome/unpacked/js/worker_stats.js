@@ -39,6 +39,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				dpi: 0,
 				api: 0
 			},
+			monster: {
+				dp: 0
+			},
 			points: {
 				skill: 0,
 				favor: 0,
@@ -210,6 +213,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
 	};
+
+	statsFunc.unpause = function() {
+		state.deleteItem("statsRaiseDone", false);
+	};
 	
 	statsFunc.check = function(page) {
         try {
@@ -288,7 +295,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (tNum) {
                 if (tNum > stats.points.skill) {
                     con.log(2, 'New points. Resetting AutoStat.');
-                    state.setItem("statsMatch", true);
+                    state.deleteItem("statsRaiseDone");
                 }
 
                 stats.points.skill = tNum;
@@ -322,13 +329,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    stats.checkResults = function (page) {
+    statsFunc.checkResults = function (page) {
         try {
 			switch (page) {
 			case 'keep' :
-				var attrDiv = $j("#app_body #keepAltStats"),
-					statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
-					//keepTable1 = $j("#app_body .keepTable1 tr"),
+				var statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
 					statCont = $j("#app_body div[style*='keep_bgv2.jpg']>div>div>div"),
 					recordsTxt = $j(),
 					args = [],
@@ -337,469 +342,358 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					temp,
 					row,
 					head,
-					body;
+					body,
+					text = $j('#app_body').text().replace(/COMING SOON This feature is coming soon\!/, '').replace(/You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\!/, '').trim().innerTrim();
 
-				if ($u.hasContent(attrDiv)) {
-					con.log(2, "Getting new values from player keep");
-					// rank
-					tempDiv = $j("#app_body img[src*='gif/rank']");
-					if ($u.hasContent(tempDiv)) {
-						stats.rank.battle = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
-					} else {
-						con.warn('Using stored rank.');
-					}
-
-					// PlayerName
-					tempDiv = $j("#app_body div[style*='keep_top.jpg'] div").first();
-					if ($u.hasContent(tempDiv)) {
-						stats.PlayerName = tempDiv.text().trim();
-						//con.log(1, stats.PlayerName);
-					} else {
-						con.warn('Using stored PlayerName.');
-					}
-
-					// FBID
-					tempDiv = $j("#app_body a[href*='keep.php?user=']");
-					if ($u.hasContent(tempDiv)) {
-						stats.FBID = tempDiv.attr("href").basename().regex(/(\d+)/);
-						//con.log(1, stats.FBID);
-					} else {
-						con.warn('Using stored PlayerName.');
-					}
-
-					// war rank
-					if (stats.level >= 100) {
-						tempDiv = $j("#app_body img[src*='war_rank_']");
-						if ($u.hasContent(tempDiv)) {
-							stats.rank.war = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
-						} else {
-							con.warn('Using stored warRank.');
-						}
-					}
-					// conquest rank
-					if (stats.level >= 100) {
-						tempDiv = $j("#app_body img[src*='conquest_rank_']");
-						if ($u.hasContent(tempDiv)) {
-							stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
-						} else {
-							con.warn('Using stored conquestRank.');
-						}
-					}
-
-					if ($u.hasContent(statCont) && statCont.length >= 6) {
-						if (stats.level >= 10) {
-							// Attack
-							tempDiv = statCont.eq(2);
-							if ($u.hasContent(tempDiv)) {
-								stats.attack = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
-								stats.bonus.attack = $u.setContent($u.setContent(tempDiv.text(), '').regex(/\(\+(\d+)\)/), 0);
-								//con.log(2,'KEEP Attack', stats.attack, stats.attackbonus);
-							} else {
-								con.warn('Using stored attack value.');
-							}
-
-							// Defense
-							tempDiv = statCont.eq(3);
-							if ($u.hasContent(tempDiv)) {
-								stats.defense = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
-								stats.bonus.defense = $u.setContent($u.setContent(tempDiv.text(), '').regex(/\(\+(\d+)\)/), 0);
-								//con.log(2,'KEEP Defense', stats.defense, stats.defensebonus);
-							} else {
-								con.warn('Using stored defense value.');
-							}
-						}
-
-						// Health
-						tempDiv = statCont.eq(4);
-						if ($u.hasContent(tempDiv)) {
-							stats.health.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
-							
-						} else {
-							con.warn('Unable to find unadjusted Health value.');
-						}
-						
-						// Energy
-						tempDiv = statCont.eq(0);
-						if ($u.hasContent(tempDiv)) {
-							stats.energy.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
-						} else {
-							con.warn('Unable to find unadjusted Energy value.');
-						}
-
-						// Stamina
-						tempDiv = statCont.eq(1);
-						if ($u.hasContent(tempDiv)) {
-							stats.stamina.norm = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
-						} else {
-							con.warn('Unable to find unadjusted Stamina value.');
-						}
-					} else {
-						con.warn("Can't find stats containers! Using stored stats values.");
-					}
-
-					// Check for Gold Stored
-					tempDiv = statsTB.eq(4);
-					if ($u.hasContent(tempDiv)) {
-						stats.gold.bank = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
-						stats.gold.total = stats.gold.bank + stats.gold.cash;
-						tempDiv.attr({
-							title: "Click to copy value to retrieve"
-						}).css({
-							color: "blue",
-							cursor: "pointer"
-						}).on("click", function () {
-							$j("#app_body #getGold").val(stats.gold.bank);
-						});
-					} else {
-						con.warn('Using stored inStore.');
-					}
-
-					// Check for income
-					tempDiv = statsTB.eq(5);
-					if ($u.hasContent(tempDiv)) {
-						stats.gold.income = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
-					} else {
-						con.warn('Using stored income.');
-					}
-
-					// Check for upkeep
-					tempDiv = statsTB.eq(6);
-					if ($u.hasContent(tempDiv)) {
-						stats.gold.upkeep = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
-					} else {
-						con.warn('Using stored upkeep.');
-					}
-
-					// Cash Flow
-					stats.gold.flow = stats.gold.income - stats.gold.upkeep;
-
-					// Energy potions
-					tempDiv = $j("div[title='Energy Potion']").children().eq(1);
-					if ($u.hasContent(tempDiv)) {
-						stats.potions.energy = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
-					} else {
-						stats.potions.energy = 0;
-					}
-
-					// Stamina potions
-					tempDiv = $j("div[title='Stamina Potion']").children().eq(1);
-					if ($u.hasContent(tempDiv)) {
-						stats.potions.stamina = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
-					} else {
-						stats.potions.stamina = 0;
-					}
-
-					// Other stats
-					// Atlantis Open
-					stats.other.atlantis = $u.hasContent(caap.checkForImage("seamonster_map_finished.jpg")) ? true : false;
-
-					recordsTxt = $u.setContent($j("#globalContainer #records_tab").text().trim().innerTrim(), '');
-					args = recordsTxt.match(new RegExp("Quests Completed (\\d+) Battles/Wars Won (\\d+) Battles/Wars Lost (\\d+) Kills (\\d+) Deaths (\\d+)"));
-					if (args && args.length === 6) {
-						stats.other.qc = args[1].numberOnly();
-						stats.other.bww = args[2].numberOnly();
-						stats.other.bwl = args[3].numberOnly();
-						stats.other.te = args[4].numberOnly();
-						stats.other.tee = args[5].numberOnly();
-						//con.log(2, "my stats", args, recordsTxt, stats.other);
-					} else {
-						con.warn("Unable to read quests completed and battle stats", args, recordsTxt);
-					}
-
-					// Win/Loss Ratio (WLR)
-					stats.other.wlr = stats.other.bwl !== 0 ? (stats.other.bww / stats.other.bwl).dp(2) : Infinity;
-					// Enemy Eliminated Ratio/Eliminated (EER)
-					stats.other.eer = stats.other.tee !== 0 ? (stats.other.tee / stats.other.te).dp(2) : Infinity;
-					// Indicators
-					if (stats.level >= 10) {
-						stats.indicators.bsi = ((stats.attack + stats.defense) / stats.level).dp(2);
-						stats.indicators.lsi = ((stats.energy.max + (2 * stats.stamina.max)) / stats.level).dp(2);
-						stats.indicators.sppl = ((stats.energy.max + (2 * stats.stamina.max) + stats.attack + stats.defense + stats.health.max - 122) / stats.level).dp(2);
-						stats.indicators.api = (stats.attack + (stats.defense * 0.7)).dp(0);
-						stats.bonus.api = stats.indicators.api + (stats.bonus.attack + (stats.bonus.defense * 0.7)).dp(0);
-						stats.indicators.dpi = ((stats.defense + (stats.attack * 0.7))).dp(0);
-						stats.bonus.dpi = stats.indicators.dpi + (stats.bonus.defense + (stats.bonus.attack * 0.7)).dp(0);
-						stats.indicators.mpi = (((stats.indicators.api + stats.indicators.dpi) / 2)).dp(0);
-						stats.indicators.mhbeq = ((stats.attack + (2 * stats.stamina.max)) / stats.level).dp(2);
-						if (stats.attack >= stats.defense) {
-							temp = stats.attack / stats.defense;
-							if (temp === stats.attack) {
-								stats.indicators.pvpclass = 'Destroyer';
-							} else if (temp >= 2 && temp < 7.5) {
-								stats.indicators.pvpclass = 'Aggressor';
-							} else if (temp < 2 && temp > 1.01) {
-								stats.indicators.pvpclass = 'Offensive';
-							} else if (temp <= 1.01) {
-								stats.indicators.pvpclass = 'Balanced';
-							}
-						} else {
-							temp = stats.defense / stats.attack;
-							if (temp === stats.defense) {
-								stats.indicators.pvpclass = 'Wall';
-							} else if (temp >= 2 && temp < 7.5) {
-								stats.indicators.pvpclass = 'Paladin';
-							} else if (temp < 2 && temp > 1.01) {
-								stats.indicators.pvpclass = 'Defensive';
-							} else if (temp <= 1.01) {
-								stats.indicators.pvpclass = 'Balanced';
-							}
-						}
-					}
-
-					// added rune totals
-					temp = $j('#runes_2').text().trim().innerTrim();
-					caap.bulkRegex(temp, / (\d+).*Atk.* (\d+).*Def.* (\d+).*Dmg.* (\d+).*Hth/, stats.rune, ['attack', 'defense', 'damage', 'health']);
-					caap.bulkRegex(temp, /x(\d+) x(\d+) x(\d+) x(\d+)/, stats.essence, ['Attack', 'Defense', 'Damage', 'Health']);
-
-					statsFunc.setRecord(stats);
-					if (config.getItem("displayKStats", true)) {
-						tempDiv = $j("div[style*='keep_top']");
-						backgroundDiv = $j("div[style*='keep_tabheader']");
-
-						temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
-						temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
-						row = caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '5%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '10%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '20%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '10%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '20%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '10%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '20%'
-						});
-
-						row += caap.makeTh({
-							text: '&nbsp;',
-							color: '',
-							bgcolor: '',
-							id: '',
-							title: '',
-							width: '5%'
-						});
-
-						head = caap.makeTr(row);
-
-						row = caap.makeTd({
-							text: '',
-							color: '',
-							id: '',
-							title: ''
-						});
-
-						row += caap.makeTd({
-							text: 'BSI',
-							color: '',
-							id: '',
-							title: 'Battle Strength Index'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.bsi,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'LSI',
-							color: '',
-							id: '',
-							title: 'Leveling Speed Index'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.lsi,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'SPPL',
-							color: '',
-							id: '',
-							title: 'Skill Points Per Level (More accurate than SPAEQ)'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.sppl,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						body = caap.makeTr(row);
-
-						row = caap.makeTd({
-							text: '',
-							color: '',
-							id: '',
-							title: ''
-						});
-
-						row += caap.makeTd({
-							text: 'API',
-							color: '',
-							id: '',
-							title: 'Attack Power Index'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.api,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'DPI',
-							color: '',
-							id: '',
-							title: 'Defense Power Index'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.dpi,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'MPI',
-							color: '',
-							id: '',
-							title: 'Mean Power Index'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.mpi,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						body += caap.makeTr(row);
-
-						row = caap.makeTd({
-							text: '',
-							color: '',
-							id: '',
-							title: ''
-						});
-
-						row += caap.makeTd({
-							text: 'MHBEQ',
-							color: '',
-							id: '',
-							title: 'Monster Hunting Build Effective Quotent'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.mhbeq,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'Build',
-							color: '',
-							id: '',
-							title: 'Character build type'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.build,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: 'PvP Class',
-							color: '',
-							id: '',
-							title: 'Player vs. Player character class'
-						}, "font-size:14px;");
-
-						row += caap.makeTd({
-							text: stats.indicators.pvpclass,
-							color: '',
-							id: '',
-							title: ''
-						}, "font-size:14px;");
-
-						body += caap.makeTr(row);
-
-						temp += caap.makeTable("keepstats", head, body, "Statistics", "font-size:16px;");
-						temp += "</div></div>";
-						tempDiv.after(temp);
-					} else {
-						tempDiv = $j(".keep_stat_title_inc", attrDiv);
-						tempDiv = $u.hasContent(tempDiv) ? tempDiv.html($u.setContent(tempDiv.html(), '').trim() + ", <span style='white-space: nowrap;'>BSI: " +
-							stats.indicators.bsi + " LSI: " + stats.indicators.lsi + "</span>") : tempDiv;
-					}
-				} else {
+				if (!text.match(/Army Size - Take more soldiers into battle!/)) {
 					tempDiv = $j("#app_body a[href*='keep.php?user=']");
 					if ($u.hasContent(tempDiv)) {
 						con.log(2, "On another player's keep", $u.setContent($u.setContent(tempDiv.attr("href"), '').basename().regex(/(\d+)/), 0));
 					} else {
-						con.warn("Attribute section not found and not identified as another player's keep!");
+						con.error("Error: standard text not found and not another player's keep", text);
 					}
+					break;
+				}
+				
+				if (!caap.bulkRegex(text, /(.*?) Level \d+ - (.*?) (\d+) .*? Max Energy .*? (\d+) .*? Max Stamina .*? (\d+) Max Health .*?/, stats,
+				['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
+					con.warn('Stats: unable to read energy, stamina, health unmodified values', text);
+				}
+				// war rank
+				if (stats.level >= 100) {
+					tempDiv = $j("#app_body img[src*='war_rank_']");
+					if ($u.hasContent(tempDiv)) {
+						stats.rank.war = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored warRank.');
+					}
+				}
+				if (stats.level >= 10) {
+					if (!caap.bulkRegex(text, /(\d+) \(\+(\d+)\) Attack .*? (\d+) \(\+(\d+)\) Defense/, stats,
+					['attack', 'bonus.attack', 'defense', 'bonus.defense'])) {
+						con.warn('Stats: unable to read attack, defense, and modifiers', text);
+					}
+				}
+				// conquest rank
+				if (stats.level >= 100) {
+					tempDiv = $j("#app_body img[src*='conquest_rank_']");
+					if ($u.hasContent(tempDiv)) {
+						stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored conquestRank.');
+					}
+				}
+
+				// Check for Gold Stored  STORED: INCOME: UPKEEP: CASH FLOW: $0 $236,345,000/hour -$1,280,430/hour $235,064,570/hour
+				if (caap.bulkRegex(text, /STORED: INCOME: UPKEEP: CASH FLOW: \$([,\d]+) \$([,\d]+)\/hour -\$([,\d]+)\/hour \$([,\d]+)\/hour/,
+					stats.gold,	['bank', 'income', 'upkeep', 'flow'])) {
+					['bank', 'income', 'upkeep', 'flow'].forEach( function(e) {
+						stats.gold[e] = stats.gold[e].numberOnly();
+					});
+					stats.gold.total = stats.gold.bank + stats.gold.cash;
+				} else {
+					con.warn('Stats: unable to gold values', text);
+				}
+
+				if (!caap.bulkRegex(text, /CLASS POWERS CLASS EQUIPMENT RESISTANCES x(\d+) x(\d+) (\d+)/, stats,
+				['potions.energy', 'potions.stamina', 'monster.dp'])) {
+					con.warn('Stats: unable to read potions', text);
+				}
+
+				// Runes/Essence
+				if (!caap.bulkRegex(text, / (\d+).*Atk.* (\d+).*Def.* (\d+).*Damage.* (\d+).*Health/,
+					stats.rune, ['attack', 'defense', 'damage', 'health'])) {
+					con.warn('Stats: unable to read runes', text);
+				}
+
+				if (!caap.bulkRegex(text, /x(\d+) x(\d+) x(\d+) x(\d+)/,
+					stats.essence, ['Attack', 'Defense', 'Damage', 'Health'])) {
+					con.warn('Stats: unable to read essence', text);
+				}
+
+				// Other stats
+				if (!caap.bulkRegex(text, /Quests Completed (\d+) Battles\/Wars Won (\d+) Battles\/Wars Lost (\d+) Kills (\d+) Deaths (\d+)/,
+					stats.other, ['qc', 'bww', 'bwl', 'te', 'tee'])) {
+					con.warn('Unable to read quests completed and battle stats', text);
+				}
+
+				// Win/Loss Ratio (WLR)
+				stats.other.wlr = stats.other.bwl !== 0 ? (stats.other.bww / stats.other.bwl).dp(2) : Infinity;
+				// Enemy Eliminated Ratio/Eliminated (EER)
+				stats.other.eer = stats.other.tee !== 0 ? (stats.other.tee / stats.other.te).dp(2) : Infinity;
+				// Indicators
+				if (stats.level >= 10) {
+					stats.indicators.bsi = ((stats.attack + stats.defense) / stats.level).dp(2);
+					stats.indicators.lsi = ((stats.energy.max + (2 * stats.stamina.max)) / stats.level).dp(2);
+					stats.indicators.sppl = ((stats.energy.max + (2 * stats.stamina.max) + stats.attack + stats.defense + stats.health.max - 122) / stats.level).dp(2);
+					stats.indicators.api = (stats.attack + (stats.defense * 0.7)).dp(0);
+					stats.bonus.api = stats.indicators.api + (stats.bonus.attack + (stats.bonus.defense * 0.7)).dp(0);
+					stats.indicators.dpi = ((stats.defense + (stats.attack * 0.7))).dp(0);
+					stats.bonus.dpi = stats.indicators.dpi + (stats.bonus.defense + (stats.bonus.attack * 0.7)).dp(0);
+					stats.indicators.mpi = (((stats.indicators.api + stats.indicators.dpi) / 2)).dp(0);
+					stats.indicators.mhbeq = ((stats.attack + (2 * stats.stamina.max)) / stats.level).dp(2);
+					if (stats.attack >= stats.defense) {
+						temp = stats.attack / stats.defense;
+						if (temp === stats.attack) {
+							stats.indicators.pvpclass = 'Destroyer';
+						} else if (temp >= 2 && temp < 7.5) {
+							stats.indicators.pvpclass = 'Aggressor';
+						} else if (temp < 2 && temp > 1.01) {
+							stats.indicators.pvpclass = 'Offensive';
+						} else if (temp <= 1.01) {
+							stats.indicators.pvpclass = 'Balanced';
+						}
+					} else {
+						temp = stats.defense / stats.attack;
+						if (temp === stats.defense) {
+							stats.indicators.pvpclass = 'Wall';
+						} else if (temp >= 2 && temp < 7.5) {
+							stats.indicators.pvpclass = 'Paladin';
+						} else if (temp < 2 && temp > 1.01) {
+							stats.indicators.pvpclass = 'Defensive';
+						} else if (temp <= 1.01) {
+							stats.indicators.pvpclass = 'Balanced';
+						}
+					}
+				}
+
+				statsFunc.setRecord(stats);
+				if (config.getItem("displayKStats", true)) {
+					tempDiv = $j("div[style*='keep_top']");
+					backgroundDiv = $j("div[style*='keep_tabheader']");
+
+					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+					temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
+					row = caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '5%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '10%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '20%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '10%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '20%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '10%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '20%'
+					});
+
+					row += caap.makeTh({
+						text: '&nbsp;',
+						color: '',
+						bgcolor: '',
+						id: '',
+						title: '',
+						width: '5%'
+					});
+
+					head = caap.makeTr(row);
+
+					row = caap.makeTd({
+						text: '',
+						color: '',
+						id: '',
+						title: ''
+					});
+
+					row += caap.makeTd({
+						text: 'BSI',
+						color: '',
+						id: '',
+						title: 'Battle Strength Index'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.bsi,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'LSI',
+						color: '',
+						id: '',
+						title: 'Leveling Speed Index'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.lsi,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'SPPL',
+						color: '',
+						id: '',
+						title: 'Skill Points Per Level (More accurate than SPAEQ)'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.sppl,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					body = caap.makeTr(row);
+
+					row = caap.makeTd({
+						text: '',
+						color: '',
+						id: '',
+						title: ''
+					});
+
+					row += caap.makeTd({
+						text: 'API',
+						color: '',
+						id: '',
+						title: 'Attack Power Index'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.api,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'DPI',
+						color: '',
+						id: '',
+						title: 'Defense Power Index'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.dpi,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'MPI',
+						color: '',
+						id: '',
+						title: 'Mean Power Index'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.mpi,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					body += caap.makeTr(row);
+
+					row = caap.makeTd({
+						text: '',
+						color: '',
+						id: '',
+						title: ''
+					});
+
+					row += caap.makeTd({
+						text: 'MHBEQ',
+						color: '',
+						id: '',
+						title: 'Monster Hunting Build Effective Quotent'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.mhbeq,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'Build',
+						color: '',
+						id: '',
+						title: 'Character build type'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.build,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: 'PvP Class',
+						color: '',
+						id: '',
+						title: 'Player vs. Player character class'
+					}, "font-size:14px;");
+
+					row += caap.makeTd({
+						text: stats.indicators.pvpclass,
+						color: '',
+						id: '',
+						title: ''
+					}, "font-size:14px;");
+
+					body += caap.makeTr(row);
+
+					temp += caap.makeTable("keepstats", head, body, "Statistics", "font-size:16px;");
+					temp += "</div></div>";
+					tempDiv.after(temp);
 				}
 				break;
 			default :
@@ -808,7 +702,102 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in stats.checkResults: " + err.stack);
+            con.error("ERROR in statsFunc.checkResults: " + err.stack);
+            return false;
+        }
+    };
+
+    ////////////////////////////////////////////////////////////////////
+    //                      Stat Point Upgrade
+    ////////////////////////////////////////////////////////////////////
+
+	worker.addAction({fName : 'statsFunc.immediate', priority : 1400, description : 'Raising Stats Immediately'});
+
+    statsFunc.immediate = function () {
+        if (config.getItem("StatImmed", false)) {
+			return statsFunc.upgrade();
+        }
+    };
+
+	worker.addAction({fName : 'statsFunc.upgrade', priority : -200, description : 'Raising Stats'});
+
+    statsFunc.upgrade = function () {
+        try {
+            if (!config.getItem('AutoStat', false) || !stats.points.skill) {
+                return false;
+            }
+
+            if (state.getItem("statsRaiseDone", false)) {
+                if (state.getItem("autoStatRuleLog", false)) {
+                    con.log(2, "Set to use all stat points, but unable to assign according to settings. Settings should be reviewed.");
+                    state.deleteItem("autoStatRuleLog");
+                }
+
+                return false;
+            }
+
+            var advanced = config.getItem("AutoStatAdv", false),
+                attribute = '',
+                configVal = 0,
+                targetVal = 0,
+                currentVal = 0,
+                level = stats.level,
+                energy = stats.energy.norm,
+                stamina = stats.stamina.norm,
+                attack = stats.attack,
+                defense = stats.defense,
+                health = stats.health.norm,
+                action = false;
+
+			(advanced ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4]).some( function(n) {
+                attribute = config.getItem('Attribute' + n, '').toLowerCase();
+
+                if (attribute === '') {
+                    con.log(2, "Skipping blank entry");
+                    return false;
+                }
+
+                if (stats.level < 10 && ['attack', 'defense', 'health'].hasIndexOf(attribute)) {
+					con.log(2, "Characters below level 10 can not increase Attack, Defense or Health");
+					return false;
+                }
+
+                configVal = config.getItem('AttrValue' + n, 0);
+
+				//Using eval, so user can define formulas on menu, like energy = level + 50
+				/*jslint eval: true */
+				targetVal = advanced ? eval(configVal) : configVal;
+				/*jslint eval: false */
+
+				currentVal = $u.isObject(stats[attribute]) ? stats[attribute].norm : stats[attribute];
+
+                if (targetVal > currentVal) {
+                    if (attribute === 'stamina' && stats.points.skill < 2) {
+					// Wait for second stamina point, maybe
+    					return !config.getItem("StatSpendAll", false);
+					} else { 
+					// We have a match! Upgrade it
+						con.log(2, "Upgrading Skill Point: " + attribute + " is " + currentVal + ", upgrading to " + targetVal);
+						if (caap.navigateTo('keep') 
+							|| caap.ifClick($j("#app_body div[style*='keep_bgv2.jpg'] a[href*='upgrade=" + attribute + "']"))) {
+							action = true;
+						} else {
+							con.warn("Unable to locate upgrade button for " + attribute);
+						}
+						return true;
+					}
+                }
+            });
+
+			if (action) {
+				return true;
+			}
+
+			con.log(1, "No rules match to increase stats");	
+            state.setItem("statsRaiseDone", true);
+			return false;
+        } catch (err) {
+            con.error("ERROR in statsFunc.upgrade: " + err.stack);
             return false;
         }
     };
@@ -1469,4 +1458,55 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    statsFunc.upgradeMenu = function () {
+        try {
+            var statusInstructions = "Automatically increase attributes when upgrade skill points are available.",
+                statusAdvInstructions = "USE WITH CAUTION: You can use numbers or " +
+                    "formulas(ie. level * 2 + 10). Variable keywords include energy, " +
+                    "health, stamina, attack, defense, and level. JS functions can be " +
+                    "used (Math.min, Math.max, etc) !!!Remember your math class: " +
+                    "'level + 20' not equals 'level * 2 + 10'!!!",
+                statImmedInstructions = "Update Stats Immediately",
+                statSpendAllInstructions = "If selected then spend all possible points and do not save for stamina upgrade.",
+                attrList = ['', 'Energy', 'Attack', 'Defense', 'Stamina', 'Health'],
+                it = 0,
+                htmlCode = '';
+
+            htmlCode += caap.startToggle('Status', 'UPGRADE SKILL POINTS');
+            htmlCode += caap.makeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, statusInstructions);
+            htmlCode += caap.display.start('AutoStat');
+            htmlCode += caap.makeCheckTR("Spend All Possible", 'StatSpendAll', false, statSpendAllInstructions);
+            htmlCode += caap.makeCheckTR("Upgrade Immediately", 'StatImmed', false, statImmedInstructions);
+            htmlCode += caap.makeCheckTR("Advanced Settings <a href='http://caaplayer.freeforums.org/help-for-upgrade-points-control-t418.html' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, statusAdvInstructions);
+            htmlCode += caap.display.start('AutoStatAdv', 'isnot', true);
+            for (it = 0; it < 5; it += 1) {
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("Increase", false, false, "width: 27%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%; display: inline-block;");
+                htmlCode += caap.makeTD("to", false, false, "text-align: center; width: 10%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, 0), false, true, "width: 20%; display: inline-block;");
+                htmlCode += caap.endTR;
+            }
+
+            htmlCode += caap.display.end('AutoStatAdv', 'isnot', true);
+            htmlCode += caap.display.start('AutoStatAdv');
+            for (it = 5; it < 10; it += 1) {
+                htmlCode += caap.startTR();
+                htmlCode += it === 5 ? caap.makeTD("Increase", false, false, "width: 25%; display: inline-block;") : caap.makeTD("Then", false, false, "width: 25%; display: inline-block;");
+                htmlCode += caap.makeTD(caap.makeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
+                htmlCode += caap.makeTD("using", true, false, "width: 25%; display: inline-block;");
+                htmlCode += caap.endTR;
+                htmlCode += caap.makeTD(caap.makeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'));
+            }
+
+            htmlCode += caap.display.end('AutoStatAdv');
+            htmlCode += caap.display.end('AutoStat');
+            htmlCode += caap.endToggle;
+            return htmlCode;
+        } catch (err) {
+            con.error("ERROR in statsFunc.upgradeMenu: " + err.stack);
+            return '';
+        }
+    };
+	
 }());
