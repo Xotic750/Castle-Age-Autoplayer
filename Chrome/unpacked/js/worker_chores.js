@@ -321,16 +321,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             attrCurrent = getValue(button);
             energy = getValue(energyDiv);
+            stats.energy.norm = energy;
             stamina = getValue(staminaDiv);
+            stats.stamina.norm = stamina;
             if (level >= 10) {
                 attack = getValue(attackDiv);
+		stats.attack = attack;
                 defense = getValue(defenseDiv);
+		stats.defense = defense;
                 health = getValue(healthDiv);
+                stats.health.norm = health;
             } else {
                 attack = stats.attack;
                 defense = stats.defense;
                 health = stats.health.norm;
             }
+            statsFunc.setRecord(stats);
 
             con.log(2, "level/energy/stamina/attack/defense/health/health", level, energy, stamina, attack, defense, health, health);
 
