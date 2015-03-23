@@ -5752,7 +5752,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     return true;
                 }
 
-                return caap.retrieveFromBank(storeRetrieve);
+                return chores.retrieveFromBank(storeRetrieve);
             }
 
             caap.qtom = window.setTimeout(function () {
@@ -5978,7 +5978,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (stats.gold.cash + (stats.gold.bank - config.getItem('minInStore', 0)) >= costToBuy) {
                         con.log(1, "Trying to retrieve", costToBuy - stats.gold.cash);
                         state.setItem("storeRetrieve", costToBuy - stats.gold.cash);
-                        return caap.retrieveFromBank(costToBuy - stats.gold.cash);
+                        return chores.retrieveFromBank(costToBuy - stats.gold.cash);
                     }
 
                     con.log(1, "Cant buy requires, stopping quest");
@@ -6013,7 +6013,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (stats.gold.cash + (stats.gold.bank - config.getItem('minInStore', 0)) >= costToBuy) {
                         con.log(1, "Trying to retrieve: ", costToBuy - stats.gold.cash);
                         state.setItem("storeRetrieve", costToBuy - stats.gold.cash);
-                        return caap.retrieveFromBank(costToBuy - stats.gold.cash);
+                        return chores.retrieveFromBank(costToBuy - stats.gold.cash);
                     }
 
                     con.log(1, "Cant buy General, stopping quest");
@@ -7796,7 +7796,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
 
                 con.log(2, "Trying to retrieve", cashNeed - stats.gold.cash);
-                return caap.retrieveFromBank(cashNeed - stats.gold.cash);
+                return chores.retrieveFromBank(cashNeed - stats.gold.cash);
             }
 
             // Need to check for enough moneys + do we have enough of the builton type that we already own.
