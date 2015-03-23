@@ -38,11 +38,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			wO.recordIndex = $u.setContent(wO.recordIndex, o.recordIndex);
 			
 			wO.load = function() {
-				var newR = new wO.record().data;
+				var newR = new wO.record().data,
+					arr = [];
 				
 				wO.records = gm.getItem(wO.name, 'default');
 				if (!$j.isArray(wO.records)) {
-					// Should be ok to remove old record lookup after 2015/3/17 - Artifice
+					// Should be ok to remove old record lookup after completing conversion to new system - Artifice
 					wO.records = gm.getItem(wO.name + '.records', 'default');
 					if (!$j.isArray(wO.records)) { 
 						con.warn(wO.name + ': No records found, and no old records either. Setting as blank.');
@@ -55,9 +56,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					con.log(2, wO.name + ' records loaded', wO.records);
 				}
+				wO.records = wO.records.filter( function(r) {
+					if ($u.isNumber(r[wO.recordIndex]) && wO.hasRecord(r[wO.recordIndex])) {
+						arr.push(r[wO.recordIndex]);
+						return false;
+					} 
+					return true;
+				});
+				if (arr.length) {
+					con.warn(wO.name + ': Deleted number indexed record(s) for ' + arr.join(', ') + ', since conflicting with existing string record(s)');
+					wO.doSave = true;
+					arr = [];
+				}
+					
 				wO.records.forEach( function(r, i) {
+					if ($u.isNumber(r[wO.recordIndex])) {
+						arr.push(r[wO.recordIndex]);
+						r[wO.recordIndex] = r[wO.recordIndex].toString();
+					}
 					wO.records[i] = $j.extend(true, {}, newR, r);
 				});
+				if (arr.length) {
+					con.warn(wO.name + ': Converted number indexed record(s) for ' + arr.join(', ') + ' to string record(s)');
+					wO.doSave = true;
+				}
 
 				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
 					session.setItem(wO.name + 'DashUpdate', true);
@@ -95,7 +117,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 			
 			wO.hasRecord = function(n) {
-				return wO.records.hasObj(wO.recordIndex, n);
+				return wO.records.hasObj(wO.recordIndex, n.toString());
 			};
 
 			wO.getRecord = function(n) {
@@ -103,6 +125,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.error(wO.name + ' record index is not a number or string: ' + n);
 					return false;
 				}
+				n = n.toString();
 				var i = wO.records.getObjIndex(wO.recordIndex, n),
 					r = new wO.record(n).data;
 				if (i >= 0) {
@@ -140,7 +163,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.setRecord = function(o) {
-				var i = wO.records.getObjIndex(wO.recordIndex, o[wO.recordIndex]),
+				var i = wO.records.getObjIndex(wO.recordIndex, o[wO.recordIndex].toString()),
 					newR = new wO.record().data;
 					
 				o.newRecord = false;
@@ -153,7 +176,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.getRecordVal = function(n, f, d) {
-				var i = wO.records.getObjIndex(wO.recordIndex, n);
+				var i = wO.records.getObjIndex(wO.recordIndex, n.toString());
 				if (i == -1) {
 					con.warn(wO.name.ucWords() + ' worker warning: record ' + n + ' not found');
 					return d;
@@ -166,7 +189,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.setRecordVal = function(r, f, v) {
-				var n = $u.isObject(r) ? r[wO.recordIndex] : r;
+				var n = ($u.isObject(r) ? r[wO.recordIndex] : r).toString();
 				
 				var i = wO.records.getObjIndex(wO.recordIndex, n),
 					nr = new wO.record(n).data;
@@ -191,7 +214,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			wO.deleteRecord = function(n) {
 				var length = wO.records.length;
-				wO.records = wO.records.deleteObjs(wO.recordIndex, n);
+				wO.records = wO.records.deleteObjs(wO.recordIndex, n.toString());
 				wO.doSave = true;
 				return length - wO.records.length;
 			};
