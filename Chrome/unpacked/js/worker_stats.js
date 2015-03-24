@@ -192,6 +192,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				health: 0
 			},
 			essence: {
+				bonus: 0,
 				attack: 0,
 				defense: 0,
 				damage: 0,
@@ -343,7 +344,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					row,
 					head,
 					body,
-					text = $j('#app_body').text().replace(/COMING SOON This feature is coming soon\!/, '').replace(/You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\!/, '').trim().innerTrim();
+					text = $j('#app_body').text().trim().innerTrim().replace('COMING SOON This feature is coming soon! ', '').replace(/(You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\! )/, '');
 
 				if (!text.match(/Army Size - Take more soldiers into battle!/)) {
 					tempDiv = $j("#app_body a[href*='keep.php?user=']");
@@ -355,8 +356,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					break;
 				}
 				
-				if (!caap.bulkRegex(text, /(.*?) Level \d+ - (.*?) (\d+) .*? Max Energy .*? (\d+) .*? Max Stamina .*? (\d+) Max Health .*?/, stats,
-				['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
+				if (!caap.bulkRegex(text, /(.*?) Level \d+ - (.*?) (\d+) .*?Max Energy .*? (\d+) .*?Max Stamina .*? (\d+) .*?Max Health/,
+					stats, ['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
 					con.warn('Stats: unable to read energy, stamina, health unmodified values', text);
 				}
 				// war rank
@@ -407,7 +408,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 
 				if (!caap.bulkRegex(text, /x(\d+) x(\d+) x(\d+) x(\d+)/,
-					stats.essence, ['Attack', 'Defense', 'Damage', 'Health'])) {
+					stats.essence, ['attack', 'defense', 'damage', 'health'])) {
 					con.warn('Stats: unable to read essence', text);
 				}
 

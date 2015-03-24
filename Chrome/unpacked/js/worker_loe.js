@@ -173,7 +173,6 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			fR.t = t;
 			if (!t.score) {
 				caap.setDivContent(mess, stateMsg + ' no valid target');
-				con.log(2, gf.name + ': No valid target to attack', fR);
 				gb.setRecord(fR);
 				return false;
 			}
