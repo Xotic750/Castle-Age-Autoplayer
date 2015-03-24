@@ -344,7 +344,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					row,
 					head,
 					body,
-					text = $j('#app_body').text().trim().innerTrim().replace('COMING SOON This feature is coming soon! ', '').replace(/(You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\! )/, '');
+					text = $j('#app_body').text().trim().innerTrim().replace('COMING SOON This feature is coming soon! ', '').replace(/(You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\! )/, '').replace(caap.resultsText + ' ', '');
 
 				if (!text.match(/Army Size - Take more soldiers into battle!/)) {
 					tempDiv = $j("#app_body a[href*='keep.php?user=']");
