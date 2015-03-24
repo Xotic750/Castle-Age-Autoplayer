@@ -111,7 +111,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 
             guild_monster.dashboard();
-            guilds.dashboard();
             gifting.queue.dashboard();
             gifting.history.dashboard();
 
@@ -340,12 +339,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.clearGuildsButtonListener = function () {
-        guilds.clear();
+        essence.clear();
         caap.updateDashboard(true);
     };
 
     caap.rescanGuildsButtonListener = function () {
-		guilds.rescan();
+		essence.rescan();
         caap.updateDashboard(true);
     };
 

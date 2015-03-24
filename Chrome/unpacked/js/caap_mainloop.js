@@ -238,6 +238,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 actionsListCopy = [],
 				releaseControl = true,
 				result = false,
+				returnObj = {}, // Used to hold an object return for console logging or div setting
                 action = 0,
                 len = 0,
                 dmc = 0;
@@ -347,7 +348,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
             result = actionsListCopy.some( function(action) {
 				session.setItem('ThisAction', action.fName);
-                if (window[action.worker][action.functionName]()) {
+				returnObj = window[action.worker][action.functionName]()
+				if ($u.isObject(returnObj)) {
+					if ($u.hasContent(returnObj.log)) {
+						con.log($u.setContent(returnObj.level, 1), action.worker.ucWords() + ': ' + returnObj.log);
+					}
+					if ($u.hasContent(returnObj.mess)) {
+						caap.setDivContent(action.worker + '_mess', $u.hasContent(returnObj.mess) ? action.worker.ucWords() + ': ' + returnObj.mess : '');
+					}
+					if ($u.hasContent(returnObj.mlog)) {
+						con.log($u.setContent(returnObj.level, 1), action.worker.ucWords() + ': ' + returnObj.mlog);
+						caap.setDivContent(action.worker + '_mess', $u.hasContent(returnObj.mlog) ? action.worker.ucWords() + ': ' + returnObj.mlog : '');
+					}
+				}
+                if (!$u.isObject(returnObj) ? returnObj : $u.setContent(returnObj.action, true)) {
                     caap.checkLastAction(action);
 					return true;
                 }

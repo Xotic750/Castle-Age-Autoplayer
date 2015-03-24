@@ -253,22 +253,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
-        "guilds.records": {
-            "get": function () {
-                return guilds.records;
-            },
-
-            "set": function (value) {
-                guilds.records = value;
-            },
-
-            "save": function (src) {
-                guilds.save(src);
-            },
-
-            "loaded": false
-        },
-
         "guild_monster.records": {
             "get": function () {
                 return guild_monster.records;
@@ -2048,7 +2032,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					window[r].load();
 				});
 				conquestLands.load();
-                guilds.load();
 
 				worker.list.forEach( function(i) {
 					if ($u.isFunction(window[i].init)) {
@@ -2417,7 +2400,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'army_mess': "",
         'feats_mess': "",
         'kobo_mess': "",
-        'essenceScan_mess': "",
+        'essence_mess': "",
         'level_mess': "",
         'exp_mess': "",
         'debug1_mess': "",
@@ -2532,7 +2515,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.addCashHealthMenu();
             htmlCode += caap.addAutoOptionsMenu();
             htmlCode += statsFunc.upgradeMenu();
-            htmlCode += caap.addEssenceMenu();
+            htmlCode += essence.menu();
             htmlCode += army.menu();
             if (caap.domain.which === 0) {
                 htmlCode += gifting.menu();
@@ -2835,47 +2818,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return htmlCode;
         } catch (err) {
             con.error("ERROR in addConquestOptionsMenu: " + err.stack);
-            return '';
-        }
-    };
-
-
-    caap.addEssenceMenu = function () {
-        try {
-            var energyInstructions = "Only trade if energy is above this.",
-                essenceInstructions = "Scan Trade Market for guilds with " + "room to trade essence.",
-                essenceInstructions1 = "Scan for new guilds " + "every this many minutes.",
-                essenceInstructions2 = "Check to show only space available " + "instead of Stored/Max.",
-                runeInstructions = "Trade essence above this number if there is room.",
-                runeList = ['', 'Attack', 'Damage', 'Defense', 'Health'],
-                limitListInstructions = "Limit how much essence CAAP will trade in one trade",
-                limitList = ['200', '400', '600', '800'],
-                it = 0,
-                htmlCode = '';
-
-            htmlCode = caap.startToggle('essenceOptions', 'ESSENCE TRADING');
-            htmlCode += caap.makeCheckTR('Scan for Essence', 'EssenceScanCheck', false, essenceInstructions);
-            htmlCode += caap.display.start('EssenceScanCheck');
-            htmlCode += caap.makeNumberFormTR("Scan Interval", 'essenceScanInterval', essenceInstructions1, 60, '', '', true, false);
-            htmlCode += caap.makeCheckTR('Show as Available Only', 'essenceRoomOnly', true, essenceInstructions2);
-            htmlCode += caap.makeCheckTR('Trade Essence', 'essenceTrade', false);
-            htmlCode += caap.display.start('essenceTrade');
-            htmlCode += caap.makeNumberFormTR("Min Energy for Trade", 'EssenceEnergyMin', energyInstructions, '', '', '', false, false, 30);
-            htmlCode += caap.makeDropDownTR("Max Trade Amount", 'maxEssenceTrade', limitList, limitListInstructions, '', '800', false, false, 30);
-            for (it = 0; it < 5; it += 1) {
-                htmlCode += caap.startTR();
-                htmlCode += caap.makeTD("Trade", false, false, "width: 17%; display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeDropDown('Rune' + it, runeList, '', ''), false, false, "width: 40%; display: inline-block;");
-                htmlCode += caap.makeTD("above", false, false, "text-align: center; width: 20%; display: inline-block;");
-                htmlCode += caap.makeTD(caap.makeNumberForm('RuneValue' + it, runeInstructions, 0), false, true, "width: 20%; display: inline-block;");
-                htmlCode += caap.endTR;
-            }
-            htmlCode += caap.display.end('essenceTrade');
-            htmlCode += caap.display.end('EssenceScanCheck');
-            htmlCode += caap.endToggle;
-            return htmlCode;
-        } catch (err) {
-            con.error("ERROR in addEssenceMenu: " + err.stack);
             return '';
         }
     };
@@ -4805,12 +4747,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signatureId: 'war_conquest_header2.jpg'
         },
         'trade_market': {
-            signatureId: 'trade_home_top.jpg',
-            CheckResultsFunction: 'checkResults_guildTradeMarket'
+            signatureId: 'trade_home_top.jpg'
         },
         'guild_conquest_market': {
-            signatureId: 'trade_guild_top.jpg',
-            CheckResultsFunction: 'checkResults_guildConquestMarket'
+            signatureId: 'trade_guild_top.jpg'
         },
         'arena' : {
             signatureId : 'arena9_homemid.jpg',
@@ -4903,7 +4843,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.updateDashboard();
             caap.setNextLevelMessage();
             caap.setDivContent('demipoint_mess', !battle.demisPointsToDo('set') ? 'Daily Demi Points: off' : battle.demisPointsToDo('left') ? 'Daily Demi Points in progress' : 'Daily Demi Points done');
-            caap.setDivContent('essenceScan_mess', schedule.check('newEssenceListTimer') ? 'Essence Scan = none' : 'Next Scan: ' + $u.setContent(caap.displayTime('newEssenceListTimer'), "Unknown"));
             caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(caap.displayTime('festivalBlessTimer'), "Unknown"));
 
             return true;
@@ -7942,18 +7881,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.error("ERROR in checkResults_conquestMist: " + err.stack);
             return false;
         }
-    };
-
-    caap.checkResults_guildTradeMarket = function () {
-
-        guilds.tradeMarket();
-        return true;
-    };
-
-    caap.checkResults_guildConquestMarket = function () {
-
-        guilds.guildMarket();
-        return true;
     };
 
     caap.checkMyGuildIds = function () {

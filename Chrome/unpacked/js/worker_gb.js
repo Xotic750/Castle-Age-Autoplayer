@@ -33,6 +33,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			seal: '0',
 			easy: false,
 			simtis: false, // someone in my tower is stunned
+			towerDesc: [],
 			firstScanDone: false,
 			burn: false,
 			heal:0,
@@ -604,9 +605,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			gb.setrPage(fR, gb.makePath(gf, which, tower), 'review', now);
 			//con.log(2,'Gate ID',gate.attr('id'),tower, which, fR.paths);
 
+			fR.towerDesc = [];
 			$j("#globalContainer div[id*='" + which + "_new_guild_tab_']").each(function(stower) {
 				tStr = this.innerText.trim().innerTrim();
 				towerTypes.push($u.setContent(tStr.regex(/\d+\) (\w+)/), ''));
+				fR.towerDesc.push($u.setContent(tStr.regex(/\d+\) \w+ (.*)/), ''));
 				towerPops.push(tStr.regex(/(\d+)/));
 				sealedTowers += $u.hasContent(fR[which].towers[stower]) ? fR[which].towers[stower].healthNum === 0 : towerPops[stower - 1] > 0;
 			});
@@ -677,7 +680,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				splash = 0,
 				base = 0;
 				
-			if (idList.length && idList.length != argList.length) {
+			if (idList.length && idList.length != argList.length && idList.length + 1 != argList.length) {
 				con.warn(fR.label + ': Unable to parse ' + which + ' tower ' + tower + ' because FB ID list and opponents text number differ', idList, argList);
 				return false;
 			}
@@ -712,9 +715,11 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 				tR.AC += (mR.battlePoints > 0 && mR.mclass == 'cleric') ? 1 : 0;
 				tR.healthNum += $u.isString(mR.healthNum) ? mR.healthNum.parseFloat() : mR.healthNum;
 				tR.healthMax += mR.healthMax;
-				mR.isMe = which == 'your' && mR.name == stats.PlayerName && mR.level == stats.level;
-				if (mR.isMe) {
-					fR.me.tower = tower;
+				mR.isMe = which == 'your' && mR.name == stats.PlayerName && (mR.level == stats.level || mR.level + 1 == stats.level);
+				fR.me.tower = mR.isMe ? tower : fR.me.tower;
+				if (mR.isMe && mR.target_id != stats.FBID) {
+					idList.unshift(mR.target_id.toString());
+					mR.target_id = stats.FBID;
 				}
 				fR[which].members[tower + '-' + n] = mR;
 			});
