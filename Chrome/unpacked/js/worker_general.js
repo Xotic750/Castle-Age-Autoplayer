@@ -102,6 +102,10 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 				worker.addPageCheck({page : 'ajax:player_loadouts.php?loadout=' + v, hours : 5});
 			});
 			
+			['SubQuest', 'Monster', 'Buy', 'Idle', 'Collect'].forEach( function(g) {
+				config.deleteItem(g + 'LevelUpGeneral');
+			});
+				
 			return true;
 		} catch (err) {
 			con.error("ERROR in general.init: " + err.stack);
@@ -729,7 +733,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                 state.setItem('KeepLevelUpGeneral', false);
             }
 
-            if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.menuList.hasIndexOf(generalType) || generalType === 'Quest')) {
+            if (config.getItem('Level_UpGeneral', 'Use Current') !== 'Use Current' && (general.menuList.hasIndexOf(generalType) || generalType === 'Quest')) {
                 if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && stats.exp.dif && stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
                     use = true;
                 }
@@ -803,7 +807,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 
             con.log(3, 'Cool', coolType, coolName);
             if (levelUp) {
-                whichGeneral = 'LevelUpGeneral';
+                whichGeneral = 'Level_UpGeneral';
                 con.log(2, 'Using level up general');
             }
 
@@ -1011,17 +1015,11 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             });
             htmlCode += caap.display.start('Level_UpGeneral', 'isnot', 'Use Current');
             htmlCode += caap.makeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 55, '', '', true, false);
-            htmlCode += caap.makeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
             htmlCode += caap.makeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
             htmlCode += caap.makeCheckTR("Gen For Fortify", 'FortifyLevelUpGeneral', true, LevelUpGenInstructions3, true, false);
             htmlCode += caap.makeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
             htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
             htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
-            htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
-            htmlCode += caap.makeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
             htmlCode += caap.makeCheckTR("Do not Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
             htmlCode += caap.makeCheckTR("Do not Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
             htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
