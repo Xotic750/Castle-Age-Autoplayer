@@ -96,6 +96,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (!$u.hasContent(link)) {
                 throw 'No link passed to clickAjaxLinkSend';
             }
+			if (caap.oneMinuteUpdate('ajaxSend') && caap.checkForImage('web3splash.jpg').length) {
+				con.warn('On splash page, so reloading');
+				location = location;
+				return;
+			}
+				
 
             caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
             caap.setDomWaiting(link);

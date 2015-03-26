@@ -585,6 +585,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							damageDiv.parents("tr").eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
 						}
 						//cM.hide = true;
+					} else {
+						cM.damage = 0;
 					}
 				} else {
 					damageDiv = $j("div[id*='leaderboard_0']");
@@ -605,6 +607,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							if (visiblePageChangetf) {
 								damageDiv.parent().parent().eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
 							}
+						} else {
+							cM.damage = 0;
 						}
 					} else {
 						con.log(2, "Unable to find a damage table");
@@ -1156,7 +1160,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monster.deleteRecord(cM.link);
 					}
 
-				} else if (cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+				} else if (cM.status == 'Attack' && cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
 					link += ',clickimg:siege_btn.gif';
 					message = 'Sieging ';
 				}
