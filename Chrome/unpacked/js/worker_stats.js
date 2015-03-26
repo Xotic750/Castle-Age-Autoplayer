@@ -356,7 +356,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					break;
 				}
 				
-				if (!caap.bulkRegex(text, /(.*?) Level \d+ - (.*?) (\d+) .*?Max Energy .*? (\d+) .*?Max Stamina .*? (\d+) .*?Max Health/,
+				if (!caap.bulkRegex(text, /(.*?) ?Level \d+ - (.*?) (\d+) .*?Max Energy .*? (\d+) .*?Max Stamina .*? (\d+) .*?Max Health/,
 					stats, ['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
 					con.warn('Stats: unable to read energy, stamina, health unmodified values', text);
 				}
@@ -391,6 +391,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					['bank', 'income', 'upkeep', 'flow'].forEach( function(e) {
 						stats.gold[e] = stats.gold[e].numberOnly();
 					});
+					stats.gold.total = stats.gold.bank + stats.gold.cash;
+				// New territory style: Bank and Income: Protect your Money from Enemy Attack! STORED: $0 Upgrade Runes
+				} else if (caap.bulkRegex(text, /STORED: \$([,\d]+) Upgrade Runes/,	stats.gold,	['bank'])) {
+					stats.gold.bank = stats.gold.bank.numberOnly();
 					stats.gold.total = stats.gold.bank + stats.gold.cash;
 				} else {
 					con.warn('Stats: unable to gold values', text);

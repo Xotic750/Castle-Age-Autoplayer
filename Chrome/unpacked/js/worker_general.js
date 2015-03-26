@@ -804,6 +804,14 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                 con.log(1, "Generals count of " + general.records.length + " <= " + (stats.level >= 100 ? 20 : 2) + ', checking Generals page');
                 return caap.navigateTo('generals');
             }
+			
+			if (whichGeneral.match(/Set\d+/)) {
+				if (caap.oneMinuteUpdate('loadoutsReset')) {
+					con.warn('Loadouts may have been reset. Freezing until reset ' + whichGeneral);
+				}
+				return returnNametf ? 'Use Current' : true;
+			}
+			
 
             con.log(3, 'Cool', coolType, coolName);
             if (levelUp) {
@@ -821,7 +829,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 			
             if (!levelUp && /under level/i.test(targetGeneral)) {
                 if (!general.getLevelUpNames().length) {
-                    return returnNametf ? 'Use Current' : general.Clear(whichGeneral);
+                    return returnNametf ? 'Use Current' : false;
                 }
 				
 
@@ -830,8 +838,11 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
             }
 
             if (general.getRecord(targetGeneral).newRecord) {
-				con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral + '. Loadouts reset, maybe? Ignoring setting.');
-				return returnNametf ? 'Use Current' : false;
+				if (caap.oneMinuteUpdate('loadoutsReset')) {
+					con.warn('Unable to find ' + targetGeneral + ' record for ' + whichGeneral 
+						+ '. Loadouts may have been reset. Freezing until reset');
+				}
+				return returnNametf ? 'Use Current' : true;
 					
             }
 			
