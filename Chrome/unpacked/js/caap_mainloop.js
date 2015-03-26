@@ -420,7 +420,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (force || (!config.getItem('Disabled') && state.getItem('caapPause') === 'none')) {
                 // better than reload... no prompt on forms!
                 con.log(1, 'Reloading now!');
-				if (typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
+				if (!caap.checkForImage('web3splash.jpg').length && typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
 					suffix = '/connect_login.php?platform_action=CA_web3_logout';
 				} else if (caap.domain.which === 0 || caap.domain.which === 2) {
 					suffix = '/keep.php';

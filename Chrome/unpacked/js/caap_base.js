@@ -2218,7 +2218,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'name': '',
             'energy': 0,
             'general': 'none',
-            'expRatio': 0
+            'experience': 0
         });
     };
 
@@ -5653,6 +5653,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.qtom = null;
 
 	worker.addAction({worker : 'caap', priority : 600, description : 'Questing', functionName : 'quests'});
+	
     caap.quests = function () {
         try {
             var storeRetrieve = state.getItem('storeRetrieve', ''),
@@ -5676,23 +5677,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 button,
                 itemBuyPopUp,
                 costToBuy,
+				qO = state.getItem('AutoQuest', caap.newAutoQuest()),
                 autoQuestDivs,
                 background,
                 questGeneral;
-
-            if (storeRetrieve) {
-                if (storeRetrieve === 'general') {
-                    con.log(1, "storeRetrieve", storeRetrieve);
-                    if (general.Select('BuyGeneral')) {
-                        return true;
-                    }
-
-                    state.setItem('storeRetrieve', '');
-                    return true;
-                }
-
-                return chores.retrieveFromBank(storeRetrieve);
-            }
 
             caap.qtom = window.setTimeout(function () {
                 caap.setDivContent('quest_mess', '');
@@ -5754,8 +5742,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 }
             }
 
-            autoQuestName = state.getItem('AutoQuest', caap.newAutoQuest()).name;
-            if (!autoQuestName) {
+            if (!qO.name) {
                 if (config.getItem('WhyQuest', 'Manual') === 'Manual') {
                     caap.setDivContent('quest_mess', 'Pick quest manually.');
                     window.clearTimeout(caap.qtom);
@@ -5766,10 +5753,31 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 window.clearTimeout(caap.qtom);
                 con.log(1, "Searching for quest");
             } else {
-                energyCheck = caap.checkEnergy('Quest', whenQuest, state.getItem('AutoQuest', caap.newAutoQuest()).energy);
+                energyCheck = caap.checkEnergy('Quest', whenQuest, qO.energy);
                 if (!energyCheck) {
                     return false;
                 }
+            }
+
+			// Set general
+            if (storeRetrieve) {
+                if (storeRetrieve === 'general') {
+                    con.log(1, "storeRetrieve", storeRetrieve);
+                    if (general.Select('BuyGeneral')) {
+                        return true;
+                    }
+
+                    state.setItem('storeRetrieve', '');
+                    return true;
+                }
+
+                return caap.retrieveFromBank(storeRetrieve);
+            } else if (caap.inLevelUpMode() && qO.experience >= stats.exp.dif) {
+				if (general.Select('Level_UpGeneral')) {
+					return {log: 'Using level up general for quest'};
+				}
+			} else if (general.Select('SubQuestGeneral')) {
+				return {log: 'Setting subquest general'};
             }
 
             pathToPage = 'quests';
@@ -5974,7 +5982,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             };
 
             autoQuestDivs = caap.checkResults_quests(true);
-            //con.log(1, 'autoQuestDivs/autoQuestName', autoQuestDivs, autoQuestName);
+            //con.log(1, 'autoQuestDivs/qO.name', autoQuestDivs, qO.name);
             if (!autoQuestDivs.name) {
                 con.log(1, 'Could not find AutoQuest.');
                 caap.setDivContent('quest_mess', 'Could not find AutoQuest.');
@@ -5982,7 +5990,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (autoQuestDivs.name !== autoQuestName) {
+            if (autoQuestDivs.name !== qO.name) {
                 con.log(1, 'New AutoQuest found.');
                 caap.setDivContent('quest_mess', 'New AutoQuest found.');
                 window.clearTimeout(caap.qtom);
@@ -6019,18 +6027,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
-            if (general.LevelUpCheck("QuestGeneral")) {
-				if (general.Select('LevelUpGeneral')) {
-					con.log(2, 'Using level up general');
-					return true;
-				}
-			} else if (general.Select('SubQuestGeneral')) {
-				con.log(2, 'Setting subquest general');
-				return true;
-            }
-
             if ($u.hasContent(autoQuestDivs.click)) {
-                con.log(2, 'Clicking auto quest', autoQuestName);
+                con.log(2, 'Clicking auto quest', qO.name);
                 session.setItem('ReleaseControl', true);
                 caap.click(autoQuestDivs.click);
                 caap.showAutoQuest();
@@ -6041,7 +6039,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            con.warn('Can not click auto quest', autoQuestName);
+            con.warn('Can not click auto quest', qO.name);
             return false;
         } catch (err) {
             con.error("ERROR in quests: " + err.stack);
@@ -6175,7 +6173,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 general,
                 genDiv,
                 questType,
-                expRatio,
+                experience,
                 tempAutoQuest;
 
             if (pickQuestTF === true && whyQuest !== 'Manual') {
@@ -6439,8 +6437,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (isTheArea && state.getItem('AutoQuest', caap.newAutoQuest()).name === caap.questName) {
                         bestReward = rewardRatio;
 
-                        expRatio = experience / (energy || 1);
-
                         con.log(2, "Setting AutoQuest", caap.questName);
 
                         tempAutoQuest = caap.newAutoQuest();
@@ -6448,7 +6444,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         tempAutoQuest.name = caap.questName;
                         tempAutoQuest.energy = energy;
                         tempAutoQuest.general = general;
-                        tempAutoQuest.expRatio = expRatio;
+                        tempAutoQuest.experience = experience;
                         state.setItem('AutoQuest', tempAutoQuest);
                         con.log(4, "checkResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
                         caap.showAutoQuest();
