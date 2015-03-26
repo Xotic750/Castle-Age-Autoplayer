@@ -235,7 +235,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			}}
 		],
 		cleric: [
-			{name: 'cduel', score: function(fR, mR, h, splash, base, special) {
+			{name: 'cduel', image: 'attack', score: function(fR, mR, h, splash, base, special) {
 				return gb.r100(mR.winChance / 100 * (splash + Math.min(h[0], base)));
 			}},
 			{name: 'divine_favor', tokens: 2, score: function(fR, mR, h, splash, base, special) {

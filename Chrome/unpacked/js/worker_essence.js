@@ -63,10 +63,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			essence.eR = false;
 			switch (page) {
 			case 'conquest_duel' :
-				stats.essence.bonus = $u.setContent($j('#app_body a[href*="trade_market.php"]').text(), '').regex(/(\d+)/);
+				stats.essence.bonus = $u.setContent($u.setContent($j('#app_body a[href*="trade_market.php"]').text(), '').regex(/(\d+)/), 0);
 				break;
 			case 'trade_market' :
-				stats.essence.bonus = $u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/);
+				stats.essence.bonus = $u.setContent($u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/), 0);
 				var guildCapsules = $j("[style*='trade_capsule']");
 				guildCapsules.each(function() {
 					var currentCapsule = $j(this),
@@ -78,7 +78,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 				break; 
 			case 'guild_conquest_market' :
-				stats.essence.bonus = $u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/);
+				stats.essence.bonus = $u.setContent($u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/), 0);
 				var storageDivs = $j("[id^='storage_']"),
 					eR = essence.getRecord($j("[id^='guild_name_header']").children().eq(0).attr('href').split('=')[1]);
 
