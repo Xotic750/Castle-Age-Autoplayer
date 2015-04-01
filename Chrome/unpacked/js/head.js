@@ -89,7 +89,7 @@ Array.prototype.addToList = function(v) {
 Array.prototype.sum = function() {
 	return this.reduce(function(a,b) {
 		return a+b;
-	});
+	}, 0);
 }
 
 Array.prototype.removeFromList = function(v) {

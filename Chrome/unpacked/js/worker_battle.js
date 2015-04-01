@@ -575,7 +575,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 			
 			if (!r.wl) {
-				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for FB ID ' + userId, resultsText, testList);
+				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for target ' + userId, resultsText, testList);
 				bR.deadTime =  Date.now();
 				bR.chainCount = 0;
 				bR.chainRestTime = 0;
@@ -605,6 +605,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (r.wl == 'won') {
 				session.setItem('ReleaseControl', false);
 			}
+			con.log(2, r.method.ucWords() + (r.wl == 'Won' ? ' Victory' : ' Loss') + ' against ' + r.name + ' for ' + r.points + ' ' + r.type, bR);
 
             battle.setRecord(bR);
             return r;

@@ -668,10 +668,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							if ($u.hasContent(partsElem)) {
 								//partsElem2 = partsElem.children[1].children[0];
 								tNum = $u.setContent($j(partsElem).getPercent("width"), 0);
-								partsHealth.push(tNum);
 								tempDiv =  $j("#app_body span[id^='target_monster_info_" + (index + 1) + "']");
 								//con.log(2, 'desciptor text: ' + tempDiv.text());
 								if ($u.hasContent(tempDiv)) {
+									partsHealth.push(tNum);
 									if (tempDiv.text().regex(/reduce/)) {
 										arms.push(tNum);
 									} else if (tempDiv.text().regex(/hinder/)) {
@@ -680,7 +680,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 										mains.push(tNum);
 									}
 								} else {
-									con.warn('No info for body part ' + (index + 1), $j(this));
+									con.warn('No info for body part ' + (index + 1) + ", assuming it's a minion", $j(this));
+									minions.push(tNum);
 								}
 							} else {
 								con.warn('No children of body part for health width');
@@ -698,7 +699,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 								}
 							});
 						} else {
-							cM.targetPart = partsHealth.lastIndexOf(minions.length ? caap.minMaxArray(minions, 'min', 0) : Math.min((arms.length ? caap.minMaxArray(arms, 'min', 0) : 100), caap.minMaxArray(mains, 'min', 0))) + 1;
+							cM.targetPart = partsHealth.lastIndexOf(minions.length ? caap.minMaxArray(minions, 'min', 0)
+									: Math.min((arms.length ? caap.minMaxArray(arms, 'min', 0) : 100), caap.minMaxArray(mains, 'min', 0))) + 1;
 							//con.log(2, 'targetpart calcs', Math.min.apply(null, aliveArray(minions)),  Math.min.apply(null, aliveArray(arms)), Math.min.apply(null, aliveArray(mains)));
 						}
 
