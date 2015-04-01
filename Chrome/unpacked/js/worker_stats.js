@@ -406,7 +406,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 
 				// Runes/Essence
-				if (!caap.bulkRegex(text, / (\d+).*Atk.* (\d+).*Def.* (\d+).*Damage.* (\d+).*Health/,
+				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?Atk.*? (\d+) (?:\(\+\d+\) )?Def.*? (\d+) (?:\(\+\d+\) )?Dmg.*? (\d+) (?:\(\+\d+\) )?Hth/,
 					stats.rune, ['attack', 'defense', 'damage', 'health'])) {
 					con.warn('Stats: unable to read runes', text);
 				}
