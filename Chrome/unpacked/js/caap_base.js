@@ -711,6 +711,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             } catch (err) {
                 con.error("ERROR in messaging.hello: " + err.stack);
+				// This is bad. Later loads will fail and script will freeze. Do a reload.
+				caap.reloadCastleAge();
                 return false;
             }
         },
@@ -3059,7 +3061,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             selected the Guild or Festival battle display.
             \-------------------------------------------------------------------------------------*/
 
-            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['gb100','gbClassic', 'gb10'].indexOf(config.getItem('DBDisplay', 'Monster')) >=0 ? 'block' : 'none') + "'>Table: ";
+            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['100v100','Classic', '10v10'].hasIndexOf(config.getItem('DBDisplay', 'Monster')) ? 'block' : 'none') + "'>Table: ";
             layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
@@ -3160,8 +3162,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gbClassic' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gbClassic' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gb10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb10' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gbClassic' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Classic' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '10v10' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoArena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'></div>";
@@ -3171,7 +3173,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'gb100' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '100v100' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoGuilds' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
