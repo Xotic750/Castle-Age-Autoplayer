@@ -1,9 +1,7 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global window,$j,$u,caap,con,schedule, general,session */
 /*jslint maxlen: 256 */
 
 /////////////////////////////////////////////////////////////////////
@@ -212,7 +210,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				lastStep = steps.length - 1,
 				result = false,
                 jq = $j(),
-                step = '',
 				thisGeneral = $u.setContent(steps[0].regex(/@(.+)/), 'Use Current');
 			
 			if (general.Select(thisGeneral)) {
@@ -231,12 +228,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					text = step.replace(/[^:]*:/,'');
 					if ($u.hasContent(caap.pageList[step])) {
 						if (session.getItem('page','none') != step) {
-							jq = $j("a[href*='" + step + ".php']").not("a[href*='" + step + ".php?']", $j('#globalcss'));
+							jq = $j("a[href*='" + step + ".php']").not("a[href*='" + step + ".php?']", webslice);
 							if ($u.hasContent(jq)) {
 								con.log(2, 'Navigate2: Go to page', jq, step, path, s);
 								caap.click(jq);
 								return caap.navigate2RepeatCheck(true, path, s);
-							} else if (s - (thisGeneral !== 'Use Current') === 0) {
+							} 
+							if (s - (thisGeneral !== 'Use Current') === 0) {
 								con.warn('Unable to find path to page: ' + step, path);
 							}
 							//con.log(2,'Navigate2: Not on page ' + step + ', so going back another step', path, s, caap.pageList[step]);
@@ -253,14 +251,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							result = caap.clickAjaxLinkSend(text,2000);
 							con.log(2, 'Navigate2: Go to ajax link '+ text, result, jq, step, path, s);
 							return s == lastStep ? 'done' : caap.navigate2RepeatCheck(true, path, s);
-						} else if (s == lastStep) {
+						} 
+						if (s == lastStep) {
 							con.log(2,'Navigate2: Already on destination ajax link', step, s, path, caap.pageList[step]);
 							return false;
-						} else {
-							con.log(2,'Navigate2: On URL ' + text, step, s, path, caap.pageList[step]);
-							s += 1;
-							break;
 						}
+						con.log(2,'Navigate2: On URL ' + text, step, s, path, caap.pageList[step]);
+						s += 1;
+						break;
 					} else if (step == 0) {
 						con.log(1, 'Unable to find a starting page to navigate to',  step, s, path);
 						return false;
@@ -281,7 +279,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				text = step.replace(/[^:]*:/,'');
 
 				// If the next step doesn't exist or isn't an image or that image is on the page, then do this step
-				if (action =='image' && caap.hasImage(text, $j('#globalcss'))) {
+				if (action =='image' && caap.hasImage(text, webslice)) {
 					con.log(5, 'Navigate2 look ahead found image so skipping ', text, step, path, s);
 				} else if (action =='jq' && $u.hasContent($j(text))) {
 					con.log(5, 'Navigate2 look ahead found jquery so skipping ', text, step, path, s);
@@ -292,7 +290,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					action = step.replace(/:.*/,'');
 					text = step.replace(/[^:]*:/,'');
 /*					if (action =='image') {
-						jq = caap.hasImage(text, $j('#globalcss'));
+						jq = caap.hasImage(text, webslice);
 						// If the last step in the path, then we're done
 						if (jq) {
 							con.log(2,'Navigate2: already on destination page', step, s, path, caap.pageList[step]);
@@ -301,7 +299,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							con.log(5,'Navigate2: Passing by confirmation pic', step, s, path, caap.pageList[step]);
 						}
 */					if (action =='clickimg') {
-						jq = caap.checkForImage(text, $j('#globalcss'));
+						jq = caap.checkForImage(text, webslice);
 						// If the last step in the path, then we're done
 						if ($u.hasContent(jq)) {
 							con.log(2, 'Navigate2 image click', text, step, path, s);
@@ -310,8 +308,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						}
 						con.warn('Navigate2: FAIL, unable to find image', step, path, s, action, text);
 						return 'fail';
-					} else if (action =='clickjq') {
-						jq = $j(text, '#globalcss');
+					} 
+					if (action =='clickjq') {
+						jq = $j(text, webslice);
 						// If the last step in the path, then we're done
 						if ($u.hasContent(jq)) {
 							con.log(2, 'Navigate2 jq click', text, step, path, s);
@@ -320,13 +319,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						}
 						con.warn('Navigate2: FAIL, unable to find jq', step, path, s, action, text);
 						return 'fail';
-					} else if (action == 'image' || action == 'jq' || action == 'url') {
+					} 
+					if (action == 'image' || action == 'jq' || action == 'url') {
 						if (s == lastStep) {
 							con.log(2,'Navigate2: Path done',  step, path, s, action, text);
 							return false;
-						} else {
-							con.log(5,'Navigate2: Skipping found checkpoint',  step, path, s, action, text);
 						}
+						con.log(5,'Navigate2: Skipping found checkpoint',  step, path, s, action, text);
 					} else {
 						con.log(2, 'Navigate2: FAIL Instructions not understood', step, path, s, action, text);
 						return 'fail';
@@ -341,7 +340,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return undefined;
         }
     };
-	
+		
     caap.navigateTo = function (pathToPage, imageOnPage, webSlice) {
         try {
             //webSlice = $u.setContent(webSlice, caap.globalContainer);
@@ -379,10 +378,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (path.indexOf(':')>=0) {
 						if (path.replace(/:.*/,'')=='ajax') {
 							return caap.clickAjaxLinkSend(path.replace(/.*:/,''),2000);
-						} else {
-							con.warn('Unknown caap.navigateTo parameter', path, pathList);
-							return false;
-						}
+						} 
+						con.warn('Unknown caap.navigateTo parameter', path, pathList);
+						return false;
 					}
                     jq = $j("a[href*='" + path + ".php']", newwebSlice).not("a[href*='" + path + ".php?']", newwebSlice);
                     if ($u.hasContent(jq)) {
@@ -411,10 +409,68 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in caap.navigateTo: " + err, imageOnPage, pathToPage);
+            con.error("ERROR in caap.navigateTo: " + err.stack, imageOnPage, pathToPage);
             return undefined;
         }
     };
+
+	// Equip general if appropriate, then navigate via ajax send to the toPage. Once there, confirm the click link is available.
+	// If available, click it!  If options object check option is false, then send the click link even if not on page
+    caap.navigate3 = function (toPage, click, thisGeneral, options) {
+        try {
+			if (general.Select($u.setContent(thisGeneral, 'Use Current'))) {
+				return true;
+			}
+			
+			options = $u.setContent(options, {});
+			if (session.getItem('clickUrl', '').replace(/.*\//,'') !== toPage) {
+				caap.clickAjaxLinkSend(toPage);
+				con.log(2, 'Navigate3: Go to ajax link '+ toPage);
+				return true;
+			}
+			
+			if (!$u.setContent(options.check, true) || $u.hasContent($j('[href*="' + click + '"]'))) {
+				caap.clickAjaxLinkSend(click);
+				con.log(2, 'Navigate3: Clicking link '+ click);
+				return true;
+			}
+			
+			var links = $j.makeArray($j('[onsubmit*="ajaxFormSend"][onsubmit*="' + click.regex(/(\w+\.php)/) + '"]').map(function() { 
+				return $j(this).serialize();
+			})).filter( function(l) {
+				// If any of the names are not found in a form, that link not valid
+				return !click.regex(/(\w+=\w+)/g).some( function(r) {
+					return !l.hasIndexOf(r);
+				});
+			});
+			if (links.length) {
+				caap.clickAjaxLinkSend(click);
+				con.log(2, 'Navigate3: Clicking form link '+ click);
+				return true;
+			}
+			con.log(2, 'Navigate3: ' + click + ' link not found on page ' + toPage);
+			caap.scrapeLinks();
+            return false;
+			
+        } catch (err) {
+            con.error("ERROR in caap.navigateTo: " + err.stack);
+            return undefined;
+        }
+    };
+	
+	// Output a list of all links available
+	caap.scrapeLinks = function(div) {
+		var links = $j.makeArray($j('#app_body [onclick*="ajaxLinkSend"]', div).map(function() { return $j(this).attr('href').regex(/(\w+\.php.*)/); }));
+		
+		div = $u.setContent(div, $j('#app_body_container'));
+		links = links.concat($j.makeArray($j('[onsubmit*="ajaxFormSend"]', div).map(function() { return $j(this).attr('onsubmit').regex(/(\w+\.php)/) + '?' + $j(this).serialize(); })));
+		
+		// Filter out the duplicates and keep.php?casuser=12341 type links.
+		links = links.filter( function(l, i) {
+			return !(l.hasIndexOf('keep.php') && l.hasIndexOf('casuser=')) && i == links.indexOf(l);
+		});
+		con.log(1, 'Links available on page aside from user keeps are: ' + links.sort().join('\n'));
+	};
 
     caap.checkForImage = function (image, webSlice, subDocument, nodeNum) {
         try {

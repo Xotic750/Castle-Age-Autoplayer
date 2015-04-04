@@ -1,10 +1,8 @@
-
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,offline,town,gm,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,spreadsheet,ss,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global $j,$u,caap,config,con,schedule,gift,state,gift,session,worker,stats,statsFunc,
+gm,hiddenVar,battle,general */
 /*jslint maxlen: 256 */
 
     /////////////////////////////////////////////////////////////////////
@@ -225,7 +223,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tNum = 0,
                 xS = 0,
                 xE = 0,
-                max = 0,
                 statDiv = $j("#globalContainer #main_sts_container"),
 				tempDiv = $j(),
                 text = statDiv.text().trim().innerTrim(),
@@ -261,7 +258,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // level
-            tNum = text.regex(/Level: (\d+)/)
+            tNum = text.regex(/Level: (\d+)/);
             if (tNum) {
                 if (tNum > stats.level) {
                     con.log(2, 'New level. Resetting Best Land Cost.');
@@ -276,7 +273,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // army
-            tNum = topText.regex(/Army \((\d+)\)/)
+            tNum = topText.regex(/Army \((\d+)\)/);
             if (tNum) {
                 stats.army.actual = tNum;
                 tNum = Math.min(stats.army.actual, 501);
@@ -292,7 +289,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             // upgrade points  My Stats (+5) 
-            tNum = topText.regex(/My Stats \(\+(\d+)\)/)
+            tNum = topText.regex(/My Stats \(\+(\d+)\)/);
             if (tNum) {
                 if (tNum > stats.points.skill) {
                     con.log(2, 'New points. Resetting AutoStat.');
@@ -334,12 +331,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
 			switch (page) {
 			case 'keep' :
-				var statsTB = $j("#app_body div[style*='keep_cont_treasure.jpg'] div:nth-child(3)>div>div>div>div"),
-					statCont = $j("#app_body div[style*='keep_bgv2.jpg']>div>div>div"),
-					recordsTxt = $j(),
-					args = [],
-					backgroundDiv = $j(),
-					tempDiv = $j(),
+				var tempDiv = $j(),
 					temp,
 					row,
 					head,
@@ -400,14 +392,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.warn('Stats: unable to gold values', text);
 				}
 
-				if (!caap.bulkRegex(text, /CLASS POWERS CLASS EQUIPMENT RESISTANCES x(\d+) x(\d+) (\d+)/, stats,
-				['potions.energy', 'potions.stamina', 'monster.dp'])) {
-					con.warn('Stats: unable to read potions', text);
+				if (!caap.bulkRegex(text, /CLASS POWERS CLASS EQUIPMENT RESISTANCES (?:x\d+ )*(\d+)/, stats,
+				['monster.dp'])) {
+					con.warn('Stats: unable to read divine power', text);
 				}
+				
+				// Potions
+				stats.potions.energy = $u.setContent($j("div[title='Energy Potion']").text(), '0').numberOnly();
+				stats.potions.stamina = $u.setContent($j("div[title='Stamina Potion']").text(), '0').numberOnly();
 
 				// Runes/Essence
-				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?Atk.*? (\d+) (?:\(\+\d+\) )?Def.*? (\d+) (?:\(\+\d+\) )?Dmg.*? (\d+) (?:\(\+\d+\) )?Hth/,
-					stats.rune, ['attack', 'defense', 'damage', 'health'])) {
+				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?(?:Atk|Attack).*? (\d+) (?:\(\+\d+\) )?(?:Def|Defense).*? (\d+) (?:\(\+\d+\) )?(?:Dmg|Damage).*? (\d+) (?:\(\+\d+\) )?(?:Hth|Health)/, stats.rune, ['attack', 'defense', 'damage', 'health'])) {
 					con.warn('Stats: unable to read runes', text);
 				}
 
@@ -465,9 +460,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				statsFunc.setRecord(stats);
 				if (config.getItem("displayKStats", true)) {
 					tempDiv = $j("div[style*='keep_top']");
-					backgroundDiv = $j("div[style*='keep_tabheader']");
 
-					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/32703/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
 					temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
 					row = caap.makeTh({
 						text: '&nbsp;',
@@ -770,9 +764,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 configVal = config.getItem('AttrValue' + n, 0);
 
 				//Using eval, so user can define formulas on menu, like energy = level + 50
-				/*jslint eval: true */
+				/*jslint evil: true */
 				targetVal = advanced ? eval(configVal) : configVal;
-				/*jslint eval: false */
+				/*jslint evil: false */
 
 				currentVal = $u.isObject(stats[attribute]) ? stats[attribute].norm : stats[attribute];
 
@@ -780,17 +774,16 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     if (attribute === 'stamina' && stats.points.skill < 2) {
 					// Wait for second stamina point, maybe
     					return !config.getItem("StatSpendAll", false);
-					} else { 
-					// We have a match! Upgrade it
-						con.log(2, "Upgrading Skill Point: " + attribute + " is " + currentVal + ", upgrading to " + targetVal);
-						if (caap.navigateTo('keep') 
-							|| caap.ifClick($j("#app_body div[style*='keep_bgv2.jpg'] a[href*='upgrade=" + attribute + "']"))) {
-							action = true;
-						} else {
-							con.warn("Unable to locate upgrade button for " + attribute);
-						}
-						return true;
 					}
+				// We have a match! Upgrade it
+					con.log(2, "Upgrading Skill Point: " + attribute + " is " + currentVal + ", upgrading to " + targetVal);
+					if (caap.navigateTo('keep') 
+						|| caap.ifClick($j("#app_body div[style*='keep_bgv2.jpg'] a[href*='upgrade=" + attribute + "']"))) {
+						action = true;
+					} else {
+						con.warn("Unable to locate upgrade button for " + attribute);
+					}
+					return true;
                 }
             });
 
@@ -810,22 +803,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     statsFunc.dashboard = function() {
         try {
             var headers = [],
-                values = [],
                 pp = 0,
-                i = 0,
                 count = 0,
-                userIdLink = '',
-                userIdLinkInstructions = '',
                 valueCol = 'red',
                 len = 0,
-                data = {
-                    text: '',
-                    color: '',
-                    bgcolor: '',
-                    id: '',
-                    title: ''
-                },
-                handler = null,
                 head = '',
                 body = '',
                 row = '',
