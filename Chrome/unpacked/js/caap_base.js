@@ -173,70 +173,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             "loaded": false
         },
 
-        "gifting.gifts.records": {
-            "get": function () {
-                return gifting.gifts.records;
-            },
-
-            "set": function (value) {
-                gifting.gifts.records = value;
-            },
-
-            "save": function (src) {
-                gifting.save("gifts", src);
-            },
-
-            "loaded": false
-        },
-
-        "gifting.queue.records": {
-            "get": function () {
-                return gifting.queue.records;
-            },
-
-            "set": function (value) {
-                gifting.queue.records = value;
-            },
-
-            "save": function (src) {
-                gifting.save("queue", src);
-            },
-
-            "loaded": false
-        },
-
-        "gifting.history.records": {
-            "get": function () {
-                return gifting.history.records;
-            },
-
-            "set": function (value) {
-                gifting.history.records = value;
-            },
-
-            "save": function (src) {
-                gifting.save("history", src);
-            },
-
-            "loaded": false
-        },
-
-        "gifting.cachedGiftEntry": {
-            "get": function () {
-                return gifting.cachedGiftEntry;
-            },
-
-            "set": function (value) {
-                gifting.cachedGiftEntry = value;
-            },
-
-            "save": function (src) {
-                gifting.setCurrent(gifting.cachedGiftEntry, false, src);
-            },
-
-            "loaded": false
-        },
-
         "conquestLands.records": {
             "get": function () {
                 return conquestLands.records;
@@ -337,7 +273,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             window.arena = null;
             window.festival = null;
             window.spreadsheet = null;
-            window.gifting = null;
             window.caap = null;
             window.con = null;
             $u.reload();
@@ -611,28 +546,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
         },
 
-        ajaxGiftCheck : function () {
-            try {
-                if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif")) {
-                    caap.postMessage({
-                        source: "caapfb",
-                        dest: "caapif",
-                        message: "ajaxGiftCheck",
-                        data: ""
-                    });
-
-                    session.incItem("messageCount");
-                } else {
-                    throw "Wrong domain or destination not connected";
-                }
-
-                return true;
-            } catch (err) {
-                con.error("ERROR in messaging.ajaxGiftCheck: " + err.stack);
-                return false;
-            }
-        },
-
         changeDropDownList : function (idName, dropList, option) {
             try {
                 if (caap.domain.which === 3 && caap.messaging.connected.hasIndexOf("caapfb")) {
@@ -713,28 +626,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.error("ERROR in messaging.hello: " + err.stack);
 				// This is bad. Later loads will fail and script will freeze. Do a reload.
 				caap.reloadCastleAge();
-                return false;
-            }
-        },
-
-        sentGifts : function (msg, results) {
-            try {
-                if (caap.domain.which === 4 && caap.messaging.connected.hasIndexOf("caapif")) {
-                    caap.postMessage({
-                        source: msg.dest,
-                        dest: msg.source,
-                        message: "sentGifts",
-                        data: results
-                    });
-
-                    session.incItem("messageCount");
-                } else {
-                    throw "Wrong domain or destination not connected";
-                }
-
-                return true;
-            } catch (err) {
-                con.error("ERROR in messaging.sentGifts: " + err.stack);
                 return false;
             }
         },
@@ -955,26 +846,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         prom: true,
                         all: false
                     },
-                    0x04: {
-                        name: 'Gift Queue',
-                        list: 'caap_giftQueue',
-                        gift: true,
-                        fest: false,
-                        recr: false,
-                        mons: false,
-                        prom: false,
-                        all: false
-                    },
-                    0x05: {
-                        name: 'Gift History',
-                        list: 'caap_giftHistory',
-                        gift: true,
-                        fest: true,
-                        recr: false,
-                        mons: false,
-                        prom: true,
-                        all: false
-                    },
                     0x06: {
                         name: 'all',
                         list: '',
@@ -1151,7 +1022,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
                 con.log_level = config.getItem('DebugLevel', 1);
                 con.log(1, "iframe all data loaded");
-				statsFunc.init();  // This shouldn't be needed here, but putting here for the setGift stuff below
                 caap.messaging.dataRegisterLoaded = true;
                 ss = new $u.StorageHelper({
                     'namespace': caap.namespace,
@@ -1159,11 +1029,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'storage_type': 'sessionStorage'
                 });
 
-				// This should be moved to gift init. Take out redundant statsFunc.init above when moved.
-                caap.setGiftGuild();
-                caap.setGiftQueue();
-                caap.setGiftHistory();
-                caap.setGiftCustom();
                 window.setTimeout(caap.initial, 200);
                 caap.mainCaapLoop();
             }
@@ -1209,7 +1074,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     input = $u.hasContent(results.areChecked) ? $j("input[name='ok_clicked']") : $j("input[name='cancel_clicked']");
                     if (input) {
-                        caap.messaging.sentGifts(msg, results);
+                        //caap.messaging.sentGifts(msg, results);
                         caap.click(input);
                     }
                 };
@@ -1413,44 +1278,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.giftingHandler = function (msg) {
-        if ((msg.source === "caap" || msg.source === "caapif" || msg.source === "caapfb") && msg.dest === "caapifp") {
-            switch (msg.message) {
-                case "ok":
-                    session.decItem("messageCount");
-
-                    break;
-                case "connected":
-                    caap.messaging.connected = msg.data;
-                    caap.messaging.ok(msg);
-                    con.log(3, "current connections", caap.messaging.connected);
-
-                    break;
-                case "disconnect":
-                    caap.messaging.connected.removeByValue(msg.source);
-                    con.log(2, "current connections", caap.messaging.connected);
-
-                    break;
-                case "broadcast":
-                    if (msg.source === ($u.is_chrome ? "caap" : "caapif") && msg.data.name === "connected") {
-                        caap.messaging.connected = msg.data.value;
-                        caap.messaging.ok(msg);
-                        con.log(3, "broadcast connected received", caap.messaging.connected);
-                    }
-
-                    break;
-                case "setCheckedIds":
-                    caap.messaging.ok(msg);
-                    caap.setCheckedIds(msg);
-
-                    break;
-                default:
-            }
-
-            con.log(4, "caap.messageCount", session.getItem("messageCount"));
-        }
-    };
-
     caap.caapifpPMListener = function (e) {
         try {
             if (caap.domain.which === 4) {
@@ -1460,7 +1287,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     con.log(3, "caapifp got message", msg, e.origin);
                     caap.mTarget[msg.source].url = e.origin;
                     caap.mTarget[msg.source].ref = e.source;
-                    caap.giftingHandler(msg);
+                    //caap.giftingHandler(msg);
                 }
             }
         } catch (err) {
@@ -1476,7 +1303,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         name: "caapifp"
                     });
 
-                    caap.port.onMessage.addListener(caap.giftingHandler);
+                    //caap.port.onMessage.addListener(caap.giftingHandler);
                 } else {
                     con.log(3, "caapifp add listeners");
                     caap.messaging.connected.push("caapifp");
@@ -1496,7 +1323,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             if (caap.domain.which === 4) {
                 if ($u.is_chrome) {
-                    caap.port.onMessage.removeListener(caap.giftingHandler);
+                    //caap.port.onMessage.removeListener(caap.giftingHandler);
                     caap.port = null;
                 } else {
                     $u.removeEvent(window, "message", caap.caapifpPMListener);
@@ -1572,7 +1399,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.dataRegister[msg.data.name].set(msg.data.value);
                     caap.dataRegister[msg.data.name].loaded = true;
                     if (msg.data.name === "config.options") {
-                        caap.setGiftCustom();
+                        //caap.setGiftCustom();
                     }
 
                     break;
@@ -1584,16 +1411,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 case "restartListener":
                     caap.messaging.ok(msg);
                     caap.restartListener();
-
-                    break;
-                case "ajaxGiftCheck":
-                    caap.messaging.ok(msg);
-                    schedule.setItem("ajaxGiftCheck", 0);
-                    break;
-                case "sentGifts":
-                    caap.messaging.ok(msg);
-                    sessionStorage.removeItem("caap_giftSend");
-                    gifting.queue.sentGifts(msg);
 
                     break;
                 case "styleChange":
@@ -1833,49 +1650,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.fbData = null;
 
     caap.fbEnv = null;
-
-    caap.setGiftGuild = function () {
-        var i = 0,
-            l = stats.guild.members.length,
-            g = [];
-
-        for (i = 0; i < l; i += 1) {
-            g.push(stats.guild.members[i].userId);
-        }
-
-        con.log(1, "Set gift Guild", g);
-        if ($u.hasContent(g)) {
-            sessionStorage.setItem("caap_giftGuild", JSON.stringify(g));
-        }
-    };
-
-    caap.setGiftQueue = function () {
-        var g = gifting.queue.getIds();
-
-        if ($u.hasContent(g)) {
-            sessionStorage.setItem("caap_giftQueue", JSON.stringify(g));
-        }
-    };
-
-    caap.setGiftHistory = function () {
-        var g = gifting.history.getIds();
-
-        if ($u.hasContent(g)) {
-            sessionStorage.setItem("caap_giftHistory", JSON.stringify(g));
-        }
-    };
-
-    caap.setGiftCustom = function () {
-        if (config.getItem("FBCustomDrop", false)) {
-            var g = config.getList("FBCustomDropList", "");
-
-            if ($u.hasContent(g)) {
-                sessionStorage.setItem("caap_giftCustom", JSON.stringify(g));
-            }
-        } else {
-            sessionStorage.removeItem("caap_giftCustom");
-        }
-    };
 
     caap.lsUsed = function () {
         try {
@@ -2398,7 +2172,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         'fortify_mess': "",
         'heal_mess': "",
         'demipoint_mess': "",
-        'gifting_mess': "",
+        'gift_mess': "",
         'army_mess': "",
         'feats_mess': "",
         'kobo_mess': "",
@@ -2519,12 +2293,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += statsFunc.upgradeMenu();
             htmlCode += essence.menu();
             htmlCode += army.menu();
-            if (caap.domain.which === 0) {
-                htmlCode += gifting.menu();
-            } else {
-                config.setItem("AutoGift", false);
-                config.setItem("watchBeeper", false);
-            }
+            htmlCode += gift.menu();
 
             htmlCode += caap.addOtherOptionsMenu();
             //htmlCode += caap.addFooterMenu();
@@ -3008,8 +2777,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Feed',
                     '100v100',
                     'Generals Stats',
-                    'Gift Queue',
-                    'Gifting Stats',
+//                    'Gift Queue',
+//                    'Gifting Stats',
                     'Guild Essence',
                     'Guild Monster',
                     'Classic',
@@ -3025,8 +2794,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
                     'Display the 100v100 battle in progress.',
                     'Display information about your Generals.',
-                    'Display your current Gift Queue.',
-                    'Display your Gifting history, how many gifts you have received and returned to a user.',
+//                    'Display your current Gift Queue.',
+//                    'Display your Gifting history, how many gifts you have received and returned to a user.',
                     'Display Essence Storage space for Guilds that have been scouted.',
                     'Display information about your Guild Monster.',
                     'Display the Guild battle in progress.',
@@ -3109,26 +2878,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "</div>";
 
             /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Gifting Stats button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonGifting' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearGifting' value='Clear Gifting Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Gift Queue button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonGiftQueue' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearGiftQueue' value='Clear Gift Queue' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Gifting Stats button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonArmy' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_getArmy' value='Get Army' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
             Then we put in the Live Feed link since we overlay the Castle Age link.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:10px;'><input id='caap_liveFeed' type='button' value='Live Feed' style='padding: 0; font-size: 9px; height: 18px' /></div>";
@@ -3170,8 +2919,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_Town_Stats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Town Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '100v100' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
@@ -4431,19 +4178,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 $j(window).on('resize', caap.windowResizeListener);
             }
 
-            if (caap.domain.which === 0) {
-                $j(document).on('DOMNodeInserted', '#pagelet_dock', function (event) {
-                    if (config.getItem('AutoGift', false) && config.getItem('watchBeeper', true)) {
-                        var tText = $u.setContent($j(event.target).text(), '');
-                        if (tText.hasIndexOf("Castle Age") && tText.hasIndexOf("sent you a request.")) {
-                            con.log(1, "Beeper saw a gift!");
-                            schedule.setItem("ajaxGiftCheck", 0);
-                            caap.messaging.ajaxGiftCheck();
-                        }
-                    }
-                });
-            }
-
             if (caap.domain.which !== 0) {
                 if (!$u.hasContent($j('#globalContainer'))) {
                     throw 'Global Container not found';
@@ -4590,8 +4324,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             CheckResultsFunction: 'checkResults_quests'
         },
         'gift_accept': {
-            signaturePic: 'gif',
-            CheckResultsFunction: 'checkResults_gift_accept'
+            signaturePic: 'gif'
         },
         'army': {
             signaturePic: 'invite_on.gif',
@@ -4632,8 +4365,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             signaturePic: 'fb_tab_magic_on.jpg'
         },
         'gift': {
-            signaturePic: 'tab_gifts_on.gif',
-            CheckResultsFunction: 'checkResults_gift'
+            signaturePic: 'tab_gifts_on.gif'
         },
         'goblin_emp': {
             signaturePic: 'emporium_cancel.gif',
@@ -5079,26 +4811,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_goblin_emp: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_gift = function () {
-        try {
-            if ($u.hasContent(gifting.queue.sentHtml)) {
-                $j("#app_body #results_container").before(gifting.queue.sentHtml);
-                gifting.queue.sentHtml = '';
-            }
-
-            gifting.gifts.populate();
-
-            var time = config.getItem("checkGift", 3);
-
-            time = time < 3 ? 3 : time;
-            schedule.setItem("gift", time * 86400, 300);
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_gift: " + err.stack);
             return false;
         }
     };

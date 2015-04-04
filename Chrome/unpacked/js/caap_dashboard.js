@@ -111,8 +111,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 
             guild_monster.dashboard();
-            gifting.queue.dashboard();
-            gifting.history.dashboard();
 
            return true;
         } catch (err) {
@@ -146,8 +144,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'userStats', false);
         caap.setDisplay("caapTopObject", 'generalsStats', false);
         caap.setDisplay("caapTopObject", 'Town_Stats', false);
-        caap.setDisplay("caapTopObject", 'giftStats', false);
-        caap.setDisplay("caapTopObject", 'giftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonMonster', false);
         caap.setDisplay("caapTopObject", 'buttonFeed', false);
         caap.setDisplay("caapTopObject", 'GFDisplay', false);
@@ -156,8 +152,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.setDisplay("caapTopObject", 'buttonGenerals', false);
         caap.setDisplay("caapTopObject", 'buttonBattle', false);
         caap.setDisplay("caapTopObject", 'buttonGuilds', false);
-        caap.setDisplay("caapTopObject", 'buttonGifting', false);
-        caap.setDisplay("caapTopObject", 'buttonGiftQueue', false);
         caap.setDisplay("caapTopObject", 'buttonArmy', false);
         switch (value) {
             case "Target List":
@@ -189,16 +183,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 break;
             case "Town Stats":
                 caap.setDisplay("caapTopObject", 'Town_Stats', true);
-
-                break;
-            case "Gifting Stats":
-                caap.setDisplay("caapTopObject", 'giftStats', true);
-                caap.setDisplay("caapTopObject", 'buttonGifting', true);
-
-                break;
-            case "Gift Queue":
-                caap.setDisplay("caapTopObject", 'giftQueue', true);
-                caap.setDisplay("caapTopObject", 'buttonGiftQueue', true);
 
                 break;
             case "Guild Monster":
@@ -348,16 +332,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         caap.updateDashboard(true);
     };
 
-    caap.clearGiftingButtonListener = function () {
-        gifting.clear("history");
-        caap.updateDashboard(true);
-    };
-
-    caap.clearGiftQueueButtonListener = function () {
-        gifting.clear("queue");
-        caap.updateDashboard(true);
-    };
-
     caap.getArmyButtonListener = function () {
         schedule.setItem("army_member", 0);
         army.deleteTemp();
@@ -387,8 +361,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             $j('#caap_clearBattle', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
             $j('#caap_clearGuilds', caap.caapTopObject).on('click', caap.clearGuildsButtonListener);
             $j('#caap_rescanGuilds', caap.caapTopObject).on('click', caap.rescanGuildsButtonListener);
-            $j('#caap_clearGifting', caap.caapTopObject).on('click', caap.clearGiftingButtonListener);
-            $j('#caap_clearGiftQueue', caap.caapTopObject).on('click', caap.clearGiftQueueButtonListener);
             $j('#caap_getArmy', caap.caapTopObject).on('click', caap.getArmyButtonListener);
             $j('#caap_dashMin', caap.caapTopObject).on('click', function () {
                 caap.caapTopObject.toggle('fold', {}, '', function () {

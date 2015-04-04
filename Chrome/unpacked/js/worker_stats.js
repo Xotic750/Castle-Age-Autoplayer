@@ -406,8 +406,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 
 				// Runes/Essence
-				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?Atk.*? (\d+) (?:\(\+\d+\) )?Def.*? (\d+) (?:\(\+\d+\) )?Dmg.*? (\d+) (?:\(\+\d+\) )?Hth/,
-					stats.rune, ['attack', 'defense', 'damage', 'health'])) {
+				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?(?:Atk|Attack).*? (\d+) (?:\(\+\d+\) )?(?:Def|Defense).*? (\d+) (?:\(\+\d+\) )?(?:Dmg|Damage).*? (\d+) (?:\(\+\d+\) )?(?:Hth|Health)/, stats.rune, ['attack', 'defense', 'damage', 'health'])) {
 					con.warn('Stats: unable to read runes', text);
 				}
 
@@ -467,7 +466,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					tempDiv = $j("div[style*='keep_top']");
 					backgroundDiv = $j("div[style*='keep_tabheader']");
 
-					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/30966/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/32703/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
 					temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
 					row = caap.makeTh({
 						text: '&nbsp;',

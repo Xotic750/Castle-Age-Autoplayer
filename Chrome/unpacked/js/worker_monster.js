@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,u,image64,gm,
+/*global window,escape,stats,$j,rison,utility,
+$u,chrome,worker,feed,caap,config,con,u,image64,gm,
 schedule,gifting,state,army, general,session,monster:true,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -94,7 +94,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					pageURL = session.getItem('clickUrl', ''),
 					mR = {},
 					it = 0,
-					siege = '',
 					engageButtonName = '',
 					monsterName = '',
 					monsterRow = $j("div[style*='monsterlist_container2.gif'], div[style*='pubmonster_middlef.gif']", slice),
@@ -121,7 +120,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						lpage = 'ajax:raid.php';
 					} else if (page === 'player_monster_list') {
 						if (pageURL.indexOf('monster_filter=2') >=0) {
-							lpage = 'ajax:player_monster_list.php?monster_filter=2'
+							lpage = 'ajax:player_monster_list.php?monster_filter=2';
 						} else if (pageURL.indexOf('monster_filter=3') >=0) {
 							lpage = 'ajax:player_monster_list.php?monster_filter=3';
 						} else {
@@ -280,6 +279,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 								break;
 							default:
+								break;
 						}
 
 						mR.mid = /mid=\S+/.test(link) ? '&mid=' + link.regex(/mid=(\S+)[&]*/) : '';
@@ -299,7 +299,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						monster.setRecord(mR);
 					}
 				}
-				session.getItem("feedDashUpdate", true)
+				session.getItem("feedDashUpdate", true);
 				caap.updateDashboard(true);
 				break;
 				
@@ -312,31 +312,25 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					cM = {}, // current
 					time = [],
 					tempDiv = $j(),
-					tempText = '',
 					stunStart = 0,
 					tempArr = [],
-					i = 0,
 					monsterDiv = $j(),
 					damageDiv = $j(),
 					partsDiv = $j(),
 					partsElem = $j(),
-					partsElem2 = $j(),
 					tStr = '',
-					aliveArray,
 					partsHealth = [],
 					arms = [],
 					mains = [],
 					minions = [],
 					tNum = 0,
-					link = false,
 					deathRuneSiegetf = false,
 					defImage = '',
 					id = 0,
 					mpool = 0,
-					deleteMon = false,
-					page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id"),
-					matches = true;
+					deleteMon = false;
 					
+				page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id");
 				if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
 					con.log(1, "Deleting monster that has expired",lastClick);
 					monster.deleteRecord(lastClick);
@@ -707,9 +701,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						// If one of the mains is more damaged that most damaged hinderer and arms > 80% health, assume headless
 						if (arms.length && caap.minMaxArray(mains, 'min', 0) < caap.minMaxArray(arms, 'min', 0)
 							&& caap.minMaxArray(arms, 'min', 0) > 80) {
-							cM.life = (mains.reduce(function(a, b) { return a + b }, 0) / mains.length).dp(2);
+							cM.life = (mains.reduce(function(a, b) { return a + b; }, 0) / mains.length).dp(2);
 						} else {
-							cM.life = ((mains.reduce(function(a, b) { return a + b }, 0) + arms.reduce(function(a, b) { return a + b }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
+							cM.life = ((mains.reduce(function(a, b) { return a + b; }, 0) + arms.reduce(function(a, b) { return a + b; }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
 						}
 						//con.log(2, 'Average life of body parts ' + cM.life + '% and target is part ' + cM.targetPart, partsHealth, arms, mains, mains.reduce(function(a, b) { return a + b }, 0), arms.reduce(function(a, b) { return a + b }, 0), $j("#app_body #expanded_monster_target_1:visible").length, $j("#app_body #expanded_monster_target_2:visible").length);
 					}
@@ -830,7 +824,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							cM.status = 'Join';
 							cM.conditions = feed.addConditions(cM.name) || '';
 						} else { // I haven't hit it, but I can't join it, so delete
-							con.warn("Deleting unjoinable monster " + cM.name + " off Feed", cM)
+							con.warn("Deleting unjoinable monster " + cM.name + " off Feed", cM);
 							deleteMon = true;
 						}
 					}
@@ -839,7 +833,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					// And I haven't hit it and it's not conquest
 					if (!monster.damaged(cM) && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
 						//and it's dead and not a conquest monster, so delete
-						con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM)
+						con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM);
 						deleteMon = true;
 					} else {
 						feed.checkDeath(cM);
@@ -855,7 +849,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.setRecord(cM);
 				}
 				monster.select(true);
-				session.getItem("feedDashUpdate", true)
+				session.getItem("feedDashUpdate", true);
 				caap.updateDashboard(true);
 				if (schedule.check('battleTimer')) {
 					window.setTimeout(function () {
@@ -1236,15 +1230,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             }
 
             var fightMode = '',
-                energyRequire = 0,
                 cM = {},  // current monster
                 attackButton = null,
                 buttonList = [],
                 tacticsValue = 0,
                 useTactics = false,
                 attackMess = '',
-                it = 0,
-                len = 0,
 				gMult = 1, // General multiplier, like Orc King = 5
 				minMax = 'min',
 				menuGeneral = 'Use Current',
@@ -1258,6 +1249,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				goBig = false,
 				debtcM = {},
 				whichStat = 'listEnergy',
+				levelUpGen = config.getItem('Level_UpGeneral','Use Current') == 'Use Current' ? 'MonsterGeneral' : 'Level_UpGeneral',
 				statList = [],
 				blankRecord = new monster.record().data,
 				result = false,
@@ -1272,8 +1264,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					specificGeneral = general.getConfigMenuGeneral(generalMenuSetting);
 					gMult = gMultFunc(specificGeneral);
 					goBig = !general.ZinMisaCheck(generalMenuSetting) && (/:burn\b/i.test(cM.conditions) || general.charged(specificGeneral));
-					statAvailable = stat == 'cover' || cM.stunDo ? maxEnergy : whichStat == 'listEnergy' ? energyAvailable : goBig 
-						? stats.stamina.num : Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ? (stats.energy.num / healPercStam) : stats.stamina.num);
+					statAvailable = stat == 'cover' || (stat == 'energy' && cM.stunDo) ? maxEnergy : whichStat == 'listEnergy' ?
+						energyAvailable : goBig ? stats.stamina.num :
+						Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ?
+							(stats.energy.num / healPercStam) : stats.stamina.num);
 					minMax = whichStat == 'listStamina' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
 				};
 
@@ -1314,7 +1308,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
-					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc('Level_UpGeneral')) * gMultFunc('Level_UpGeneral');
+					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc(levelUpGen)) * gMultFunc(levelUpGen);
 					
 					// Is there a smaller power attack that will work?
 					statRequire = caap.minMaxArray(statList, 'min', 1, (stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
@@ -1326,10 +1320,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						statRequire = 1 * gMult;
 					} else {
 						// If too close to levelling for a power attack, do max attack to carry over xp
-						setGeneralVarsFunc('Level_UpGeneral', stat);
-						statRequire = statRequireBig;
+						setGeneralVarsFunc(levelUpGen, stat);
+						statRequire = statRequireBig / gMultFunc(levelUpGen);
 					}
-					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
+					con.log(2, 'Hitting for ' + statRequire + ' X ' + gMult + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
 				} else if (statList[0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
 					statRequire = 1 * gMult;
 				} else {
@@ -1339,9 +1333,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					nodeNum = !cM.multiNode ? 0 : statList.indexOf((statRequire / gMult).toString());
 					con.log(2, 'NodeNum ' + nodeNum);
 					return true;
-				} else {
-					statAvailable = 0;
 				}
+				statAvailable = 0;
+
 			});
 
 			if (!statAvailable) {
@@ -1388,7 +1382,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 } else {
 					if (caap.ifClick('darkrage_button1.gif')) {
 						return true;
-					};
+					}
                     if (/:tac/i.test(cM.conditions) && stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = monster.parseCondition("tac%", cM.conditions);
@@ -1752,7 +1746,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             if (!$u.isString(mName) || mName.length === 0) {
 				con.warn('monster.getInfo not passed a monster name', mName);
             }
-			mName = mName.replace(/^The /i,''),
+			mName = mName.replace(/^The /i,'');
 			defValue = typeof defValue == 'undefined' ? monster.info['Default Monster'][value] : defValue;
             return $u.setContent(monster.info[mName],false) ? $u.setContent(monster.info[mName][value], defValue): defValue;
         } catch (err) {
