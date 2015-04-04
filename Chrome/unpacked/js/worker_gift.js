@@ -1,7 +1,7 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global $j,$u,caap,config,con,schedule,gift,state,gift,session */
+/*global $j,$u,caap,config,con,schedule,gift,state,gift,session,worker */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
