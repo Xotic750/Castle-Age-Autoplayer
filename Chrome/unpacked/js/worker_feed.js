@@ -250,7 +250,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				}).length,
 				targetpart = cM.targetPart,
 				parts = cM.partsHealth,
-				time = cM.time[0] + cM.time[1]/60,
+				time = cM.time,
 				name = cM.name,
 				monstername = cM.monster,
 				damagemod = fortify > 0 ? 58 * fortify / 100 * (strength > 0 ? strength : 100) / 100 + 42 : 0,

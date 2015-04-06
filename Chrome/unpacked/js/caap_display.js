@@ -14,6 +14,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
+	caap.configsExport = '';
+	
     caap.chatLink = function (query) {
         try {
             var hr = new RegExp('.*(http:.*)'),
@@ -90,6 +92,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeTD = function (text, indent, right, css) {
         try {
+			//caap.configsExport += text + ',';
+		
             css = css ? " style='" + css + "'" : '';
             var cls = " class='caap_ff caap_fn" + (indent ? " caap_in" : '') + (right ? " caap_tr" : '') + "'";
             return "<div" + cls + css + ">" + text + "</div>";
@@ -198,6 +202,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
             htmlCode += caap.makeTD(caap.makeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
             htmlCode += caap.endTR;
+			
+			caap.configsExport += [idName, text, defaultValue].join(',') + '\n';
+
             return htmlCode;
         } catch (err) {
             con.error("ERROR in makeCheckTR: " + err);
@@ -216,6 +223,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
             htmlCode += caap.makeTD(caap.makeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
             htmlCode += caap.endTR;
+
+			caap.configsExport += [idName, text, initDefault].join(',') + '\n';
+
             return htmlCode;
         } catch (err) {
             con.error("ERROR in makeNumberFormTR: " + err);
@@ -226,6 +236,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.makeDropDownTR = function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css, id1, css1) {
         try {
             var htmlCode = '';
+			
+			caap.configsExport += [idName, text, defaultValue].join(',') + '\n';
 
             htmlCode += caap.startTR(id1 ? idName + id1 : idName + "_row", css1);
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
@@ -277,6 +289,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 displayChar = currentDisplay === "none" ? "+" : "-",
                 style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                 toggleCode = '';
+				
+			caap.configsExport += [staticText].join(',') + '\n';
 
             toggleCode += '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
             toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + ";'>";
@@ -291,8 +305,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeTextBox = function (idName, instructions, initDefault) {
         try {
-            initDefault = $u.setContent(initDefault, '');
-            var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
+			initDefault = $u.setContent(initDefault, '');
+
+			caap.configsExport += [idName, '', initDefault].join(',') + '\n';
+             var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                 value = config.getItem(idName, 'defaultValue');
 
             value = value === 'defaultValue' ? config.setItem(idName, initDefault) : value;

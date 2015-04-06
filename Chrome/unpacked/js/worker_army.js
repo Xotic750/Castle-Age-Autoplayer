@@ -113,6 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 				con.log(3, "army.loadTemp", army.recordsTemp);
 			}
+			worker.addPageCheck({page : 'ajax:index.php?feed=allies&news_feed_accept=2', config: 'armyAccept'});
             return true;
         } catch (err) {
             con.error("ERROR in army.loadTemp: " + err.stack);
@@ -469,11 +470,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     army.menu = function () {
         try {
             var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
+				acceptInst = 'Accept any invitations to join someone elses army daily.',
                 armyScanInstructions = "Scan the army pages every X days.",
 				armyCodeInstructions = 'A list of army codes, separated by commas or any non-alphabetic characters. As army codes are invited, they will automatically be deleted from the list.',
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
+            htmlCode += caap.makeCheckTR('Accept Army Invites', 'armyAccept', false, acceptInst);
             htmlCode += caap.makeCheckTR('Enable Army Scan', 'EnableArmy', false, armyInstructions);
             htmlCode += caap.display.start('EnableArmy');
             htmlCode += caap.makeCheckTR('Do In Background', 'useAjaxArmy', true, "Check Army using AJAX rather than page navigation.");

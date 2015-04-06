@@ -625,7 +625,7 @@ schedule,state,general,session,battle:true */
 				gb.readTower(fR, which, tower, gate, towerTypes);
 			}
 
-			con.log(2, 'Battle: ' + gf.label + ' ' + which.ucWords() + ' Tower ' + tower + " in seconds " + (Date.now() - now)/1000, fR);
+			con.log(2, 'Battle: ' + gf.label + ' ' + which.ucWords() + ' Tower ' + tower + " in seconds " + ((Date.now() - now)/1000).dp(2), fR);
 			session.setItem(gf.label + "DashUpdate", true);
             caap.updateDashboard(true);
             return fR;
@@ -638,7 +638,7 @@ schedule,state,general,session,battle:true */
 	gb.readTower = function (fR, which, tower, gate, towerTypes) {
 		try {
 			var loe = fR.label == 'loe',
-				towerList = loe ? Object.keys(fR.enemy.towers) : ['1','2','3','4'],
+				towerList = loe ? Object.keys(fR.enemy.towers) : fR.label == 'gb10' ? ['1'] : ['1','2','3','4'],
 				typeList = loe ? ['enemy'] : ['your','enemy'],
 				tR = new gb.towerRecord().data, // tower record
 				gf = gb[fR.label], 
@@ -754,6 +754,8 @@ schedule,state,general,session,battle:true */
 				});
 				fR[fwhich].seal = maxTower;
 			});
+			
+			tR = fR[which].towers[tower];
 
 			// Cycle through all of the possible attacks
 			(gf.label == 'loe' ? ['mage','warrior','rogue','cleric'] : [fR.me.mclass]).forEach( function(mclass) { 
@@ -1391,8 +1393,7 @@ schedule,state,general,session,battle:true */
 				timeBattlesList = config.getList('timed_guild_battles', ''),
 				timedSetting = config.getItem('WhenGuildBattle', ''),
 				match = (timedSetting === 'Battle available') ? true : false,
-				now = new Date(),
-				i = 0;
+				now = new Date();
 				
 			if (timedSetting=='Never') {
 				return false;
@@ -1405,8 +1406,8 @@ schedule,state,general,session,battle:true */
 				}
 				timeString = t.toString().trim();
 				begin = 0;
-				for (i = 0; i < caap.weekdays.length; i++) {
-					if (timeString.indexOf(caap.weekdays[i])>=0) {
+				caap.weekdays.some( function(w, i) {
+					if (timeString.indexOf(w)>=0) {
 						begin = general.parseTime(timeString);
 						end = general.parseTime(timeString);
 						//con.log(2, 'Vars now.getDay, i', now.getDay(), i);
@@ -1415,7 +1416,7 @@ schedule,state,general,session,battle:true */
 						end.setMinutes(end.getMinutes() + 2 * 60);
 						return true;
 					}
-				}
+				});
 						
 				if (!begin) {
 					con.log(4, 'No day of week match', now.getDay(), timeString);
