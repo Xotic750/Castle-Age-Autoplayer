@@ -227,6 +227,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	// Invite army codes to army
 	army.add = function () {
         try {
 			var armyCodes = config.getItem('army_codes', ''),
@@ -327,7 +328,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if (config.getItem("useAjaxArmy", true)) {
                     caap.ajax("army_member.php?page=" + currentPage, null, onError, onSuccess);
                 } else {
-                    caap.clickAjaxLinkSend("army_member.php?page=" + currentPage);
+                    caap.ajaxLink("army_member.php?page=" + currentPage);
                 }
             }
 
@@ -398,7 +399,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             army.records = JSON.copy(army.recordsTemp);
-            this.doSave = true;
+            state.setItem('wsave_army', true);
             army.deleteTemp();
             return true;
         } catch (err) {
@@ -703,7 +704,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ajaxLink(visitUserIdLink.arlink);
                 };
 
                 $j("span[id*='caap_targetarmy_']", caap.caapTopObject).off('click', handler).on('click', handler);
@@ -753,7 +754,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                     resp = confirm("Are you sure you want to remove " + mname + " from your army?");
                     if (resp === true) {
-                        caap.clickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
+                        caap.ajaxLink("army_member.php?action=delete&player_id=" + userid);
                         this.deleteRecord(userid);
                         session.setItem("ArmyDashUpdate", true);
                         caap.updateDashboard(true);

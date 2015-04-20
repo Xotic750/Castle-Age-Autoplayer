@@ -1,7 +1,7 @@
-/*jslint white: true, browser: true, devel: true
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global $j,$u,caap,config,con,schedule,gift,state,gift,session,worker,stats,statsFunc,
+/*global $j,$u,caap,config,con,state,session,worker,stats,statsFunc,
 gm,hiddenVar,battle,general */
 /*jslint maxlen: 256 */
 
@@ -126,7 +126,8 @@ gm,hiddenVar,battle,general */
 				Conqueror: 0,
 				Guardian: 0,
 				Hunter: 0,
-				Engineer: 0
+				Engineer: 0,
+				dif : 0
 			},
 			LoMland: -1,
 			other: {
@@ -203,8 +204,9 @@ gm,hiddenVar,battle,general */
 	statsFunc.init = function() {
 		try {
 			var accountName = stats.account;
-			stats = statsFunc.getRecord(stats.FBID);
+			window.stats = statsFunc.getRecord(stats.FBID);
 			stats.account = accountName;
+			state.deleteItem("statsRaiseDone");
 			
 			session.setItem("UserDashUpdate", true);
        } catch (err) {
@@ -214,7 +216,7 @@ gm,hiddenVar,battle,general */
 	};
 
 	statsFunc.unpause = function() {
-		state.deleteItem("statsRaiseDone", false);
+		state.deleteItem("statsRaiseDone");
 	};
 	
 	statsFunc.check = function(page) {
@@ -289,15 +291,12 @@ gm,hiddenVar,battle,general */
             }
 
             // upgrade points  My Stats (+5) 
-            tNum = topText.regex(/My Stats \(\+(\d+)\)/);
-            if (tNum) {
-                if (tNum > stats.points.skill) {
-                    con.log(2, 'New points. Resetting AutoStat.');
-                    state.deleteItem("statsRaiseDone");
-                }
-
-                stats.points.skill = tNum;
-            }
+            tNum = $u.setContent(topText.regex(/My Stats \(\+(\d+)\)/), 0);
+			if (tNum > stats.points.skill) {
+				con.log(2, 'New points. Resetting AutoStat.');
+				state.deleteItem("statsRaiseDone");
+			}
+			stats.points.skill = tNum;
 
             // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
             if (stats.exp) {
@@ -332,12 +331,17 @@ gm,hiddenVar,battle,general */
 			switch (page) {
 			case 'keep' :
 				var tempDiv = $j(),
+					achDiv = $j(),
+					tdDiv = $j(),
+					level = 0,
+					ii = 0,
 					temp,
 					row,
 					head,
 					body,
-					text = $j('#app_body').text().trim().innerTrim().replace('COMING SOON This feature is coming soon! ', '').replace(/(You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\! )/, '').replace(caap.resultsText + ' ', '');
+					text = $j('#app_body').text().trim().innerTrim();
 
+				text = text.replace('COMING SOON This feature is coming soon! ', '').replace(/(You have \d+ Upgrade Points to use\! Click the ' ' buttons below to upgrade your stats\! )/, '').replace(caap.resultsText, '').trim();
 				if (!text.match(/Army Size - Take more soldiers into battle!/)) {
 					tempDiv = $j("#app_body a[href*='keep.php?user=']");
 					if ($u.hasContent(tempDiv)) {
@@ -348,7 +352,7 @@ gm,hiddenVar,battle,general */
 					break;
 				}
 				
-				if (!caap.bulkRegex(text, /(.*?) ?Level \d+ - (.*?) (\d+) .*?Max Energy .*? (\d+) .*?Max Stamina .*? (\d+) .*?Max Health/,
+				if (!caap.bulkRegex(text, /(.*?) ?Level \d+ - (.*?) ([\d\.]+) .*?Max Energy .*? ([\d\.]+) .*?Max Stamina .*? ([\d\.]+) .*?Max Health/,
 					stats, ['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
 					con.warn('Stats: unable to read energy, stamina, health unmodified values', text);
 				}
@@ -362,7 +366,7 @@ gm,hiddenVar,battle,general */
 					}
 				}
 				if (stats.level >= 10) {
-					if (!caap.bulkRegex(text, /(\d+) \(\+(\d+)\) Attack .*? (\d+) \(\+(\d+)\) Defense/, stats,
+					if (!caap.bulkRegex(text, /([\d\.]+) \(\+([\d\.]+)\) Attack .*? ([\d\.]+) \(\+([\d\.]+)\) Defense/, stats,
 					['attack', 'bonus.attack', 'defense', 'bonus.defense'])) {
 						con.warn('Stats: unable to read attack, defense, and modifiers', text);
 					}
@@ -400,6 +404,9 @@ gm,hiddenVar,battle,general */
 				// Potions
 				stats.potions.energy = $u.setContent($j("div[title='Energy Potion']").text(), '0').numberOnly();
 				stats.potions.stamina = $u.setContent($j("div[title='Stamina Potion']").text(), '0').numberOnly();
+				
+				// Guild ID
+				stats.guild.id = $u.setContent($j('#app_body a[href*="guild_id"]').attr('href'), 'guild_id=').regex(/guild_id=(\w*)/);
 
 				// Runes/Essence
 				if (!caap.bulkRegex(text, /(\d+) (?:\(\+\d+\) )?(?:Atk|Attack).*? (\d+) (?:\(\+\d+\) )?(?:Def|Defense).*? (\d+) (?:\(\+\d+\) )?(?:Dmg|Damage).*? (\d+) (?:\(\+\d+\) )?(?:Hth|Health)/, stats.rune, ['attack', 'defense', 'damage', 'health'])) {
@@ -461,7 +468,8 @@ gm,hiddenVar,battle,general */
 				if (config.getItem("displayKStats", true)) {
 					tempDiv = $j("div[style*='keep_top']");
 
-					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +"castleagegame1-a.akamaihd.net/32703/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
+					temp = "<div style='background-image:url(\"" + caap.domain.protocol[caap.domain.ptype] +
+						"castleagegame1-a.akamaihd.net/32703/graphics/keep_tabsubheader_mid.jpg\");border:none;padding: 5px 5px 20px 20px;width:715px;font-weight:bold;font-family:Verdana;sans-serif;background-repeat:y-repeat;'>";
 					temp += "<div style='border:1px solid #701919;padding: 5px 5px;width:688px;height:100px;background-color:#d0b682;'>";
 					row = caap.makeTh({
 						text: '&nbsp;',
@@ -695,6 +703,105 @@ gm,hiddenVar,battle,general */
 					tempDiv.after(temp);
 				}
 				break;
+			case 'achievements' :
+				achDiv = $j("#app_body #achievement_info_container_test_of_might_monster div[style*='ach_medalcontainer.jpg']");
+				if ($u.hasContent(achDiv)) {
+					stats.achievements.monster = {};
+					achDiv.each(function () {
+						text = $j(this).text().trim();
+						var divNum = text.regex(/([0-9,]+) total/i),
+							tdTxt = text.regex(/(.+) \([0-9,]+ of [0-9,]+, [0-9,]+ total\)/);
+						
+						stats.achievements.monster[tdTxt] = divNum;
+					});
+
+					statsFunc.setRecord(stats);
+				} else {
+					con.warn('Monster Achievements not found.');
+				}
+
+				achDiv = $j("#app_body #achievement_type_container_test_of_might_other");
+				if ($u.hasContent(achDiv)) {
+
+					tdDiv = $j('div[id="achievement_type_container_test_of_might_other"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
+					for (ii = 0; ii < tdDiv[0].children[0].children.length; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii;
+						}
+					}
+
+					stats.achievements.other.alchemy = level;
+					statsFunc.setRecord(stats);
+				} else {
+					con.warn('Test of Might Achievements not found.');
+				}
+
+				achDiv = $j("#app_body #achievement_type_container_festival_feat");
+				if ($u.hasContent(achDiv)) {
+					tdDiv = $j('div[id="achievement_type_container_festival_feat"] > div[class="achievement_info_container"] > div[id="achievement_body"]');
+
+					for (ii = 1; ii < 9; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii;
+						}
+					}
+
+					stats.achievements.feats.attack = level;
+					statsFunc.setRecord(stats);
+					level = 0;
+
+					for (ii = 9; ii < 17; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii - 8;
+						}
+					}
+
+					stats.achievements.feats.defense = level;
+					statsFunc.setRecord(stats);
+					level = 0;
+					for (ii = 17; ii < 25; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii - 16;
+						}
+					}
+
+					stats.achievements.feats.health = level;
+					statsFunc.setRecord(stats);
+					level = 0;
+					for (ii = 25; ii < 33; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii - 24;
+						}
+					}
+
+					stats.achievements.feats.energy = level;
+					statsFunc.setRecord(stats);
+					level = 0;
+					for (ii = 33; ii < 41; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii - 32;
+						}
+					}
+
+					stats.achievements.feats.stamina = level;
+					statsFunc.setRecord(stats);
+					level = 0;
+					for (ii = 41; ii < 49; ii += 1) {
+						if (tdDiv[0].children[0].children[ii].style.opacity === "") {
+							level = ii - 40;
+						}
+					}
+
+					stats.achievements.feats.army = level;
+					statsFunc.setRecord(stats);
+				} else {
+					con.warn('Festival Feats Achievements not found.');
+				}
+
+				achDiv = null;
+				tdDiv = null;
+				break;
+				
 			default :
 				break;
 			}
@@ -731,7 +838,6 @@ gm,hiddenVar,battle,general */
                     con.log(2, "Set to use all stat points, but unable to assign according to settings. Settings should be reviewed.");
                     state.deleteItem("autoStatRuleLog");
                 }
-
                 return false;
             }
 
@@ -773,12 +879,12 @@ gm,hiddenVar,battle,general */
                 if (targetVal > currentVal) {
                     if (attribute === 'stamina' && stats.points.skill < 2) {
 					// Wait for second stamina point, maybe
-    					return !config.getItem("StatSpendAll", false);
+						return !config.getItem("StatSpendAll", false);
 					}
 				// We have a match! Upgrade it
 					con.log(2, "Upgrading Skill Point: " + attribute + " is " + currentVal + ", upgrading to " + targetVal);
-					if (caap.navigateTo('keep') 
-						|| caap.ifClick($j("#app_body div[style*='keep_bgv2.jpg'] a[href*='upgrade=" + attribute + "']"))) {
+					if (caap.navigateTo('keep') ||
+						caap.ifClick($j("#app_body div[style*='keep_bgv2.jpg'] a[href*='upgrade=" + attribute + "']"))) {
 						action = true;
 					} else {
 						con.warn("Unable to locate upgrade button for " + attribute);
@@ -1444,9 +1550,10 @@ gm,hiddenVar,battle,general */
         }
     };
 
-    statsFunc.upgradeMenu = function () {
+    statsFunc.menu = function () {
         try {
-            var statusInstructions = "Automatically increase attributes when upgrade skill points are available.",
+            var autoArchivesInstructions = "Enable or disable the auto archive bonuses",
+                statusInstructions = "Automatically increase attributes when upgrade skill points are available.",
                 statusAdvInstructions = "USE WITH CAUTION: You can use numbers or " +
                     "formulas(ie. level * 2 + 10). Variable keywords include energy, " +
                     "health, stamina, attack, defense, and level. JS functions can be " +
@@ -1455,11 +1562,23 @@ gm,hiddenVar,battle,general */
                 statImmedInstructions = "Update Stats Immediately",
                 statSpendAllInstructions = "If selected then spend all possible points and do not save for stamina upgrade.",
                 attrList = ['', 'Energy', 'Attack', 'Defense', 'Stamina', 'Health'],
+                autoBlessList = ['None', 'Auto Upgrade', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina'],
+                autoBlessListInstructions = [
+                    'None disables the auto bless feature.',
+                    'Auto Upgrade bless feature according to auto upgrade skill setting.',
+                    'Energy performs an automatic daily blessing with Ambrosia.',
+                    'Attack performs an automatic daily blessing with Malekus.',
+                    'Defense performs an automatic daily blessing with Corvintheus.',
+                    'Health performs an automatic daily blessing with Aurora.',
+                    'Stamina performs an automatic daily blessing with Azeron.'],
+				festivalBlessList = ['None', 'Energy', 'Attack', 'Defense', 'Health', 'Stamina', 'Army', 'All'],
                 it = 0,
                 htmlCode = '';
 
-            htmlCode += caap.startToggle('Status', 'UPGRADE SKILL POINTS');
-            htmlCode += caap.makeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, statusInstructions);
+            htmlCode += caap.startToggle('Stats', 'STATS OPTIONS');
+            htmlCode += caap.makeCheckTR('Item Archives', 'AutoArchives', false, autoArchivesInstructions);
+            htmlCode += caap.makeDropDownTR("Demi Blessings", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 62);
+            htmlCode += caap.makeCheckTR("Upgrade Points", 'AutoStat', false, statusInstructions);
             htmlCode += caap.display.start('AutoStat');
             htmlCode += caap.makeCheckTR("Spend All Possible", 'StatSpendAll', false, statSpendAllInstructions);
             htmlCode += caap.makeCheckTR("Upgrade Immediately", 'StatImmed', false, statImmedInstructions);
@@ -1487,6 +1606,7 @@ gm,hiddenVar,battle,general */
 
             htmlCode += caap.display.end('AutoStatAdv');
             htmlCode += caap.display.end('AutoStat');
+            htmlCode += caap.makeDropDownTR("Festival Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {

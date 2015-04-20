@@ -57,6 +57,10 @@ String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
 };
 
+String.prototype.regexd = function(reg, d) {
+    return $u.setContent(this.regex(reg), d);
+};
+
 Number.prototype.numberOnly = function() {
     return this.valueOf();
 };
@@ -112,7 +116,7 @@ Array.prototype.getObjByField = function(f, v, d) {
 };
 
 Array.prototype.getObjByFieldLc = function(f, v, d) {
-	 var i = this.getObjIndex(f, v, true);
+	 var i = this.getObjIndex(f, v.toLowerCase(), true);
     return i == -1 ? d : this[i];
 };
 

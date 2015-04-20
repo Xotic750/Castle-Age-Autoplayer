@@ -53,7 +53,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 
     gift.init = function () {
         try {
-			worker.addPageCheck({page : 'ajax:index.php?feed=allies&news_feed_accept=0', config: 'giftAccept', hours : 1});
+			worker.addPageCheck({page : 'ajax:index.php?feed=allies&news_feed_accept=0', config: 'giftAccept', hours : 0.5});
         } catch (err) {
             con.error("ERROR in gift.loadTemp: " + err.stack);
             return false;
@@ -64,6 +64,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
         try {
 			var giftCodes = config.getItem('giftCodes', '').regex(/([\d:]+)/g),
 				num = 0,
+				options = 0,
 				result;
 			
 			if (!giftCodes) {
@@ -76,16 +77,17 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 
 			result = giftCodes.some( function(g) {
 				gift.sentObj = gift.getRecord(g.toString().regex(/(\d+)/));
-				num = $u.setContent(g.toString().regex(/:(\d+)/), 2000 + Math.floor(Math.random() * 52 + 1));
-				return schedule.since(gift.sentObj.sent, 60 * 60);
+				options = g.toString().regexd(/:(\d+)/g);
+				num = 2000 + ($u.hasContent(options) ? options[Math.floor(Math.random() * options.length)] : Math.floor(Math.random() * 52 + 1));
+				return schedule.since(gift.sentObj.sent, 30 * 60);
 			});
 			if (result) {
-				caap.clickAjaxLinkSend('gift.php?selected_army%5B%5D=' + gift.sentObj.userId + '&action=send_non_facebook_gift&giftSelection='  + num + '&ajax=1');
+				caap.ajaxLink('gift.php?selected_army%5B%5D=' + gift.sentObj.userId + '&action=send_non_facebook_gift&giftSelection='  + num + '&ajax=1');
 				gift.sentObj.sent = Date.now();
 				gift.setRecord(gift.sentObj);
 				return {mlog: 'Sent gift ' + num + ' to FB ID ' +  gift.sentObj.userId};
 			}
-			return {action: false, mess: 'Gifts sent to all recipients within an hour'};
+			return {action: false, mess: 'Gifts sent to all recipients within half an hour'};
 			
         } catch (err) {
             con.error("ERROR in gift.add: " + err.stack);
@@ -96,7 +98,9 @@ regexp: true, eqeq: true, newcap: true, forin: false */
     gift.menu = function () {
         try {
             var acceptInst = 'Accept all gifts hourly.',
-                giftFBIDListInst = 'A list of FB IDs, separated by commas or any non-alphabetic characters to send hourly gifts to. Use ":2014" etc. to specify a specific gifts. Otherwise gift will be random.',
+                giftFBIDListInst = 'A list of FB IDs, separated by commas or non-alphabetic characters to send gifts to. ' +
+						'Use the last two digits of the gift URL to send specific gifts. Read the URL by hovering the mouse over the gift. ' +
+						'For example, to send FB ID 66666 Malekus Gifts and Serpent Eggs, 66666:45:14',
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Gift', 'GIFTING OPTIONS');

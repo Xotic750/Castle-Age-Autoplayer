@@ -1,9 +1,8 @@
-/*jslint white: true, browser: true, devel: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,stats,$j,rison,utility,
-$u,chrome,worker,feed,caap,config,con,u,image64,gm,
-schedule,gifting,state,army, general,session,monster:true,guild_monster */
+/*global window,stats,$j,battle,$u,worker,feed,caap,statsFunc,
+config,con,gm,schedule,state,general,session,monster:true */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -22,59 +21,121 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	monster.recordIndex = 'link';
 	monster.record = function(link) {
         this.data = {
-            'link': link,
-            'name': false,
-            'userName': '',
-            'monster': '',
-            'attacked': -1,
-            'defended': 0,
-            'damage': -1,
-            'life': 100,
-			'lpage' : '',
-            'fortify': -1,
-            'time': 168,
-            't2k': 168,
-            'phase': -1,
-            'miss': 0,
-            'rix': -1,
-            'over': '',
-            'color': '',
-			'join' : false,
-            'review': -1,
-            'conditions': '',
-			'fullC' : '',
-            'charClass': '',
-			'listStamina' : '10',
-			'listEnergy' : '',
-			'multiNode' : false,
-			'score' : 0, // Used to score monster finder targets to pick one to join
-			'siegeLevel' : 0,
-			'doSiege' : false,
-			'spentEnergy' : 0,
-			'spentStamina' : 0,
-			'debtStamina' : 0,
-			'debtStart' : -1,
-            'strength': -1,
-            'stun': -1,
-            'stunTime': -1,
-            'stunDo': false,
-			'stunSetting' : 0,
-			'stunTarget' : 0,
-            'status': false,
-            'stunType': '',
-			'targetPart' : -1,
-			'listReviewed' : 0,
-			'lMissing' : 0,
-            'save': true,
-            'select': false
+            link: link,
+            name: '',
+            userName: '',
+            monster: '',
+            attacked: -1,
+            defended: 0,
+            damage: -1,
+            life: 100,
+			lpage: '',
+            fortify: -1,
+            time: 168,
+            t2k: 168,
+            phase: -1,
+            miss: 0,
+            rix: -1,
+            over: '',
+            color: '',
+            review: -1,
+            conditions: '',
+            joinConditions: '',
+			fullC: '',
+			jFullC: '',
+			join: false,
+            charClass: '',
+			listStamina: '10',
+			listEnergy: '',
+			multiNode: false,
+			score: 0, // Used to score monster finder targets to pick one to join
+			siegeLevel: 0,
+			doSiege: false,
+			spentEnergy: 0,
+			spentStamina: 0,
+			debtStamina: 0,
+			debtStart: -1,
+			canPub : false, // Can make monster public
+			canPri : false, // Can make monster a guild priority
+            strength: -1,
+            stun: -1,
+            stunTime: -1,
+            stunDo: false,
+			stunSetting: 0,
+			stunTarget: 0,
+            state: '',
+            stunType: '',
+			targetPart: -1,
+			listReviewed: 0,
+			lMissing: 0,
+            save: true,
+            select: false
         };
     };
-
-    monster.checkResults = function (page, resultsText, ajax, aslice) {
+	
+    monster.checkResults = function (page, resultsText, ajax, slice) {
         try {
-			var lastClick = $u.setContent(monster.lastClick, session.getItem('clickUrl',''));
+			slice = ajax ? $j(slice) : $j("#app_body");
+			var lastClick = $u.setContent(monster.lastClick, session.getItem('clickUrl','')),
+				buttonsDiv = $j(),
+				pageURL = session.getItem('clickUrl', ''),
+				mR = {},
+				it = 0,
+				engageButtonName = '',
+				monsterName = '',
+				monsterFull = '',
+				tempText = '',
+				monsterText = '',
+				userName = '',
+				mName = '',
+				now = Date.now(),
+				link = '',
+				lpage = '', // page where monster list is
+				pageUserCheck = 0,
+				monsterRow = $j(),
+				publicList = ['public_monster_list', 'guild_priority_mlist'].hasIndexOf(page),
+				visiblePageChangetf = !ajax && !feed.isScan,
+				cM = {}, // current
+				time = [],
+				tempDiv = $j(),
+				stunStart = 0,
+				tempArr = [],
+				monsterDiv = $j(),
+				damageDiv = $j(),
+				partsDiv = $j(),
+				partsElem = $j(),
+				tStr = '',
+				partsHealth = [],
+				arms = [],
+				mains = [],
+				minions = [],
+				tNum = 0,
+				deathRuneSiegetf = false,
+				defImage = '',
+				id = 0,
+				mpool = 0,
+				deleteMon = false,
+				which = {},
+				w = {guild_priority_mlist : {
+						rows : "div[style*='pri_listframe.jpg']",
+						button : "img[src*='pri_btn_joinmonster.gif']",
+						monster : 'span[style*="font-size:16px;"]',
+						name :  'div[style*="height:30px;"]',
+						link : "a[href*='battle_monster']",
+						attr : 'href'},
+					player_monster_list : {
+						rows : "div[style*='monsterlist_container2.gif']",
+						button : "img[src*='list_btn_']",
+						monster : "div[style*='bold']",
+						name :  "div[style*='20px']",
+						link : "input[id^='share_link_']",
+						attr : 'value'},
+					public_monster_list : {
+						button : "input[src*='list_btn_']",
+						rows : "div[style*='pubmonster_middlef.gif']"}};
 			
 			monster.lastClick = '';
+			which = $j.extend({}, w.player_monster_list, w[page]);
 			
 			switch (page) {
 			case 'army_news_feed' :
@@ -86,33 +147,14 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				break;
 				
 			case 'player_monster_list':
-        	case 'public_monster_list':
-        	case 'raid':
-				slice = $u.setContent(slice, $j("#app_body"));
-				var buttonsDiv = $j("img[src*='dragon_list_btn_'],input[src*='list_btn_atk'],input[src*='monster_button_'],img[src*='festival_monster_'],img[src*='festival_monster2_'],img[src*='conq2_monster_'],img[src*='list_conq_']", slice),
-					page = session.getItem('page', ''),
-					pageURL = session.getItem('clickUrl', ''),
-					mR = {},
-					it = 0,
-					engageButtonName = '',
-					monsterName = '',
-					monsterRow = $j("div[style*='monsterlist_container2.gif'], div[style*='pubmonster_middlef.gif']", slice),
-					conditions = false,
-					monsterFull = '',
-					tempText = '',
-					monsterText = '',
-					userName = '',
-					mName = '',
-					now = Date.now(),
-					link = '',
-					lpage = '', // page where monster list is
-					pageUserCheck = 0,
-					newInputsDiv = $j(),
-					publicList = page === 'public_monster_list';
+			case 'public_monster_list':
+			case 'guild_priority_mlist':
+			case 'raid':
+
 
 				//con.log(2, "Checking monster list page results", page, pageURL, monsterRow);
 				if (publicList) {
-					lpage = 'player_monster_list';
+					lpage = page;
 				} else {
 					if (page === 'guildv2_monster_list') {
 						lpage = 'ajax:' + session.getItem('clickUrl', '').replace(/http.*\//,'');
@@ -133,71 +175,55 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					monster.setrPage(lpage,'review',now);
 				}
 				
-				// get all buttons to check monsterObjectList
-				if (!$u.hasContent(buttonsDiv) && !$u.hasContent(monsterRow)) {
-					con.log(2, "No buttons found");
-					return false;
-				}
-
-				if (page === 'player_monster_list' || publicList) {
+				if (page != 'raid') {
 					// Review monsters and find attack and fortify button
-					for (it = 0; it < monsterRow.length; it += 1) {
-						// Make links for easy clickin'
-						/*jslint continue: true */
-						if (!$u.hasContent($j("input[id^='share_link_']", monsterRow.eq(it)))) {
-							con.log(2, "No URL found", it, monsterRow.eq(it));
-							continue;
+					$j(which.rows, slice).each( function() {
+						link = $u.setContent($j(which.link, this).attr(which.attr), '').replace(/http.*\//,'');
+						if (!$u.hasContent(link)) {
+							con.log(2, "No URL found", link);
+							return true;
 						}
-						/*jslint continue: false */
-						monsterName =  $j("div[style*='bold']", monsterRow.eq(it)).text().trim().replace(/,.*/,'').toLowerCase().ucWords();
-						monsterName = monster.getInfo(monsterName, 'alias', monsterName);
-						conditions = '';
-						if (publicList) {
-							conditions = feed.addConditions(monsterName);
-							if (conditions === false) {
-								continue;
-							}
-						}
-
-						link = $j("input[id^='share_link_']", monsterRow.eq(it)).attr("value").replace(/http.*\//,'');
 						mR = monster.getRecord(monster.cleanLink(link));
+						mR.monster = $j(which.monster, this).text().trim().replace(/,.*/,'').toLowerCase().ucWords();
+						mR.monster = monster.getInfo(mR.monster, 'alias', mR.monster);
+						mR.name = $u.setContent(mR.name, $j(which.name, this).text().trim() + ' ' + mR.monster);
 						mR.lpage = lpage;
-						mR.monster = monsterName;
-						if (publicList) {
-							mR.conditions = conditions;
-						}
-
-						mR.name = mR.name || $j("div[style*='20px']", monsterRow.eq(it)).text().trim() + ' ' + monsterName;
 						mR.listReviewed = now;
-						if (publicList) {
-							mR.status = mR.status || 'Join';
-						} else {
-							newInputsDiv = $j("img[src*='list_btn_']", monsterRow.eq(it));
-							engageButtonName = $u.setContent(newInputsDiv.attr("src"), '').regex(/list_btn_(\w*)/);
-							switch (engageButtonName) {
-								case 'collect':
-									feed.checkDeath(mR);
-									mR.status = mR.status == 'Attack' ? 'Dead or fled' : mR.status || 'Dead or fled';
-									mR.color = 'grey';
-									break;
-								case 'atk':
-									mR.status = mR.status || 'Attack';
-									break;
-								default:
-									con.warn("Unknown engageButtonName status", engageButtonName, newInputsDiv.attr("src"));
-							}
+						
+						switch ($u.setContent($j(which.button, this).attr("src"), '').regex(/_btn_(\w*)/)) {
+						case 'collect':
+							feed.checkDeath(mR);
+							mR.state = mR.state == 'Attack' ? 'Dead or fled' : $u.setContent(mR.state, 'Dead or fled');
+							mR.color = 'grey';
+							break;
+						case 'atk':
+							mR.state = $u.setContent(mR.state, 'Attack');
+							break;
+						case 'join':
+						case 'joinmonster':
+							mR.state = $u.setContent(mR.state, 'Join');
+							break;
+						default:
+							con.warn("Unknown engageButtonName state for " + mR.name);
+							break;
 						}
-
-						con.log(2, "Monster " + mR.name, link, mR.status, mR);
+						if (publicList && !feed.joinable(mR)) {
+							return true;
+						}
+						con.log(2, "Monster " + mR.name, link, mR.state, mR);
 						monster.setRecord(mR);
-					}
+					});
 					
 				} else {
 					// Raid page
+					buttonsDiv = $j("img[src*='dragon_list_btn_'], input[src*='list_btn_atk'], input[src*='monster_button_'], img[src*='festival_monster_'], img[src*='festival_monster2_'], img[src*='conq2_monster_'], img[src*='list_conq_']", slice);
+					
 					if (lastClick) {
-						con.log(1, "Deleting raid that has expired",lastClick);
 						monster.lastClick = false;
-						monster.deleteRecord(lastClick);
+						if (monster.hasRecord(lastClick)) {
+							monster.deleteRecord(lastClick);
+							con.log(1, "Deleting raid that has expired", lastClick);
+						}
 					}
 
 					tempText = buttonsDiv.eq(0).parent().attr("href");
@@ -205,8 +231,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if (pageUserCheck && tempText && !(new RegExp('user=' + stats.FBID).test(tempText) || /alchemy\.php/.test(tempText))) {
 						con.log(2, "On another player's keep.", pageUserCheck);
 						buttonsDiv = null;
-						monsterRow = null;
-						newInputsDiv = null;
 						return false;
 					}
 
@@ -252,7 +276,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							case 'collectbtn':
 							case 'dragon_list_btn_2':
 								feed.checkDeath(mR);
-								mR.status = 'Collect';
+								mR.state = 'Collect';
 								mR.color = 'grey';
 
 								break;
@@ -274,7 +298,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 									monster.completeButton[page.replace(/festival_tower\d*/, "battle_monster")].button = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
 								}
 
-								mR.status = 'Done';
+								mR.state = 'Done';
 								mR.color = 'grey';
 
 								break;
@@ -289,7 +313,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 				for (it = monster.records.length - 1; it >= 0; it -= 1) {
 					mR = monster.records[it];
-					if (mR.lpage === lpage && !publicList && mR.status !== 'Join') {
+					if (mR.lpage === lpage && !publicList && mR.state !== 'Join') {
 						if (mR.listReviewed < now) {
 							mR.lMissing += 1;
 							con.warn('Did not see monster ' + mR.name + ' on monster list ' + mR.lMissing + ' times.', mR);
@@ -307,33 +331,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			case 'battle_monster': 
 			case 'guildv2_battle_monster': 
 			case 'battle_expansion_monster': 
-				var slice = ajax ? $j(aslice) : $j("#app_body"),
-					visiblePageChangetf = !ajax && !feed.isScan,
-					cM = {}, // current
-					time = [],
-					tempDiv = $j(),
-					stunStart = 0,
-					tempArr = [],
-					monsterDiv = $j(),
-					damageDiv = $j(),
-					partsDiv = $j(),
-					partsElem = $j(),
-					tStr = '',
-					partsHealth = [],
-					arms = [],
-					mains = [],
-					minions = [],
-					tNum = 0,
-					deathRuneSiegetf = false,
-					defImage = '',
-					id = 0,
-					mpool = 0,
-					deleteMon = false;
-					
 				page = $j(".game", ajax ? slice : $j("#globalContainer")).eq(0).attr("id");
 				if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
-					con.log(1, "Deleting monster that has expired",lastClick);
-					monster.deleteRecord(lastClick);
+					if (monster.hasRecord(lastClick)) {
+						monster.deleteRecord(lastClick);
+						con.log(1, "Deleting raid that has expired",lastClick);
+					}
 					return false;
 				}
 
@@ -362,9 +365,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					if ($j("input[name*='guild_creator_id']").length > 0) {
 						id = $u.setContent(id, $j("input[name*='guild_creator_id']")[0].value + '_' + $j("input[name='slot']")[0].value + '_' + $j("input[name*='monster_slot']")[0].value);
 					}
-		id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/guild_id=(\d+)/)
-							+ '_' + $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/&slot=(\d+)/)
-							+ '_' + $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/monster_slot=(\d+)/));
+					id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/guild_id=(\d+)/) +
+					'_' + $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/&slot=(\d+)/) +
+						'_' + $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/monster_slot=(\d+)/));
 					id = $u.setContent(id, $u.setContent($j("#app_body #chat_log button[onclick*='ajaxSectionUpdate']").attr("onclick"), '').regex(/user=(\d+)/));
 					id = $u.setContent(id, $u.setContent($j("#app_body #monsterChatLogs img[src*='ldr_btn_chatoff.jpg']").attr("onclick"), '').regex(/user=(\d+)/));
 				}
@@ -385,7 +388,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				cM.rix = deathRuneSiegetf ? '&rix=' + $u.setContent(cM.link.regex(/rix=(\d+)/), 2) : '';
 
 				// Get the user name
-				if (id === stats.FBID) {
+				if (id == stats.FBID) {
 					cM.userName = 'Your';
 					cM.name = 'Your ' + $u.setContent(cM.monster, 'Unknown Monster');
 				} else {
@@ -576,7 +579,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 
 						if (visiblePageChangetf) {
-							damageDiv.parents("tr").eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
+							damageDiv.parents("tr").eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F') : '#C6A56F'));
 						}
 						//cM.hide = true;
 					} else {
@@ -599,7 +602,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 								con.warn("Unable to get attacked and defended damage from Leaderboard", tempArr, (damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim());
 							}
 							if (visiblePageChangetf) {
-								damageDiv.parent().parent().eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F', hiddenVar) : '#C6A56F'));
+								damageDiv.parent().parent().eq(0).css('background-color', (gm ? gm.getItem("HighlightColor", '#C6A56F') : '#C6A56F'));
 							}
 						} else {
 							cM.damage = 0;
@@ -646,7 +649,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 					} else {
 						con.warn("Missing nm_bottom to find class");
-						cM.charClass = '';
+						cM.charClass = false;
 					}
 
 					// if the monster has parts, hit the weakest minion first, and then hit the part with the least health next
@@ -699,21 +702,24 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						}
 
 						// If one of the mains is more damaged that most damaged hinderer and arms > 80% health, assume headless
-						if (arms.length && caap.minMaxArray(mains, 'min', 0) < caap.minMaxArray(arms, 'min', 0)
-							&& caap.minMaxArray(arms, 'min', 0) > 80) {
+						if (arms.length && caap.minMaxArray(mains, 'min', 0) < caap.minMaxArray(arms, 'min', 0) &&
+							caap.minMaxArray(arms, 'min', 0) > 80) {
 							cM.life = (mains.reduce(function(a, b) { return a + b; }, 0) / mains.length).dp(2);
 						} else {
 							cM.life = ((mains.reduce(function(a, b) { return a + b; }, 0) + arms.reduce(function(a, b) { return a + b; }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
 						}
-						//con.log(2, 'Average life of body parts ' + cM.life + '% and target is part ' + cM.targetPart, partsHealth, arms, mains, mains.reduce(function(a, b) { return a + b }, 0), arms.reduce(function(a, b) { return a + b }, 0), $j("#app_body #expanded_monster_target_1:visible").length, $j("#app_body #expanded_monster_target_2:visible").length);
 					}
+						
+					// Check public and priority monster.parseCondition("s", cM.conditions)
+					cM.canPri = !cM.link.hasIndexOf(stats.FBID) ? false : $u.hasContent(caap.checkForImage('pri_btn_priority.gif'));
+					cM.canPub = !cM.link.hasIndexOf(stats.FBID) ? false : $u.hasContent(caap.checkForImage('pri_btn_public.gif'));
 
 					// If it's alive and I've hit it, then check character class stuff and sieges
 					if (monster.damaged(cM)) {
-						if (cM.status == 'Join') {
+						if (cM.state == 'Join') {
 							con.log(1, 'Joined a feed monster with ' + cM.damage, cM);
 						}
-						cM.status = 'Attack';
+						cM.state = 'Attack';
 						cM.color = cM.color == 'grey' ? '' : cM.color;
 						
 						// Character type stuff
@@ -761,7 +767,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 										cM.stunSetting = tNum;
 
 										// Add +/- 30 min so multiple CAAPs don't all stun at the same time
-										cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting == 0 ? cM.stunTime
+										cM.stunTarget = cM.stunSetting == 6 ? stunStart : cM.stunSetting === 0 ? cM.stunTime
 												: cM.stunTime - (tNum - 0.5 + Math.random()) * 60 * 60 * 1000;
 										con.log(5,'New stun target', $u.makeTime(cM.stunTarget, caap.timeStr(true)));
 									}
@@ -821,23 +827,29 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					// It's alive and I haven't hit it
 					} else {
 						if (!cM.charClass || caap.hasImage('battle_enter_battle.gif', slice)) {
-							cM.status = 'Join';
-							cM.conditions = feed.addConditions(cM.name) || '';
+							cM.state = 'Join';
+							if (!feed.joinable(cM)) {
+								con.log(2, "Ignoring " + cM.name + " as per Finder settings", cM);
+								deleteMon = true;
+							}
 						} else { // I haven't hit it, but I can't join it, so delete
-							con.warn("Deleting unjoinable monster " + cM.name + " off Feed", cM);
+							con.log(2, "Deleting unjoinable monster " + cM.name + " off Feed", cM);
 							deleteMon = true;
 						}
 					}
 				// It's dead
 				} else {
 					// And I haven't hit it and it's not conquest
-					if (!monster.damaged(cM) && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
+					if (!monster.damaged(cM) && !cM.link.hasIndexOf("guildv2_battle_monster.php")) {
 						//and it's dead and not a conquest monster, so delete
-						con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM);
-						deleteMon = true;
+						if (monster.hasRecord(cM.link)) {
+							monster.deleteRecord(lastClick);
+							con.log(2, "Deleting dead monster " + cM.name + " off Feed", cM);
+							deleteMon = true;
+						}
 					} else {
 						feed.checkDeath(cM);
-						cM.status = (caap.hasImage('collect_reward', slice) || caap.hasImage('collectreward', slice)) ? 'Collect' : 'Done';
+						cM.state = (caap.hasImage('collect_reward', slice) || caap.hasImage('collectreward', slice)) ? 'Collect' : 'Done';
 						cM.color = 'grey';
 					}
 				}
@@ -1056,7 +1068,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             \-------------------------------------------------------------------------------------*/
 
-            var riskConstant = gm ? gm.getItem('HidingRiskConstant', 1.7, hiddenVar) : 1.7;
+            var riskConstant = gm ? gm.getItem('HidingRiskConstant', 1.7) : 1.7;
 
             /*-------------------------------------------------------------------------------------\
             The formula for determining if we should hide goes something like this:
@@ -1068,7 +1080,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
             \-------------------------------------------------------------------------------------*/
             //if ((stats.health.num - ((stats.stamina.num - 1) * riskConstant) < 10) && (stats.stamina.num * (5 / 3) >= 5)) {
-            if ((stats.health.num - ((stats.stamina.num - 1) * riskConstant) < 10) && ((stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1, hiddenVar) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
+            if ((stats.health.num - ((stats.stamina.num - 1) * riskConstant) < 10) && ((stats.stamina.num + (gm ? gm.getItem('HideStaminaRisk', 1) : 1)) >= state.getItem('MonsterStaminaReq', 1))) {
                 return false;
             }
 
@@ -1099,6 +1111,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 result = false,
 				i = 0,
 				time = 60,
+				hunterPts = config.getItem('WhenHunter','Never'),
+				conquestCollect = false,
 				cM = {},
 				message = 'Reviewing ';
 
@@ -1118,7 +1132,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 /*jslint continue: true */
 				
 				// Skip monsters we haven't joined, unless in conquest lands
-                if (cM.status == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
+                if (cM.state == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
                     continue;
                 }
                 if (cM.color === 'grey' && cM.life == 100) {
@@ -1131,14 +1145,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     monster.setRecord(cM);
                 }
 
-				time = (cM.status === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 12 * 60) * 60;
+				time = (cM.state === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 12 * 60) * 60;
 
 				link = "ajax:" + cM.link;
 
-				if (['Collect', 'Dead or fled'].hasIndexOf(cM.status)) {
-					if (/:collect\b/.test(cM.conditions) 
-						|| (/:collectsmall\b/.test(cM.conditions) && cM.damage < 200000)
-						|| (!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false))) {
+				if (['Collect', 'Dead or fled'].hasIndexOf(cM.state)) {
+					conquestCollect = !cM.link.hasIndexOf('guildv2_battle_monster') || hunterPts == 'Never' || stats.conquest.Hunter < hunterPts;
+					if (conquestCollect && (/:collect\b/.test(cM.conditions) ||
+						(/:collectsmall\b/.test(cM.conditions) && cM.damage < 200000) ||
+						(!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false)))) {
 						if (general.Select('CollectGeneral')) {
 							return true;
 						}
@@ -1148,17 +1163,27 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						message = 'Collecting ';
 					}
 
-				} else if (cM.status == 'Done' && cM.lpage == "player_monster_list") {
-					if (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false))) {
+				} else if (cM.state == 'Done') {
+					if (cM.lpage == "player_monster_list" && (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false)))) {
 						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
 						//caap.updateDashboard(true);
 						message = 'Clearing ';
 						monster.deleteRecord(cM.link);
 					}
 
-				} else if (cM.status == 'Attack' && cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
-					link += ',clickimg:siege_btn.gif';
-					message = 'Sieging ';
+				} else if (cM.state == 'Attack') {
+					if (cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+						link += ',clickimg:siege_btn.gif';
+						message = 'Sieging ';
+					} else if (cM.canPri && monster.parseCondition("pri", cM.conditions) &&
+						monster.parseCondition("pri", cM.conditions) > cM.time) {
+						link += '&action=commitPriorityMonster';
+						message = 'Making Priority ';
+					} else if (cM.canPub && monster.parseCondition("pub", cM.conditions) &&
+						monster.parseCondition("pub", cM.conditions) > cM.time) {
+						link += '&action=makeMonsterPublic';
+						message = 'Making Public ';
+					}
 				}
 				
                 if (message === 'Reviewing ' && !schedule.since(cM.review, time)) {
@@ -1190,7 +1215,54 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.worker = function () {
         try {
-			var whenMonster = config.getItem('WhenMonster', 'Never');
+			var whenMonster = config.getItem('WhenMonster', 'Never'),
+				fightMode = '',
+                cM = {},  // current monster
+                attackButton = null,
+                buttonList = [],
+                tacticsValue = 0,
+                useTactics = false,
+                attackMess = '',
+				gMult = 1, // General multiplier, like Orc King = 5
+				minMax = 'min',
+				menuGeneral = 'Use Current',
+				specificGeneral = 'Use Current',
+				temp,
+				nodeNum = 0,
+				xpPerPt = 1,
+				statRequire = 0,
+				statRequireBig = 0,
+				statAvailable = 0,
+				goBig = false,
+				debtcM = {},
+				whichStat = 'listEnergy',
+				levelUpGen = config.getItem('Level_UpGeneral','Use Current') == 'Use Current' ? 'MonsterGeneral' : 'Level_UpGeneral',
+				statList = [],
+				blankRecord = new monster.record().data,
+				result = false,
+				burning = false,
+				charged = false,
+				healPercStam = config.getItem('HealPercStam', 20) / 100,
+				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
+				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
+				gMultFunc = function(gen) { 
+					return $u.setContent(general.getRecordVal(general.getConfigMenuGeneral(gen), 'special').regex(/(\d)x power attacks/i), 1);
+				},
+				setGeneralVarsFunc = function(generalMenuSetting, stat) { 
+					burning = /:burn\b/i.test(cM.conditions);
+					menuGeneral = generalMenuSetting;
+					specificGeneral = general.getConfigMenuGeneral(generalMenuSetting);
+					charged = general.charged(specificGeneral);
+					gMult = gMultFunc(generalMenuSetting);
+					goBig = !general.ZinMisaCheck(generalMenuSetting) && (burning || charged);
+					statAvailable = stat == 'cover' || (stat == 'energy' && cM.stunDo) ? maxEnergy : whichStat == 'listEnergy' ?
+						energyAvailable : goBig ?
+						Math.min(stats.stamina.num, burning && !charged ? 100 : 1000) :
+						Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ?
+							(stats.energy.num / healPercStam) : stats.stamina.num);
+					minMax = whichStat == 'listStamina' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
+				};
+
 
 			if (whenMonster === 'Never' || whenMonster == 'Review Only') {
 				caap.setDivContent('monster_mess', whenMonster == 'Never' ? 'Monster off' : 'No current review');
@@ -1228,48 +1300,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     return false;
                 }
             }
-
-            var fightMode = '',
-                cM = {},  // current monster
-                attackButton = null,
-                buttonList = [],
-                tacticsValue = 0,
-                useTactics = false,
-                attackMess = '',
-				gMult = 1, // General multiplier, like Orc King = 5
-				minMax = 'min',
-				menuGeneral = 'Use Current',
-				specificGeneral = 'Use Current',
-				temp,
-				nodeNum = 0,
-				xpPerPt = 1,
-				statRequire = 0,
-				statRequireBig = 0,
-				statAvailable = 0,
-				goBig = false,
-				debtcM = {},
-				whichStat = 'listEnergy',
-				levelUpGen = config.getItem('Level_UpGeneral','Use Current') == 'Use Current' ? 'MonsterGeneral' : 'Level_UpGeneral',
-				statList = [],
-				blankRecord = new monster.record().data,
-				result = false,
-				healPercStam = config.getItem('HealPercStam', 20) / 100,
-				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
-				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
-				gMultFunc = function(gen) { 
-					return $u.setContent(general.getRecordVal(general.getConfigMenuGeneral(gen), 'special').regex(/(\d)x power attacks/i), 1);
-				},
-				setGeneralVarsFunc = function(generalMenuSetting, stat) { 
-					menuGeneral = generalMenuSetting;
-					specificGeneral = general.getConfigMenuGeneral(generalMenuSetting);
-					gMult = gMultFunc(specificGeneral);
-					goBig = !general.ZinMisaCheck(generalMenuSetting) && (/:burn\b/i.test(cM.conditions) || general.charged(specificGeneral));
-					statAvailable = stat == 'cover' || (stat == 'energy' && cM.stunDo) ? maxEnergy : whichStat == 'listEnergy' ?
-						energyAvailable : goBig ? stats.stamina.num :
-						Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ?
-							(stats.energy.num / healPercStam) : stats.stamina.num);
-					minMax = whichStat == 'listStamina' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
-				};
 
 			debtcM = healPercStam ? (monster.records.reduce(function(previous, redR) {
 				return redR.debtStamina > previous.debtStamina ? redR : previous;
@@ -1313,19 +1343,18 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					// Is there a smaller power attack that will work?
 					statRequire = caap.minMaxArray(statList, 'min', 1, (stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
 					
-					if (statRequire && statRequire * xpPerPt < stats.exp.dif) {
-						// Ok, small power hit is a go
-					// If power hit won't work, then do single hit
-					} else if (statList[0] == 1 && 1 * gMult * xpPerPt < stats.exp.dif) {
-						statRequire = 1 * gMult;
-					} else {
-						// If too close to levelling for a power attack, do max attack to carry over xp
-						setGeneralVarsFunc(levelUpGen, stat);
-						statRequire = statRequireBig / gMultFunc(levelUpGen);
+					if (!statRequire || statRequire * xpPerPt >= stats.exp.dif) { // Small power hit no go
+						if (statList[0] == 1 && gMult * xpPerPt < stats.exp.dif) { // Small single hit ok?
+							statRequire = 1 * gMult;
+						} else {
+							// If too close to levelling for a power attack, do max attack to carry over xp
+							setGeneralVarsFunc(levelUpGen, stat);
+							statRequire = statRequireBig;
+						}
 					}
-					con.log(2, 'Hitting for ' + statRequire + ' X ' + gMult + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
+					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
 				} else if (statList[0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
-					statRequire = 1 * gMult;
+					statRequire = gMult;
 				} else {
 					statRequire = caap.minMaxArray(statList, minMax, 1, (statAvailable + 1) / gMult) * gMult ;
 				}
@@ -1344,7 +1373,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 
             // Set general and go to monster page
-			result = caap.navigate2('@' + menuGeneral + ',ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" + cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
+			result = caap.navigate2('@' + menuGeneral + ',ajax:' + cM.link + (cM.targetPart > 0 ? (",clickjq:#app_body #monster_target_" +
+				cM.targetPart + " img[src*='multi_selectbtn.jpg'],jq:#app_body #expanded_monster_target_" + cM.targetPart + ":visible") : ''));
 			
 			monster.lastClick = cM.link;
             if (result !== false) {
@@ -1481,7 +1511,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 	
 	monster.powerButtons = ['button_nm_p_', 'power_button_', 'attack_monster_button2.jpg', 'event_attack2.gif', 'seamonster_power.gif', 'serpent_10stam_attack.gif'];
 	
-	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title'],div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_'],div[style*='newmonsterbanner_']";
+	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title']";
+	monster.onMonsterHeader += ",div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']";
+	monster.onMonsterHeader += ",div[style*='newmonsterbanner_']";
 
     monster.completeButton = {
         'battle_monster': {
@@ -1577,7 +1609,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
         },
         'Gildamesh': {
             duration: 72,
-            ach: 15000
+            ach: 15000,
+			summonAlias : 'Orc King'
         },
         'Colossus Of Terra': {
             duration: 72,
@@ -1587,9 +1620,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
             duration: 48,
             ach: 50000
         },
-        'Lotus': {
+        'Lotus Ravenmoore': {
             duration: 48,
-            ach: 500000
+            ach: 500000,
+			achTitle : "Lotus Hunter"
         },
         'Keira': {
             duration: 48,
@@ -1747,7 +1781,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				con.warn('monster.getInfo not passed a monster name', mName);
             }
 			mName = mName.replace(/^The /i,'');
-			defValue = typeof defValue == 'undefined' ? monster.info['Default Monster'][value] : defValue;
+			defValue = !$u.isDefined(defValue) ? monster.info['Default Monster'][value] : defValue;
             return $u.setContent(monster.info[mName],false) ? $u.setContent(monster.info[mName][value], defValue): defValue;
         } catch (err) {
             con.error("ERROR in monster.getInfo: " + err + ' stack ' + err.stack);
@@ -1759,25 +1793,28 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
     monster.setrPage = function(path, entry, value) {
         try {
             var rPage = {
-                'path' : path,
-                'review' : 0,
-                'page' : false
-            };
+					'path' : path,
+					'review' : 0,
+					'page' : false},
+				result = false;
 
             if (!$u.hasContent(path) || !$u.isString(path)) {
                 con.warn("path", path);
                 throw "Invalid identifying path!";
             }
 
-            for (var it = 0; it < stats.reviewPages.length; it++) {
-                if (stats.reviewPages[it].path === path) {
+            result = stats.reviewPages.some( function(p) {
+                if (p.path === path) {
                     if ($u.hasContent(entry)) {
-                        stats.reviewPages[it][entry] = value;
+                        p[entry] = value;
                     }
 					statsFunc.setRecord(stats);
                     return true;
                 }
-            }
+            });
+			if (result) {
+				return true;
+			}
             if ($u.hasContent(entry)) {
                 rPage[entry] = value;
             }
@@ -1799,9 +1836,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 con.warn("Delete entry invalid", entry, value);
                 throw "Invalid identifying entry!";
             }
-            var deleted = 0;
+            var deleted = 0, i;
 
-            for (var i = stats.reviewPages.length - 1; i >= 0; i += -1) {
+            for (i = stats.reviewPages.length - 1; i >= 0; i += -1) {
                 if (stats.reviewPages[i][entry] === value) {
                     deleted += 1;
                     con.log(2,'Monster review pages before',stats.reviewPages, entry, i);
@@ -1875,15 +1912,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return false;
             }
 
-            var str = conditions.match(new RegExp(':' + type + '([\\d\\.]*)(\\w?)'));
-			
+            var str = conditions.match(new RegExp(':' + type + '([\\d\\.]*)(\\w?)')),
+				value,
+                first = false,
+                second = false;
+				
 			if (!str) {
 				return false;
 			}
 			
-            var value = $u.setContent(str[1], 0),
-                first = false,
-                second = false;
+			value = $u.setContent(str[1], 0);
 
             if ((/k/i.test(str[2]) || /m/i.test(str[2]))) {
                 first = /k/i.test(str[2]);
@@ -1912,7 +1950,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 KOBbiasedTF = 0,
                 KOBPercentTimeRemaining = 0,
                 KOBtotalMonsterTime = 0,
-                isTarget = false,
 				achLevel = monster.parseCondition('ach', cM.conditions),
 				maxDamage = monster.parseCondition('max', cM.conditions),
 				maxToFortify = monster.parseCondition('f%', cM.conditions),
@@ -1959,7 +1996,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			}
 
 			//test if user wants kob active globally
-			if (!KOBenable && (gm ? gm.getItem('KOBAllMonters', false, hiddenVar) : false)) {
+			if (!KOBenable && (gm ? gm.getItem('KOBAllMonters', false) : false)) {
 				KOBenable = true;
 			}
 
@@ -1998,7 +2035,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			//for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
 			// -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
 			if (KOBtotalMonsterTime >= 168) {
-				KOBtotalMonsterTime = KOBtotalMonsterTime - (gm ? gm.getItem('KOBDelayStart', 48, hiddenVar) : 48);
+				KOBtotalMonsterTime = KOBtotalMonsterTime - (gm ? gm.getItem('KOBDelayStart', 48) : 48);
 			}
 
 			//Percentage of time remaining for the currently selected monster
@@ -2009,8 +2046,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 			// End of Keep On Budget (KOB) code Part 1 -- required variables
 
-			isTarget = (cM.link === state.getItem('targetFromraid', '') || cM.link === state.getItem('targetFromMonster', '') || cM.link === state.getItem('targetFromFortify', ''));
-			
 			//con.log(2, 'MAX DAMAGE', maxDamage, cM.damage);
 			if ((maxDamage && cM.damage >= maxDamage) || (maxSta && cM.spentStamina >= maxSta)) {
 
@@ -2094,18 +2129,18 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     monster.fullReview = function(which) {
         try {
-            for (var it = monster.records.length - 1; it >= 0; it -= 1) {
-                if ((which == 'Feed') === (monster.records[it].status === 'Join')) {
-					monster.deleteRecord(monster.records[it].link);
-				}
-			}
+
+			monster.records = monster.records.filter( function(mR) {
+				return (which == 'Feed') !== (mR.state == 'Join');
+			});
+			
 			if (which != 'Feed') {
 				stats.reviewPages.forEach( function(page) {
 					monster.setrPage(page.path,'review',0);
 				});
 				schedule.setItem('NotargetFrombattle_monster', 0);
 			}
-            caap.updateDashboard(true);
+			state.setItem('wsave_monster', true);
             localStorage.AFrecentAction = false;
 
             return true;
@@ -2127,18 +2162,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					'any': []
 				},
 				it = 0,
-                len = 0,
-                len1 = 0,
-                len2 = 0,
-                len3 = 0,
-                s = 0,
 				cM = {},
 				whichStat = 'any',
 				conditions = '',
 				monString = '',
                 selectTypes = [],
 				maxToFortify = 0,
-                nodeNum = 0,
                 firstOverAch = '',
                 firstUnderMax = '',
                 firstFortOverAch = '',
@@ -2156,9 +2185,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'raid': '',
                     'fortify': ''
                 },
+				feedCheck = caap.oneMinuteUpdate('feedCheck'),
                 monsterlink = '',
-                p = 0,
-                m = 0,
                 attackOrderList = [];
 
             // Next we get our monster objects from the repository and break them into separate lists
@@ -2169,7 +2197,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				if (!$u.hasContent(cM.link)) {
 					con.warn('Deleting monster record without link', cM);
 					monster.deleteRecord(cM.link);
-				} else if (cM.lMissing > 3) {
+				} else if (cM.lMissing > 3 && (!cM.link.hasIndexOf('guildv2_battle_monster') || cM.state == 'Done')) {
 					con.log(2, 'Deleting monster ' + cM.name + ' since not seen on monster list ' + cM.lMissing + ' times', cM);
 					monster.deleteRecord(cM.link);
 				} else if (monster.damaged(cM)) {
@@ -2183,16 +2211,17 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					cM.conditions = 'none';
 					whichStat = config.getItem('SerializeRaidsAndMonsters', false) ? 'any' : cM.link.indexOf('raid') >=0 ? 'raid' : 'battle_monster';
 					monsterList[whichStat].push(cM.link);
-                } else {
-					cM.conditions = feed.addConditions(cM) || cM.conditions;
+				} else if (cM.state == 'Join' && feedCheck) {
+					feed.scoring(cM);
 				}
-				if (cM.status !== 'Attack'){
+				
+				if (cM.state !== 'Attack'){
 					cM.debtStart = -1;
 					cM.debtStamina = 0;
 				}
             }
 
-            monster.doSave = true;
+            state.setItem('wsave_monster', true);
 
             if (whichStat === 'any') {
                 selectTypes = ['any'];
@@ -2244,9 +2273,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						conditions = aoItem.replace(new RegExp("^[^:]+"), '').toString().trim();
 						monString = aoItem.match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
                         // If this monster does not match, skip to next one
-                        if ((monString !== 'all' && !monster.getRecord(thisMon).name.toLowerCase().hasIndexOf(monString)) 
-							|| (conditions.regex(/(:conq)\b/) && (cM.lpage != "ajax:player_monster_list.php?monster_filter=2"))
-							|| (conditions.regex(/(:!conq)\b/) && (cM.lpage == "ajax:player_monster_list.php?monster_filter=2"))) {
+                        if ((monString !== 'all' && !monster.getRecord(thisMon).name.toLowerCase().hasIndexOf(monString)) ||
+							(conditions.regex(/(:conq)\b/) && !cM.link.hasIndexOf("guildv2_battle_monster.php")) ||
+							(conditions.regex(/(:!conq)\b/) && cM.link.hasIndexOf("guildv2_battle_monster.php"))) {
                             return;
                         }
 
@@ -2256,7 +2285,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 						cM.select = true;
 
-                        monster.doSave = true;
+                        state.setItem('wsave_monster', true);
                         // If it's complete or collect rewards, no need to process further
                         if (cM.color === 'grey') {
 							monster.setRecord(cM);
@@ -2270,8 +2299,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 								: (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
 							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
 							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 
-								&& (cM.phase > 1 || (conditions && conditions.regex(/:fs\b/)));
+							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 &&
+								(cM.phase > 1 || (conditions && conditions.regex(/:fs\b/)));
 							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
 						} else {
 							cM.doSiege = false;
@@ -2415,7 +2444,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                     'Siege monsters for up to 50 stamina, will not siege unless 1st siege has been launched',
                     'Siege monsters for up to 250 stamina, will not siege unless 1st siege has been launched'],
                 delayStayHiddenInstructions = "Delay staying hidden if \"safe\" to wait for enough stamina to attack monster.",
-                monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 htmlCode = '';
 
             htmlCode += caap.startToggle('Monster', 'MONSTER');
@@ -2501,7 +2529,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         id: '',
                         title: ''
                     },
-                    linkRegExp = new RegExp("'(http.+)'"),
                     count = 0,
                     handler = null,
                     head = '',
@@ -2616,6 +2643,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         });
                         break;
                     default:
+						break;
                     }
                 }
 
@@ -2623,7 +2651,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 values.shift();
                 monster.records.forEach(function(cM) {
 					//con.log(2, "MONSTER DASH",cM);
-					if ((cM.status == 'Join') != (which == 'Feed')) {
+					if ((cM.state == 'Join') != (which == 'Feed')) {
 						return;
 					}
                     row = '';
@@ -2663,7 +2691,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         title = '';
                         if (displayItem === 'phase' && color === 'grey') {
                             row += caap.makeTd({
-                                text: cM.status,
+                                text: cM.state,
                                 color: color,
                                 id: '',
                                 title: ''
@@ -2710,9 +2738,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                                     title = "Percentage of party strength: " + value + "%";
                                     break;
                                 case 'link':
-                                    value = "<a href='" + link + "'>Link<\a>";
+                                    value = "<a href='" + link + "'>Link</a>";
                                     break;
                                 default:
+									break;
                                 }
 
                                 row += caap.makeTd({
@@ -2731,10 +2760,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                             }
                         }
                     });
+					
+					monsterConditions = $u.setContent(cM.fullC, cM.jFullC);
 
-                    if (monsterConditions && monsterConditions !== 'none') {
+                    if ($u.hasContent(monsterConditions)) {
                         data = {
-                            text: '<span title="User Set Condition string: ' + cM.fullC + '" class="ui-icon ui-icon-info">i</span>',
+                            text: '<span title="User Set Condition string: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
                             color: 'blue',
                             id: '',
                             title: ''
@@ -2797,13 +2828,12 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
                 handler = function(e) {
                     var visitMonsterLink = {
-                        mlink: '',
-                        mname: '',
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                        len = 0;
+							mlink: '',
+							mname: '',
+							rlink: '',
+							arlink: ''},
+						i = 0,
+						len = 0;
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
@@ -2818,7 +2848,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
 					monster.lastClick = visitMonsterLink.mlink;
 					console.log('Visiting link ' + monster.lastClick);
-                    caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.ajaxLink(visitMonsterLink.arlink);
                 };
 
                 $j("span[id*='caap_" + whichL + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
@@ -2832,8 +2862,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                         arlink: ''
                     },
                     i = 0,
-                        len = 0,
-                        resp = false;
+                    len = 0;
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {

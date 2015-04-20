@@ -413,7 +413,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 }
             url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record.slot);
-                caap.clickAjaxLinkSend(url);
+                caap.ajaxLink(url);
                 return true;
             }
 
@@ -577,7 +577,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     con.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
                     caap.setDivContent('guild_monster_mess', "Fighting (" + record.slot + ") " + record.name);
                     url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + "&slot=" + record.slot;
-                    caap.clickAjaxLinkSend(url);
+                    caap.ajaxLink(url);
                     form = null;
                     key = null;
                     return true;
@@ -1535,7 +1535,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.ajaxLink(visitMonsterLink.arlink);
                 };
 
                 $j("span[id*='caap_guildmonster_']", caap.caapTopObject).off('click', handler).on('click', handler);
