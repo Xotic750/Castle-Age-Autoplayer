@@ -270,7 +270,7 @@ battle.targets that can later be attacked.
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ajaxLink(visitUserIdLink.arlink);
                 };
 
                 $j("span[id*='caap_targetrecon_']", caap.caapTopObject).off('click', handler).click(handler);

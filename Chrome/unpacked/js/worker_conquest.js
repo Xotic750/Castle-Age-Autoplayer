@@ -1,9 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,gm,hiddenVar,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,battle,conquest,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global $j,$u,caap,config,con,battle,conquest,worker,stats,statsFunc,conquestLands,loe,lom,essence,gm,
+schedule,state,general,session */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -22,28 +21,49 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 	conquest.checkResults = function(page, resultsText) {
         try {
-			// Check coins
-            var whenconquest = config.getItem('WhenConquest', 'Never');
-            if (whenconquest === 'Never') {
-                caap.setDivContent('conquest_mess', 'Conquest off');
-                return false;
-            }
+            var tempDiv, text;
+			
 			switch (page) {
 			case 'conquest_duel' :
+				// Check coins
 				conquest.battle(page, resultsText);
-				// Deliberate lack of break;
-			case 'guild_conquest_castle_battlelist' :
-			case 'guild_conquest_castle' :
-			case 'guildv2_conquest_command' :
-			case 'guildv2_conquest_expansion' :
-
-				var tempDiv = $j("#guild_token_current_value");
+				tempDiv = $j("#guild_token_current_value");
 				if ($u.hasContent(tempDiv)) {
-					tempDiv = $j($j("#guild_token_current_value")[0].parentNode);
-					 stats.guildTokens = caap.getStatusNumbers(tempDiv.text());
+					stats.guildTokens = caap.getStatusNumbers(tempDiv.eq(0).parent().text().trim());
 				} else {
 					con.warn("Unable to get Conquest Tokens Div", tempDiv);
 				}
+				break;
+			case 'guild_castle_fort' :  // Land of Earth defense
+				if (resultsText.match(/This fortification is already at max capacity/i)) {
+					schedule.setItem('loeFortMax', 3 * 3600);
+				}
+				/* falls through */
+			case 'guildv2_conquest_command' : // Land of Mist top
+			case 'guildv2_conquest_expansion_fort' :  // Land of ??
+			case 'guildv2_conquest_battlelist' : // Land of Mist enemies
+			case 'guildv2_monster_list' :  // Land of Mist monsters
+			case 'guild_conquest_castle' : // Land of Earth top
+			case 'guild_conquest_castle_battlelist' : // Land of Earth enemies
+			case 'guildv2_conquest_expansion' : // Land of Mist or Earth tower
+				text = $j("#app_body div[style*='conq4_top.jpg']").text().trim().innerTrim();
+					
+				//7944 5363 GUILD LEVEL: 12 Points to Next Rank: 250 CONQUEST LV: 39 Points to Next Level: 91 13/14 MORE: (9:58) Conqueror 670 Hunter 0 Guardian 150 Engineer 0 Click here to view Conquest Report! Bel Thrall City LAND OF EARTH NONE
+				
+				// "12631 4736 GUILD LEVEL: 12 Points to Next Rank: 250 CONQUEST LV: 12 Points to Next Level: 134 11/11 Conqueror 460 Engineer 30 Hunter 0 Guardian 150 Click here to view Conquest Report! Malcaster Castle DEF silo"
+				
+				if (!caap.bulkRegex(text,
+					/(\d+) (\d+) GUILD LEVEL: (\d+) Points to Next Rank: \d+ CONQUEST LV: (\d+) Points to Next \w+: (\d+) (\d+)\/(\d+)/,
+					stats, ['resources.lumber', 'resources.iron', 'guild.level', 'rank.conquestLevel', 'conquest.dif', 'guildTokens.num', 'guildTokens.max'])) {
+					con.warn('Conquest: unable to conquest information and resources', text);
+				}
+				
+				conquest.categories.forEach( function(c) {
+					if (!caap.bulkRegex(text, RegExp(c + ' (\\d+)'), stats, ['conquest.' + c])) {
+						con.warn('Conquest: unable to read ' + c + ' points', text);
+					}
+				});
+
 				statsFunc.setRecord(stats);
 				break;
 				
@@ -58,7 +78,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return false;
         } catch (err) {
-            con.error("ERROR in conquest.checkResults: " + err);
+            con.error("ERROR in conquest.checkResults: " + err.stack);
             return false;
         }
 	};
@@ -98,7 +118,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             inp = null;
             return false;
         } catch (err) {
-            con.error("ERROR in conquestUserId: " + err);
+            con.error("ERROR in conquestUserId: " + err.stack);
             return false;
         }
     };
@@ -115,7 +135,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 conquesttype = '',
                 useGeneral = '',
                 chainImg = '',
-                tempDiv = $j(),
+	            tempDiv = $j(),
                 button = $j(),
                 conquestChainId = 0,
                 it = 0,
@@ -127,7 +147,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 
- 			if 	(stats.guildTokens.num > stats.guildTokens.max) {
+			if (stats.guildTokens.num > stats.guildTokens.max) {
                 con.log(1, 'Checking max conquest coins', $u.setContent(caap.displayTime('conquest_token'), "Unknown"), stats.guildTokens.num, stats.guildTokens.max);
                 caap.setDivContent('conquest_mess', 'Checking coins');
                 if (caap.navigateTo('conquest_duel')) {
@@ -151,8 +171,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return false;
             }
 			
-			if (loe.worker()) {
+			if (loe.worker('your','loe')) {
 				return true;
+			}
+			if (config.getItem('lomPriority', 'Guardian') == 'Guardian') {
+				if (loe.worker('your', 'lom')) {
+					return true;
+				}
+				if (loe.worker('enemy', 'loe')) {
+					return true;
+				}
+			} else {
+				if (loe.worker('enemy', 'loe')) {
+					return true;
+				}
+				if (loe.worker('your', 'lom')) {
+					return true;
+				}
 			}
 
 			if (whenconquest === 'At Max Coins' && stats.guildTokens.max >= 10 && stats.guildTokens.num !== stats.guildTokens.max) {
@@ -174,7 +209,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				caap.setDivContent('conquest_mess', 'Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
-				tempDiv = null;
 				return false;
 			}
 
@@ -184,7 +218,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				caap.setDivContent('conquest_mess', 'Waiting X coins ' + stats.guildTokens.num + '/' + config.getItem('ConquestXCoins', 1) + ' (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
-				tempDiv = null;
 				return false;
 			}
 
@@ -193,7 +226,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				caap.setDivContent('conquest_mess', 'Coins Available ' + stats.guildTokens.num + '/1 (' + $u.setContent(caap.displayTime('conquest_token'), "Unknown") + ')');
 				state.setItem("ConquestChainId", 0);
 				button = null;
-				tempDiv = null;
 				return false;
 			}
 
@@ -209,7 +241,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return false;
             }
 
@@ -219,7 +250,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 schedule.setItem("conquest_delay_stats", (stats.stamina.ticker[0] * 60) + stats.stamina.ticker[1], 300);
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return false;
             }
 
@@ -246,7 +276,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.warn('Unknown conquest type ', conquesttype);
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return false;
             }
 
@@ -254,14 +283,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (general.Select(useGeneral)) {
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return true;
             }
 
             if (caap.navigateTo('conquest_duel', 'conqduel_on.jpg')) {
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return true;
             }
 
@@ -281,7 +308,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     conquest.click(button, conquestChainId);
                     state.setItem("ConquestChainId", 0);
                     button = null;
-                    tempDiv = null;
                     return true;
                 }
 
@@ -296,7 +322,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 schedule.setItem('conquest_delay', Math.floor(Math.random() * 240) + 60);
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return false;
             }
 
@@ -310,7 +335,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 con.log(1, 'No valid conquest target',targetId, bR, conquest.targets);
                 state.setItem("ConquestChainId", 0);
                 button = null;
-                tempDiv = null;
                 return false;
             }
 
@@ -318,17 +342,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (conquest.conquestUserId(bR)) {
                 caap.setDivContent('conquest_mess', 'Conquest Target: ' + bR.userId);
                 button = null;
-                tempDiv = null;
                 return true;
             }
 
             con.warn('Doing conquest target list, but no target');
             state.setItem("ConquestChainId", 0);
             button = null;
-            tempDiv = null;
             return false;
         } catch (err) {
-            con.error("ERROR in conquest: " + err);
+            con.error("ERROR in conquest: " + err.stack);
             return false;
         }
     };
@@ -407,7 +429,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             caap.click(conquestButton);
             return true;
         } catch (err) {
-            con.error("ERROR in conquest.click: " + err);
+            con.error("ERROR in conquest.click: " + err.stack);
             return false;
         }
     };
@@ -429,8 +451,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 timeSecs = 0,
                 tokensDiv = $j(),
                 tempText = '',
-                passedStats = true,
-                passedTimes = true;
+                passedStats = true;
 
             if (!$u.hasContent(slice)) {
                 con.warn("No slice passed to conquest.getCommonInfos");
@@ -537,8 +558,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 if ($u.hasContent(rechargeDiv)) {
                     rechargeSecs = $u.setContent(rechargeDiv.val(), '').regex(/(\d+)/);
                 } else {
-                        con.warn("Unable to get conquest rechargeDiv");
-                        passedTimes = false;
+					con.warn("Unable to get conquest rechargeDiv");
                 }
 
                 timeDiv = $j("#guild_token_time_sec", slice);
@@ -546,8 +566,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     timeSecs = $u.setContent(timeDiv.val(), '').regex(/(\d+)/);
                     schedule.setItem("conquest_token", timeSecs, 300);
                 } else {
-                        con.warn("Unable to get conquest timeDiv");
-                        passedTimes = false;
+					con.warn("Unable to get conquest timeDiv");
                 }
             } else {
                 schedule.setItem("conquest_token", 300, 0);
@@ -561,14 +580,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             timeDiv = null;
             tokensDiv = null;
         } catch (err) {
-            con.error("ERROR in conquest.getCommonInfos: " + err);
+            con.error("ERROR in conquest.getCommonInfos: " + err.stack);
         }
     };
 
     conquest.targeting = function() {
         function logOpponent(opponent, reason, conditions) {
             con.log(2, (reason === 'sorted' ? 1 : 2), (opponent.name.lpad(' ', 20) + opponent.userId.lpad(' ', 16) +
-                opponent.level.lpad(' ', 4) + conquest.conquestRankTable[opponent.rank].lpad(' ', 16) +
+                opponent.level.lpad(' ', 4) + conquest.conquestRankTable[opponent.conqRank].lpad(' ', 16) +
                 opponent.army.lpad(' ', 4) + opponent.score.dp().lpad(' ', 5)), reason, conditions);
         }
 
@@ -581,8 +600,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ARBase = 0,
                 ARMin = 0,
                 ARMax = 0,
-                it = 0,
-                len = 0,
                 conquesttype = config.getItem('ConquestType', 'Invade'),
                 targets = [];
 
@@ -673,26 +690,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             opponentsSlice.each(function() {
                 var opponentDiv = $j(this),
                     boxesDiv = opponentDiv.children("div"),
-                    tempDiv = $j(),
+					idDiv = boxesDiv.eq(5),
+					playerDiv = boxesDiv.eq(2),
+					armyDiv = boxesDiv.eq(3),
                     tempText = '',
                     bR = {},
                     levelMultiplier = 0,
                     armyRatio = 0,
-                    tempTime = 0;
+                    tempTime = 0,
+					userId;
 
-                if ($u.hasContent(boxesDiv) && boxesDiv.length === 7 ) {
-                    var playerDiv = boxesDiv.eq(2),
-                        armyDiv = boxesDiv.eq(3),
-                        idDiv = boxesDiv.eq(5);
-                } else {
+                if (!$u.hasContent(boxesDiv) || boxesDiv.length !== 7 ) {
                     con.warn("skipping opponent, missing boxes", opponentDiv);
                     opponentDiv = null;
                     boxesDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
-                var userId = parseInt($j("input[name='target_id']",idDiv)[0].defaultValue,10);
+                userId = parseInt($j("input[name='target_id']", idDiv)[0].defaultValue,10);
                 if (userId > 0) {
                     bR = battle.getRecord(userId);
                 } else {
@@ -724,7 +739,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             idDiv = null;
                             playerDiv = null;
                             armyDiv = null;
-                            tempDiv = null;
                             return;
                         }
                     } else {
@@ -734,7 +748,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         idDiv = null;
                         playerDiv = null;
                         armyDiv = null;
-                        tempDiv = null;
                         return;
                     }
                 } else {
@@ -744,7 +757,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -760,7 +772,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             idDiv = null;
                             playerDiv = null;
                             armyDiv = null;
-                            tempDiv = null;
                             return;
                         }
                     } else {
@@ -770,7 +781,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         idDiv = null;
                         playerDiv = null;
                         armyDiv = null;
-                        tempDiv = null;
                         return;
                     }
                 } else {
@@ -780,7 +790,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
                 levelMultiplier = stats.level / bR.level;
@@ -798,7 +807,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -815,7 +823,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -831,7 +838,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -847,7 +853,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -862,7 +867,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -879,7 +883,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -890,7 +893,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -903,7 +905,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -916,7 +917,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     idDiv = null;
                     playerDiv = null;
                     armyDiv = null;
-                    tempDiv = null;
                     return;
                 }
 
@@ -928,19 +928,18 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 idDiv = null;
                 playerDiv = null;
                 armyDiv = null;
-                tempDiv = null;
             });
 
             targets.sort($u.sortBy(true, "score"));
 
-            for (it = 0, len = targets.length; it < len; it += 1) {
-                logOpponent(targets[it], 'sorted', '');
-                conquest.targets.push(targets[it].userId);
-            }
+            targets.forEach( function(t) {
+                logOpponent(t, 'sorted', '');
+                conquest.targets.push(t.userId);
+            });
 
             opponentsSlice = null;
         } catch (err) {
-            con.error("ERROR in conquest.targeting: " + err);
+            con.error("ERROR in conquest.targeting: " + err.stack);
         }
     };
 
@@ -967,21 +966,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     conquest.getResults = function(page, resultsText) {
         try {
-            var bottomDiv = $j(),
-                buttonDiv = $j(),
-                targetDiv = $j(),
-                tempText = '',
-                points = -1,
-                it = 0,
-                len = 0,
-                r = {},
+            var r = battle.readWinLoss(resultsText, conquest.testList),
 				bR = {},
                 tempTime = 0,
                 chainBP = '',
                 maxChains = 0;
 
-			r = battle.readWinLoss(resultsText, conquest.testList);
-			
 			if (!r) {
 				return false;
 			}
@@ -1008,7 +998,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					}
 				}
 
-				bR.chainCount = bR.chainCount ? bR.chainCount += 1 : 1;
+				bR.chainCount += 1;
 				maxChains = config.getItem('ConquestMaxChains', 4);
 				if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
 					maxChains = 4;
@@ -1031,88 +1021,95 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 			battle.setRecord(bR);
 	} catch (err) {
-            con.error("ERROR in conquest.getResults: " + err);
+            con.error("ERROR in conquest.getResults: " + err.stack);
         }
     };
 
-    conquest.getLands = function() {
-        var landCapsules = $j("div[style*='conq2_capsule']"),
-            timeLeft,
-			path,
-			tmp = $j(),
-			pathList = [],
-			monsterFound = false,
-			activePathlist = [];
-		
-		tmp = $j("#app_body #header_garrison_tab a[href*='slot=']");
-		stats.LoMland = $u.hasContent(tmp) ? tmp.attr('href').regex(/slot=(\d+)/) - 1 : -1;
-		landCapsules.each(function(index) {
-			var currentCapsule = $j(this),
-				arr = [],
-				landRecord = conquestLands.getItem(index);
-			
-			landRecord.name = currentCapsule.children().eq(0).text().trim();
-            tmp = $j("img[src*='conq2_btn']", currentCapsule)[0].src.split('/');
-			landRecord.status = tmp[tmp.length - 1].match(/.+_(.+)\..+/)[1];
-			if (landRecord.status == 'explore') {
-				landRecord.timeLeft = 0;
-				landRecord.stateTimeLeft = 0;
-			} else {
-				try{
-					arr = currentCapsule.text().trim().regex(/(\d+) HR/gi);
-					landRecord.timeLeft = arr.length ? arr.pop() : 999999;
-					landRecord.phaseLeft = arr.length ? arr.pop() : 999999;
-					landRecord.defenders = $j("div[onmouseout*='defenderc_text_']", currentCapsule).parent().text().regex(/(\d+)/);
-				} catch (err) {
-					con.error("ERROR in landRecord.timeLeft: " + err);
-					landRecord.timeLeft = 999999;
-				}	
-			}
-			landRecord.index = index;
-			conquestLands.records[index] = landRecord;
-        });
-		conquestLands.records.splice(landCapsules.length, conquestLands.records.length - landCapsules.length);
-		con.log(2, 'Conquest Lands Records', conquestLands.records);
-		conquestLands.save();
-    };
-
 	conquest.categories = ['Conqueror','Guardian','Hunter','Engineer'];
+
+	worker.addPageCheck({page : 'ajax:guildv2_conquest_command.php?tier=3', hours : 1});
 	
     conquest.collect = function() {
         try {
-            var check = conquest.categories.some( function(category) {
-				return config.getItem('When' + category, 'Never') !== 'Never';
-			});
+            var check = false, 
+				message = [], 
+				pts = 0,
+				when,
+				vals = [0, 1000, 3000];
 		
-			if (schedule.check('conquestCollectPage') && (check || config.getItem('doLoMmove',false))) {
-				return caap.clickAjaxLinkSend('guildv2_conquest_command.php?tier=3', 1000);
-			}
-			
-			check = false;
-			if (schedule.check('conquestFail')) {
-				conquest.categories.some( function(category) {
-					if (stats.conquest[category] >= config.getItem('When' + category, 'Never')) {
-						con.log(1, category + ' points are ' + stats.conquest[category] + ', which is over ' 
-							+ (config.getItem('When' + category, 'Never')) + ' so clicking report collect');
-						check = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:input[name*='Report Collect!']");
-						if (!check || check != 'fail') {
-							schedule.setItem('conquestFail', 3600);
-							check = false;
-							return true;
-							con.warn('Unable to complete conquest points Collect, waiting an hour to try again');
-						} else if (check == 'done') {
-							conquest.categories.forEach( function(category) {
-								stats.conquest[category] = 0;
-							});
+			check = ['Conqueror','Guardian','Engineer'].every( function(category) {
+				when = config.getItem('When' + category, 'Never');
+				if (when == 'Never') {
+					return true;
+				}
+				pts = stats.conquest[category];
+				if (when == 'Round Up') {
+					if (pts - caap.minMaxArray(vals, 'max', -1, pts + 1) < 200 || pts > 4500) {
+						if (pts > 1000) {
+							message.push(category + ' points rounding at ' + pts);
 						}
-						check = true;
 						return true;
 					}
-				});
+					return false;
+				} 
+				if (pts > when) {
+					message.push(category + ' points ' + pts + ' over ' + when);
+					return true;
+				}
+			});
+			
+			if (check && message.length) {
+				check = caap.navigate3('guildv2_conquest_command.php?tier=3','conquest_path_shop.php?action=report_collect&ajax=1');
+				if (check) {
+					con.log(1, message.join(', ') + ' so clicking report collect');
+					if (check == 'done') {
+						conquest.categories.forEach( function(category) {
+							stats.conquest[category] = 0;
+						});
+					}
+				}
+				return check;
 			}
-			return check;
+			return false;
         } catch (err) {
-            con.error("ERROR in collect Conquest: " + err);
+            con.error("ERROR in conquest.collect: " + err.stack);
+            return;
+        }
+    };
+	
+    conquest.engineer = function() {
+        try {
+			var result = caap.checkEnergy('Quest', config.getItem('WhenQuest','Never')),
+				pointsLeft = config.getItem('WhenEngineer', 'Never') - stats.conquest.Engineer,
+				improveCount = Math.min(10, Math.floor(result/30), Math.ceil(pointsLeft / 19.5)),
+				eO = {},
+				type = config.getItem('conquestEngEss', 'Attack').toLowerCase(),
+				tower = ['attack', 'defense', 'damage', 'health'].indexOf(type) + 1;
+				
+			if (result < 30) {
+				return {action: false, mess: 'Waiting for Energy to fortify LoE: ' + result + '/' + 30};
+			}
+
+			if (!schedule.check('loeFortMax')) {
+				return false;
+			}
+			
+			if (improveCount > 0) {
+				result = caap.navigate3('guild_castle_fort.php',
+					'guild_castle_fort.php?improveCount=' + improveCount + '&tower=' + tower + '&fort_id=' + (tower + 11),
+					'',	{failWaitHours: 3});
+				if (result) {
+					if (result == 'done' && $u.hasContent(stats.guild.id)) {
+						eO = essence.getRecord(stats.guild.id);
+						eO[type] += 200 * improveCount;
+						essence.setRecord(eO);
+					}
+					return {mlog: 'Fortifying LoE ' + type + ' tower for 30 energy. ' + stats.conquest.Engineer + '/' + config.getItem('WhenEngineer', 'Never') + ' Engineeer points'};
+				}
+			}
+			return false;
+        } catch (err) {
+            con.error("ERROR in conquest.engineer: " + err.stack);
             return;
         }
     };
@@ -1132,7 +1129,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             slice = null;
         } catch (err) {
-            con.error("ERROR in conquest.battle: " + err);
+            con.error("ERROR in conquest.battle: " + err.stack);
         }
     };
 
@@ -1160,16 +1157,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 ],
                 typeList = ['Invade', 'Duel'],
                 typeInst = ['Conquest using Invade button', 'Conquest using Duel button - no guarentee you will win though'],
-                htmlCode = '';
+                htmlCode = '',
+				catList = [],
+				essList = ['Attack', 'Damage', 'Defense', 'Health'],
+				LoMList = ['Never','Next','Newest'],
+				LoMInst = ['Do not move to defend LoM lands',
+					'Move to the next LoM that will defend',
+					'Move to the LoM with the most hours left on it that will be in defense at the same time as the next one'],
+				lomScoringInst = "List of score adjustments to pick targets",
+				conq = 'Except for Hunter or "Never" settings, all conditions must be met to collect',
+				eng = 'Except for Hunter or "Never" settings, all conditions must be met to collect',
+				hunter = 'If collect monsters turned on under monsters, they will be collected until this number met',
+				guardian = 'Except for Hunter or "Never" settings, all conditions must be met to collect',
+				inst = {Conqueror: [conq, conq, conq, conq],
+					Engineer: [eng, eng, eng, eng],
+					Hunter: [hunter, hunter, hunter, hunter],
+					Guardian: [guardian, guardian, guardian, guardian]};
 
             htmlCode = caap.startToggle('Conquesting', 'CONQUEST BATTLE');
             htmlCode += caap.makeDropDownTR("Conquest When", 'WhenConquest', conquestList, conquestInst, '', 'Never', false, false, 62);
             htmlCode += caap.display.start('WhenConquest', 'isnot', 'Never');
             htmlCode += caap.display.start('WhenConquest', 'is', 'At X Coins');
-            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'ConquestXCoins', '', 1, '', '', true, false);
-            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'ConquestXMinCoins', '', 0, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Start At Or Above", 'ConquestXCoins', XConquestInstructions, 1, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'ConquestXMinCoins', XMinConquestInstructions, 0, '', '', true, false);
             htmlCode += caap.display.end('WhenConquest', 'is', 'At X Coins');
             htmlCode += loe.conquestMenu();
+            htmlCode += lom.conquestMenu();
             htmlCode += caap.display.start('WhenLoE', 'isnot', 'Always');
             htmlCode += caap.makeDropDownTR("Conquest Type", 'ConquestType', typeList, typeInst, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR("Wait For Safe Health", 'conquestWaitSafeHealth', false, '');
@@ -1178,7 +1191,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD("Attack targets that are not:");
             htmlCode += caap.makeNumberFormTR("My Level Minus", 'ConquestMinLevel', FreshMeatMaxLevelInstructions, '', '', '', true);
             htmlCode += caap.makeNumberFormTR("My Level Plus", 'ConquestMaxLevel', FreshMeatMinLevelInstructions, '', 50, '', true);
-            htmlCode += caap.makeNumberFormTR("My Rank Minus", 'ConquestMinRank', '', 0, '', '', true);
+            htmlCode += caap.makeNumberFormTR("My Rank Minus", 'ConquestMinRank', FMRankInstructions, 0, '', '', true);
             htmlCode += caap.makeNumberFormTR("My Rank Plus", 'ConquestMaxRank', '', 2, '', '', true);
             htmlCode += caap.makeNumberFormTR("Higher Than X*AR", 'ConquestARBase', FMARBaseInstructions, 0.7, '', '', true);
             htmlCode += caap.makeCheckTR('Advanced', 'ConquestAdvancedOptions', false);
@@ -1189,9 +1202,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.display.end('WhenLoE', 'isnot', 'Always');
             htmlCode += caap.display.end('WhenConquest', 'isnot', 'Never');
             htmlCode += caap.endToggle;
+
+            htmlCode += caap.startToggle('ConquestOptions', 'CONQUEST OPTIONS');
+            htmlCode += caap.makeDropDownTR('Move to defend LoM lands', 'doLoMmove', LoMList, LoMInst, '', 'Never', false, false, 62);
+            htmlCode += caap.makeCheckTR('Enable Resource Collect', 'doConquestCollect', false, '');
+            htmlCode += caap.makeCheckTR('Enable Hero Crystal Collect', 'doConquestCrystalCollect', false, '');
+			conquest.categories.forEach(function (category) {
+				catList = ['Never','1000','3000','4500'].concat(category != 'Hunter' ? ['Round Up'] : []);
+				htmlCode += caap.makeDropDownTR("Collect " + category, 'When' + category, catList, inst[category], '', 'Never', false, false, 62);
+				if (category == 'Guardian') {
+					htmlCode += caap.display.start('WhenGuardian', 'isnot', 'Never');
+					htmlCode += caap.makeTD("Rate targets by: <a href='http://caaplayer.freeforums.org/viewtopic.php?f=9&t=830' target='_blank' style='color: blue'>(INFO)</a>");
+					htmlCode += caap.makeTextBox('lomScoring', lomScoringInst, 'heal[],dispel[],revive[],guardian[],smokebomb[]', '');
+					htmlCode += caap.display.end('WhenGuardian', 'isnot', 'Never');
+				}
+			});
+			
+            htmlCode += caap.display.start('WhenEngineer', 'isnot', 'Never');
+			htmlCode += caap.makeDropDownTR(" Essence", 'conquestEngEss', essList, '', '', 'Attack', false, false, 62);
+            htmlCode += caap.display.end('WhenEngineer', 'isnot', 'Never');
+			
+            htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
-            con.error("ERROR in conquest.menu: " + err);
+            con.error("ERROR in conquest.menu: " + err.stack);
             return '';
         }
     };
@@ -1199,6 +1233,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 }());
 
 (function() {
+    "use strict";
+
     conquestLands.records = [];
 
     conquestLands.record = function() {
@@ -1229,7 +1265,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(1, "conquestLands.load", conquestLands.records);
             return true;
         } catch (err) {
-            con.error("ERROR in conquestLands.load: " + err);
+            con.error("ERROR in conquestLands.load: " + err.stack);
             return false;
         }
     };
@@ -1253,7 +1289,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
             return true;
         } catch (err) {
-            con.error("ERROR in conquestLands.save: " + err);
+            con.error("ERROR in conquestLands.save: " + err.stack);
             return false;
         }
     };
@@ -1265,7 +1301,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             session.setItem("ConquestDashUpdate", true);
             return true;
         } catch (err) {
-            con.error("ERROR in conquestLands.clear: " + err);
+            con.error("ERROR in conquestLands.clear: " + err.stack);
             return false;
         }
     };
@@ -1280,7 +1316,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             if (index < conquestLands.records.length) {
-                con.log(2, "Got conquest land record", index, conquestLands.records[index]);
+                con.log(3, "Got conquest land record", index, conquestLands.records[index]);
                 conquestLands.records[index].newRecord = false;
                 return conquestLands.records[index];
             }
@@ -1290,7 +1326,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             con.log(2, "New conquest record", index, newRecord);
             return newRecord;
         } catch (err) {
-            con.error("ERROR in conquestLands.getItem: " + err);
+            con.error("ERROR in conquestLands.getItem: " + err.stack);
             return false;
         }
     };

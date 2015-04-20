@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global window,escape,statsFunc,$j,gm,utility,
+$u,stats,worker,self,caap,config,con,
+schedule,gifting,state,army, general,session,monster,feed */
 /*jslint maxlen: 256 */
 
 (function () {
@@ -13,7 +13,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 	worker.addAction({worker : 'caap', priority : 0, description : 'Setting Idle General', functionName : 'passiveGeneral'});	
 	
-	caap.checkResults = function(page) {
+	caap.checkResults = function(page, resultsText) {
         try {
 			switch (page) {
 			case 'index' :
@@ -33,7 +33,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				
 				break;
-
 			default :
 				break;
 			}
@@ -165,150 +164,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
 /////////////////////////////////////////////////////////////////////
-//                          KOBO
-/////////////////////////////////////////////////////////////////////
-
-	worker.addAction({worker : 'caap', priority : -2500, description : 'Doing Kobo Rolls', functionName : 'kobo'});
-	
-    caap.kobo = function() {
-        try {
-            var button = $j(),
-                koboDIV = $j(),
-                ginDIV = $j(),
-                gin_left = 10,
-                hours = 24,
-                minutes = 0,
-                rClick,
-                addClick = false;
-
-
-            if ((!config.getItem('AutoKobo', true)) || (!schedule.check('AutoKoboTimerDelay'))) {
-                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-                button = null;
-                koboDIV = null;
-                ginDIV = null;
-                return false;
-            }
-            con.log(2, "autoKobo");
-
-            koboDIV = $j("div[style*='emporium_top']");
-            if (!koboDIV || koboDIV.length === 0) {
-                con.log(2, "Going to emporium");
-                if (caap.navigateTo('goblin_emp')) {
-                    button = null;
-                    koboDIV = null;
-                    ginDIV = null;
-                    return true;
-                }
-
-                button = null;
-                koboDIV = null;
-                ginDIV = null;
-                throw "Impossible to navigate to emporium page";
-            }
-
-            if ($u.hasContent(caap.resultsText) &&  /You have exceeded the 10 emporium roll limit for the day. Come back tomorrow for another chance!/.test(caap.resultsText)) {
-                con.log(1, "caap.kobo", caap.resultsText);
-                schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
-                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-                button = null;
-                koboDIV = null;
-                ginDIV = null;
-                return false;
-            }
-
-            gin_left = Math.min(($j("span[id='gin_left_amt']")).text(), 10);
-            con.log(4, "gin_left = ", gin_left);
-            if (gin_left > 0) {
-                var ingredientDIV = $j("div[class='ingredientUnit']" + (config.getItem('autoKoboAle', false) ? "" : "[id!='gout_6_261']") + ">div>span[id*='gout_value']"),
-                    countClick = 0,
-                    whiteList = config.getList('kobo_whitelist', ''),
-					useWhiteList = config.getItem('autoKoboUseWhiteList',false),
-                    blackList = config.getList('kobo_blacklist', ''),
-					useBlackList = config.getItem('autoKoboUseBlackList',false);
-
-                con.log(4, "ingredientDIV = ", ingredientDIV);
-                ingredientDIV.each(function(_i, _e) {
-                    var count = $j(_e).text(),
-                        name = $j(_e).parent().parent()[0].children[0].children[0].alt,
-    					whiteListed=false,
-    					blackListed=false, 
-						p=0, len=0;
-
-                    con.log(3, "ingredient " + _i + " '" + name + "' :count = " + count);
-                    if (count > config.getItem('koboKeepUnder', 10) && (gin_left > countClick) ) {
-						if (useWhiteList) {
-							for (p = 0, len = whiteList.length; p < len; p += 1) {
-								if (name.trim().toLowerCase().match(new RegExp(whiteList[p].trim().toLowerCase()))) { 
-									con.log(2, "ingredient " + _i + " '" + name + "' is white listed with condition : "+whiteList[p]);
-									whiteListed = true; 
-								}
-							}
-							if (!whiteListed) { con.log(2, "ingredient " + _i + " '" + name + "' isn't white listed"); }
-						} else {
-							whiteListed=true;
-						}
-						if (useBlackList) {
-							for (p = 0, len = blackList.length; p < len; p += 1) {
-								if (name.trim().toLowerCase().match(new RegExp(blackList[p].trim().toLowerCase()))) { 
-									con.log(2, "ingredient " + _i + " '" + name + "' is black listed with condition : "+blackList[p]);
-									blackListed = true; 
-								}
-							}
-							if (!blackListed) { con.log(2, "ingredient " + _i + " '" + name + "' isn't black listed"); }
-						}
-						if ((whiteListed)&&(!blackListed)) {
-							addClick = true;
-							countClick = countClick + 1;
-							$j(_e).parent().parent().click();
-						}
-                    }
-                });
-
-                if (!addClick) {
-                    schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60);
-                    caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-                    button = null;
-                    koboDIV = null;
-                    ginDIV = null;
-                    return false;
-                }
-
-                if (gin_left > countClick) {
-                    button = null;
-                    koboDIV = null;
-                    ginDIV = null;
-                    return true;
-                }
-            }
-
-            button = caap.checkForImage('emporium_button.gif');
-            if (button && button.length > 0) {
-                con.log(2, "Click Roll");
-                hours = 0;
-                minutes = 1;
-                schedule.setItem('AutoKoboTimerDelay', ((hours * 60) + minutes) * 60, 100);
-                caap.setDivContent('kobo_mess', schedule.check('AutoKoboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' + $u.setContent(caap.displayTime('AutoKoboTimerDelay'), "Unknown"));
-                rClick = caap.click(button);
-
-                button = null;
-                koboDIV = null;
-                ginDIV = null;
-                return rClick;
-            }
-
-            button = null;
-            koboDIV = null;
-            ginDIV = null;
-            return false;
-
-        } catch (err) {
-            con.error("ERROR in autoKobo: " + err);
-            return false;
-        }
-    };
-
-/////////////////////////////////////////////////////////////////////
 //                              CTA
 /////////////////////////////////////////////////////////////////////
 
@@ -330,7 +185,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
 
         try {
-            if ((gm ? gm.getItem("ajaxCTA", false, hiddenVar) : false) || caap.waitAjaxCTA || stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
+            if ((gm ? gm.getItem("ajaxCTA", false) : false) || caap.waitAjaxCTA || stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
                 return false;
             }
 
@@ -418,10 +273,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 tStr = '',
                 members = [],
                 save = false;
-
-            if (config.getItem('enableMonsterFinder', false)) {
-                feed.items("guild");
-            }
 
             guildTxt = $j("#globalContainer #guild_achievement").text().trim().innerTrim();
             if ($u.hasContent(guildTxt)) {

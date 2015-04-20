@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,offline,town,
 $u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,spreadsheet,ss,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+schedule,gifting,state,army,stats,general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return true;
             }
 
-            if(caap.domain.which !== 0 && caap.domain.which !== 2 && caap.domain.which !== 3) {
+            if(![0, 2, 3].hasIndexOf(caap.domain.which)) {
                 return true;
             }
 

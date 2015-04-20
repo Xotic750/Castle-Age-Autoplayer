@@ -265,11 +265,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.liveFeedButtonListener = function () {
-        caap.clickAjaxLinkSend('army_news_feed.php');
+        caap.ajaxLink('army_news_feed.php');
     };
 
     caap.crusadersButtonListener = function () {
-        caap.clickAjaxLinkSend('crusaders.php');
+        caap.ajaxLink('crusaders.php');
     };
 
     caap.getBQH = function (cb) {

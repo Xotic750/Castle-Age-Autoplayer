@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
+/*global window,escape,image64,$j,rison,utility,
 festival,feed,battle,town,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,hiddenVar,
+$u,stats,worker,self,caap,config,con,gm,recon,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -46,7 +46,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             lostTime: 0,
             deadTime: 0,
             chainRestTime: 0,
-            newRecord: true,
 /*            arenaRank: 0,
 			arenaLost : 0,
 			arenaWon : 0,
@@ -54,8 +53,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			arenaDeadTime: 0,
 			arenaPoints: 0,
 			arenaTotal: 0,
-			arenaInvalid: false
-*/        };
+			arenaInvalid: false,
+*/          newRecord: true
+        };
     };
 	
 	battle.types = ['duel', 'invade', 'war', 'conq', 'gb'];
@@ -79,7 +79,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			});
 			if (arr.length) {
 				con.warn('Battle: Removed records we have no win/loss results from: ' + arr.join(', '));
-				battle.doSave = true;
+				state.setItem('wsave_battle', true);
 			}
         } catch (err) {
             con.error("ERROR in battle.init: " + err.stack);
@@ -141,6 +141,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				break;
 			default:
+				break;
 			}
 
 			if (battle.demisPointsToDo('left')) {
@@ -234,7 +235,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         return true;
                     }
 
-                    caap.clickAjaxLinkSend("raid.php");
+                    caap.ajaxLink("raid.php");
                     button = null;
                     return true;
                 }
@@ -398,12 +399,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					result = {},
 					symDiv = $j(),
 					points = [],
-					success = true,
-					tempDiv = $j(),
-					tempText = '',
-					tNum = 0,
-					warWinLoseImg = '',
-					result = {};
+					success = true;
 
 				// Check demi points
 				
@@ -428,7 +424,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
 						caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
 						caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
-						schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6, hiddenVar) : 6) * 3600, 300);
+						schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6) : 6) * 3600, 300);
 						caap.SaveDemi();
 					}
 				} else {
@@ -478,7 +474,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						}
 					}
 
-					bR.chainCount = bR.chainCount ? bR.chainCount += 1 : 1;
+					bR.chainCount += 1;
 					maxChains = config.getItem('MaxChains', 4);
 					if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
 						maxChains = 4;
@@ -498,7 +494,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 				battle.setRecord(bR);
 				result = null;
-			default:
+				break;
+			default :
 				break;
 			}
         } catch (err) {
@@ -533,9 +530,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			check : /Gain (\+\d+ Experience)?.* (.* War Points)?.*total points\)(.*)?'s Defense/i,
 			vars : ['wl', 'points', 'name'],
 			func : function(r) {
-				r.wl = r.wl.hasIndexOf('Experience') ? 'won' : 'lost';
-				r.gold = caap.resultsText.regex(/\$([,\d]+)/).numberOnly();
-				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+				r.wl = $u.hasContent(r.wl) ? 'won' : 'lost';
+				r.gold = caap.resultsText.regexd(/\$([,\d]+)/, 0);
+				r.points = (r.wl == 'won' ? 1 : -1) * $u.setContent(r.points, 0);
 			}
 		}
 	];
@@ -557,7 +554,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return false;
 			}
 			
-			userId = $u.setContent(lastBattleID, $u.setContent($u.setContent($j(resultsDiv).find("input[name='target_id']").first().attr('value'), $u.setContent($u.setContent($j(resultsDiv).find("a[href*='keep.php?casuser=']").first().attr('href'), '').regex(/user=(\d+)/i), false))));
+			userId = $u.setContent(lastBattleID, 
+					$u.setContent($u.setContent($j(resultsDiv).find("input[name='target_id']").first().attr('value'), 
+					$u.setContent($u.setContent($j(resultsDiv).find("a[href*='keep.php?casuser=']").first().attr('href'), '').regex(/user=(\d+)/i), false))));
 			
 			if (!userId) {
 				return false;
@@ -622,7 +621,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			// Math.max lowEst * 1.5 in highEst is used to prevent model breakage when opponents BSI > 10 causes you to think you have a 100% chance to beat someone even though you've never won at an effective Att of 10 * his level.
 		if (att > highEst) {
 			return 100;
-		} else if (att < lowEst) {
+		} 
+		if (att < lowEst) {
 			return 0;
 		}
 		return ((att - lowEst) / (highEst - lowEst) * 100).dp(0);
@@ -671,15 +671,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     battle.battleWarnLevel = true;
 
     battle.ranks = {
-		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
+		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 
+		'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
 		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
-		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
+		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion',
+			'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
 	};
 
     battle.clear = function() {
         try {
             battle.records = [];
-            battle.doSave = true;
+            state.setItem('wsave_battle', true);
             session.setItem("BattleDashUpdate", true);
             return true;
         } catch (err) {
@@ -927,10 +929,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 var tr = $j(),
                     levelm = [],
                     tempTxt = '',
-                    tNum = 0,
                     tempTime = -1,
-                    i = 0,
-                    len = 0,
                     tempRecord = type === "recon" ? new battle.reconRecord().data : new battle.record().data;
 
                 if (type === 'Raid') {
@@ -1258,7 +1257,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     caap.setDivContent('idle_mess', '');
                 }, 5000);
 
-                schedule.setItem('PlayerReconTimer', (gm ? gm.getItem('PlayerReconRetry', 60, hiddenVar) : 60), 60);
+                schedule.setItem('PlayerReconTimer', (gm ? gm.getItem('PlayerReconRetry', 60) : 60), 60);
                 recon.inProgress = false;
                 inputDiv = null;
                 inp = null;
@@ -1445,7 +1444,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though', 'War using Duel button - no guarentee you will win though'],
                 targetList = ['Freshmeat', 'Userid List', 'Raid'],
                 targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'],
-                dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
                 collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
                 PReconInstructions = "Enable player battle reconnaissance to run " + "as an idle background task. Battle targets will be collected and" + " can be displayed using the 'Target List' selection on the " + "dashboard.",
 				haveZin = general.hasRecord("Zin"),
@@ -1468,7 +1466,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
             htmlCode += caap.display.start('WhenBattle', 'isnot', 'Never');
 
-            htmlCode += caap.makeCheckTR("Use " + who + " First", 'useZinMisaFirst', false, 'If ' + who + ' charged and not levelling up then use battle first if space in the appropriate stat.', false, false, '', '_zin_row', who ? "display: block;" : "display: none;");
+            htmlCode += caap.makeCheckTR("Use " + who + " First", 'useZinMisaFirst', false, 'If ' + who + 
+					' charged and not levelling up then use battle first if space in the appropriate stat.', false, false, '', '_zin_row', who ? "display: block;" : "display: none;");
 
             htmlCode += "<div title='Does not work with War'>Get below Demi points first</div>";
 			caap.demiQuestList.forEach( function(item, i) {
@@ -1491,7 +1490,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 62);
             htmlCode += caap.makeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
 			// siege is changed so disable 
-			config.setItem('raidDoSiege', false)
+			config.setItem('raidDoSiege', false);
 			//htmlCode += caap.makeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
             htmlCode += caap.makeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
@@ -1566,19 +1565,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     },
                     head = '',
                     body = '',
-                    row = '';
+                    row = '',
+					arenaers = [],
+					winnerF = function(bR) {
+						return bR.duelWon > 0 && !bR.duelLost;
+					},
+					report = '';
 
 				if (which == 'Arena') {
 					headers = ['UserId', 'Name', 'Points', 'Total', 'Duel', 'AR', 'Level', 'Army', '&nbsp;'];
                     values = ['userId', 'name', 'arenaPoints', 'arenaTotal', 'duelWon', 'arenaRank', 'level', 'army'];
-					var arenaers = battle.records.filter( function(bR) {
-							return bR.arenaRank;
-						}),
-						winnerF = function(bR) {
-							return bR.duelWon > 0 && !bR.duelLost;
-						},
-						winners = arenaers.filter(winnerF),
-						report = '';
+					arenaers = battle.records.filter( function(bR) {
+						return bR.arenaRank;
+					});
+					
 					[1, 2, 3, 4, 5, 6, 7].forEach( function(rank) {
 						report += 'R' + rank + ': ';
 						var aRankArr = arenaers.filter( function(bR) {
@@ -1766,12 +1766,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				$j("#caap_info" + which, caap.caapTopObject).prepend(report);
 				
                 $j("span[id*='caap_battle_']", caap.caapTopObject).click(function(e) {
-                    var i = 0,
-                        len = 0;
+					i = 0;
+					len = 0;
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
-							caap.clickAjaxLinkSend(e.target.attributes[i].nodeValue);
+							caap.ajaxLink(e.target.attributes[i].nodeValue);
 							return true;
                         }
                     }
@@ -1779,8 +1779,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 });
 
                 $j("span[id^='caap_battle_remove_']", caap.caapTopObject).click(function(e) {
-                    var i = 0,
-                        len = 0;
+                    i = 0;
+                    len = 0;
 						
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'userid') {

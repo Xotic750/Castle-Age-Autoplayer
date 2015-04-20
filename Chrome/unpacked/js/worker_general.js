@@ -147,7 +147,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 					con.log(1, "Adding new 'Loadout'", name, general.records);
 					general.records[i].name = name;
 					general.records[i].value = i + 1;
-					general.doSave = true;
+					state.setItem('wsave_general', true);
 				}
 			});
 			stats.records.total = general.records.length;
@@ -358,7 +358,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 						}
 					});
 
-					if (general.doSave) {
+					if (state.getItem('wsave_general', true)) {
 						statsFunc.setRecord(stats);
 						if (update) {
 							caap.updateDashboard(true);
@@ -382,7 +382,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
 				var gO = general.getRecordByField('value', lNum.numberOnly());
 				gO.powers = $j.makeArray($j('#loadout_powers').find('img').map(function(e) {
 					return $j(this).attr('src').regex(/(\w+\.\w+)$/); 
-				})).join(' ') + ' attack swap';
+				})).join(' ') + ' attack wall_move_icon';
 				general.setRecord(gO);
 				
 				stats.guild.powers = [];
@@ -1186,7 +1186,7 @@ schedule,gifting,state,army,general,session,monster,worker,guild_monster */
                     if ($u.hasContent(changeLink.rlink)) {
                         caap.ajaxLoadIcon.css("display", "block");
                         if (page === "generals") {
-                            caap.clickAjaxLinkSend(changeLink.rlink + "?itype=" + gen.itype + "&item=" + gen.item);
+                            caap.ajaxLink(changeLink.rlink + "?itype=" + gen.itype + "&item=" + gen.item);
                         } else {
                             general.quickSwitch = true;
                             caap.ajaxLoad(changeLink.rlink, gen, "#equippedGeneralContainer", "#equippedGeneralContainer", page);

@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,
+/*global window,caap,gm,$j,con,utility,
+$u,chrome,worker,self,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -65,7 +65,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 				if (arr.length) {
 					con.warn(wO.name + ': Deleted number indexed record(s) for ' + arr.join(', ') + ', since conflicting with existing string record(s)');
-					wO.doSave = true;
+					state.setItem('wsave_' + wO.name, true);
 					arr = [];
 				}
 					
@@ -78,7 +78,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				});
 				if (arr.length) {
 					con.warn(wO.name + ': Converted number indexed record(s) for ' + arr.join(', ') + ' to string record(s)');
-					wO.doSave = true;
+					state.setItem('wsave_' + wO.name, true);
 				}
 
 				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
@@ -90,7 +90,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				var newR = new wO.record().data,
 					undefinedKeyList = [];
 					
-				wO.records.forEach( function(r, i) {
+				wO.records.forEach( function(r) {
 					Object.keys(r).forEach( function(e) {
 						if (!Object.keys(newR).hasIndexOf(e)) {
 							undefinedKeyList = undefinedKeyList.addToList(e);
@@ -113,7 +113,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
 					session.setItem(wO.name + 'DashUpdate', true);
 				}
-				wO.doSave = false;
+				state.deleteItem('wsave_' + wO.name);
 			};
 			
 			wO.hasRecord = function(n) {
@@ -131,11 +131,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (i >= 0) {
 					wO.records[i].newRecord = false;
 					return $j.extend(true, {}, r, wO.records[i]);
-				} else {
-					r[wO.recordIndex] = n;
-					r.newRecord = true;
-					return r;
 				}
+				r[wO.recordIndex] = n;
+				r.newRecord = true;
+				return r;
 			};
 
 			wO.getRecordByField = function(f, v) {
@@ -157,14 +156,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				if (i >= 0) {
 					wO.records[i].newRecord = false;
 					return $j.extend(true, {}, new wO.record().data, wO.records[i]);
-				} else {
-					return false;
 				}
+				return false;
 			};
 
 			wO.setRecord = function(o) {
-				var i = wO.records.getObjIndex(wO.recordIndex, o[wO.recordIndex].toString()),
-					newR = new wO.record().data;
+				var i = wO.records.getObjIndex(wO.recordIndex, o[wO.recordIndex].toString());
 					
 				o.newRecord = false;
 				if (i >= 0) {
@@ -172,7 +169,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				} else {
 					wO.records.push(o);
 				}
-				wO.doSave = true;
+				state.setItem('wsave_' + wO.name, true);
 			};
 
 			wO.getRecordVal = function(n, f, d) {
@@ -181,7 +178,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.warn(wO.name.ucWords() + ' worker warning: record ' + n + ' not found');
 					return d;
 				}
-				if (typeof wO.records[i][f] == 'undefined') {
+				if (!$u.isDefined(wO.records[i][f])) {
 					con.warn(wO.name.ucWords() + ' worker warning: record ' + n + ' field "' + f + '" is undefined', wO.records[i]);
 					return d;
 				}
@@ -189,12 +186,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			};
 
 			wO.setRecordVal = function(r, f, v) {
-				var n = ($u.isObject(r) ? r[wO.recordIndex] : r).toString();
-				
-				var i = wO.records.getObjIndex(wO.recordIndex, n),
+				var n = ($u.isObject(r) ? r[wO.recordIndex] : r).toString(),
+					i = wO.records.getObjIndex(wO.recordIndex, n),
 					nr = new wO.record(n).data;
 
-				wO.doSave = true;
+				state.setItem('wsave_' + wO.name, true);
 				if (!Object.keys(nr).hasIndexOf(f)) {
 					con.warn(wO.name.ucWords() + ' worker warning: field "' + f + '" not defined in record template');
 				}
@@ -215,7 +211,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			wO.deleteRecord = function(n) {
 				var length = wO.records.length;
 				wO.records = wO.records.deleteObjs(wO.recordIndex, n.toString());
-				wO.doSave = true;
+				state.setItem('wsave_' + wO.name, true);
 				return length - wO.records.length;
 			};
         } catch (err) {
@@ -257,7 +253,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	};
 	
 	worker.checkSave = function(r) {
-		if (window[r].doSave) {
+		if (state.getItem('wsave_' + window[r].name, false)) {
 			window[r].save();
 		}
 	};

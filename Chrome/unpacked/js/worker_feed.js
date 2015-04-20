@@ -1,10 +1,9 @@
 
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,feed:true,image64,gm,
-schedule,gifting,state,army, general,session,monster:true,guild_monster */
+/*global $j,$u,caap,config,con,feed:true,schedule,stats,state,worker,
+chores,town,general,session,monster:true */
 /*jslint maxlen: 256 */
 
     ////////////////////////////////////////////////////////////////////
@@ -47,9 +46,15 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 		feed.init();
 	};
 	
-	feed.checkResults = function(page) {
+	feed.checkResults = function(page, resultsText) {
         try {
-			var pR = {};
+			var pR = {},
+				tempDiv = $j(),
+				found = false,
+				deleteLand = false,
+				sO = $u.setContent(feed.sO, {}),
+				hours = 0;
+				
 			switch (page) {
 			case 'keep' : 
 				if (!$u.hasContent($j('img[src*="keep_plus.jpg"][onclick*="Items"]:visible'))) {
@@ -59,7 +64,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							return;
 						}
 						var picDiv = $j('img[src*="' + p + '"]');
-						if (picDiv) {
+						if ($u.hasContent(picDiv)) {
 							pR = town.getRecord(picDiv.attr('src').regex(/(\w+\.\w+)$/));
 							pR.name = picDiv.attr('alt');
 							pR.owned = picDiv.closest('div').next().text().innerTrim().trim().regex(/(\d+)/);
@@ -68,42 +73,83 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					});
 				}
 				break;
-							
-			default :
+			case 'quests' :
+				if (sO.mpool) {
+					tempDiv = $j('#app_body tr .quest_desc').has('img[src*="' + sO.missing + '"]');
+					found = $u.hasContent(tempDiv);
+					
+					if (resultsText.match(/You have acquired/)) {
+						delete sO.land;
+						delete sO.energy;
+					} else if (!$u.hasContent($j('#app_body a[href*="quests.php?land=' + sO.land + '"]')) || (found &&
+							(caap.hasImage("boss_locked.jpg") || $u.hasContent($j('a[onclick*="PositionAndDisplayPopupBox"]', tempDiv))))) {
+						schedule.setItem(sO.mTimer, 36 * 3600);
+						con.warn('Unable to find quest to summon ' + sO.mName + ' orb');
+						deleteLand = true;
+					} else if (found) {
+						// Have enough energy?
+						sO.energy = tempDiv.text().regexd(/(\d+) Energy/, 0);
+						con.log(2, 'Found quest for ' + sO.mName + ' orb in quest land ' + sO.land);
+					} else {
+						// Check the next quest page
+						sO.land += 1;
+						con.log(2, 'Look for ' + sO.mName + ' orb in next quest land ' + sO.land);
+					}
+					if (deleteLand) {
+						state.deleteItem(sO.name);
+					} else {
+						state.setItem(sO.name, sO);
+					}
+				}
+				break;
+			case 'monster_summon_list' :
+				//You have already summoned a monster, The Emerald Sea Serpent, or the timer has not run out on the previous monster you have summoned, try again soon. Go to the Monster Battle Page to engage your summoned bosses and monsters.
+				//You have already summoned a monster, The Emerald Sea Serpent, or the timer has not run out on the previous monster you have summoned, try again in 55 hour(s) Go to the Monster Battle Page to engage your summoned bosses and monsters.
+				// You are missing some item(s) to perform this alchemy!
+				hours = resultsText.regex(/try again in (\d+) hour/);
+				if (sO.mpool) {
+					if (resultsText.match(/Attack .* now/)) {
+						monster.setrPage('player_monster_list','review', 0);
+					} else if (hours) {
+						schedule.setItem('feed' + sO.mpool, hours * 3600);
+					} else if (resultsText.match(/try again soon/)) {
+						schedule.setItem('feed' + sO.mpool, 7 *3600);
+					}
+				}
+				break;
+			case 'battle_monster' :
+				if (resultsText.match(/You already have a monster in the Guild Priority Monster List/)) {
+					schedule.setItem('feedPriWait', 3 * 3600);
+				}
+				break;
+			default : 
 				break;
 			}
+			feed.sO = {};
         } catch (err) {
             con.error("ERROR in town.checkResults: " + err.stack);
             return false;
         }
     };
 
-	// Takes either user + monster name or the monster object.
-	// If a match, returns the conditions. If no match, returns false.
-    feed.addConditions = function(cM) {
+	// Takes monster object. Adds conditions to monster object if valid
+	// If a match, scores the monster. If joinable with a positive score returns true.
+    feed.joinable = function(cM) {
 		try {
-			var monsterName = $u.isObject(cM) ? cM.name : cM,
-				monsterConditions = false,
-				filterList = config.getItem('feedFilter', 'all').split('\n');
-				
-			filterList.some( function(item) {
-				var matchTerm = 
-				item = item.trim().toLowerCase();
-				if (!item.trim()) {
-					return false;
-				} else if (item.regex(/(^all\b)/) || monsterName.toLowerCase().hasIndexOf(item.match(/^[^:]+/i).toString())) {
-					monsterConditions = item.replace(/^[^:]+/i, '').toString().trim();
-					if ($u.isObject(cM)) {
-						cM.conditions = monsterConditions + ':';
-						feed.scoring(cM);
-					}
-					monsterConditions = monsterConditions.length ? monsterConditions + ':' : '';
+			var matched = false;
+			
+			config.getItem('feedFilter', 'all').split('\n').some( function(item) {
+				item = item.trim();
+				if (item.length && 
+					(item.regex(/(^all\b)/) || cM.name.toLowerCase().hasIndexOf(item.replace(/:.*/, '').toLowerCase()))) {
+					cM.joinConditions = item.replace(/^[^:]+/i, '').trim() + ':';
+					matched = feed.scoring(cM);
+					return true;
 				}
-				return monsterConditions !== false;
 			});
-			return monsterConditions;
+			return matched;
 		} catch (err) {
-			con.error("ERROR in feed.addConditions: " + err, monsterName);
+			con.error("ERROR in feed.addConditions: " + err.stack);
 			return false;
 		}
 	};
@@ -115,10 +161,10 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
                 return false;
             }
 			var slice = $j("#app_body"),
-				done = true,
-				cM = {},
 				tR = false,
 				link = 'ajax:',
+				plus = '',
+				page = session.getItem('page', ''),
 				attackButton = '',
 				hasClass = function(charClass) {
 					return $u.hasContent($j('#choose_class_screen .banner_' + charClass.toLowerCase() + ' input[src*="nm_class_select.gif"]', slice));
@@ -127,9 +173,9 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				charStats = stats.character,
 				currentGeneralObj = general.getRecord(general.current),
 				joinable = function(cM) {
-					return cM.join && cM.status == 'Join';
+					return cM.join && cM.state == 'Join';
 				},
-				reviewInterval = Math.max(config.getItem('feedScan', false) ? config.getItem("feedMonsterReviewHrs", 6) : 365 * 24, 1) * 3600,
+				reviewInterval = Math.max(1, config.getItem('feedScan', false) ? config.getItem("feedMonsterReviewHrs", 6) : 365 * 24) * 3600,
 				attackReady = false;
 
 			tR = monster.records.filter(joinable).reduce( function(previous, tarM) {
@@ -141,23 +187,36 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				return true;
 			}
 			
-			for (var i = 0; i < monster.records.length; i += 1) { 
-				cM = monster.records[i];
-				//con.log(2, 'SCAN1', cM, cM.hide, cM.status, schedule.since(cM.review, reviewInterval));
-				if (!cM.hide && cM.status == 'Join' && cM.conditions.length && schedule.since(cM.review, attackReady && !tR.conditions.regex(/:burn\b/) ? 5 * 60 : reviewInterval)) {
-					con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM.link, cM);
-					feed.scanRecord = cM;
-					if (false && config.getItem("useAjaxMonsterFinder", true)) { // Disabling until I can figure out AJAX load - Artifice
-						feed.ajaxScan(cM);
-					} else {
-						feed.isScan = true;
-						caap.navigate2('ajax:' + cM.link);
+			if (!attackReady || !tR.joinConditions.match(/:burn\b/)) {
+				result = monster.records.some( function(cM, i) {
+					//con.log(2, 'SCAN1', cM, cM.hide, cM.state, schedule.since(cM.review, reviewInterval));
+					if (!cM.hide && cM.state == 'Join' && cM.joinConditions.length) {
+						if (cM.canPri && monster.parseCondition("pri", cM.joinConditions) &&
+							monster.parseCondition("pri", cM.joinConditions) > cM.time && schedule.check('feedPriWait')) {
+							cM.review = 0;
+							plus = '&action=commitPriorityMonster';
+							con.log(1, 'Making my feed monster ' + cM.name + ' priority', cM);
+						} else if (cM.canPub && monster.parseCondition("pub", cM.joinConditions) &&
+							monster.parseCondition("pub", cM.joinConditions) > cM.time) {
+							cM.review = 0;
+							plus = '&action=makeMonsterPublic';
+							con.log(1, 'Making my feed monster ' + cM.name + ' public', cM);
+						}
+						if (schedule.since(cM.review, attackReady ? 3600 : reviewInterval)) {
+							con.log(1, 'Scanning ' + (i + 1) + '/' + monster.records.length + ' ' + cM.name, cM.link, cM);
+							feed.scanRecord = cM;
+							feed.isScan = true;
+							caap.navigate2('ajax:' + cM.link + plus);
+							monster.lastClick = cM.link;
+							return true;
+						}
 					}
-					monster.lastClick = cM.link;
+				});
+				if (result) {
 					return true;
 				}
-				//con.log(2, 'SCAN2', cM.name, !cM , cM.conditions, cM.conditions.match(':join') , monster.worldMonsterCount < 30 , stats.stamina.num > monster.parseCondition('stam', cM.conditions));
 			}
+			
 			feed.isScan = false;
 			feed.scanRecord = {};
 
@@ -167,7 +226,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 			
 			// Check on item inventory
 			if (schedule.since('findKeep', 24 * 3600) && (state.getItem('feedPicOwned',false) || state.getItem('feedNameOwned',false))) {
-				if (session.getItem('page','') == 'keep') {
+				if (page == 'keep') {
 					$j('img[src*="keep_plus.jpg"][onclick*="Items"]:visible').click();
 					caap.setDomWaiting('keep.php');
 					caap.clearDomWaiting();
@@ -176,8 +235,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				}
 				return caap.navigateTo('keep');
 			}
-
-			
 			
 			if (attackReady) {
 				link += tR.link;
@@ -187,8 +244,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 							result = tR.charClass;
 						} else {
 							result = Object.keys(charStats).filter(hasClass).reduce(function(previous, key) {
-								if (charStats[key].percent < 100 && charStats[key].level + charStats[key].percent / 100 
-									> charStats[previous].level + charStats[previous].percent / 100) {
+								if (charStats[key].percent < 100 && charStats[key].level + charStats[key].percent / 100 >
+									charStats[previous].level + charStats[previous].percent / 100) {
 									return key;
 								}
 								return previous;
@@ -205,7 +262,8 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 				result = caap.navigate2(link);
 				if (result === 'fail') {
 					return caap.navigate2('player_monster_list');
-				} else if (result === 'done') {
+				} 
+				if (result === 'done') {
 					currentGeneralObj.charge = currentGeneralObj.charge == 100 ? 0 : currentGeneralObj.charge;
 					monster.lastClick = tR.link;
 				} else if (!result && !tR.charClass) {
@@ -217,13 +275,120 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 						caap.click(attackButton);
 						monster.lastClick = tR.link;
 						return true;
-					} else {
-						con.warn('Unable to find attack button to join ' + tR.name);
 					}
+					con.warn('Unable to find attack button to join ' + tR.name + ', deleting record');
+					monster.deleteRecord(tR);
 				}
 
 				return result;
 			}
+			
+			// Check on summoning a monster
+			result = config.getItem('feedFilter', 'all').split('\n').some( function(item) {
+				var sumEval = (item+ ':').regex(/:sum\d+\[(.*?)\]:/),
+					mpool = item.regex(/:sum(\d+)\[/),
+					poolTimer = 'feed' + mpool,
+					mName = item.trim().replace(/:.*/, ''),
+					mTimer = 'feed' + mName,
+					sOname = 'feedSummonObj' + mpool,
+					sO = state.getItem(sOname, {}),
+					poolReg = new RegExp ('user=' + stats.FBID + '&mpool=(' + mpool + ')\\b'),
+					poolFull = monster.records.flatten('link').listMatch(poolReg),
+					tempDiv, missingDiv, formsDiv, which, tab,
+					summonName = monster.getInfo(mName, 'summonAlias', mName);
+				
+				if (!sumEval || poolFull || !schedule.check(poolTimer) || !schedule.check(mTimer) ||
+						$u.setContent(sO.energy, 0) > stats.energy.num ) {
+					return false;
+				}
+			
+				// Pull a blank record for scoring
+				tR = monster.getRecord('1');
+				tR.monster = mName;
+				tR.joinConditions = item;
+				if (!feed.scoring(tR, sumEval)) {
+					return false;
+				}
+				sO = $j.extend({tab : 1, monster : mName, mpool : mpool, name : sOname, mTimer : mTimer},
+						sO.monster == mName ? sO : {});
+						
+				if (!$u.isDefined(sO.land)) {
+					if (page != 'monster_summon_list') {
+						con.log(1, 'Going to summon monster page to summon ' + mName, item);
+						return caap.ajaxLink('monster_summon_list');
+					}
+					tab = $u.setContent($j('img[id*="summonTab_"][src*="_on.gif"]:visible').attr('id'), '').regex(/_(\d)/);
+
+					if (tab == sO.tab) {
+						tempDiv = $j('#app_body div[id*="monster_summon_"]:contains("Summon:"):contains("' + summonName + '")');
+						if ($u.hasContent(tempDiv)) {
+							missingDiv = $j('div[class*="missing recipeImgContainer"]', tempDiv);
+							formsDiv = $j('form[onsubmit*="monster_summon_list"]', tempDiv);
+							which = !$u.hasContent(missingDiv) ? 0 : formsDiv.length == 2 ? 1 : false;
+							if (which !== false) {
+								sO.energy = tempDiv.last().text().trim().innerTrim().regexd(/-(\d+)/, 0);
+								if (sO.energy > stats.energy.num && (which == 0 || $u.hasContent(missingDiv))) {
+									state.setItem(sOname, sO);	
+									return false;
+								}
+								caap.ajaxLink('monster_summon_list.php?' + formsDiv.eq(which).serialize());
+								feed.sO = sO;
+								state.setItem(sOname, sO);
+								con.log(1, 'Summoning ' + mName, item);
+								return true;
+							}	
+							sO.land = 1;
+							sO.missing = $j('img', missingDiv).attr('src').regex(/.*\/(\w+\.\w+)/);
+						} else {
+							sO.tab += 1;
+						}
+					}
+					if (sO.tab > 6) {
+						schedule.setItem(mTimer, 36 * 3600);
+						con.warn('Unable to find match to summon ' + mName, item);
+						state.deleteItem(sOname);
+						return false;
+					}
+					if (tab != sO.tab) {
+						state.setItem(sOname, sO);
+						caap.click($j('img[id*="summonTab_' + sO.tab + '"]:visible'));
+						con.log(1, 'Searching summon tabs for ' + mName, item);
+						return true;
+					}
+				}
+				// Are we looking for the orb?
+				if ($u.isDefined(sO.land)) {
+					// On right page?
+					if (!session.getItem('clickUrl','').hasIndexOf('quests.php?land=' + sO.land)) {
+						state.setItem(sOname, sO);
+						con.log(1, 'Looking for ' + mName + ' orb in quest land ' + sO.land, item);
+						return caap.ajaxLink('quests.php?land=' + sO.land);
+					}
+					// Orb on this page?
+					tempDiv = $j('#app_body tr .quest_desc').has('img[src*="' + sO.missing + '"]');
+					if ($u.hasContent(tempDiv)) {
+						// Have enough energy?
+						sO.energy = tempDiv.text().regexd(/(\d+) Energy/, 0);
+						if (sO.energy > stats.energy.num) {
+							state.setItem(sOname, sO);	
+							return false;
+						}
+						feed.sO = sO;
+						caap.ajaxLink('quests.php?' + tempDiv.find('form').serialize());
+						state.setItem(sOname, sO);
+						con.log(1, 'Doing quest for ' + mName + ' orb in quest land ' + sO.land, item);
+						return true;
+					}
+					// Check the next quest page
+					sO.land = Number(sO.land) + 1;
+					state.setItem(sOname, sO);
+					feed.sO = sO;
+					con.log(1, 'Looking for ' + mName + ' orb in next quest land ' + sO.land, item);
+					return caap.ajaxLink('quests.php?land=' + sO.land);
+				}
+			});
+			
+			return result;
 
 		} catch (err) {
 			con.error("ERROR in feed.scan: " + err.stack);
@@ -231,22 +396,26 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 		}
 	};
 
-    feed.scoring = function(cM) {
+	// Saves score, join, and charClass in CM and returns true if has score and positive
+    feed.scoring = function(cM, summon) {
 		try {
 			var temp,
+				evalTxt,
+				filterok = true,
 				userid = stats.FBID,
 				life = cM.life,
 				t2k = cM.t2k,
 				fortify = cM.fortify,
 				strength = cM.strength,
+				dp = stats.monster.dp,
 				same = monster.records.filter( function(obj) {
-					return obj.monster == cM.monster && obj.status == 'Attack';
+					return obj.monster == cM.monster && obj.state == 'Attack';
 				}).length,
 				sameundermax = monster.records.filter( function(obj) {
-					return obj.monster == cM.monster && obj.status == 'Attack' && obj.over != 'max';
+					return obj.monster == cM.monster && obj.state == 'Attack' && obj.over != 'max';
 				}).length,
 				undermax = monster.records.filter( function(obj) {
-					return obj.status == 'Attack' && obj.over != 'max';
+					return obj.state == 'Attack' && obj.over != 'max';
 				}).length,
 				targetpart = cM.targetPart,
 				parts = cM.partsHealth,
@@ -273,45 +442,79 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 					return town.getRecordVal(pic, 'owned', 0);
 				},
 				needpic = function(pic, want) {
-					return want > picowned(pic);
+					return want > picowned(pic) + same;
 				},
 				nameowned = function(name) {
 					state.setItem('feedNameOwned', state.getItem('feedNameOwned', '').split('\n').addToList(name).join('\n'));
-					return town.records.getObjByFieldLc('name', name.toLowerCase(), 'owned', 0);
+					return town.records.getObjByFieldLc('name', name.toLowerCase(), {owned: 0}).owned;
 				},
 				needname = function(name, want) {
-					return want > nameowned(name);
+					name = $u.setContent(name.regex(/([\w' ]+)/g),[]);
+					return name.some( function(n) {
+						return want > nameowned(n.trim()) + same;
+					});
+				},
+				hasgeneral = function(g) {
+					return general.hasRecord(g);
+				},
+				// r = result of recipe, nr = number wanted, or 'g' for a general, i = ingredients, and nr = number of ingredients per item
+				needrecipe = function(r, nr, i, ni) { 
+					return nr == 'g' ? !hasgeneral(r) && needname(i, ni) : (nameowned(r) + Math.floor(nameowned(i) / nr) < nr);
 				},
 				userdamage = function(userId, damage) {
 					state.setItem('feedUserId', state.getItem('feedUserId', '').split('\n').addToList(name).join('\n'));
 					return $u.setContent(cM.userDamage.regex(new RegExp('\\b' + userId + ':(\\d+)')), 0) >= damage;
 				},
 				keep = worker.pagesList.flatten('page').hasIndexOf('ajax:' + cM.link),
+				guild = cM.lpage == 'guild_priority_mlist',
+				mine = cM.link.regex(new RegExp ('user=(' + stats.FBID + ')\\b')),
 				achleft = 0,
 				conq = cM.lpage == "ajax:player_monster_list.php?monster_filter=2",
 				achrecords = stats.achievements.monster;
 				
-				killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {
-					return previous || (current.hasIndexOf(cM.monster) && !current.regex(/'s/) ? achrecords[current] : 0);
-				}, 0);
-				achleft = Math.max(0, achnum - killed);
+			killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {
+				return previous || (current.hasIndexOf(cM.monster) && !current.match(/'s/) ? achrecords[current] : 0);
+			}, 0);
+			achleft = achnum > killed + same;
 
-				if (cM.conditions.regex(/:j\[(.*?)\]:/)) {
-					cM.score = (eval($u.setContent(cM.conditions.regex(/:s\[(.*?)\]:/), 0)) + 0).dp(2);
-					temp = (cM.listStamina.length ? Math.max(cM.listStamina[0], 5) : 5);
-					cM.join = eval(cM.conditions.regex(/:j\[(.*?)\]:/)) && stamina > temp;
-					con.log(2, cM.name +  (cM.join ? ' Join candidate' : ' Do not join') + '. Score: ' + cM.score + ' Min stamina ' + temp, cM.conditions, cM.conditions.regex(/:s\[(.*?)\]:/), cM.conditions.regex(/:j\[(.*?)\]:/));
-					cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
-					if (cM.score <=0) {
-						con.log(1, 'Deleting monster ' + cM.name + ' because score of ' + cM.score + ' <= 0', cM);
-						monster.deleteRecord(cM.link);
-					}
+			/*jslint evil: true */
+			
+			evalTxt = cM.joinConditions.regex(/:f\[(.*?)\]:/);
+			if (evalTxt && !eval(evalTxt)) {
+				cM.join = false;
+				filterok = false;
+				if (!summon) {
+					con.log(2, cM.name +  ' filtered out by string ' + evalTxt + ' as FALSE', cM.joinConditions, cM);
+					return mine || conq;
 				}
-				if (cM.conditions.regex(/:c\[(.*?)\]:/)) {
-					cM.charClass = eval($u.setContent(cM.conditions.regex(/:c\[(.*?)\]:/), 'Warlock'));
-					con.log(1, 'Class to be set: ' + cM.charClass, cM.conditions.regex(/:c\[(.*?)\]:/));
-				}
+			}
+			if (summon) {
+				return eval(summon);
+			}
 				
+			evalTxt = cM.joinConditions.regex(/:j\[(.*?)\]:/);
+			if (evalTxt) {
+				temp = (cM.listStamina.length ? Math.max(cM.listStamina[0], 5) : 5);
+				cM.join = eval(evalTxt) && stamina > temp;
+				evalTxt = cM.joinConditions.regex(/:s\[(.*?)\]:/);
+				cM.score = (Number(eval(evalTxt))).dp(2);
+				if (session.getItem('clickUrl', '').hasIndexOf(cM.link)) {
+					con.log(2, cM.name +  (cM.join ? ' Join candidate' : ' Do not join') + '. Score: ' + cM.score + ' Min stamina ' + temp, cM.joinConditions);
+				}
+				cM.color = cM.join ? 'green' : $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+				if (cM.score <=0) {
+					return mine || conq;
+				}
+			}
+			evalTxt = cM.joinConditions.regex(/:c\[(.*?)\]:/);
+			if (cM.charClass !== false && evalTxt) {
+				cM.charClass = eval($u.setContent(evalTxt, 'Warlock'));
+				con.log(1, 'Class to be set: ' + cM.charClass, evalTxt);
+			}
+			/*jslint evil: false */
+			
+			return true;
+
 		} catch (err) {
 			con.error("ERROR in feed.scoring: " + err.stack);
 			return false;
@@ -320,15 +523,16 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster */
 
     feed.checkDeath = function(cM) {
 		try {
-			var health = cM.life;
-
-			if (!monster.damaged(cM) || cM.status == 'Done' || cM.status === 'Dead or Fled' || cM.status == 'Collect') {
+			// Skip if the monster has already been read
+			if (!monster.damaged(cM) || ['Done', 'Dead or Fled'].hasIndexOf(cM.state)) {
 				return false;
 			}
-			if ((feed.addConditions(cM) || '').regex(/(\bachleft\b|\bkilled\b)/)) {
+			feed.joinable(cM);
+	
+			if (cM.joinConditions.match(/\b(achleft|killed)\b/)) {
 				schedule.deleteItem("page_achievements");
 			}
-			if ((feed.addConditions(cM) || '').regex(/(\bpicowned\[|\bnameowned\[)/)) {
+			if (cM.joinConditions.match(/\b(picowned|nameowned|needname|needrecipe)\b/)) {
 				schedule.deleteItem("findKeep");
 			}
 				

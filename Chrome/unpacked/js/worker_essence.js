@@ -1,9 +1,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,gm,hiddenVar,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,battle,conquest,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global $j,$u,caap,config,con,schedule,state,session */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -14,7 +12,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function() {
    "use strict";
 
- 	worker.add({ name: 'essence', recordIndex: 'guildId'});
+	worker.add({ name: 'essence', recordIndex: 'guildId'});
 
     essence.record = function(guildId) {
         this.data = {
@@ -22,17 +20,17 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             name: '',
             level: 0,
             lastCheck: 0,
-            attack: '',
-            defense: '',
-            damage: '',
-            health: ''
+            attack: 0,
+            defense: 0,
+            damage: 0,
+            health: 0
         };
     };
 
     essence.clear = function() {
         try {
             essence.records = [];
-            essence.doSave = true;
+            state.setItem('wsave_essence', true);
             session.setItem("essenceDashUpdate", true);
             return true;
         } catch (err) {
@@ -49,7 +47,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					e[a] = -1;
 				});
             });
-            essence.doSave = true;
+            state.setItem('wsave_essence', true);
             session.setItem("essenceDashUpdate", true);
             return true;
         } catch (err) {
@@ -109,11 +107,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 	
     essence.dashboard = function() {
-        function points(num) {
-            num = $u.setContent(num, 0);
-            return num >= 0 ? "+" + num : num;
-        }
-
         try {
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_infoGuilds' div. We set our
@@ -128,7 +121,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                     userIdLinkInstructions = '',
                     len = 0,
                     len1 = 0,
-					tmp = '',
                     data = {
                         text: '',
                         color: '',
@@ -244,7 +236,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         }
                     }
 
-                    caap.clickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ajaxLink(visitUserIdLink.arlink);
                 });
 
                 session.setItem("essenceDashUpdate", false);
@@ -278,7 +270,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return {action: false, mess: ''};
 			}
 			
-            if (stats.energy.num < minEnergy) {
+            if (stats.energy.num < Math.min(minEnergy + 100, stats.energy.norm - 15)) {
 				return {action: false, mess: 'Waiting for ' + stats.energy.num + '/' + (unitMin * 25 + energyConfig)};
 			}
 			
@@ -291,8 +283,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 			
 			essenceChecks = essenceChecks.filter( function(e) {
-				return config.getItem('essence' + e.ucWords(), false) 
-					&& (stats.essence[e] >= unitMin * 200 || state.getItem('essenceBurn', false));
+				return config.getItem('essence' + e.ucWords(), false) &&
+					(stats.essence[e] >= unitMin * 200 || state.getItem('essenceBurn', false));
 			});
 			
 			if (essenceChecks.length === 0) {
@@ -316,7 +308,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						tradedEssence = e;
 						return true;
 					}
-				 });
+				});
 				if (result) {
 					return {mlog: 'Trading ' + buttonLevel * 200 + ' ' + tradedEssence + ' essence'};
 				}
@@ -325,8 +317,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			// Look for guilds that had space in an essence we want to trade
 			essenceChecks.some( function(a) {
 				result = essence.records.sort($u.sortBy(true, a)).some( function(eR) {
-					if (stats.essence[a] >= 200 && eR[a] >= 200 && schedule.since(eR.lastCheck, 7 * 60 * 60)) {
-						caap.clickAjaxLinkSend("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
+					if (stats.essence[a] >= 200 && (eR[a] >= 200 || schedule.since(eR.lastCheck, 7 * 60 * 60))) {
+						caap.ajaxLink("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
 						return true;
 					}
 				});
@@ -342,7 +334,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			// Look for guilds we haven't reviewed in several hours
 			result = essence.records.sort($u.sortBy(false, "lastCheck")).some( function(eR) {
 				if (schedule.since(eR.lastCheck, 5 * 60 * 60)) {
-					caap.clickAjaxLinkSend("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
+					caap.ajaxLink("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
 					return true;
 				}
 			});
