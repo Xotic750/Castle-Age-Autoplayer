@@ -1711,7 +1711,7 @@ gb,essence,gift,chores */
             }
         }
         try {
-            var shiftDown;
+            var shiftDown, tDiv;
 
             if (caap.domain.which === 0) {
                 $j('div.fixedAux').hide();
