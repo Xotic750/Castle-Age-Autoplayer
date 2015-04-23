@@ -2514,7 +2514,7 @@ gb,essence,gift,chores */
                 styleList = ['CA Skin', 'Original', 'Custom', 'None'],
                 htmlCode = '';
 
-            htmlCode += caap.startToggle('Other', 'OTHER OPTIONS');
+            htmlCode += caap.startToggle('Other', 'OTHER');
             /*
             if (caap.domain.which === 0) {
                 htmlCode += caap.makeCheckTR('FB Custom Dropdown', 'FBCustomDrop', false, "Enable FB custom request dropdown");
