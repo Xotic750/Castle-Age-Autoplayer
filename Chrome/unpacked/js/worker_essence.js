@@ -1,7 +1,7 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global $j,$u,caap,config,con,schedule,state,session */
+/*global $j,$u,caap,config,con,schedule,state,session, worker, essence, stats */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -58,6 +58,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 
     essence.checkResults = function(page) {
         try {
+			var storageDivs, guildCapsules, eR;
 			essence.eR = false;
 			switch (page) {
 			case 'conquest_duel' :
@@ -65,10 +66,11 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 				break;
 			case 'trade_market' :
 				stats.essence.bonus = $u.setContent($u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/), 0);
-				var guildCapsules = $j("[style*='trade_capsule']");
+				guildCapsules = $j("[style*='trade_capsule']");
 				guildCapsules.each(function() {
-					var currentCapsule = $j(this),
-						eR = essence.getRecord($j("[name='guild_id']", currentCapsule)[0].value);
+					var currentCapsule = $j(this);
+					
+					eR = essence.getRecord($j("[name='guild_id']", currentCapsule)[0].value);
 						
 					eR.name = currentCapsule.children().eq(0).eq(0).eq(0).eq(0).text().trim();
 					eR.level = currentCapsule.children().eq(1).children(2).children(0).children(0).eq(0).text().match(/(\d+)/)[1];
@@ -77,8 +79,8 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 				break; 
 			case 'guild_conquest_market' :
 				stats.essence.bonus = $u.setContent($u.setContent($j('#app_body a[href*="conquest_duel.php"]').text(), '').regex(/(\d+)/), 0);
-				var storageDivs = $j("[id^='storage_']"),
-					eR = essence.getRecord($j("[id^='guild_name_header']").children().eq(0).attr('href').split('=')[1]);
+				storageDivs = $j("[id^='storage_']");
+				eR = essence.getRecord($j("[id^='guild_name_header']").children().eq(0).attr('href').split('=')[1]);
 
 				eR.name = $j("[id^='guild_name_header']").children().eq(0).text();
 
@@ -227,7 +229,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
                         arlink: ''
                     },
                     i = 0,
-                        len = 0;
+                    len = 0;
 
                     for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
@@ -284,7 +286,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 			
 			essenceChecks = essenceChecks.filter( function(e) {
 				return config.getItem('essence' + e.ucWords(), false) &&
-					(stats.essence[e] >= unitMin * 200 || state.getItem('essenceBurn', false));
+					(stats.essence[e] >= unitMin * 200 || (state.getItem('essenceBurn', false) && stats.essence[e] > 200));
 			});
 			
 			if (essenceChecks.length === 0) {

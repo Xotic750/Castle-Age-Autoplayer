@@ -23,7 +23,9 @@ schedule,state,general,session,battle:true */
 		infoDiv: '',
 		waitHours: 24,
 		collectHours: 0,
-		minHealth: 0, 
+		minHealth: 0,
+		top : { enemy: 'guild_conquest_castle_battlelist',
+				your : 'index'},
 		scoring : 'loeScoring',
 		basePath: 'ajax:guildv2_conquest_expansion.php?guild_id='
 	};
@@ -181,27 +183,20 @@ schedule,state,general,session,battle:true */
 				return false;
 			}
 			if (!fR.t.score) {
-				fR.paths.some( function(pgO) {
+				result = fR.paths.some( function(pgO) {
 					if (schedule.since(pgO.review, 5 * 60)) {
-						//con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-						caap.setDivContent(mess, gf.name + ': Reviewing lands');
-						result = caap.navigate2(pgO.path);
-						if (result == 'fail') {
-							gb.deleterPage(fR, 'path', pgO.path);
-						} else {
-							if (result === false) {
-								con.log(2, 'Loading keep page to force page reload', pgO.path, result);
-								caap.navigateTo('keep');
-							}
-							result = true;
+						con.log(1, land.ucWords() + ': Reviewing lands');
+						if (caap.navigate3(gf.top[pgO.path.hasIndexOf(stats.guild.id) ? 'your' : 'enemy'], pgO.path.replace('ajax:', ''))) {
 							return true;
 						}
+						con.warn(land.ucWords() + ' link not available on page');
+						gb.deleterPage(fR, 'path', pgO.path);
 					}
 				});
 			}
 			if (result === true) {
 				gb.setRecord(fR);
-				return true;
+				return {mlog : 'Reviewing ' + which + ' ' + land.ucWords() + ' lands'};
 			}
 			
 			$j.each(fR[which].towers, function(tower) {
