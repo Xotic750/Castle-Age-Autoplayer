@@ -1,4 +1,3 @@
-
 /*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
@@ -459,7 +458,7 @@ chores,town,general,session,monster:true */
 				},
 				// r = result of recipe, nr = number wanted, or 'g' for a general, i = ingredients, and nr = number of ingredients per item
 				needrecipe = function(r, nr, i, ni) { 
-					return nr == 'g' ? !hasgeneral(r) && needname(i, ni) : (nameowned(r) + Math.floor(nameowned(i) / nr) < nr);
+					return nr == 'g' ? !hasgeneral(r) && needname(i, ni) : (nameowned(r) + Math.floor(nameowned(i) / ni) < nr);
 				},
 				userdamage = function(userId, damage) {
 					state.setItem('feedUserId', state.getItem('feedUserId', '').split('\n').addToList(name).join('\n'));
@@ -469,7 +468,7 @@ chores,town,general,session,monster:true */
 				guild = cM.lpage == 'guild_priority_mlist',
 				mine = cM.link.regex(new RegExp ('user=(' + stats.FBID + ')\\b')),
 				achleft = 0,
-				conq = cM.lpage == "ajax:player_monster_list.php?monster_filter=2",
+				conq = cM.link.hasIndexOf('guildv2_battle_monster'),
 				achrecords = stats.achievements.monster;
 				
 			killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {

@@ -89,7 +89,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				userName = '',
 				mName = '',
 				now = Date.now(),
-				link = '',
+				link = lastClick,
 				lpage = '', // page where monster list is
 				pageUserCheck = 0,
 				monsterRow = $j(),
@@ -1674,10 +1674,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 			duration: 144,
 			ach: 100,
 			staUse: 1
-        },
-        'Mephistopheles': {
-            duration: 48,
-            ach: 200000
         },
         'War Of The Red Plains': {
             tactics: true,

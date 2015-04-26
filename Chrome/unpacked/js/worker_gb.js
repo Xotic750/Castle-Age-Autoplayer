@@ -1224,7 +1224,7 @@ schedule,state,general,session,battle:true */
 								which == 'your' ? 'normal' + (tower == fR.your.seal ? 'seal' : 'normal') :
 								(tower == fR.enemy.seal ? 'seal' : 'normal') + (fR.me.tower == fR.your.seal ? 'seal' : 'normal');
 							if (!$u.hasContent(fR[which].towers[tower])) {
-								con.error('Skipping ' + which + ' ' + tower + ' because unable to complete reading.', fR);
+								con.warn('Skipping ' + which + ' ' + tower + ' because unable to complete reading.', fR);
 							} else if (fR[which].towers[tower][seal][stun].score > t.score && fR[which].towers[tower][seal][stun].tokens <= fR.tokens) {
 								t = fR[which].towers[tower][seal][stun];
 							}

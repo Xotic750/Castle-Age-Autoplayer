@@ -132,6 +132,7 @@ schedule,state,general,session */
             var whenconquest = '',
                 bR = {},
                 targetId = 0,
+				result,
                 conquesttype = '',
                 useGeneral = '',
                 chainImg = '',
@@ -171,22 +172,27 @@ schedule,state,general,session */
                 return false;
             }
 			
-			if (loe.worker('your','loe')) {
-				return true;
+			result = loe.worker('your', 'loe');
+			if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+				return result;
 			}
 			if (config.getItem('lomPriority', 'Guardian') == 'Guardian') {
-				if (loe.worker('your', 'lom')) {
-					return true;
+				result = loe.worker('your', 'lom');
+				if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+					return result;
 				}
-				if (loe.worker('enemy', 'loe')) {
-					return true;
+				result = loe.worker('enemy', 'loe');
+				if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+					return result;
 				}
 			} else {
-				if (loe.worker('enemy', 'loe')) {
-					return true;
+				result = loe.worker('enemy', 'loe');
+				if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+					return result;
 				}
-				if (loe.worker('your', 'lom')) {
-					return true;
+				result = loe.worker('your', 'lom');
+				if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+					return result;
 				}
 			}
 

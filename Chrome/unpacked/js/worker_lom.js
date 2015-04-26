@@ -26,6 +26,7 @@ schedule,state,general,session,battle:true */
 		minHealth: 200, 
 		reg: /(.*?) Level: (\d+) Status: (\w+) ([\d\.]+)\/(\d+)(?: Battle Points: )?(\d+)?/g,
 		scoring : 'lomScoring',
+		top : { your : 'guildv2_conquest_command' },
 		basePath: 'ajax:guildv2_conquest_expansion.php?slot='
 	};
 	
@@ -150,10 +151,6 @@ schedule,state,general,session,battle:true */
         }
     };
 	
-	lom.worker = function () {
-		return loe.worker('lom');
-	};
-
     lom.conquestMenu = function() {
         try {
             // Guild Battle controls
