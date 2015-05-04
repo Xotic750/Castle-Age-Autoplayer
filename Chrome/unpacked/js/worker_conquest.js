@@ -40,7 +40,7 @@ schedule,state,general,session */
 				conquest.records.sort($u.sortBy(true, 'score'));
 				
 				con.log(2, 'Conquest: Kept 250 recon targets and removed ' + (conquest.records.length - 250) + ' lesser targets');
-				conquest.records = conquest.records.slice(0, 249);
+				conquest.records = conquest.records.slice(0, 250);
 				state.setItem('conqScore', conquest.records[249].score);
 				state.setItem('wsave_conquest', true);
 				state.setItem('wsave_conquest_noWarning', true);

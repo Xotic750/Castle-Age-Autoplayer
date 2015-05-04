@@ -47,7 +47,7 @@ recon worker holds the records for possible good targets that haven't been hit y
 				recon.records.sort($u.sortBy(true, 'score'));
 				
 				con.log(2, 'Recon: Removed ' + (recon.records.length - 250) + ' lesser targets');
-				recon.records = recon.records.slice(0, 249);
+				recon.records = recon.records.slice(0, 250);
 				state.setItem('battleScore', recon.records[249].score);
 				state.setItem('wsave_recon', true);
 				state.setItem('wsave_recon_noWarning', true);
