@@ -70,13 +70,10 @@ gm,hiddenVar,battle,general */
 			},
 			rank: {
 				battle: 0,
-				battlePoints: 0,
 				war: 0,
-				warPoints: 0,
 				conquest: 0,
-				conquestPoints: 0,
-				conquestLevel: 0,
-				conquestLevelPercent: 0
+				festival: 0,
+				conquestLevel: 0
 			},
 			potions: {
 				energy: 0,
@@ -205,6 +202,10 @@ gm,hiddenVar,battle,general */
 		try {
 			var accountName = stats.account;
 			window.stats = statsFunc.getRecord(stats.FBID);
+			if (stats.FBID == 0) {
+				con.log(1, 'Reloading because FBID reset to zero');
+				session.setItem("flagReload", true);
+			}
 			stats.account = accountName;
 			state.deleteItem("statsRaiseDone");
 			
@@ -373,7 +374,7 @@ gm,hiddenVar,battle,general */
 					}
 				}
 				// conquest rank
-				if (stats.level >= 100) {
+				if (stats.level >= 80) {
 					tempDiv = $j("#app_body img[src*='conquest_rank_']");
 					if ($u.hasContent(tempDiv)) {
 						stats.rank.conquest = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
@@ -382,9 +383,19 @@ gm,hiddenVar,battle,general */
 					}
 				}
 
+				// festival rank
+				if (stats.level >= 80) {
+					tempDiv = $j("#app_body img[src*='festival_duelchampion']");
+					if ($u.hasContent(tempDiv)) {
+						stats.rank.festival = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
+					} else {
+						con.warn('Using stored conquestRank.');
+					}
+				}
+
 				// Check for Gold Stored  STORED: INCOME: UPKEEP: CASH FLOW: $0 $236,345,000/hour -$1,280,430/hour $235,064,570/hour
 				if (caap.bulkRegex(text, /STORED: INCOME: UPKEEP: CASH FLOW: \$([,\d]+) \$([,\d]+)\/hour -\$([,\d]+)\/hour \$([,\d]+)\/hour/,
-					stats.gold,	['bank', 'income', 'upkeep', 'flow'])) {
+					stats.gold,	['bank', 'income', 'upkeep', 'flow'], 'silent')) {
 					['bank', 'income', 'upkeep', 'flow'].forEach( function(e) {
 						stats.gold[e] = stats.gold[e].numberOnly();
 					});
@@ -705,6 +716,10 @@ gm,hiddenVar,battle,general */
 				}
 				break;
 			case 'achievements' :
+
+				// Get favor points -- Just put this here since it's a convenient page visited about once a day
+				stats.points.favor = $u.setContent($j('#persistHomeFPPlateOpen').text(), '').regexd(/(\d+)/, 0);
+				
 				achDiv = $j("#app_body #achievement_info_container_test_of_might_monster div[style*='ach_medalcontainer.jpg']");
 				if ($u.hasContent(achDiv)) {
 					stats.achievements.monster = {};
@@ -991,7 +1006,7 @@ gm,hiddenVar,battle,general */
                     [{
                         text: 'Battle Rank Points'
                     }, {
-                        text: stats.rank.battlePoints.addCommas(),
+                        text: 'Unknown',
                         color: valueCol
                     }, {
                         text: 'Defense'
@@ -1014,7 +1029,7 @@ gm,hiddenVar,battle,general */
                     [{
                         text: 'War Rank Points'
                     }, {
-                        text: stats.rank.warPoints.addCommas(),
+                        text: 'Unknown',
                         color: valueCol
                     }, {
                         text: 'Army'
@@ -1036,7 +1051,7 @@ gm,hiddenVar,battle,general */
                     [{
                         text: 'Conquest Rank Points'
                     }, {
-                        text: stats.rank.conquestPoints.addCommas(),
+                        text: 'Unknown',
                         color: valueCol
                     }, {
                         text: 'Generals When Invade',

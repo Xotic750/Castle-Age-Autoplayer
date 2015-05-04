@@ -388,47 +388,49 @@ schedule,state,general,session,battle:true */
 			session.setItem("gb10DashUpdate", true);
 			session.setItem("gb100DashUpdate", true);
 			
-			gb.testList = [
-				{	method : 'duel',
-					type : 'gb',
-					check : /.* \d+\s+(.*?) Battle Results:/,
-					vars : ['name'],
-					func : function(r) {
-						var str = caap.resultsText.replace(r.name, '').replace(stats.PlayerName, ''),
-							tStr = '',
-							fR = {};
-							
-						r.points = str.regexd(/\+([\d\.]+) Battle Activity Points/, 0);
-						r.name = r.name.replace(/ \w+ PATH CREDIT: \w+/,'').replace(stats.PlayerName, '').trim();
-						r.action = str.regex(/(POLYMORPH|CONFUSE)/);
-						if (str.regex(/(Your target is freed from polymorph!)/i) || str.regex(/(yourself)/i)) {
-							r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
-							r.att = r.wl == 'VICTORY' ? 1000000 : 0;
-							return;
-						}
-						r.wl = str.regex(/(VICTORY|DEFEAT)/);
-						if ($u.hasContent(r.wl)) {
-							fR = gb.getRecord(session.getItem('gbWhich','gb100'));
-							tStr = str.regex(/Defense increased by ([\d\.]+)% from Divine Favor/);
-							if (tStr) {
-								fR.att = (stats.attack + stats.bonus.attack + (stats.defense + stats.bonus.defense) * 0.7 * (tStr.numberOnly() / 100 + 1)).dp(0);
-							} else {
-								tStr = str.regex(/Attack increased by ([\d\.]+)% from Enrage/);
-								if (tStr) {
-									fR.att = ((stats.attack + stats.bonus.attack) * (tStr.numberOnly() / 100 + 1) + (stats.defense + stats.bonus.defense) * 0.7).dp(0);
-								}
-							}
-								
-							r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
-							r.att = (fR.att > 0 ? fR.att : stats.bonus.api) * (r.action == 'CONFUSE' ? 1.5 : 1) * (r.action == 'POLYMORPH' ? 1.25 : 1);
-							gb.setRecord(fR);
-						} else {
-							r.wl = ($u.hasContent($j("#globalContainer #results_main_wrapper").find('div[style*="color:#ffdb59"]'))) ? 'won' : 'lost';
-							r.att = gb.getRecordVal(session.getItem('gbWhich','gb100'), 'att', stats.bonus.api);
-						}
+			gb.winLoss = {	
+				invade:		false,
+				lost:		'duelLost',
+				won:		'duelWon',
+				points:		'gbPoints',
+				winLossRegex : /.* \d+\s+(.*?) Battle Results:/,
+				regexVars : ['name'],
+				winLossF : function(r) {
+					var str = caap.resultsText.replace(r.name, '').replace(stats.PlayerName, ''),
+						tStr = '',
+						fR = {};
+						
+					r.points = str.regexd(/\+([\d\.]+) Battle Activity Points/, 0);
+					r.name = r.name.replace(/ \w+ PATH CREDIT: \w+/,'').replace(stats.PlayerName, '').trim();
+					r.action = str.regex(/(POLYMORPH|CONFUSE)/);
+					r.wl = str.regex(/(VICTORY|DEFEAT)/);
+					if (str.regex(/(Your target is freed from polymorph!)/i) || str.regex(/(yourself)/i)) {
+						r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
+						r.att = r.wl == 'VICTORY' ? 1000000 : 0;
+						return;
 					}
-				}
-			];
+					if ($u.hasContent(r.wl)) {
+						fR = gb.getRecord(session.getItem('gbWhich','gb100'));
+						tStr = str.regex(/Defense increased by ([\d\.]+)% from Divine Favor/);
+						if (tStr) {
+							fR.att = (stats.attack + stats.bonus.attack + (stats.defense + stats.bonus.defense) * 0.7 * (tStr.numberOnly() / 100 + 1)).dp(0);
+						} else {
+							tStr = str.regex(/Attack increased by ([\d\.]+)% from Enrage/);
+							if (tStr) {
+								fR.att = ((stats.attack + stats.bonus.attack) * (tStr.numberOnly() / 100 + 1) + (stats.defense + stats.bonus.defense) * 0.7).dp(0);
+							}
+						}
+							
+						r.wl = r.wl == 'VICTORY' ? 'won' : 'lost';
+						r.att = (fR.att > 0 ? fR.att : stats.bonus.api) * (r.action == 'CONFUSE' ? 1.5 : 1) * (r.action == 'POLYMORPH' ? 1.25 : 1);
+						gb.setRecord(fR);
+					} else {
+						r.wl = ($u.hasContent($j("#globalContainer #results_main_wrapper").find('div[style*="color:#ffdb59"]'))) ? 'won' : 'lost';
+						r.att = gb.getRecordVal(session.getItem('gbWhich','gb100'), 'att', stats.bonus.api);
+					}
+				},
+				other: 'None'
+			};
 			
 			gb.actions = [];
 			['your','enemy'].forEach( function(which) {
@@ -459,7 +461,9 @@ schedule,state,general,session,battle:true */
 				fR.nextTopReview = now + $u.setContent(($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60) % (6 * 3600), 0) * 1000;
 				fR.startTime = $j(infoDiv).find('input.monsterTickerSecs').attr('value') ? fR.nextTopReview : 0;
 			} else if (text.regex(/battle now/i)) {
-				fR.state = 'Active';
+				if (schedule.since(fR.collectedTime, gf.waitHours / 2 * 60 * 60)) {
+					fR.state = 'Active';
+				}
 			} else if (text.regex(/remaining/i)) {
 				fR.state = 'Active';
 				fR.nextTopReview = now + $u.setContent($j(infoDiv).find('input.monsterTickerSecs').attr('value') - 4 * 60, 0) * 1000;
@@ -515,7 +519,7 @@ schedule,state,general,session,battle:true */
 
 			session.setItem('gbWhich', fR.label);
 			
-			battle.readWinLoss(caap.resultsText, gb.testList);
+			battle.readWinLoss(caap.resultsText, gb.winLoss);
 
 			fR.nextTopReview = Math.max(now + 5 * 60 * 1000, fR.nextTopReview);
 
@@ -771,7 +775,7 @@ schedule,state,general,session,battle:true */
 					fullText = scoring.regex(new RegExp("\\b" + att.name + "(\\[.*?)\\]"));
 					img = $u.setContent(att.image, att.name);
 					
-					if (yourlo && !extra.listMatch(new RegExp(img))) {
+					if (yourlo && !extra.listMatch(new RegExp('(' + img + ')'))) {
 						return;
 					}
 					// Confirm which general has necessary power
@@ -877,7 +881,7 @@ schedule,state,general,session,battle:true */
 								case '10v10' :		tf = gf.name.toLowerCase() == key;									break;
 								case 'easy' :		tf = fR.easy;														break;
 								case 'easyc' :		tf = fR.easy && mR.mclass == 'cleric';								break;
-								case mR.target_id : tf = true;															break;
+								case mR.target_id.toString() : tf = true;															break;
 								case 'simtis' :		tf = fR.simtis;														break;
 								case 'unstunned' :	tf = mR.healthNum > 200;											break;
 								case 'meshout' :	tf = fR.me.shout;													break;
@@ -999,7 +1003,7 @@ schedule,state,general,session,battle:true */
 							tR[ns].stunned = tR[sOrN].stunned;
 							return;
 						}
-						total = (pOa.wc ? gb.otherCalc(fR, pOa, i, ns, gb.r100(mR.winChance)) : pOa.att.score(fR, pOa, i, ns, mR)).dp(2);
+						total = (pOa.wc ? gb.otherCalc(fR, pOa, i, ns, mR.winChance) : pOa.att.score(fR, pOa, i, ns, mR)).dp(2);
 						total = mR.healthNum >= (which == 'your' ? gf.minHealth : 1) ? total : 0;
 						mR.scores[attName][ns] = total;
 						gb.target(tR[ns].unstunned, total, mR, pOa, which, tower);

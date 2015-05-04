@@ -231,6 +231,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	caap.passThrough = function(result)  {
+		if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+			return result;
+		}
+		return false;
+	};
+	
     caap.mainLoop = function () {
         try {
             var button = $j(),
@@ -367,7 +374,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						con.warn(ucName + ': ' + warnText);
 					}
 				}
-                if (!$u.isObject(returnObj) ? returnObj : $u.setContent(returnObj.action, true)) {
+                if (caap.passThrough(returnObj)) {
                     caap.checkLastAction(action);
 					return true;
                 }
@@ -425,7 +432,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (force || (!config.getItem('Disabled') && state.getItem('caapPause') === 'none')) {
                 // better than reload... no prompt on forms!
                 con.log(1, 'Reloading now!');
-				if (!caap.checkForImage('web3splash.jpg').length && typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
+				if (caap.checkForImage('header_persist_background.jpg').length && typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
 					suffix = '/connect_login.php?platform_action=CA_web3_logout';
 				} else if (caap.domain.which === 0 || caap.domain.which === 2) {
 					suffix = '/keep.php';
@@ -451,10 +458,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (state.getItem('caapPause', 'none') == 'none') {
 				if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40
 						|| (caap.hyper && schedule.since("hyperTimer", reloadMin * 60))) {
-					con.log(1, 'Reloading if not paused after inactivity');
+					con.log(1, 'Reloading after inactivity');
 					session.setItem("flagReload", true);
-				} else {
-					con.log(2, 'Checked for reload, but not necessary', schedule.since("clickedOnSomething", 300), session.getItem("pageLoadCounter", 0) > 40, caap.hyper, schedule.since("hyperTimer", reloadMin * 60));
 				}
 			}
             window.setTimeout(function () {

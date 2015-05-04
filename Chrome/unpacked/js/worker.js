@@ -99,7 +99,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					});
 				});
 				undefinedKeyList.removeFromList('newRecord');
-				if (undefinedKeyList.length) {
+				if (state.getItem('wsave_' + wO.name + '_noWarning')) {
+					state.deleteItem('wsave_' + wO.name + '_noWarning');
+				} else if (undefinedKeyList.length) {
 					con.warn(wO.name + ' warning: Keys not in record template will be deleted: ' + undefinedKeyList.join(', '), o);
 				}
 				if (caap.domain.which === 3) {

@@ -2,7 +2,7 @@
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,image64,$j,rison,utility,
-festival,feed,battle,town,
+festival,feed,battle,
 $u,stats,worker,self,caap,config,con,gm,recon,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
@@ -23,30 +23,35 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             name: '',
 			minDef : 0,
 			maxDef : 1000000,
-            rank: 0,
-            warRank: 0,
-            conqRank: 0,
-			conqPoints : 0,
-			gbPoints : 0,
+			hiding: 0,
+            wonTime: 0,
+            lostTime: 0,
+            deadTime: 0,
+			valid: true,
+            festRank: -1,
+			festPoints : 0,
+            conqRank: -1,
+			conqInvadePoints : 0,
+			conqDuelPoints : 0,
+			conqValid : true,
             level: 0,
-            army: 0,
-            deity: 0,
-            deityStr: '',
+            army: -1,
+            rank: -1,
+            deity: -1,
             invadeWon: 0,
             invadeLost: 0,
             invadePoints: 0,
             duelWon: 0,
             duelLost: 0,
             duelPoints: 0,
+            warRank: -1,
             warWon: 0,
             warLost: 0,
             warPoints: 0,
             chainCount: 0,
-            wonTime: 0,
-            lostTime: 0,
-            deadTime: 0,
-            chainRestTime: 0,
-/*            arenaRank: 0,
+            chainRest: 0,
+			gbPoints : 0,
+/*          arenaRank: 0,
 			arenaLost : 0,
 			arenaWon : 0,
 			arenaRevenge: false,
@@ -58,27 +63,251 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         };
     };
 	
-	battle.types = ['duel', 'invade', 'war', 'conq', 'gb'];
+/////////////////////////////////////////////////////////////////////
+// 	Data for the specific types of battles
+/////////////////////////////////////////////////////////////////////
+    battle.Raid = { // Not updated for new format
+		Invade1: 'raid_attack_button.gif',
+		Invade5: 'raid_attack_button3.gif',
+		Duel1: 'raid_attack_button2.gif',
+		Duel5: 'raid_attack_button4.gif',
+		regex1: new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
+		refresh: 'raid',
+		image: 'battle_tab_raid_on.jpg'
+	};
+	
+	battle.Invade = {rank: 		'rank',
+					myRank:		'battle',
+					points: 	'invadePoints',
+					kinds:		'kinds',
+					demis: 		true,
+					invade:		true,
+					dead: 		'deadTime',
+					chained: 	'chainRest',
+					chainCount:	'chainCount',
+					general: 	'InvadeGeneral',
+					when: 		'WhenBattle',
+					maxChain: 	'maxChain',
+					maxRank: 	'battleMaxRank',
+					minRank: 	'battleMinRank',
+					idList:		'battleIdList',
+					lost:		'invadeLost',
+					won:		'invadeWon',
+					valid:		'valid',
+					minLevel: 	8,
+					page:		'battle',
+					delay:		'battleDelay',
+					mid:		'battle_mid.jpg',
+					recon:		'recon',
+					regex: 		/(.+) \(Level (\d+)\)\s*Battle: [\w ]+ \(Rank (\d+)\).* (\d+)\b/i,
+					stats: 		['name', 'level', 'rank', 'army'],
+					pointList: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,6,8,10,12,13,15,16,17,18,19,19,19,19,20,20,20,20,20,20,20,20,20,20,20],
+					linkF: function(bR) {
+						return 'battle.php?symbol_id=' + (bR.deity + 1) + '&target_id=' + bR.userId +'&action=battle&duel=false';
+					},
+					checkF: function(bR, div) {
+						if (stats.level >= battle.War.minLevel) {
+							caap.bulkRegex(div, /\s*War: [\w ]+ \(Rank (\d+)\)/, bR, ['warRank']);
+						}
+						var tempTxt = $u.setContent($j("img[src*='iphone_']", div).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
+						if ($u.hasContent(tempTxt) && $u.hasContent(caap.deityTable[tempTxt] - 1)) {
+							bR.deity = caap.deityTable[tempTxt] - 1;
+						} else {
+							con.warn("Unable to match demi number in tempTxt", tempTxt);
+						}
+					},
+					winLossRegex: /Your Army of (\d+) fought with.* x\d+(.+)'s Army of (\d+) fought with.* You have (lost|won) (\d+) Battle Points.*\$([,\d]+)?/i,
+					regexVars: ['myArmy', 'name', 'army', 'wl', 'points', 'gold'],
+					winLossF: function(r) {
+						r.att = stats.bonus.api * r.myArmy / r.army;
+						r.gold = r.gold ? r.gold.numberOnly() : 0;
+						r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+					},
+					other: 'Duel' // Check duel for win loss if no match for Invade
+				};
+					
+	battle.Duel = {	general: 	'DuelGeneral',  // Undefined items filled in by battle.Invade in battle.init()
+					points:		'duelPoints',
+					invade:		false,
+					lost:		'duelLost',
+					won:		'duelWon',
+					link: function(bR) {
+						return 'battle.php?symbol_id=' + (bR.deity + 1) + '&target_id=' + bR.userId + '&action=battle&duel=true';
+					},
+					winLossRegex: /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
+					regexVars: ['name', 'wl', 'points', 'gold'],
+					winLossF: function(r) {
+						r.att = stats.bonus.api;
+						r.gold = r.gold ? r.gold.numberOnly() : 0;
+						r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+					},
+					other: 'War' // Check War for win loss if no match for duel
+				};
+					
+	battle.War = {	rank: 		'warRank',  // Undefined items filled in by battle.Invade in battle.init()
+					myRank:		'war',
+					points:		'warPoints',
+					demis: 		false,
+					invade:		false,
+					lost:		'warLost',
+					won:		'warWon',
+					general: 	'WarGeneral',
+					minLevel: 	100,
+					pointList: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,6,8,10,12,13,15,16,17,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18],
+					linkF: function(bR) { return 'battle.php?target_id=' + bR.userId + '&action=war';	},
+					winLossRegex: /Cost -(10) Stamina/,
+					regexVars: ['points'], // Just using as a placeholder to make sure it matches
+					winLossF: function(r) {
+						r.name = caap.resultsText.regexd(/\(\d+ total points\)(.*?)'s Defense/i, 'Unknown');
+						r.wl = $u.hasContent(caap.resultsText.regex(/Gain (\+\d+ Experience)/i)) ? 'won' : 'lost';
+						r.gold = caap.resultsText.regexd(/\$([,\d]+)/, 0);
+						r.points = caap.resultsText.regexd(/([\+\-\d]+) War Points/i, 0);
+					},
+					other: 'None'
+				};
+	
+	battle.Festival = {	rank: 	'festRank',  // Undefined items filled in by battle.Duel in battle.init()
+					myRank:		'festival',
+					points:		'festivalPoints', 
+					demis: 		false,
+					page:		'festival_duel_battle',
+					mid:		'festival_duelchamp_line.jpg',  //Damn (LEVEL 819) Protector (Rank 7)
+					regex: 		/(.+) \(LEVEL (\d+)\) [\w ]+ \(Rank (\d+)\)/i,
+					stats: 		['name', 'level', 'festRank'],
+					minLevel: 	1,
+					pointList: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,6,8,10,12,13,15,16,17,18,19,20,20,20,20,20,20,20,20,20,20,20,20,20,20],
+					linkF: function(bR) { return 'festival_duel_battle.php?target_id=' + bR.userId + '&action=battle&duel=true';	},
+					checkF: function() { return; },
+					//Your are defeated in battle, taking 10 damage and dealing 6 damage to your enemy. -3 Champion Points! -100000 Gold
+					winLossRegex: /Your? are (\w+) in battle,.* ([\+\-\d]+) Champion Points.* ([\+\-\d]+) Gold/i,
+					regexVars: ['wl', 'points', 'gold'],
+					winLossF: function(r) {
+						r.att = stats.bonus.api;
+						r.wl = r.wl === 'victorious' ? 'won' : 'lost';
+					},
+					other: 'None'
+				};
+	
+	battle.ConqInvade = {rank: 	'conqRank',
+					myRank:		'conquest',
+					points:		'conqInvadePoints',
+					invade:		true,
+					kinds:		'conqKinds',
+					general: 	'InvadeGeneral', 
+					when: 		'WhenConquest',
+					maxChain: 	'ConquestMaxChains',
+					maxRank: 	'ConquestMinRank',
+					minRank: 	'ConquestMaxRank',
+					valid:		'conqValid',
+					lost:		'invadeLost',
+					won:		'invadeWon',
+					delay:		'conqDelay',
+					minLevel: 	80,
+					dead: 		'deadTime',
+					chained: 	'chainRest',
+					chainCount:	'chainCount', // A bit of overlap between Battle chain counts, which could be different, but not worth adding another entry to the record
+					page:		'conquest_duel',
+					mid:		'war_conquest_mid.jpg',
+					recon:		'conquest',
+					regex: 		/(.+) \(Level (\d+)\) Conquest Rank: [\w ]+ \(Rank (\d+)\) (\d+)\b/i,
+					stats: 		['name', 'level', 'conqRank', 'army'],
+					// No data on wiki on this, so assuming the same as invade
+					pointList: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,3,6,8,10,12,13,15,16,17,18,19,19,19,19,20,20,20,20,20,20,20,20,20,20,20],
+					linkF: function(bR) {
+						return 'conquest_duel.php?target_id=' + bR.userId +'&action=battle&duel=false';
+					},
+					checkF: function() { return; },
+					 //+13 Conquest Rank Pts +18 Battlelust Points -1 Conquest Token +1 Conquest XP
+					winLossRegex: /Army(\d+) .*? Army(\d+) .*? ([\+\-\d]+) Conquest Rank Pts .* ([\+\-\d]+) Guild Coins/i,
+					regexVars: ['myArmy', 'army', 'points', 'wl'],
+					winLossF: function(r) {
+						r.att = stats.bonus.api * r.myArmy / r.army;
+						r.wl = r.wl === 0 ? 'lost' : 'won';
+						r.name = caap.resultsText.regex(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
+					},
+					other: 'ConqDuel' // Check duel for win loss if no match for Invade
+				};
+					
+	battle.ConqDuel = {invade:		false,  // Undefined items filled in by battle.Duel in battle.init()
+					points:		'conqDuelPoints',
+					general: 	'DuelGeneral',
+					lost:		'duelLost',
+					won:		'duelWon',
+					linkF: function(bR) {
+						return 'conquest_duel.php?target_id=' + bR.userId +'&action=battle&duel=true';
+					},
+					winLossRegex: /([\+\-\d]+) Conquest Rank Pts .* ([\+\-\d]+) Guild Coins/i,
+					regexVars: ['points', 'wl'],
+					winLossF: function(r) {
+						r.att = stats.bonus.api;
+						r.wl = r.wl === 0 ? 'lost' : 'won';
+						r.name = caap.resultsText.regext(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
+					},
+					other: 'None'
+				};
+					
+	// List of battle rank names
+	battle.ranks = {
+		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 
+		'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
+		festRank: ['Newcomer', 'Initiate', 'Vandal', 'Savage', 'Brigand', 'Enforcer', 'Fighter', 'Protector', 'Defender', 'Guardian', 'Slaughterer', 'Killer', 'Slayer',  'Avenger', 'Rechoner', 'Eradicator', 'Champion', 'Archon', 'Master'],
+		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
+		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion',
+			'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
+	};
 
-	worker.addAction({worker : 'battle', priority : 700, description : 'Battling Players'});
+	// Calculate the number of points I would win against someone given our ranks
+	battle.pointF = function(pointList, d) {
+		return pointList[d + pointList.indexOf(10)];
+	};
+	
+	// Calculate an opponents rank based on the number of points I won in a battle
+	battle.rankF = function(pointList, hisRank, myRank, p) {
+		if (!pointList.hasIndexOf(p)) {
+			return hisRank;
+		}
+		return Math.min(myRank - pointList.indexOf(10) + pointList.lastIndexOf(p), 
+			Math.max(myRank + pointList.indexOf(p) - pointList.indexOf(10), hisRank));
+	};
+	
+	// Calculate an a score based on level, army size, and previous experience for a battle record to pick the best target
+	battle.scoring = function(r, which) {
+		var w = battle[which],
+			defBonus = which == 'War' ? 'War' : w.invade ? r.army / stats.army.capped : 1; 
+			
+		return battle.winChance(r, stats.bonus.api, defBonus) * battle.pointF(w.pointList, r[w.rank] - stats.rank[w.myRank]); 
+	};
+	
+	// Calculate min or max Rank to fight based on config menu setting
+	battle.minMaxRankF = function(w, minMax) {
+		var conf = $u.setContent(config.getItem(w.rank, ''), minMax.match(/max/i) ? '1000' : '0');	
+		return conf.match(/[\+\-]/) ? stats.rank[w.myRank] + conf : conf;
+	};
 	
 	battle.init = function() {
 		try {
 			var arr = [],
-				haveWonLost = false;
-			battle.page = stats.level < 10 ? 'battle_train;battle_off' : 'battle';
+				foughtRecently,
+				num = battle.records.length,
+				newbie;
+				
+			battle.Invade.page = stats.level < 10 ? 'battle_train' : 'battle'; // Need to check this works
 			
+			battle.Duel = $j.extend({}, battle.Invade, battle.Duel);
+			battle.War = $j.extend({}, battle.Invade, battle.War);
+			battle.Festival = $j.extend({}, battle.Duel, battle.Festival);
+			battle.ConqDuel = $j.extend({}, battle.ConqInvade, battle.ConqDuel);
+
 			battle.records = battle.records.filter( function(r) {
-				haveWonLost = ['duel', 'invade', 'war'].some( function(e) {
-					return r[e + 'Won'] || r[e + 'Lost'];
-				});
-				if (!haveWonLost) {
-					arr.push(r.name);
+				foughtRecently = !schedule.since(r.wonTime, 4 * 7 * 24 * 3600) || !schedule.since(r.lostTime,  4 * 7 * 24 * 3600);
+				newbie = !schedule.since(r.deadTime, 24 * 3600);
+				if (foughtRecently || newbie) {
+					return true;
 				}
-				return haveWonLost;
+				arr.push(r.name);
 			});
 			if (arr.length) {
-				con.warn('Battle: Removed records we have no win/loss results from: ' + arr.join(', '));
+				con.warn('Battle: Deleted ' + (num - battle.records.length) + ' old records', arr);
 				state.setItem('wsave_battle', true);
 			}
         } catch (err) {
@@ -86,507 +315,403 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
-	
-    battle.worker = function() {
-        try {
-            var whenBattle = config.getItem('WhenBattle', 'Never'),
-                target = '',
-                battletype = config.getItem('BattleType', 'Invade'),
-                staminaReq = 0,
-                button = $j(),
-                raidName = '',
-                battleChainId = 0,
-                targetMonster = state.getItem('targetFrombattle_monster', ''),
-                whenMonster = config.getItem('WhenMonster', 'Never'),
-                targetType = config.getItem('TargetType', 'Invade'),
-                rejoinSecs = '',
-                bR = {}, // Battle Record
-                tempTime = 0,
-                monsterObject = $u.hasContent(targetMonster) ? monster.getRecord(targetMonster) : {},
-                noSafeCountSet = 0,
-				battleOrOverride = 'Battle';
 
-            if (stats.level < 8) {
-                if (battle.battleWarnLevel) {
-                    con.log(1, "Battle: Unlock at level 8");
-                    battle.battleWarnLevel = false;
-                }
-                return false;
-            }
-
-			switch (whenBattle) {
-			case 'Never':
-				caap.setDivContent('battle_mess', 'Battle: off');
-				return false;
-			case 'Recon Only':
-				caap.setDivContent('battle_mess', 'Battle: Battle Recon Only');
-				return false;
-			case 'Stay Hidden':
-				if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
-					caap.setDivContent('battle_mess', 'Battle: We Dont Need To Hide Yet');
-					con.log(1, 'We Dont Need To Hide Yet');
-					return false;
-				}
-
-				break;
-			case 'No Monster':
-				if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
-					return false;
-				}
-				break;
-			case 'Only Demipoints or Zin/Misa':
-				if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(battletype + 'General')) {
-					caap.setDivContent('battle_mess', 'Battle: Demipoints and Zin/Misa done');
-					return false;
-				}
-				break;
-			default:
-				break;
-			}
-
-			if (battle.demisPointsToDo('left')) {
-				if (battletype == 'War') {
-					if (caap.oneMinuteUpdate('battleWarDemipoints')) {
-						con.warn('Unable to get demi points because battle type is set to "War"');
-					}
-				} else {
-					battleOrOverride = 'battleOverride';
-					caap.setDivContent('battle_mess', 'Battle: Doing Demi Points');
-				}
-			} else if (general.ZinMisaCheck(battletype + 'General')) {
-				caap.setDivContent('battle_mess', 'Battle: Doing Zin or Misa');
-				battleOrOverride = 'battleOverride';
-			}
-
-            /*
-            if (stats.health.num < 10) {
-                con.log(5, 'Health is less than 10: ', stats.health.num);
-                return false;
-            }
-
-            if (config.getItem("waitSafeHealth", false) && stats.health.num < 13) {
-                con.log(5, 'Unsafe. Health is less than 13: ', stats.health.num);
-                return false;
-            }
-            */
-
-            target = battle.getTarget();
-            con.log(5, 'Target', target);
-            if (!target) {
-                con.log(1, 'No valid battle target');
-                return false;
-            }
-
-			target = $u.isString(target) ? target.toLowerCase() : target;
-
-            if (target === 'noraid') {
-                con.log(5, 'No Raid To Attack');
-                return false;
-            }
-
-            staminaReq = battletype == 'War' ? 10 : target === 'raid' ? state.getItem('RaidStaminaReq', 1) : 1;
-
-            if (!caap.checkStamina(battleOrOverride, staminaReq)) {
-                con.log(3, 'Not enough stamina for ', battletype, staminaReq);
-                return false;
-            }
-
-            // Check if we should chain attack
-            if ($u.hasContent($j("#app_body #results_main_wrapper img[src*='battle_victory.gif']"))) {
-                button = caap.checkForImage(battletype == 'Invade' ? 'battle_invade_again.gif' : 'battle_duel_again.gif');
-                battleChainId = state.getItem("BattleChainId", 0);
-                if ($u.hasContent(button) && battleChainId) {
-                    caap.setDivContent('battle_mess', 'Chain Attack In Progress');
-                    con.log(2, 'Chaining Target', battleChainId);
-                    battle.click(button);
-                    state.setItem("BattleChainId", 0);
-                    button = null;
-                    return true;
-                }
-
-                state.setItem("BattleChainId", 0);
-            }
-
-            if (!state.getItem("notSafeCount", 0)) {
-                state.setItem("notSafeCount", 0);
-            }
-
-            //con.log(2, 'Battle Target', target);
-            switch (target) {
-            case 'raid':
-                if (!schedule.check("NoTargetDelay")) {
-                    rejoinSecs = ((schedule.getItem("NoTargetDelay").next - Date.now()) / 1000).dp() + ' secs';
-                    //con.log(4, 'Rejoining the raid in', rejoinSecs);
-                    caap.setDivContent('battle_mess', 'Joining the Raid in ' + rejoinSecs);
-                    button = null;
-                    return false;
-                }
-
-                if (general.Select(battletype + 'General')) {
-                    button = null;
-                    return true;
-                }
-
-                caap.setDivContent('battle_mess', 'Joining the Raid');
-                // This is a temporary fix for the web3 url until CA fix their HTML (not so temporary :P)
-                if (caap.domain.which === 2 && !$u.hasContent($j("#app_body img[src*='tab_raid_']"))) {
-                    if (caap.navigateTo(battle.page, 'battle_tab_battle_on.jpg')) {
-                        button = null;
-                        return true;
-                    }
-
-                    caap.ajaxLink("raid.php");
-                    button = null;
-                    return true;
-                }
-
-                if (caap.navigateTo(battle.page + ',raid', 'battle_tab_raid_on.jpg')) {
-                    button = null;
-                    return true;
-                }
-
-                if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton.raid.button) && $u.hasContent(monster.completeButton.raid.md5)) {
-                    caap.click(monster.completeButton.raid.button);
-                    monster.deleteItem(monster.completeButton.raid.md5);
-                    monster.completeButton.raid = {
-                        md5: undefined,
-                        name: undefined,
-                        button: undefined
-                    };
-
-                    caap.updateDashboard(true);
-                    con.log(1, 'Cleared a completed raid');
-                    button = null;
-                    return true;
-                }
-
-                raidName = state.getItem('targetFromraid', '');
-                if ($u.hasContent(raidName)) {
-                    monsterObject = monster.getRecord(raidName);
-                }
-
-                if (!$u.hasContent($j("#app_body div[style*='dragon_title_owner']"))) {
-                    button = monster.engageButtons[monsterObject.md5];
-                    if ($u.hasContent(button)) {
-                        caap.click(button);
-                        button = null;
-                        return true;
-                    }
-
-                    con.warn('Unable to engage raid', monsterObject.name);
-                    button = null;
-                    return false;
-                }
-
-                if (monster.confirmRightPage(monsterObject.name)) {
-                    button = null;
-                    return true;
-                }
-
-                // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
-                if (targetType === "Userid List") {
-                    if (battle.freshmeat('Raid')) {
-                        if ($u.hasContent($j("#app_body span[class*='result_body']"))) {
-                            battle.nextTarget();
-                        }
-
-                        noSafeCountSet = config.getItem("notSafeCount", 20);
-                        noSafeCountSet = noSafeCountSet < 1 ? 1 : noSafeCountSet;
-                        noSafeCountSet = Math.round(noSafeCountSet / 4);
-                        if (state.getItem("notSafeCount", 0) > noSafeCountSet) {
-                            state.setItem("notSafeCount", 0);
-                            battle.nextTarget();
-                        }
-
-                        button = null;
-                        return true;
-                    }
-
-                    con.warn('Doing Raid UserID list, but no target');
-                    button = null;
-                    return false;
-                }
-
-                button = null;
-                return battle.freshmeat('Raid');
-            case 'freshmeat':
-                if (!schedule.check("NoTargetDelay")) {
-                    rejoinSecs = ((schedule.getItem("NoTargetDelay").next - Date.now()) / 1000).dp() + ' secs';
-                    //con.log(2, 'Rejoining battles in', rejoinSecs);
-                    caap.setDivContent('battle_mess', 'Joining battles in ' + rejoinSecs);
-                    button = null;
-                    return false;
-                }
-
-                if (general.Select(battletype + 'General')) {
-                    button = null;
-                    return true;
-                }
-
-                if (caap.navigateTo(battle.page, 'battle_tab_battle_on.jpg')) {
-                    button = null;
-                    return true;
-                }
-
-                caap.setDivContent('battle_mess', 'Battling ' + target);
-                // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
-                if (targetType === "Userid List") {
-                    if (battle.freshmeat('Freshmeat')) {
-                        if ($u.hasContent($j("#app_body span[class*='result_body']"))) {
-                            battle.nextTarget();
-                        }
-
-                        noSafeCountSet = config.getItem("notSafeCount", 20);
-                        noSafeCountSet = noSafeCountSet < 1 ? 1 : noSafeCountSet;
-                        noSafeCountSet = Math.round(noSafeCountSet / 4);
-                        if (state.getItem("notSafeCount", 0) > noSafeCountSet) {
-                            state.setItem("notSafeCount", 0);
-                            battle.nextTarget();
-                        }
-
-                        button = null;
-                        return true;
-                    }
-
-                    con.warn('Doing Freshmeat UserID list, but no target');
-                    button = null;
-                    return false;
-                }
-
-                button = null;
-                return battle.freshmeat('Freshmeat');
-
-			default:
-                if (!config.getItem("IgnoreBattleLoss", false)) {
-                    bR = battle.getRecord(target);
-                    tempTime = bR[battletype + 'LostTime'] || tempTime;
-
-                    if (bR && bR.name !== '' && !schedule.since(tempTime, 604800)) {
-                        con.log(1, 'Avoiding Losing Target', target);
-                        battle.nextTarget();
-                        return true;
-                    }
-                }
-
-                if (caap.navigate2('@' + battletype + 'General,battle')) {
-                    return true;
-                }
-
-                //state.setItem('BattleChainId', 0);
-                if (battle.battleUserId(target)) {
-                    battle.nextTarget();
-                    return true;
-                }
-
-                con.warn('Doing default UserID list, but no target');
-                return false;
-            }
-        } catch (err) {
-            con.error("ERROR in battle: " + err);
-            return false;
-        }
-    };
-	
     battle.checkResults = function(page, resultsText) {
         try {
+			var w = false,
+				demis = [],
+				minRank,
+				maxRank,
+				userId,
+				bR;
+			
 			switch (page) {
+			case 'festival_duel_battle' :
+				w = battle.Festival;
+				break;
+			case 'conquest_duel' :
+				w = battle.ConqInvade; // See below comment for battle.Invade
+				break;
 			case 'battle' :
-				var bR = {}, // Battle Record
-					tempTime = 0,
-					chainBP = 0,
-					chainGold = 0,
-					maxChains = 0,
-					result = {},
-					symDiv = $j(),
-					points = [],
-					success = true;
-
-				// Check demi points
 				
-				symDiv = $j("#app_body img[src*='symbol_tiny_']").not("#app_body img[src*='rewards.jpg']");
-				if ($u.hasContent(symDiv) && symDiv.length === 5) {
-					symDiv.each(function () {
-						var txt = '';
-
-						txt = $j(this).parent().parent().next().text();
-						txt = txt ? txt.replace(/\s/g, '') : '';
-						if (txt) {
-							points.push(txt);
-						} else {
-							success = false;
-							con.warn('Demi temp text problem', txt);
-						}
+				w = battle.Invade;  // battle.duel is possible as well, but battle.Invade has all the commands we need on this page, and is the start of the win/loss checks
+				
+				// Check demi points
+				demis = $u.setContent($j('#app_body div[style*="battle_top.jpg"]').text().trim().innerTrim(), '').regex(/(\d+) \/ (\d+)/g);
+				if ($u.hasContent(demis) && demis.length == 5) {
+					['ambrosia', 'malekus', 'corvintheus', 'aurora', 'azeron'].forEach(function (d) {
+						caap.demi[d].daily = caap.getStatusNumbers(demis.shift().join('/'));
 					});
-
-					if (success) {
-						caap.demi.ambrosia.daily = caap.getStatusNumbers(points[0]);
-						caap.demi.malekus.daily = caap.getStatusNumbers(points[1]);
-						caap.demi.corvintheus.daily = caap.getStatusNumbers(points[2]);
-						caap.demi.aurora.daily = caap.getStatusNumbers(points[3]);
-						caap.demi.azeron.daily = caap.getStatusNumbers(points[4]);
-						schedule.setItem("battle", (gm ? gm.getItem('CheckDemi', 6) : 6) * 3600, 300);
-						caap.SaveDemi();
-					}
+					caap.SaveDemi();
 				} else {
-					con.warn('Demi symDiv problem');
+					con.warn('Unable to read daily demi points', demis);
 				}
 
-				if (recon.inProgress) {
-					battle.freshmeat("recon");
-				}
-
-				if (!battle.flagResult) {  // Should move this reading the userID from the page, to account for manual actions - Artifice
-					return true;
-				}
-
-				battle.flagResult = false;
-				state.setItem("BattleChainId", 0);
-				result = battle.readWinLoss(resultsText, battle.testList);
-
-				if (!result) {
-					return true;
-				}
-
-				bR = battle.getRecord(result.userId);
-				if (result.wl == 'won') {
-					//Test if we should chain this guy
-					tempTime = $u.setContent(bR.chainRestTime, 0);
-					chainBP = config.getItem('ChainBP', '');
-					chainGold = config.getItem('ChainGold', '');
-					con.log(1, "We Defeated ", result.name, ((result.type === "War") ? "War Points: " : "Battle Points: ") + result.points + ", Gold: " + result.gold, bR);
-					if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
-						if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
-							if (result.points >= chainBP) {
-								state.setItem("BattleChainId", result.userId);
-								con.log(1, "Chain Attack:", result.userId, ((result.type === "War") ? "War Points: " : "Battle Points: ") + result.points);
-							} else {
-								bR.chainRestTime = Date.now();
-							}
-						}
-
-						if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
-							if (result.gold >= chainGold) {
-								state.setItem("BattleChainId", result.userId);
-								con.log(1, "Chain Attack:", result.userId, "Gold: " + result.gold);
-							} else {
-								bR.chainRestTime = Date.now();
-							}
-						}
-					}
-
-					bR.chainCount += 1;
-					maxChains = config.getItem('MaxChains', 4);
-					if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
-						maxChains = 4;
-					}
-
-					if (bR.chainCount >= maxChains) {
-						con.log(1, "Lets give this guy a break. Chained", bR.chainCount);
-						bR.chainRestTime = Date.now();
-						bR.chainCount = 0;
-					}
-
-				} else if (result.wl == 'lost') {
-					bR.chainCount = 0;
-					bR.chainRestTime = 0;
-					con.log(1, "We Were Defeated By " + result.name, bR);
-				}
-
-				battle.setRecord(bR);
-				result = null;
 				break;
 			default :
 				break;
 			}
-        } catch (err) {
+
+
+			if (!w) {
+				return;
+			}
+			
+			schedule.setItem(w.delay, 5 * 60);
+			battle.readWinLoss(resultsText, w);
+			
+			minRank = battle.minMaxRankF(w, 'min');
+			maxRank = battle.minMaxRankF(w, 'max');
+
+			$j('#app_body div[style*="' + w.mid + '"]').each( function() {
+				userId = $j("input[name='target_id']", this).attr('value');
+				if (!userId) {
+					con.warn('Battle: unable to find user ID', this);
+					return;
+				}
+				bR = battle.getRecord(userId);
+				caap.bulkRegex(this, w.regex, bR, w.stats);
+				w.checkF(bR, this);
+				
+				if (bR.newRecord) {
+					if (bR[w.rank] <= maxRank && bR[w.rank] >= minRank) {
+						window[w.recon].setRecord(bR);
+						state.setItem('wsave_' + w.recon + '_noWarning', true);
+					}
+				} else {
+					battle.setRecord(bR);
+				}
+			});
+
+		} catch (err) {
             con.error("ERROR in battle.checkResults: " + err.stack);
             return false;
         }
     };
+
+	worker.addAction({fName : 'battle.monsterWait', priority : 190, description : 'Battling Players'});
 	
-	battle.testList = [
-		{ method : 'invade',
-			type : 'battle',
-			check : /Your Army of (\d+) fought with.* x\d+(.+)'s Army of (\d+) fought with.* You have (lost|won) (\d+) Battle Points.*\$([,\d]+)?/i,
-			vars : ['myArmy', 'name', 'theirArmy', 'wl', 'points', 'gold'],
-			func : function(r) {
-				r.att = stats.bonus.api * r.myArmy / r.theirArmy;
-				r.gold = r.gold ? r.gold.numberOnly() : 0;
-				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+	// Called with lower priority than battle.worker to let Finder find monsters. If no monsters, then battles.
+    battle.monsterWait = function() {
+        return battle.worker('monsterWait');
+	};
+	
+	worker.addAction({worker : 'battle', priority : 700, description : 'Battling Players'});
+	
+    battle.worker = function(monsterWait) {
+        try {
+            var which = config.getItem('battleWhich', 'Invade'),
+				w = battle[which],
+				whenBattle = config.getItem(w.when, 'Never'),
+                target = '',
+	            staminaReq = 0,
+				duelInvade = ['Invade', 'Duel'].hasIndexOf(which),
+                whenMonster = config.getItem('WhenMonster', 'Never'),
+                type = duelInvade ? config.getItem('TargetType', 'Invade') : 'Freshmeat',
+	            targetMonster = state.getItem('targetFrombattle_monster', ''),
+                monsterObject = $u.hasContent(targetMonster) ? monster.getRecord(targetMonster) : {},
+				battleOrOverride = 'Battle';
+
+            /*-------------------------------------------------------------------------------------\
+			Check ready to battle and what type of battle
+			\-------------------------------------------------------------------------------------*/
+
+			switch (whenBattle) {
+			case 'Never':
+				return {action: false, mess: ''};
+			case 'Stay Hidden':
+				if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
+					return {action: false, mess: 'No need to hide'};
+				}
+				break;
+			case 'Only Demipoints or Zin/Misa':
+				if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(w.general)) {
+					return {action: false, mess: 'Demipoints and Zin/Misa done'};
+				}
+				break;
+			default:
+				break;
 			}
-		},
-		{ method : 'duel',
-			type : 'battle',
-			check : /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
-			vars : ['name', 'wl', 'points', 'gold'],
-			func : function(r) {
-				r.att = stats.bonus.api;
-				r.gold = r.gold ? r.gold.numberOnly() : 0;
-				r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+			
+			// What kind of battle?
+			if (battle.demisPointsToDo('left') || general.ZinMisaCheck(w.general)) {
+				battleOrOverride = 'battleOverride';
+				caap.setDivContent('battle_mess', 'Battle: Doing ' + (battle.demisPointsToDo('left') ? 'Demi Points' : 'Zin or Misa'));
+				if (which == 'War') {
+					which = config.getItem('zinDemiType', 'Invade');
+					w = battle[which];
+				} 
+				
+			} else if (config.getItem('battleMonsterWait', false)) {
+				if (!monsterWait) {
+					return false;
+				}
+				if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
+					return {action: false, mess: 'Waiting for monster'};
+				}
 			}
-		},
-		{ method : 'war',
-			type : 'battle',
-			check : /Gain (\+\d+ Experience)?.* (.* War Points)?.*total points\)(.*)?'s Defense/i,
-			vars : ['wl', 'points', 'name'],
-			func : function(r) {
-				r.wl = $u.hasContent(r.wl) ? 'won' : 'lost';
-				r.gold = caap.resultsText.regexd(/\$([,\d]+)/, 0);
-				r.points = (r.wl == 'won' ? 1 : -1) * $u.setContent(r.points, 0);
+
+            if (stats.level < w.minLevel) {
+                return {action: false, mess: 'Locked until level ' + w.minLevel};
+            }
+
+            staminaReq = which == 'War' ? 10 : target === 'raid' ? state.getItem('RaidStaminaReq', 1) : 1;
+
+            if (!caap.checkStamina(battleOrOverride, staminaReq)) {
+                return {action: false, mess: 'Need ' + staminaReq + ' stamina for ' + which};
+            }
+			
+			return battle.common(which, type);
+				
+        } catch (err) {
+            con.error("ERROR in battle.worker: " + err);
+            return false;
+        }
+	};
+
+	battle.common = function(which, type) {
+        try {
+            var w = battle[which],
+				tempTxt,
+				result,
+				targets = [],
+				targetRaid,
+				arenaTokens = 0, // Need to move this out of here eventually
+				gen,
+				conqLevel = which.hasIndexOf('Conq') ? config.getItem('conquestLevels', 'Any').numberOnly() : 'Any',
+				battleReconTimer = schedule.getItem("battleRecon"),
+				rejoinSecs = !$u.isDefined(battleReconTimer) ? 0 : ((battleReconTimer.next - Date.now()) / 1000).dp() + ' secs',
+                bR = {}, // Battle Record
+                targetMonster = state.getItem('targetFrombattle_monster', ''),
+                monsterObject = $u.hasContent(targetMonster) ? monster.getRecord(targetMonster) : {},
+				idList = $u.hasContent(w.idList) ? config.getList(w.idList, []) : [],
+				randomNum = Math.random() * 100,
+				minRank = battle.minMaxRankF(w, 'min'),
+				maxRank = battle.minMaxRankF(w, 'max'),
+				valid,
+				demisLeft = battle.demisPointsToDo('left');
+
+			switch (type) {
+			case 'Freshmeat' :
+				
+			/*-------------------------------------------------------------------------------------\
+				FRESHMEAT List targets, score, and hit best
+			\-------------------------------------------------------------------------------------*/
+
+				targets = battle.records.filter( function(r) {
+					// Check timers/valid
+					return schedule.since(r[w.dead], 10 * 60) && schedule.since(r[w.chained], 0) && r[w.valid];
+				});
+				
+				targets = targets.concat(recon.records);
+				
+				targets = targets.filter( function(r) {
+					return r[w.rank] >= minRank && r[w.rank] <= maxRank && (!w.demis || !demisLeft || battle.demisPointsToDo(r.deity)) &&
+						(!w.invade || r.army > 0) && (conqLevel == 'Any' || r.level >= Number(conqLevel));
+				});
+				
+				targets.forEach( function(r) {
+					r.score = battle.scoring(r, which);
+				});
+				
+				if (!targets.length) {
+					if (schedule.since(w.delay, 5 * 60)) { 
+						caap.ajaxLink(w.page);
+						return {mlog: 'Looking for ' + type + ' targets on ' + w.page};
+					}
+					return {action: false, mess: 'Recon for targets in ' + rejoinSecs};
+				}
+				
+				bR = targets.sort($u.sortBy(false, 'score')).pop();
+				state.setItem('wsave_battle_noWarning', true);
+				break;
+				
+			case 'User ID List' :
+
+			/*-------------------------------------------------------------------------------------\
+				USER ID LIST
+			\-------------------------------------------------------------------------------------*/
+
+				if (idList.length && session.getItem(w.target, '') !== 'none') {
+					idList.some( function(hs) { // hitString
+						hs = (session.getItem(w.target, '') || hs).trim();
+						var randomNg =  session.getItem(w.target, '') ? false : randomNum > (hs.regex(/:(\d+)%/) || 100);
+						bR = battle.getItem(hs.regex(/^(\d+)/));
+						tempTxt = hs.regex(/@([\w ]+)/);
+						valid = !bR[w.valid] && schedule.since(bR[w.deadTime], 3 * 60);
+						if (!bR || !valid(bR) || randomNg || (tempTxt && !general.getStat(tempTxt, 'name')) ||
+							(!config.getItem("IgnoreBattleLoss", false) && bR[which.toLowerCase() + 'lost'])) {
+							if (which == 'arena' && bR && !schedule.since(bR.arenaDeadTime, 3 * 60) && hs.match(/:stalk/i)) {
+								con.log(1, "Full spend target " + bR.name + " not dead, just sleeping", hs, bR);
+								session.setItem('arenaWait', true);
+							} else {
+								con.warn('Passing on hitting ' + hs, !valid(bR), randomNg, tempTxt);
+							}
+							randomNum -= hs.regex(/:(\d+)%/) || 100;
+							session.setItem(w.target, '');
+							bR = false;
+							return false;
+						}
+						session.setItem(w.target, hs);
+						gen = tempTxt || gen;
+						return true;
+					});
+					if (bR) {
+						con.log(2, 'Using user id list target', gen);
+						break;
+					} 
+					if (session.getItem('arenaWait', false)) {
+						if (arenaTokens < 9) {
+							schedule.setItem('arenaTimer', 3 * 60);
+							return false;
+						}
+					} else {
+						session.setItem(w.target, 'none');
+					}
+				}
+				if (idList.match(/raid/i)) {
+					return battle.common(which, 'Raid');
+				} 
+				if (idList.match(/freshmeat/i)) {
+					return battle.common(which, 'Freshmeat');
+				}
+				return {action: false, mess: 'No valid target on id list'};
+				
+			case 'Raid' :
+			/*-------------------------------------------------------------------------------------\
+				RAID code
+			\-------------------------------------------------------------------------------------*/
+
+				targetRaid = state.getItem('targetFromraid', '');
+				if (!targetRaid) {
+					return {action: false, mess: 'No Raid To Attack'};
+				}
+
+				if (!schedule.check("battleRecon")) {
+					return {action: false, mess: 'Joining Raid in ' + rejoinSecs};
+				}
+
+				if (general.Select(w.general) || caap.ajaxLink("raid.php")) {
+					return {mlog: 'Joining the Raid'};
+				}
+
+				if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton.raid.button) && $u.hasContent(monster.completeButton.raid.md5)) {
+					caap.click(monster.completeButton.raid.button);
+					monster.deleteItem(monster.completeButton.raid.md5);
+					monster.completeButton.raid = {
+						md5: undefined,
+						name: undefined,
+						button: undefined
+					};
+
+					caap.updateDashboard(true);
+					return {mlog: 'Cleared a completed raid'};
+				}
+
+				monsterObject = monster.getRecord(targetRaid);
+				
+				if (caap.navigate2('ajax:' + monsterObject.link)) {
+					return {mlog: 'Joining the Raid'};
+				}
+
+				if (!$u.hasContent($j("#app_body div[style*='dragon_title_owner']"))) {
+					if (caap.ifClick(monster.engageButtons[monsterObject.md5])) {
+						return {mlog: 'Attacking ' + monsterObject.name};
+					}
+				}
+				return {action: false, mwarn: 'Unable to engage raid ' + monsterObject.name};
+
+				// The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
+				
+			default :
+				return {action: false, mwarn: 'Battle: invalid setting for Target Type: ' + config.getItem('targetType', 'Freshmeat')};
+            }
+
+			result = caap.navigate3(w.page, w.linkF(bR), w.general);
+			if (caap.navigate3(w.page, w.linkF(bR), w.general)) {
+				if (result == 'done') {
+					battle.bR = bR;
+				}
+				return {mlog: which.ucWords() + 'ing rank ' + bR[w.rank] + ' level ' + bR.level + ' ' + bR.name +
+					(w.invade ? ' with ' + bR.army + ' army' : '') };
 			}
-		}
-	];
+			return {action: false, mwarn: 'Unable to find link ' + w.linkF(bR.userId) + ' on page ' + w.page};
+		
+        } catch (err) {
+            con.error("ERROR in battle.worker: " + err);
+            return false;
+        }
+    };
+
+	worker.addPageCheck({page : 'battle', hours : 7, level : 9, func: 'battle.demiPoints'});		
+
+	// Do I need to check if I still have demipoints to do for the day?
+    battle.demiPoints = function () {
+		return battle.demisPointsToDo('set');
+	};
 
 	// Check win/loss of battle
-    battle.readWinLoss = function(resultsText, testList) {
+    battle.readWinLoss = function(resultsText, w) {
         try {
-            var userId = 0,
-				lastBattleID = state.getItem("lastBattleID", ''),
-				resultsDiv = lastBattleID ? $j() : $j("#app_body #results_main_wrapper"),
-				str = '',
-                bR = {}, // Battle Record
-                r = {};
-				
-			
-			state.deleteItem('lastBattleID');
-			
-			if (!$u.hasContent(resultsText)) {
+			if (!battle.bR && !$u.hasContent(resultsText)) {
 				return false;
 			}
 			
-			userId = $u.setContent(lastBattleID, 
-					$u.setContent($u.setContent($j(resultsDiv).find("input[name='target_id']").first().attr('value'), 
-					$u.setContent($u.setContent($j(resultsDiv).find("a[href*='keep.php?casuser=']").first().attr('href'), '').regex(/user=(\d+)/i), false))));
+            var lastbR = $u.setContent(battle.bR, {}),
+				lastBattleID = $u.setContent(lastbR.userId, state.getItem("lastBattleID", false)),
+				resultsDiv = lastBattleID ? $j() : $j("#app_body #results_main_wrapper"),
+				userId = $u.setContent(lastBattleID, $j(resultsDiv).find("input[name='target_id']").first().attr('value'), 
+					$u.setContent($j(resultsDiv).find("a[href*='keep.php?casuser=']").first().attr('href'), '').regex(/user=(\d+)/i)),
+				str = '',
+                bR = {}, // Battle Record
+                r = {}, // Holds the results of the win/loss check, like wl for win or loss, opponent name, points won, etc.
+				maxChain = 1000000;
+
+			
+			battle.bR = {};
+			state.setItem("lastBattleID", '');
 			
 			if (!userId) {
 				return false;
 			}
 			
-			bR = battle.getRecord(userId);
+			bR = $u.hasContent(lastbR) ? $j.extend({}, new battle.record(lastbR.userId).data, lastbR) :	battle.getRecord(userId);
 			
-			testList.some( function(o) {
-				if (caap.bulkRegex(resultsText, o.check, r, o.vars)) {
-					r.method = o.method;
-					r.type = o.type;
-					o.func(r);
-					return true;
+			// Loop through the possible regexs for invade, duel, etc possible on this page, and fill r with the win/loss results
+			do {
+				if (caap.bulkRegex(resultsText, w.winLossRegex, r, w.regexVars, w.other != 'None')) {
+					w.winLossF(r);
+				} else {
+					w = w.other != 'None' ? battle[w.other] : w;
 				}
-			});
+			} while (!$u.hasContent(r) && w.other != 'None');
+			
 			
 			if (!r.wl) {
-				con.log(1, 'Unable to parse win/loss from ' + session.getItem('page', 'unknown') + ', setting wait time for target ' + userId, resultsText, testList);
-				bR.deadTime =  Date.now();
-				bR.chainCount = 0;
-				bR.chainRestTime = 0;
+				if (w.points == 'gbPoints') {
+					con.log(2, 'Unable to parse win/loss for user id ' + userId + ' from ' + caap.page, resultsText, w);
+					return false;
+				}
+				bR.hiding = $u.setContent(bR.hiding, 0) + 1;
+				if (bR[w.chainCount] > 0) {
+					bR[w.chained] =  Date.now() + Math.random() * 7 * 24 * 3600 * 1000;
+					con.log(2, 'Chained ' + bR.name + ' ' + bR[w.chainCount] + " times and didn't see a battle result, so giving a break until " + $u.makeTime(bR[w.chained], caap.timeStr(true)));
+					bR[w.chainCount] = 0;
+				} else {
+					bR[w.dead] = Date.now();
+					con.log(2, 'Unable to parse win/loss from ' + caap.page + ', setting wait time for target ' + userId, resultsText, w);
+				}
 				battle.setRecord(bR);
+				recon.deleteRecord(userId);
 				return false;
 			}
 			
-			bR.name = r.name;
+			bR.name = $u.setContent(bR.name, r.name);
+			bR.army = $u.setContent(r.army, bR.army);
 			r.userId = userId;
 			bR[r.wl + 'Time'] = Date.now();
-			bR[r.method + r.wl.ucWords()] += 1;
-			bR[r.type + 'Points'] += $u.setContent(r.points, 0);
+			bR[w[r.wl]] += 1;
+			bR[w.points] += $u.setContent(r.points, 0);
 			if ($u.hasContent(r.att)) {
 				str = (r.wl == 'won' ? 'max' : 'min') + 'Def';
 				bR[str] = Math[r.wl == 'won' ? 'min' : 'max'](r.att, bR[str]).dp(0);
@@ -601,23 +726,49 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			general.resetCharge();
 			
-            if (r.wl == 'won') {
+            if (r.wl == 'won' && w.points != 'gbPoints') {
+				maxChain = config.getItem(w.maxChain, 5);
+				bR[w.chainCount] += 1;
 				session.setItem('ReleaseControl', false);
+				if ($u.hasContent(w) && $u.hasContent(w.pointList)) {
+					bR[w.rank] = battle.rankF(w.pointList, stats.rank[w.myRank], bR[w.rank], r.points);
+				}
 			}
-			con.log(2, r.method.ucWords() + (r.wl == 'won' ? ' Victory' : ' Loss') + ' against ' + r.name + ' for ' + r.points + ' ' + r.type, bR);
+			
+			if (bR[w.chainCount] >= maxChain) {
+				bR[w.chained] =  Date.now() + Math.random() * 7 * 24 * 3600 * 1000;
+				con.log(2, 'Chained ' + bR.name + ' the full ' + bR[w.chainCount] + " times, so giving a break until " + $u.makeTime(bR[w.chained], caap.timeStr(true)));
+				bR[w.chainCount] = 0;
+			} else {
+				con.log(2, (r.wl == 'won' ? bR[w.chainCount] + 'th Victory' : 'Lost') + ' against ' + r.name + ' for ' + r.points + ' ' + w.points, bR);
+			}
 
-            battle.setRecord(bR);
-            return r;
+			battle.setRecord(bR);
+			recon.deleteRecord(bR.userId);
         } catch (err) {
             con.error("ERROR in battle.readWinLoss: " + err.stack);
             return false;
         }
     };
 	
+	// Calculate the chance of winning
     battle.winChance = function(bR, att, defBonus) {
+		
+		if (defBonus == 'War') {
+			if (bR.warLost) {
+				return 0;
+			}
+			if (bR.warWon) {
+				return 100;
+			}
+			defBonus = 0;
+		}
+			// defMod used for things like GB enrage or divine favour to increase target def
 		var defMod = $u.setContent(defBonus, 0) + 1,
-			lowEst = bR.minDef * 0.95 * defMod,
-			highEst = Math.min(Math.max($u.setContent(bR.level, 0) * 10, lowEst * 1.5), bR.maxDef *1.05) * defMod;
+			// low estimate of targets effective defense. Based on BSI 0
+			lowEst = $u.setContent(bR.minDef, 0) * 0.95 * defMod,
+			// high estimate of targets effective defense. Based on BSI 10
+			highEst = Math.min(Math.max($u.setContent(bR.level, 0) * 10, lowEst * 1.5), $u.setContent(bR.maxDef, 1000000) * 1.05) * defMod;
 			// Math.max lowEst * 1.5 in highEst is used to prevent model breakage when opponents BSI > 10 causes you to think you have a 100% chance to beat someone even though you've never won at an effective Att of 10 * his level.
 		if (att > highEst) {
 			return 100;
@@ -628,57 +779,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 		return ((att - lowEst) / (highEst - lowEst) * 100).dp(0);
     };
 
-    battle.battleUserId = function(userid) {
-        try {
-            var battleButton = $j(),
-                form = $j(),
-                inp = $j();
-
-            battleButton = caap.checkForImage(battle.battles.Freshmeat[config.getItem('BattleType', 'Invade')]);
-            if ($u.hasContent(battleButton)) {
-                form = battleButton.parent().parent();
-                if ($u.hasContent(form)) {
-                    inp = $j("input[name='target_id']", form);
-                    if ($u.hasContent(inp)) {
-                        inp.attr("value", userid);
-                        state.setItem("lastBattleID", userid);
-                        battle.click(battleButton);
-                        state.setItem("notSafeCount", 0);
-                        battleButton = null;
-                        form = null;
-                        inp = null;
-                        return true;
-                    }
-
-                    con.warn("target_id not found in battleForm");
-                } else {
-                    con.warn("form not found in battleButton");
-                }
-            } else {
-                con.warn("battleButton not found");
-            }
-
-            battleButton = null;
-            form = null;
-            inp = null;
-            return false;
-        } catch (err) {
-            con.error("ERROR in battleUserId: " + err);
-            return false;
-        }
-    };
-
-    battle.battleWarnLevel = true;
-
-    battle.ranks = {
-		rank: ['Acolyte', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion', 'Champion', 'Lieutenant Commander', 'Commander', 'High Commander', 
-		'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke', 'Prince', 'King', 'High King'],
-		warRank: ['No Rank', 'Reserve', 'Footman', 'Corporal', 'Lieutenant', 'Captain', 'First Captain', 'Blackguard', 'Warguard', 'Master Warguard', 'Lieutenant Colonel', 'Colonel', 'First Colonel', 'Lieutenant Warchief', 'Warchief', 'High Warchief'],
-		conqRank: ['No Rank', 'Scout', 'Soldier', 'Elite Soldier', 'Squire', 'Knight', 'First Knight', 'Legionnaire', 'Centurion',
-			'Champion', 'Lt Commander', 'Commander', 'High Commander', 'Lieutenant General', 'General', 'High General', 'Baron', 'Earl', 'Duke']
-	};
-
-    battle.clear = function() {
+	// Used by dashboard button to clear all battle records
+	battle.clear = function() {
         try {
             battle.records = [];
             state.setItem('wsave_battle', true);
@@ -686,718 +788,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return true;
         } catch (err) {
             con.error("ERROR in battle.clear: " + err.stack);
-            return false;
-        }
-    };
-
-    battle.flagResult = false;
-	
-    battle.nextTarget = function() {
-        state.setItem('BattleTargetUpto', state.getItem('BattleTargetUpto', 0) + 1);
-    };
-
-    battle.getTarget = function() {
-        try {
-            var target = '',
-                targets = [],
-                battleUpto = '',
-                targetType = '',
-                targetRaid = '';
-
-            targetType = config.getItem('TargetType', 'Freshmeat');
-            targetRaid = state.getItem('targetFromraid', '');
-
-            if (targetType === 'Raid') {
-                if (targetRaid) {
-                    return 'Raid';
-                }
-
-                caap.setDivContent('battle_mess', 'No Raid To Attack');
-                return 'NoRaid';
-            }
-
-            if (targetType === 'Freshmeat') {
-                return 'Freshmeat';
-            }
-
-            if (targetType === 'Arena') {
-				recon.records.some( function(bR) {
-					var eR = battle.getRecord(bR.userId);
-					if (eR.duelLost || eR.duelWon) {
-						state.setItem('arenaReconned', state.getItem('arenaReconned','') + ',' + bR.userId);
-						recon.deleteRecord(bR.userId);
-						eR = $j.extend(true, eR, bR);
-						eR.arenaPoints = !eR.duelLost ? 100 + eR.arenaRank.numberOnly() : 0;
-						battle.setRecord(eR);
-					} else if (!schedule.since(eR.deadTime, 5 * 60)) {
-						return false;
-					} else if (bR.arenaRank >= config.getItem('arenaReconRankMin',1)
-						&& bR.arenaRank <= config.getItem('arenaReconRankMax',7)
-						&& bR.level <= config.getItem('arenaReconLevelMax',1400)
-						&& !state.getItem('arenaReconned','').hasIndexOf(',' + bR.userId + ',')) {
-						target = bR.userId;
-						con.log(2, 'Arena reconning ' + state.getItem('arenaReconned','').split(',').length);
-					} else {
-						recon.deleteRecord(bR.userId);
-					}
-						
-					return target;
-				});
-                return target;
-            }
-
-            target = state.getItem('BattleChainId', 0);
-            if (target) {
-                return target;
-            }
-
-            targets = config.getList('BattleTargets', '');
-            if (!targets.length) {
-                return false;
-            }
-
-            battleUpto = state.getItem('BattleTargetUpto', 0);
-            if (battleUpto > targets.length - 1) {
-                battleUpto = 0;
-                state.setItem('BattleTargetUpto', 0);
-            }
-
-            if (!targets[battleUpto]) {
-                battle.nextTarget();
-                return false;
-            }
-
-            caap.setDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
-            if ((targets[battleUpto] === '' || $u.isNaN(targets[battleUpto]) ? targets[battleUpto].toLowerCase() : targets[battleUpto]) === 'raid') {
-                if (targetRaid) {
-                    return 'Raid';
-                }
-
-                caap.setDivContent('battle_mess', 'No Raid To Attack');
-                battle.nextTarget();
-                return false;
-            }
-
-            return targets[battleUpto];
-        } catch (err) {
-            con.error("ERROR in battle.getTarget: " + err.stack);
-            return false;
-        }
-    };
-
-    battle.click = function(battleButton, type) {
-        try {
-            session.setItem('ReleaseControl', true);
-            battle.flagResult = true;
-            caap.setDomWaiting(type === "Raid" ? "raid.php" : "battle.php");
-            caap.click(battleButton);
-            return true;
-        } catch (err) {
-            con.error("ERROR in battle.click: " + err.stack);
-            return false;
-        }
-    };
-
-    battle.battles = {
-        Raid: {
-            Invade1: 'raid_attack_button.gif',
-            Invade5: 'raid_attack_button3.gif',
-            Duel1: 'raid_attack_button2.gif',
-            Duel5: 'raid_attack_button4.gif',
-            regex1: new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
-            refresh: 'raid',
-            image: 'battle_tab_raid_on.jpg'
-        },
-        Freshmeat: {
-            Invade: 'battle_btn_invade.gif',
-            Duel: 'battle_btn_duel.gif',
-            War: 'battle_btn_war.gif',
-            regex1: new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            regex2: new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            warLevel: true,
-            refresh: 'battle_tab_battle_on.jpg',
-            image: 'battle_tab_battle_on.jpg'
-        }
-    };
-
-    battle.freshmeat = function(type, slice) {
-        try {
-            var buttonType = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
-                inputDiv = $j("input[src*='" + battle.battles[type === "recon" ? "Freshmeat" : type][buttonType] + "']", (type === "recon" && slice ? $j(slice) : $j("#app_body"))),
-                plusOneSafe = false,
-                safeTargets = [],
-                chainId = '',
-                chainAttack = false,
-				demisLeft = battle.demisPointsToDo('left'),
-                inp = $j(),
-                txt = '',
-                minRank = 0,
-                maxLevel = 0,
-                minLevel = 0,
-                ARBase = 0,
-                ARMax = 0,
-                ARMin = 0,
-				deityStr = '',
-                levelMultiplier = 0,
-                armyRatio = 0,
-                bR = {}, // Battle Record
-                it = 0,
-                itx,
-                len = 0,
-                form = $j(),
-                firstId = '',
-                lastBattleID = 0,
-                engageButton = $j(),
-                found = 0,
-                entryLimit = 0,
-                noSafeCount = 0;
-
-            if (!$u.hasContent(inputDiv)) {
-                con.warn('Not on battlepage');
-                caap.navigateTo(battle.page);
-                inputDiv = null;
-                inp = null;
-                form = null;
-                engageButton = null;
-                return false;
-            }
-
-            chainId = state.getItem('BattleChainId', 0);
-            state.setItem('BattleChainId', '');
-            // Lets get our Freshmeat user settings
-            minRank = config.getItem("FreshMeatMinRank", 99);
-            con.log(3, "FreshMeatMinRank", minRank);
-            if (minRank === '' || $u.isNaN(minRank)) {
-                if (minRank !== '') {
-                    con.warn("FreshMeatMinRank is NaN, using default", 99);
-                }
-
-                minRank = 99;
-            }
-
-            maxLevel = config.getItem("FreshMeatMaxLevel", 99999);
-            con.log(3, "FreshMeatMaxLevel", maxLevel);
-            if (maxLevel === '' || $u.isNaN(maxLevel)) {
-                if (maxLevel !== '') {
-                    con.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
-                }
-
-                maxLevel = 99999;
-            }
-
-            minLevel = config.getItem("FreshMeatMinLevel", 99999);
-            con.log(3, "FreshMeatMinLevel", minLevel);
-            if (minLevel === '' || $u.isNaN(minLevel)) {
-                if (minLevel !== '') {
-                    con.warn("FreshMeatMinLevel is NaN, using default", minLevel);
-                }
-
-                minLevel = 99999;
-            }
-
-            ARBase = config.getItem("FreshMeatARBase", 0.5);
-            con.log(3, "FreshMeatARBase", ARBase);
-            if (ARBase === '' || $u.isNaN(ARBase)) {
-                if (ARBase !== '') {
-                    con.warn("FreshMeatARBase is NaN, using default", ARBase);
-                }
-
-                ARBase = 0.5;
-            }
-
-            ARMax = config.getItem("FreshMeatARMax", 99999);
-            con.log(3, "FreshMeatARMax", ARMax);
-            if (ARMax === '' || $u.isNaN(ARMax)) {
-                if (ARMax !== '') {
-                    con.warn("FreshMeatARMax is NaN, using default", ARMax);
-                }
-
-                ARMax = 99999;
-            }
-
-            ARMin = config.getItem("FreshMeatARMin", 0);
-            con.log(3, "FreshMeatARMin", ARMin);
-            if (ARMin === '' || $u.isNaN(ARMin)) {
-                if (ARMin !== '') {
-                    con.warn("FreshMeatARMin is NaN, using default", ARMin);
-                }
-
-                ARMin = 0;
-            }
-
-            inputDiv.each(function(index) {
-                var tr = $j(),
-                    levelm = [],
-                    tempTxt = '',
-                    tempTime = -1,
-                    tempRecord = type === "recon" ? new battle.reconRecord().data : new battle.record().data;
-
-                if (type === 'Raid') {
-                    tr = tempRecord.button.parents().eq(4);
-                } else {
-					tempRecord.button = $j(this);
-                    tr = tempRecord.button.closest('div[style*="battle_mid.jpg"]');
-                }
-
-                inp = $j("input[name='target_id']", tr);
-                if (!$u.hasContent(inp)) {
-                    con.warn("Could not find 'target_id' input");
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                tempRecord.userId = $u.setContent(inp.val(), '0').parseInt();
-                if (!$u.isNumber(tempRecord.userId) || tempRecord.userId <= 0) {
-                    con.warn("Not a valid userId", tempRecord.userId);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-				if (type === "recon" && recon.deleteRecord(tempRecord.userId)) {
-					con.log(2, "UserRecord exists. Loaded and removed.", tempRecord);
-				}
-
-                if (type === 'Raid') {
-                    tempTxt = $u.setContent(tr.children().eq(1).text(), '').trim();
-                    levelm = battle.battles.Raid.regex1.exec(tempTxt);
-                    if (!$u.hasContent(levelm)) {
-                        con.warn("Can't match Raid regex in ", tempTxt);
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-
-                    tempRecord.name = $u.setContent(levelm[1], '').trim();
-                    tempRecord.rank = $u.setContent(levelm[2], '').parseInt();
-                    tempRecord.level = $u.setContent(levelm[4], '').parseInt();
-                    tempRecord.army = $u.setContent(levelm[6], '').parseInt();
-                } else {
-                    if (!$u.hasContent(tr)) {
-                        con.warn("Can't find parent tr in tempRecord.button");
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-
-                    tempTxt = $u.setContent($j("img[src*='iphone_']", tr).attr("src"), '').regex(/_(\w+)_icon\.gif/i);
-                    if ($u.hasContent(tempTxt) && $u.hasContent(caap.deityTable[tempTxt] - 1)) {
-                        tempRecord.deity = caap.deityTable[tempTxt] - 1;
-						deityStr = caap.demiTable[tempRecord.deity];
-                    } else {
-                        con.warn("Unable to match demi number in tempTxt", tempTxt);
-                    }
-
-                    // If looking for demi points, and already full, continue
-                    if (type !== "recon" && demisLeft && !battle.demisPointsToDo(tempRecord.deity)) {
-						con.log(3, "Daily Demi Points done for", deityStr);
-						inputDiv = null;
-						inp = null;
-						form = null;
-						engageButton = null;
-						tr = null;
-						return true;
-                    }
-
-                    tempTxt = $u.setContent(tr.text(), '').trim();
-                    if (!$u.hasContent(tempTxt)) {
-                        con.warn("Can't find tempTxt in tr");
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-
-                    if (battle.battles.Freshmeat.warLevel) {
-                        levelm = battle.battles.Freshmeat.regex1.exec(tempTxt);
-                        if (!levelm) {
-                            levelm = battle.battles.Freshmeat.regex2.exec(tempTxt);
-                            battle.battles.Freshmeat.warLevel = false;
-                        }
-                    } else {
-                        levelm = battle.battles.Freshmeat.regex2.exec(tempTxt);
-                        if (!levelm) {
-                            levelm = battle.battles.Freshmeat.regex1.exec(tempTxt);
-                            battle.battles.Freshmeat.warLevel = true;
-                        }
-                    }
-
-                    if (!levelm) {
-                        con.warn("Can't match Freshmeat regex in ", tempTxt);
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-
-                    tempRecord.name = $u.setContent(levelm[1], '').trim();
-                    tempRecord.level = $u.setContent(levelm[2], '').parseInt();
-                    tempRecord.rank = $u.setContent(levelm[4], '').parseInt();
-                    if (battle.battles.Freshmeat.warLevel) {
-                        tempRecord.warRank = $u.setContent(levelm[6], '').parseInt();
-                        tempRecord.army = $u.setContent(levelm[7], '').parseInt();
-                    } else {
-                        tempRecord.army = $u.setContent(levelm[5], '').parseInt();
-                    }
-                }
-				
-				con.log(3, 'Battle target stats:', tempRecord.name, tempRecord.level, tempRecord.rank, tempRecord.army);
-
-                levelMultiplier = stats.level / (tempRecord.level > 0 ? tempRecord.level : 1);
-                armyRatio = ARBase * levelMultiplier;
-                armyRatio = Math.min(armyRatio, ARMax);
-                armyRatio = Math.max(armyRatio, ARMin);
-                if (armyRatio <= 0) {
-                    con.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                if (tempRecord.level - stats.level > maxLevel) {
-                    con.log(3, "Exceeds relative maxLevel", {
-                        level: tempRecord.level,
-                        levelDif: tempRecord.level - stats.level,
-                        maxLevel: maxLevel
-                    });
-
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                if (stats.level - tempRecord.level > minLevel) {
-                    con.log(3, "Exceeds relative minLevel", {
-                        level: tempRecord.level,
-                        levelDif: stats.level - tempRecord.level,
-                        minLevel: minLevel
-                    });
-
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
-                    if (stats.rank.war && (stats.rank.war - tempRecord.warRank > minRank)) {
-                        con.log(3, "Greater than war minRank", {
-                            rankDif: stats.rank.war - tempRecord.warRank,
-                            minRank: minRank
-                        });
-
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-                } else {
-                    if (stats.rank.battle && (stats.rank.battle - tempRecord.rank > minRank)) {
-                        con.log(3, "Greater than battle minRank", {
-                            rankDif: stats.rank.battle - tempRecord.rank,
-                            minRank: minRank
-                        });
-
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-                }
-
-                // if we know our army size, and this one is larger than armyRatio, don't battle
-                if (config.getItem('BattleType', 'Invade') == 'Invade' && stats.army.capped && (tempRecord.army > (stats.army.capped * armyRatio))) {
-                    con.log(3, "Greater than armyRatio", {
-                        armyRatio: armyRatio.dp(2),
-                        army: tempRecord.army,
-                        armyMax: (stats.army.capped * armyRatio).dp()
-                    });
-
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                if (type === "recon") {
-                    entryLimit = config.getItem("LimitTargets", 100);
-                    while (recon.records.length >= entryLimit) {
-                        con.log(2, "Entry limit matched. Deleted an old record", recon.records.shift());
-                    }
-
-                    delete tempRecord.button;
-                    con.log(2, "Push UserRecord", tempRecord);
-                    recon.setRecord(tempRecord);
-                    found += 1;
-
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                if (config.getItem("BattleType", 'Invade') === "War" && battle.battles.Freshmeat.warLevel) {
-                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.level.toString().rpad(" ", 4) +
-                        " War Rank: " + tempRecord.warRank.toString().rpad(" ", 2) + " Army: " + tempRecord.army);
-                } else {
-                    con.log(1, "ID: " + tempRecord.userId.toString().rpad(" ", 15) + " Level: " + tempRecord.level.toString().rpad(" ", 4) +
-                        " Battle Rank: " + tempRecord.rank.toString().rpad(" ", 2) + " Army: " + tempRecord.army);
-                }
-
-                // don't battle people we lost to in the last week
-                bR = battle.getRecord(tempRecord.userId);
-                if (!config.getItem("IgnoreBattleLoss", false)) {
-                    tempTime = $u.setContent(bR.lostTime, 0);
-
-                    if (bR && !bR.newRecord && tempTime && !schedule.since(tempTime, 604800)) {
-                        con.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.userId);
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        tr = null;
-                        return true;
-                    }
-                }
-
-                // don't battle people that results were unknown in the last hour
-                tempTime = $u.setContent(bR.deadTime, 0);
-                if (bR && !bR.newRecord && !schedule.since(tempTime, 3600)) {
-                    con.log(1, "User was battled but results unknown in the last hour: ", tempRecord.userId);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                // don't battle people that were dead or hiding in the last hour
-                tempTime = $u.setContent(bR.deadTime, 0);
-                if (bR && !bR.newRecord && !schedule.since(tempTime, 3600)) {
-                    con.log(1, "User was dead in the last hour: ", tempRecord.userId);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                // don't battle people we've already chained to max or didn't meet chain gold or chain points in the last 2 days
-                tempTime = $u.setContent(bR.chainRestTime, 0);
-                if (bR && !bR.newRecord && !schedule.since(tempTime, 86400)) {
-                    con.log(1, "We chained user within 2 days: ", tempRecord.userId);
-                    inputDiv = null;
-                    inp = null;
-                    form = null;
-                    engageButton = null;
-                    tr = null;
-                    return true;
-                }
-
-                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rank) - (tempRecord.army / levelMultiplier / stats.army.capped);
-                if (tempRecord.userId === chainId) {
-                    chainAttack = true;
-                }
-
-                tempRecord.targetNumber = index + 1;
-                con.log(3, "tempRecord/levelm", tempRecord, levelm);
-                safeTargets.push(tempRecord);
-                tempRecord = null;
-                if (index === 0 && type === 'Raid') {
-                    plusOneSafe = true;
-                }
-
-                inputDiv = null;
-                inp = null;
-                form = null;
-                engageButton = null;
-                tr = null;
-                return true;
-            });
-
-            if (type === "recon") {
-                caap.setDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + recon.records.length);
-                con.log(1, 'Player Recon: Found:' + found + ' Total:' + recon.records.length);
-                window.setTimeout(function() {
-                    caap.setDivContent('idle_mess', '');
-                }, 5000);
-
-                schedule.setItem('PlayerReconTimer', (gm ? gm.getItem('PlayerReconRetry', 60) : 60), 60);
-                recon.inProgress = false;
-                inputDiv = null;
-                inp = null;
-                form = null;
-                engageButton = null;
-                return true;
-            }
-
-            safeTargets.sort($u.sortBy(true, "score"));
-            if ($u.hasContent(safeTargets)) {
-                if (chainAttack) {
-                    form = inputDiv.eq(0).parent().parent();
-                    inp = $j("input[name='target_id']", form);
-                    if ($u.hasContent(inp) && !stats.guild.ids.hasIndexOf(chainId)) {
-                        inp.attr("value", chainId);
-                        con.log(1, "Chain attacking: ", chainId);
-                        battle.click(inputDiv.eq(0), type);
-                        state.setItem("lastBattleID", chainId);
-                        caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                        state.setItem("notSafeCount", 0);
-                        inputDiv = null;
-                        inp = null;
-                        form = null;
-                        engageButton = null;
-                        return true;
-                    }
-
-                    con.warn("Could not find 'target_id' input");
-                } else if (config.getItem('PlusOneKills', false) && type === 'Raid') {
-                    if (plusOneSafe) {
-                        form = inputDiv.eq(0).parent().parent();
-                        inp = $j("input[name='target_id']", form);
-                        if ($u.hasContent(inp) && !stats.guild.ids.hasIndexOf(chainId)) {
-                            txt = inp.attr("value");
-                            firstId = txt ? txt.parseInt() : 0;
-                            inp.attr("value", '200000000000001');
-                            con.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                            battle.click(inputDiv.eq(0), type);
-                            state.setItem("lastBattleID", firstId);
-                            caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                            state.setItem("notSafeCount", 0);
-                            inputDiv = null;
-                            inp = null;
-                            form = null;
-                            engageButton = null;
-                            return true;
-                        }
-
-                        con.warn("Could not find 'target_id' input");
-                    } else {
-                        con.log(1, "Not safe for +1 kill.");
-                    }
-                } else {
-                    lastBattleID = state.getItem("lastBattleID", 0);
-                    for (it = 0, len = safeTargets.length; it < len; it += 1) {
-                        // current thinking is that continue should not be used as it can cause reader confusion
-                        // therefore when linting, it throws a warning
-                        /*jslint continue: true */
-                        if (!lastBattleID && lastBattleID === safeTargets[it].id) {
-                            continue;
-                        }
-                        /*jslint continue: false */
-
-                        if ($u.isDefined(safeTargets[it].button) && !stats.guild.ids.hasIndexOf(chainId)) {
-                            con.log(2, 'Found Target score: ' + safeTargets[it].score.dp(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
-                            battle.click(safeTargets[it].button, type);
-                            delete safeTargets[it].score;
-                            delete safeTargets[it].targetNumber;
-                            delete safeTargets[it].button;
-                            bR = battle.getRecord(safeTargets[it].userId);
-                            if (bR.newRecord) {
-                                state.setItem("lastBattleID", safeTargets[it].userId);
-                                $j.extend(true, bR, safeTargets[it]);
-                                bR.newRecord = false;
-                            } else {
-                                for (itx in safeTargets[it]) {
-                                    if (safeTargets[it].hasOwnProperty(itx)) {
-                                        if (!$u.hasContent(bR[itx] && $u.hasContent(safeTargets[it][itx]))) {
-                                            bR[itx] = safeTargets[it][itx];
-                                        }
-
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && bR[itx] !== safeTargets[it][itx]) {
-                                            bR[itx] = safeTargets[it][itx];
-                                        }
-
-                                        if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && bR[itx] < safeTargets[it][itx]) {
-                                            bR[itx] = safeTargets[it][itx];
-                                        }
-                                    }
-                                }
-                            }
-
-                            battle.setRecord(bR);
-                            caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
-                            state.setItem("notSafeCount", 0);
-                            inputDiv = null;
-                            inp = null;
-                            form = null;
-                            engageButton = null;
-                            return true;
-                        }
-
-                        con.warn('Attack button is null or undefined');
-                    }
-                }
-            }
-
-            noSafeCount = state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
-            if (noSafeCount >= 2) {
-                caap.setDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
-                con.log(1, 'No safe targets limit reached. Releasing control for other processes: ', noSafeCount);
-                state.setItem("notSafeCount", 0);
-                schedule.setItem("NoTargetDelay", 60);
-                inputDiv = null;
-                inp = null;
-                form = null;
-                engageButton = null;
-                return false;
-            }
-
-            caap.setDivContent('battle_mess', 'No targets matching criteria');
-            con.log(1, 'No safe targets: ', noSafeCount);
-            if (type === 'Raid') {
-                engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
-                if (session.getItem("page", '') === 'raid' && engageButton) {
-                    caap.click(engageButton);
-                } else {
-                    caap.navigateTo(battle.page + ',raid');
-                }
-            } else {
-                caap.navigateTo(battle.page + ',battle_tab_battle_on.jpg');
-            }
-
-            inputDiv = null;
-            inp = null;
-            form = null;
-            engageButton = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in battle.freshmeat: " + err.stack);
             return false;
         }
     };
@@ -1421,42 +811,37 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
 			var XBattleInstructions = "Start battling if stamina is above this points",
                 XMinBattleInstructions = "Do not battle if stamina is below this points",
-                safeHealthInstructions = "Wait until health is 13 instead of 10, prevents you killing yourself but leaves you unhidden for upto 15 minutes",
+                monsterWaitInst = 'Only will battle only when there are no active monster battles and Monster Finder can not find any or if Get Demi Points First has been selected.',
                 userIdInstructions = "User IDs(not user name).  Click with the " + "right mouse button on the link to the users profile & copy link." + "  Then paste it here and remove everything but the last numbers." + " (ie. 123456789)",
-                chainBPInstructions = "Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.",
-                chainGoldInstructions = "Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.",
-                maxChainsInstructions = "Maximum number of chain hits after the initial attack.",
-                FMRankInstructions = "The lowest relative rank below yours that " + "you are willing to spend your stamina on. Leave blank to attack " + "any rank. (Uses Battle Rank for invade and duel, War Rank for wars.)",
-                FMARBaseInstructions = "This value sets the base for your Army " + "Ratio calculation [X * (Your Army Size/ Opponent Army Size)]. It is basically a multiplier for the army " +
-                    "size of a player at your equal level. A value of 1 means you " + "will battle an opponent the same level as you with an army the " + "same size as you or less. Default .5",
-                FreshMeatARMaxInstructions = "This setting sets the highest value you will use for the Army Ratio [Math.min(Army Ratio, Army Ratio Max)] value. " +
-                    "So, if you NEVER want to fight an army bigger than 80% your size, you can set the Max value to .8.",
-                FreshMeatARMinInstructions = "This setting sets the lowest value you will use for the Army Ratio [Math.max(Army Ratio, Army Ratio Min)] value. " +
-                    "So, if you NEVER want to pass up an army that is less than 10% the size of yours, you can set MIN value to .1.",
-                FreshMeatMaxLevelInstructions = "This sets the highest relative level, above yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you would code 20.",
-                FreshMeatMinLevelInstructions = "This sets the lowest relative level, below yours, that you are willing to attack. So if you are a level 100 and do not want to attack an opponent below level 60, you would code 40.",
+                maxChainInstructions = "Maximum number of chain hits after the initial attack.",
+                minRankInst = "The lowest rank that you are willing to spend your stamina on. " +
+					"Use +/- to indicate relative rank, e.g. -2 to attack opponents down to two ranks below your rank. " +
+					"If no +/-, the number is an absolute rank, e.g. 19 would mean do not attack below rank Prince (19). " +
+					"Leave blank to attack any rank. (Uses Battle Rank for invade and duel, War Rank for wars.)",
+                maxRankInst = "The highest rank that you are willing to spend your stamina on. " +
+					"Use +/- to indicate relative rank, e.g. +2 to attack opponents up to two ranks over your rank. " +
+					"If no +/-, the number is an absolute rank, e.g. 19 would mean do not attack above rank Prince (19). " +
+					"Leave blank to attack any rank. (Uses Battle Rank for invade and duel, War Rank for wars.)",
                 plusonekillsInstructions = "Force +1 kill scenario if 80% or more" + " of targets are withn freshmeat settings. Note: Since Castle Age" + " choses the target, selecting this option could result in a " + "greater chance of loss.",
                 raidPowerAttackInstructions = "Attack raids using the x5 button. (Not recommended).",
                 raidOrderInstructions = "List of search words that decide which " + "raids to participate in first.  Use words in player name or in " +
                     "raid name. To specify max damage follow keyword with :max token " + "and specifiy max damage values. Use 'k' and 'm' suffixes for " + "thousand and million.",
                 ignorebattlelossInstructions = "Ignore battle losses and attack " + "regardless.  This will also delete all battle loss records.",
-                typeList = ['Invade', 'Duel', 'War'],
-                typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though', 'War using Duel button - no guarentee you will win though'],
-                targetList = ['Freshmeat', 'Userid List', 'Raid'],
+                whichList = ['Invade', 'Duel', 'War', 'Festival'],
+                warList = ['Invade', 'Duel'],
+                whichInst = ['Battle using Invade button', 'Battle using Duel button', 'War using Duel button', 'Do Festival Duel Champion'],
+                targetList = ['Freshmeat', 'User ID List', 'Raid'],
                 targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'],
                 collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
-                PReconInstructions = "Enable player battle reconnaissance to run " + "as an idle background task. Battle targets will be collected and" + " can be displayed using the 'Target List' selection on the " + "dashboard.",
 				haveZin = general.hasRecord("Zin"),
 				haveMisa = general.hasRecord("Misa"),
 				who = (haveZin ? 'Zin' : '') + (haveZin && haveMisa ? ' and ' : '') + (haveMisa ? 'Misa' : ''),
-                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Recon Only', 'Only Demipoints or Zin/Misa', 'Never'],
+                battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Only Demipoints or Zin/Misa', 'Never'],
                 battleInst = [
                     'Stamina Available will battle whenever you have enough stamina',
                     'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
                     'At X Stamina you can set maximum and minimum stamina to battle',
-                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                    'Only perform Player Recon, does not actually battle players.',
                     'Only does Demipoints' + (who ? ' or ' + who : ''),
                     'Never - disables player battles'
                 ],
@@ -1487,47 +872,32 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XBattleStamina', XBattleInstructions, 1, '', '', true, false);
             htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', true, false);
             htmlCode += caap.display.end('WhenBattle', 'is', 'At X Stamina');
-            htmlCode += caap.makeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 62);
-            htmlCode += caap.makeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
+            htmlCode += caap.makeDropDownTR("Battle Type", 'battleWhich', whichList, whichInst, '', '', false, false, 62);
+			htmlCode += caap.display.start('battleWhich', 'isnot', 'Duel');
+			htmlCode += caap.display.start('battleWhich', 'isnot', 'Invade');
+			htmlCode += caap.makeDropDownTR("For Zin/Demi", 'zinDemiType', warList, '', '', '', false, false, 62);
+			htmlCode += caap.display.end('battleWhich', 'isnot', 'Invade');
+			htmlCode += caap.display.end('battleWhich', 'isnot', 'Duel');
+            htmlCode += caap.makeCheckTR("Wait For Monsters", 'battleMonsterWait', false, monsterWaitInst);
 			// siege is changed so disable 
 			config.setItem('raidDoSiege', false);
 			//htmlCode += caap.makeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
+            htmlCode += caap.makeNumberFormTR("Max Chains", 'maxChain', maxChainInstructions, 4, '', '');
+            htmlCode += caap.makeTD("Attack targets that are not:");
+            htmlCode += caap.makeNumberFormTR("Lower Than Rank", 'battleMinRank', minRankInst, '', '', 'text'); // Check +1 works
+            htmlCode += caap.makeNumberFormTR("Higher Than Rank", 'battleMaxRank', maxRankInst, '', '', 'text'); // Check +1 works
+            htmlCode += caap.makeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
+            htmlCode += caap.display.start('TargetType', 'is', 'Raid');
             htmlCode += caap.makeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
             htmlCode += caap.makeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
-            htmlCode += caap.makeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
-            htmlCode += caap.makeNumberFormTR("Chain Battle Points", 'ChainBP', chainBPInstructions, '', '');
-            htmlCode += caap.makeNumberFormTR("Chain Gold", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
-            htmlCode += caap.makeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '');
-            htmlCode += caap.makeTD("Attack targets that are not:");
-            htmlCode += caap.makeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
-            htmlCode += caap.makeNumberFormTR("Higher Than X*AR", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
-            htmlCode += caap.makeCheckTR('Advanced', 'AdvancedFreshMeatOptions', false);
-            htmlCode += caap.display.start('AdvancedFreshMeatOptions');
-            htmlCode += caap.makeNumberFormTR("Max Level", 'FreshMeatMaxLevel', FreshMeatMaxLevelInstructions, '', '', '', true);
-            htmlCode += caap.makeNumberFormTR("Min Level", 'FreshMeatMinLevel', FreshMeatMinLevelInstructions, '', '', '', true);
-            htmlCode += caap.makeNumberFormTR("Army Ratio Max", 'FreshMeatARMax', FreshMeatARMaxInstructions, '', '', '', true);
-            htmlCode += caap.makeNumberFormTR("Army Ratio Min", 'FreshMeatARMin', FreshMeatARMinInstructions, '', '', '', true);
-            htmlCode += caap.display.end('AdvancedFreshMeatOptions');
-            htmlCode += caap.makeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, PReconInstructions);
-            htmlCode += caap.display.start('DoPlayerRecon');
-            htmlCode += caap.makeCheckTR("Do In Background", 'bgRecon', true, "Use AJAX for Player Recon.");
-            htmlCode += caap.makeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, '', '');
-            htmlCode += caap.makeCheckTR("Stop Recon At Limit", 'stopReconLimit', true, "Stop performing Player Recon when target limit is reached rather than replacing oldest targets with new.");
-            htmlCode += caap.display.end('DoPlayerRecon');
-            htmlCode += caap.makeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
-            htmlCode += caap.display.start('TargetType', 'is', 'Arena');
-	        htmlCode += caap.makeNumberFormTR("Opponent Rank Min", 'arenaReconRankMin', '', '', '', '', true, false);
-	        htmlCode += caap.makeNumberFormTR("Opponent Rank Max", 'arenaReconRankMax', '', '', '', '', true, false);
-	        htmlCode += caap.makeNumberFormTR("Opponent Level Max", 'arenaReconLevelMax', '', '', '', '', true, false);
-            htmlCode += caap.display.end('TargetType', 'is', 'Arena');
-            htmlCode += caap.display.start('TargetType', 'is', 'Raid');
             htmlCode += caap.makeCheckTR("Power Attack", 'RaidPowerAttack', false, raidPowerAttackInstructions, true);
             htmlCode += caap.makeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions, true);
             htmlCode += caap.makeTD("Join Raids in this order <a href='http://caaplayer.freeforums.org/attack-monsters-in-this-order-clarified-t408.html' target='_blank' style='color: blue'>(INFO)</a>");
             htmlCode += caap.makeTextBox('orderraid', raidOrderInstructions, '');
             htmlCode += caap.display.end('TargetType', 'is', 'Raid');
             htmlCode += caap.display.start('TargetType', 'is', 'Userid List');
-            htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
+            htmlCode += caap.makeTextBox('battleIdList', userIdInstructions, '');
+            htmlCode += caap.makeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
             htmlCode += caap.display.end('TargetType', 'is', 'Userid List');
             htmlCode += caap.display.end('WhenBattle', 'isnot', 'Never');
             htmlCode += caap.endToggle;
@@ -1570,7 +940,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					winnerF = function(bR) {
 						return bR.duelWon > 0 && !bR.duelLost;
 					},
-					report = '';
+					report = '',
+					types = ['duel', 'invade', 'war', 'conqInvade', 'conqDuel', 'gb'];
 
 				if (which == 'Arena') {
 					headers = ['UserId', 'Name', 'Points', 'Total', 'Duel', 'AR', 'Level', 'Army', '&nbsp;'];
@@ -1673,10 +1044,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                         case 'warRank':
                         case 'conqRank':
                             row += caap.makeTd({
-                                text: battle.records[i][values[pp]],
+                                text: battle.records[i][values[pp]] < 0 ? '' : battle.records[i][values[pp]],
                                 color: '',
                                 id: '',
-                                title: battle.ranks[values[pp]][battle.records[i][values[pp]]]
+                                title: battle.records[i][values[pp]] < 0 ? 'Unknown' : battle.ranks[values[pp]][battle.records[i][values[pp]]]
                             });
                             break;
                         case 'wc':
@@ -1713,12 +1084,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                             break;
                         case 'points':
                             row += caap.makeTd({
-                                text:  battle.types.reduce( function(p, c) {
+                                text:  types.reduce( function(p, c) {
 									return p + battle.records[i][c + 'Points'];
 								}, 0),
                                 color: '',
                                 id: '',
-                                title: battle.types.map( function(e) {
+                                title: types.map( function(e) {
 									return e.ucWords() + ': ' + battle.records[i][e + 'Points'];
 								}).join(', ')
                             });

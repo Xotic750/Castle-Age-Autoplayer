@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,
-schedule,gifting,state,army, general,session,monster,guild_monster */
+/*global window,caap,config,$j,rison,battle,
+$u,recon,worker,self,
+schedule,con,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
 /////////////////////////////////////////////////////////////////////
@@ -12,81 +12,61 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 /*-------------------------------------------------------------------------------------\
 									  RECON PLAYERS
-battle.reconPlayers is an idle background process that scans the battle page for viable
-battle.targets that can later be attacked.
+recon worker holds the records for possible good targets that haven't been hit yet
 \-------------------------------------------------------------------------------------*/
 
 
 (function () {
     "use strict";
-	worker.add('recon');
+	worker.add({name: 'recon', recordIndex: 'userId'});
 
-	worker.addRecordFunctions('recon');
-	recon.recordIndex = 'userId';
-    recon.record = function() {
+    recon.record = function(userId) {
         this.data = {
-            'userId': 0,
-            'nameStr': '',
-            'rankNum': 0,
-            'warRankNum': 0,
-            'levelNum': 0,
-            'armyNum': 0,
-            'deityNum': 0,
-            'aliveTime': 0,
-			'arenaRankNum' : 0
+            userId: userId,
+            name: '',
+            rank: -1,
+            warRank: -1,
+            //arenaRank: -1,
+            level: 0,
+            army: 0,
+            deity: 0
         };
     };
 	
-	worker.addAction({worker : 'recon', priority : -1000, description : 'Player Recon'});
-	
-    recon.worker = function() {
-        function onError(XMLHttpRequest, textStatus, errorThrown) {
-            con.error("reconPlayers", [XMLHttpRequest, textStatus, errorThrown]);
-        }
+	recon.init = function() {
+		try {
 
-        function onSuccess(data, textStatus, XMLHttpRequest) {
-            battle.freshmeat("recon", [data, textStatus, XMLHttpRequest]);
-        }
-
-        try {
-            if (config.getItem('WhenBattle', 'Never') === 'Never' || !config.getItem('DoPlayerRecon', false) || !schedule.check('PlayerReconTimer') || stats.stamina.num <= 0) {
-                return false;
-            }
-
-            if (config.getItem("stopReconLimit", true) && recon.records.length >= config.getItem("LimitTargets", 100)) {
-                schedule.setItem('PlayerReconTimer', (gm ? gm.getItem('PlayerReconRetry', 60, hiddenVar) : 60), 60);
-                caap.setDivContent('idle_mess', 'Player Recon: Stop Limit');
-                return false;
-            }
-
-            recon.inProgress = true;
-            caap.setDivContent('idle_mess', 'Player Recon: In Progress');
-            con.log(1, "Player Recon: In Progress");
-            if (config.getItem('bgRecon', true)) {
-                caap.ajax("battle.php", null, onError, onSuccess);
-            } else {
-                if (caap.navigateTo(battle.page, $j("#app_body img[src*='battle_tab_battle_on.jpg']").length ? '' : 'battle_tab_battle_on.jpg')) {
-                    return true;
-                }
-            }
-
-            return true;
+			// Keep best 250 targets
+			if (recon.records.length > 250) {
+				var which = config.getItem('battleWhich', 'Invade');
+				
+				recon.records.forEach( function(r) {
+					r.score = battle.scoring(r, which);
+				});
+				
+				recon.records.sort($u.sortBy(true, 'score'));
+				
+				con.log(2, 'Recon: Removed ' + (recon.records.length - 250) + ' lesser targets');
+				recon.records = recon.records.slice(0, 249);
+				state.setItem('battleScore', recon.records[249].score);
+				state.setItem('wsave_recon', true);
+				state.setItem('wsave_recon_noWarning', true);
+			}
+			
         } catch (err) {
-            con.error("ERROR in recon.worker:" + err);
+            con.error("ERROR in recon.init: " + err.stack);
             return false;
         }
     };
-
+	
     recon.dashboard = function() {
         try {
             var headers = [],
                 values = [],
                 pp = 0,
                 i = 0,
-                count = 0,
                 userIdLink = '',
                 userIdLinkInstructions = '',
-                valueCol = 'red',
                 len = 0,
                 data = {
                     text: '',
@@ -98,8 +78,7 @@ battle.targets that can later be attacked.
                 handler = null,
                 head = '',
                 body = '',
-                row = '',
-                rows = [];
+                row = '';
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
@@ -109,9 +88,9 @@ battle.targets that can later be attacked.
                 head = "";
                 body = "";
                 headers = ['UserId', 'Name', 'Deity', 'BR#', 'Arena#',
-                'WR#', 'Level', 'Army', 'Last Alive'];
-                values = ['userId', 'nameStr', 'deityNum', 'rankNum', 'arenaRankNum',
-                'warRankNum', 'levelNum', 'armyNum', 'aliveTime'];
+                'WR#', 'Level', 'Army'];
+                values = ['userId', 'name', 'deity', 'rank', 'arenaRank',
+                'warRank', 'level', 'army'];
                 for (pp = 0; pp < headers.length; pp += 1) {
                     switch (headers[pp]) {
                         case 'UserId':
@@ -178,20 +157,21 @@ battle.targets that can later be attacked.
 
                             break;
                         default:
+							break;
                     }
                 }
 
                 head = caap.makeTr(head);
-                for (i = 0, len = battle.reconRecords.length; i < len; i += 1) {
+                for (i = 0, len = recon.records.length; i < len; i += 1) {
                     row = "";
                     for (pp = 0; pp < values.length; pp += 1) {
                         switch (values[pp]) {
                             case 'userId':
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.reconRecords[i][values[pp]];
-                                userIdLink = "keep.php?casuser=" + battle.reconRecords[i][values[pp]];
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + recon.records[i][values[pp]];
+                                userIdLink = "keep.php?casuser=" + recon.records[i][values[pp]];
                                 data = {
                                     text: '<span id="caap_targetrecon_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.reconRecords[i][values[pp]] + '</span>',
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + recon.records[i][values[pp]] + '</span>',
                                     color: 'blue'
                                 };
 
@@ -200,34 +180,34 @@ battle.targets that can later be attacked.
                                 break;
                             case 'deityNum':
                                 row += caap.makeTd({
-                                    text: caap.demiTable[battle.reconRecords[i][values[pp]]].ucFirst()
+                                    text: caap.demiTable[recon.records[i][values[pp]]].ucFirst()
                                 });
 
                                 break;
                             case 'rankNum':
                                 row += caap.makeTd({
-                                    text: battle.reconRecords[i][values[pp]],
-                                    title: battle.battleRankTable[battle.reconRecords[i][values[pp]]]
+                                    text: recon.records[i][values[pp]],
+                                    title: battle.battleRankTable[recon.records[i][values[pp]]]
                                 });
 
                                 break;
                             case 'arenaRankNum':
                                 row += caap.makeTd({
-                                    text : battle.reconRecords[i][values[pp]],
-                                    title : battle.battleRankTable[battle.reconRecords[i][values[pp]]]
+                                    text : recon.records[i][values[pp]],
+                                    title : battle.battleRankTable[recon.records[i][values[pp]]]
                                 });
 
                                 break;
                             case 'warRankNum':
                                 row += caap.makeTd({
-                                    text: battle.reconRecords[i][values[pp]],
-                                    title: battle.warRankTable[battle.reconRecords[i][values[pp]]]
+                                    text: recon.records[i][values[pp]],
+                                    title: battle.warRankTable[recon.records[i][values[pp]]]
                                 });
 
                                 break;
                             case 'aliveTime':
                                 data = {
-                                    text: $u.makeTime(battle.reconRecords[i][values[pp]], "d M H:i")
+                                    text: $u.makeTime(recon.records[i][values[pp]], "d M H:i")
                                 };
 
                                 row += caap.makeTd(data);
@@ -235,7 +215,7 @@ battle.targets that can later be attacked.
                                 break;
                             default:
                                 row += caap.makeTd({
-                                    text: battle.reconRecords[i][values[pp]]
+                                    text: recon.records[i][values[pp]]
                                 });
                         }
                     }
@@ -282,7 +262,5 @@ battle.targets that can later be attacked.
             return false;
         }
     };
-
-    recon.inProgress = false;
 
 }());

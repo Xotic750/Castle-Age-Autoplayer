@@ -1858,18 +1858,29 @@ gb,essence,gift,chores */
         }
     };
 
-    caap.bulkRegex = function (div, regex, record, array) {
+    caap.bulkRegex = function (div, regex, record, array, silent) {
         try {
-            var text = $u.isString(div) ? div : $u.setContent(div.text().trim().innerTrim(), ''),
+            var text = ($u.isString(div) ? div : $u.isObject(div) && $u.hasContent(div.textContent) ?
+					div.textContent : $u.setContent(div.text(), '')).trim().innerTrim(),
 				args = text.regex(regex);
 			
 			if (typeof record == 'undefined' && typeof array == 'undefined') {
 				return args;
 			}
-			args = $u.isArray(args) ? args : [args];
+			args = $u.isDefined(args) &&  !$u.isArray(args) ? [args] : args;
 			array = $u.isArray(array) ? array : [array];
-			if (!args || args.length != array.length) {
-				con.warn('Invalid match for regex expression in div text', text, regex, args, array);
+			if (!args) {
+				if (!silent) {
+					con.warn('Bulk Regex: No match for regex expression in div text', text, regex, args, array);
+				}
+				return false;
+			}
+			
+			if (args.length != array.length) {
+				if (!silent) {
+					con.warn('Bulk Regex: ' + args.length + ' args in regex, but only ' + array.length + ' vars listed',
+						text, regex, args, array);
+				}
 				return false;
 			}
 			
@@ -1880,8 +1891,6 @@ gb,essence,gift,chores */
 					record[entry] = args[index];
 				}
 			});
-			
-			//con.log(2, 'Regex div text to record', text, regex, array, record);
 			return true;
         } catch (err) {
             con.error("ERROR in bulkRegex: " + err + ' ' + err.stack);
@@ -4212,8 +4221,7 @@ gb,essence,gift,chores */
             signaturePic: 'tab_war_on.gif'
         },
         'conquest_battlerank': {
-            signaturePic: 'conqrank_on2.jpg',
-            CheckResultsFunction: 'checkResults_conquest_rank'
+            signaturePic: 'conqrank_on2.jpg'
         },
         'achievements': {
             signaturePic: 'tab_achievements_on.gif'
@@ -4234,8 +4242,7 @@ gb,essence,gift,chores */
             signaturePic: 'tab_gifts_on.gif'
         },
         'goblin_emp': {
-            signaturePic: 'emporium_cancel.gif',
-            CheckResultsFunction: 'checkResults_goblin_emp'
+            signaturePic: 'emporium_cancel.gif'
         },
         'view_class_progress': {
             signatureId: 'choose_class_screen',
@@ -4305,8 +4312,7 @@ gb,essence,gift,chores */
             CheckResultsFunction: 'checkResults_army_news_feed'
         },
         'festival_duel_home': {
-            signaturePic: 'festival_duelchamp_enter.gif',
-            CheckResultsFunction: 'checkResults_festival_duel_home'
+            signaturePic: 'festival_duelchamp_enter.gif'
         },
         'guild_panel': {
             signaturePic: 'tab_guild_management_on.gif',
@@ -4420,6 +4426,7 @@ gb,essence,gift,chores */
             
             session.setItem('page', page);
 			caap.page = page;
+			caap.clickUrl = pageUrl;
 			worker.list.forEach(worker.checkResults);
 			
             if ($u.hasContent(caap.pageList[page])) {
@@ -4432,8 +4439,6 @@ gb,essence,gift,chores */
 						con.warn('Check Results function not found ' + caap.pageList[page].CheckResultsFunction);
 					}
 				}
-            } else {
-                con.log(2, 'No results check defined for', page);
             }
 
 			worker.list.forEach(worker.checkSave);
@@ -4510,32 +4515,6 @@ gb,essence,gift,chores */
                 save = false,
                 tDiv,
                 lDiv;
-
-            if ($u.hasContent(favorDiv)) {
-                text = favorDiv.text();
-                if (/You have zero favor points!/.test(text)) {
-                    stats.points.favor = 0;
-                    save = true;
-                } else if (/You have a favor point!/.test(text)) {
-                    stats.points.favor = 1;
-                    save = true;
-                } else {
-                    tNum = text.regex(/You have (\d+) favor points!/);
-                    if ($u.hasContent(tNum)) {
-                        stats.points.favor = tNum;
-                        save = true;
-                    }
-                }
-            } else {
-                con.warn('Favor Points div not found.');
-            }
-
-            if (save) {
-                con.log(2, 'Got number of Favor Points', stats.points.favor);
-                statsFunc.setRecord(stats);
-            } else {
-                con.warn('Favor Points not matched.');
-            }
 
             if (config.getItem("enableOracleMod", true)) {
                 tDiv = $j("#app_body #results_container").parent().children().eq(6);
@@ -4663,98 +4642,6 @@ gb,essence,gift,chores */
             return true;
         } catch (err) {
             con.error("ERROR in checkResults_alchemy: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_goblin_emp = function () {
-        try {
-            if (config.getItem("goblinHinting", true)) {
-                spreadsheet.doTitles(true);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_goblin_emp: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_battlerank = function () {
-        try {
-            var rankDiv = $j("#app_body div[style*='battle_rank_banner.jpg']"),
-                tNum = 0;
-
-            if ($u.hasContent(rankDiv)) {
-                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) Battle Points/i), 0);
-                if ($u.hasContent(tNum)) {
-                    con.log(2, 'Got Battle Rank Points', tNum);
-                    stats.rank.battlePoints = tNum;
-                    statsFunc.setRecord(stats);
-                } else {
-                    con.warn('Battle Rank Points RegExp not matched.');
-                }
-            } else {
-                con.warn('Battle Rank Points div not found.');
-            }
-
-            rankDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_battlerank: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_war_rank = function () {
-        try {
-            var rankDiv = $j("#app_body div[style*='war_rank_banner.jpg']"),
-                tNum = 0;
-
-            if ($u.hasContent(rankDiv)) {
-                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) War Points/i), 0);
-                if ($u.hasContent(tNum)) {
-                    con.log(2, 'Got War Rank Points', tNum);
-                    stats.rank.warPoints = tNum;
-                    statsFunc.setRecord(stats);
-                } else {
-                    con.warn('War Rank Points RegExp not matched.');
-                }
-            } else {
-                con.warn('War Rank Points div not found.');
-            }
-
-            rankDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_war_rank: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.checkResults_conquest_rank = function () {
-        try {
-            var rankDiv = $j("#app_body div[style*='conquest_duel_rank_header.jpg']"),
-                tNum = 0;
-
-            if ($u.hasContent(rankDiv)) {
-                tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/Conquest Duel Points:\s+(\d+)/i), 0);
-                if ($u.hasContent(tNum)) {
-                    con.log(2, 'Got Conquest Rank Points', tNum);
-                    stats.rank.conquestPoints = tNum;
-                    stats.rank.conquest = conquest.conquestRankTier(tNum);
-                    statsFunc.setRecord(stats);
-                } else {
-                    con.warn('Conquest Rank Points RegExp not matched.');
-                }
-            } else {
-                con.warn('Conquest Rank Points div not found.');
-            }
-
-            rankDiv = null;
-            return true;
-        } catch (err) {
-            con.error("ERROR in checkResults_conquest_rank: " + err.stack);
             return false;
         }
     };
@@ -5212,7 +5099,7 @@ gb,essence,gift,chores */
             }
 			
 			result = conquest.engineer();
-			if (result === true || ($u.isObject(result) && $u.setContent(result.action, true))) {
+			if (caap.passThrough(result)) {
 				return result;
 			}
 
@@ -6880,64 +6767,6 @@ gb,essence,gift,chores */
             con.error("ERROR in festivalBless: " + err.stack);
             return false;
         }
-    };
-
-    caap.checkResults_festival_duel_home = function () {
-        var followerDiv = $j("#app_body #follower_list div"),
-            followers = [],
-            nfollowers = [],
-            a = army.getIdList(),
-            crossList = function (uid) {
-                return !followers.hasIndexOf(uid);
-            };
-
-        followerDiv.each(function () {
-            var uid = $u.setContent($j(this).children().eq(0).attr("uid"), "").parseInt();
-
-            if (uid) {
-                followers.push(uid);
-            }
-        });
-
-        nfollowers = a.filter(crossList);
-        session.setItem("followers", followers);
-        session.setItem("nfollowers", nfollowers);
-        sessionStorage.setItem("caap_nfollowers", JSON.stringify(nfollowers));
-        con.log(1, "followers/non", followers, nfollowers);
-    };
-
-    caap.ajax_festival_duel_home = function () {
-        function onError(XMLHttpRequest, textStatus, errorThrown) {
-            con.error("ajax_festival_duel_home", [XMLHttpRequest, textStatus, errorThrown]);
-        }
-
-        function onSuccess(data) {
-            var followerDiv = $j("#follower_list div", data),
-                followers = [],
-                nfollowers = [],
-                a = army.getIdList(),
-                crossList = function (uid) {
-                    return !followers.hasIndexOf(uid);
-                };
-
-            followerDiv.each(function () {
-                var uid = $u.setContent($j(this).children().eq(0).attr("uid"), "").parseInt();
-
-                if (uid) {
-                    followers.push(uid);
-                }
-            });
-
-            nfollowers = a.filter(crossList);
-            session.setItem("followers", followers);
-            session.setItem("nfollowers", nfollowers);
-            sessionStorage.setItem("caap_nfollowers", JSON.stringify(nfollowers));
-            con.log(1, "followers/non", followers, nfollowers);
-            followerDiv = null;
-        }
-
-
-        caap.ajax("festival_duel_home.php", null, onError, onSuccess);
     };
 
     /////////////////////////////////////////////////////////////////////

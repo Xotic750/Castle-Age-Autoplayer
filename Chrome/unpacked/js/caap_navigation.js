@@ -422,6 +422,8 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 	// Returns true if first page navigation complete, 'done' if clicked the link, and false if on page but link not there
     caap.navigate3 = function (toPage, click, thisGeneral, options) {
         try {
+			var clickUrl = session.getItem('clickUrl', '');
+			
 			if (caap.bad3.hasIndexOf(toPage + ':' + click)) {
 				return false;
 			}
@@ -431,9 +433,9 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 			}
 			
 			options = $u.setContent(options, {});
-			if (!session.getItem('clickUrl', '').hasIndexOf(toPage)) {
+			if (caap.page != toPage.replace(/\.php.*/, '') || !clickUrl.hasIndexOf(toPage)) {
 				caap.ajaxLink(toPage);
-				con.log(2, 'Navigate3: Go to ajax link '+ toPage);
+				con.log(2, 'Navigate3: Go to ajax link '+ toPage, caap.page, clickUrl);
 				return true;
 			}
 			
@@ -447,11 +449,13 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 				return $j(this).serialize();
 			})).filter( function(l) {
 				// If any of the names are not found in a form, that link not valid
-				return !click.regex(/(\w+=)\w+/g).some( function(r) {
-					return !l.hasIndexOf(r);
+				return !click.regex(/(\w+)=\w+/g).some( function(r) {
+					return !l.match(new RegExp('\\b' + r + '\\b='));
 				});
 			});
 			if (links.length) {
+				click += links[0].regexd(/(&bqh=\w+)/, '');
+				click += links[0].regexd(/(&ajax=1)/, '');
 				caap.ajaxLink(click);
 				con.log(2, 'Navigate3: Clicking form link '+ click);
 				return 'done';

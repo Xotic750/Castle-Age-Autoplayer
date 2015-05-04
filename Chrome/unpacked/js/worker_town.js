@@ -24,6 +24,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             'image': '', 
             'name': '',
             'type': '',
+			'item': '',
             'upkeep': 0,
             'hourly': 0,
             'atk': 0,
@@ -42,21 +43,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 		
 	worker.addPageCheck({page : 'magic'});
 	
-	town.init = function() {
-		try {
-			if (gm) {
-				// Should be ok to remove old record lookup after 2015/3/17 - Artifice
-				gm.deleteItem('item.records');
-				gm.deleteItem('magic.records');
-				gm.deleteItem('soldiers.records');
-			}
-       } catch (err) {
-            con.error("ERROR in gb.init: " + err.stack);
-            return false;
-        }
-	};
-
-		
 	town.checkResults = function(page) {
         try {
 			switch (page) {
