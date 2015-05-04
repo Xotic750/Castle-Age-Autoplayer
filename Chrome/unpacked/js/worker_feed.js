@@ -116,11 +116,6 @@ chores,town,general,session,monster:true */
 					}
 				}
 				break;
-			case 'battle_monster' :
-				if (resultsText.match(/You already have a monster in the Guild Priority Monster List/)) {
-					schedule.setItem('feedPriWait', 3 * 3600);
-				}
-				break;
 			default : 
 				break;
 			}
@@ -135,13 +130,19 @@ chores,town,general,session,monster:true */
 	// If a match, scores the monster. If joinable with a positive score returns true.
     feed.joinable = function(cM) {
 		try {
-			var matched = false;
+			var matched = false,
+				conditions;
 			
 			config.getItem('feedFilter', 'all').split('\n').some( function(item) {
 				item = item.trim();
 				if (item.length && 
 					(item.regex(/(^all\b)/) || cM.name.toLowerCase().hasIndexOf(item.replace(/:.*/, '').toLowerCase()))) {
-					cM.joinConditions = item.replace(/^[^:]+/i, '').trim() + ':';
+					conditions = item.replace(/^[^:]+/i, '').trim() + ':';
+					if ((conditions.regex(/(:conq)\b/) && !cM.link.hasIndexOf("guildv2_battle_monster.php")) ||
+								(conditions.regex(/(:!conq)\b/) && cM.link.hasIndexOf("guildv2_battle_monster.php"))) {
+						return false;
+					}
+					cM.joinConditions = conditions;
 					matched = feed.scoring(cM);
 					return true;
 				}
@@ -191,7 +192,7 @@ chores,town,general,session,monster:true */
 					//con.log(2, 'SCAN1', cM, cM.hide, cM.state, schedule.since(cM.review, reviewInterval));
 					if (!cM.hide && cM.state == 'Join' && cM.joinConditions.length) {
 						if (cM.canPri && monster.parseCondition("pri", cM.joinConditions) &&
-							monster.parseCondition("pri", cM.joinConditions) > cM.time && schedule.check('feedPriWait')) {
+							monster.parseCondition("pri", cM.joinConditions) > cM.time && schedule.check('monsterPriorityWait')) {
 							cM.review = 0;
 							plus = '&action=commitPriorityMonster';
 							con.log(1, 'Making my feed monster ' + cM.name + ' priority', cM);
@@ -284,6 +285,9 @@ chores,town,general,session,monster:true */
 			
 			// Check on summoning a monster
 			result = config.getItem('feedFilter', 'all').split('\n').some( function(item) {
+				if (!item.match(/\w/)) {
+					return false;
+				}
 				var sumEval = (item+ ':').regex(/:sum\d+\[(.*?)\]:/),
 					mpool = item.regex(/:sum(\d+)\[/),
 					poolTimer = 'feed' + mpool,
@@ -479,7 +483,7 @@ chores,town,general,session,monster:true */
 			/*jslint evil: true */
 			
 			evalTxt = cM.joinConditions.regex(/:f\[(.*?)\]:/);
-			if (evalTxt && !eval(evalTxt)) {
+			if ($u.hasContent(evalTxt) && !eval(evalTxt)) {
 				cM.join = false;
 				filterok = false;
 				if (!summon) {
@@ -492,7 +496,7 @@ chores,town,general,session,monster:true */
 			}
 				
 			evalTxt = cM.joinConditions.regex(/:j\[(.*?)\]:/);
-			if (evalTxt) {
+			if ($u.hasContent(evalTxt)) {
 				temp = (cM.listStamina.length ? Math.max(cM.listStamina[0], 5) : 5);
 				cM.join = eval(evalTxt) && stamina > temp;
 				evalTxt = cM.joinConditions.regex(/:s\[(.*?)\]:/);
@@ -506,7 +510,7 @@ chores,town,general,session,monster:true */
 				}
 			}
 			evalTxt = cM.joinConditions.regex(/:c\[(.*?)\]:/);
-			if (cM.charClass !== false && evalTxt) {
+			if (cM.charClass !== false && $u.hasContent(evalTxt)) {
 				cM.charClass = eval($u.setContent(evalTxt, 'Warlock'));
 				con.log(1, 'Class to be set: ' + cM.charClass, evalTxt);
 			}

@@ -13,12 +13,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 (function() {
     "use strict";
 
-	worker.add('monster');
-	worker.addRecordFunctions('monster');
+	worker.add({name: 'monster', recordIndex: 'link'});
 
-	monster.lastClick = null;
-	
-	monster.recordIndex = 'link';
 	monster.record = function(link) {
         this.data = {
             link: link,
@@ -339,6 +335,11 @@ config,con,gm,schedule,state,general,session,monster:true */
 					}
 					return false;
 				}
+				
+				if (resultsText.match(/You already have a monster in the Guild Priority Monster List/)) {
+					con.log(2, 'Monster: already have a priority monster, setting one hour wait to try again');
+					schedule.setItem('monsterPriorityWait', 1 * 3600);
+				}
 
 				monsterDiv = $j(monster.onMonsterHeader, slice);
 
@@ -573,7 +574,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 						}
 						if ($u.isArray(tempArr) && tempArr.length) {
 							cM.attacked = $u.setContent(tempArr.pop(), '0').numberOnly();
-							cM.damage = cM.attacked + cM.defended;
+							// Even if did 0 damage (joined a monster with zero health or not enough stamina), set to 1 point of damage
+							cM.damage = Math.max(1, cM.attacked + cM.defended);
 						} else {
 							con.warn("Unable to get attacked and defended damage from #dragonContainer");
 						}
@@ -593,7 +595,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 							tempArr = $u.setContent(damageDiv.parent().parent()[0].children[4].innerHTML).trim().innerTrim().match(/([\d,]+)/g);
 							if ($u.hasContent(tempArr) && tempArr.length > 0) {
 								cM.attacked = tempArr[0].numberOnly();
-								cM.damage = cM.attacked;
+								// Even if did 0 damage (joined a monster with zero health or not enough stamina), set to 1 point of damage
+								cM.damage = Math.max(1, cM.attacked);
 								if (tempArr.length === 2) {
 									cM.defended = tempArr[1].numberOnly();
 									cM.damage = cM.attacked + cM.defended;
@@ -920,7 +923,7 @@ config,con,gm,schedule,state,general,session,monster:true */
         }
     };
 
-	// Will return amount of stamina available.
+	// Check health ok and return amount of stamina available.
     caap.checkStamina = function (battleOrMonster, attackMinStamina) {
         try {
             con.log(4, "checkStamina", battleOrMonster, attackMinStamina);
@@ -941,10 +944,6 @@ config,con,gm,schedule,state,general,session,monster:true */
             }
 
             if (stats.health.num < 10) {
-                if (battleOrMonster === "Conquest") {
-                    schedule.setItem("conquest_delay_stats", (10 - stats.health.num) *  180, 120);
-                }
-
                 caap.setDivContent(messDiv, "Need health to fight: " + stats.health.num + "/10");
                 return false;
             }
@@ -990,8 +989,12 @@ config,con,gm,schedule,state,general,session,monster:true */
                 }
 
                 if (caap.inLevelUpMode()) {
-                    caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
-                    return stats.stamina.num;
+					if (stats.stamina.num >= attackMinStamina) {
+						caap.setDivContent(messDiv, 'Burning all stamina to ' + (caap.inLevelUpMode() ? 'level up' : ' get below max'));
+						return stats.stamina.num;
+					}
+					caap.setDivContent(messDiv, 'Waiting for stamina: ' + stats.stamina.num + "/" + attackMinStamina);
+					return false;
                 }
 
                 caap.setDivContent(messDiv, 'Waiting for max stamina: ' + stats.stamina.num + "/" + maxIdleStamina);
@@ -1176,7 +1179,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 						link += ',clickimg:siege_btn.gif';
 						message = 'Sieging ';
 					} else if (cM.canPri && monster.parseCondition("pri", cM.conditions) &&
-						monster.parseCondition("pri", cM.conditions) > cM.time) {
+						monster.parseCondition("pri", cM.conditions) > cM.time && schedule.check('monsterPriorityWait')) {
 						link += '&action=commitPriorityMonster';
 						message = 'Making Priority ';
 					} else if (cM.canPub && monster.parseCondition("pub", cM.conditions) &&
@@ -1242,6 +1245,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				result = false,
 				burning = false,
 				charged = false,
+				cQ = state.getItem('AutoQuest', caap.newAutoQuest()), // current Quest
 				healPercStam = config.getItem('HealPercStam', 20) / 100,
 				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
 				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
@@ -1339,6 +1343,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc(levelUpGen)) * gMultFunc(levelUpGen);
+					statRequireBig = Math.max(statRequireBig * 2.2, $u.setContent(cQ.experience, 0)) == statRequireBig * 2.2 ? statRequireBig : 0;
 					
 					// Is there a smaller power attack that will work?
 					statRequire = caap.minMaxArray(statList, 'min', 1, (stats.stamina.num + 1 - statRequireBig) / gMult) * gMult;
@@ -1346,11 +1351,15 @@ config,con,gm,schedule,state,general,session,monster:true */
 					if (!statRequire || statRequire * xpPerPt >= stats.exp.dif) { // Small power hit no go
 						if (statList[0] == 1 && gMult * xpPerPt < stats.exp.dif) { // Small single hit ok?
 							statRequire = 1 * gMult;
-						} else {
-							// If too close to levelling for a power attack, do max attack to carry over xp
-							setGeneralVarsFunc(levelUpGen, stat);
-							statRequire = statRequireBig;
+						} else if (stats.energy.num > cQ.energy && (cQ.experience < stats.exp.dif || questExp > statRequireBig * 2.2)) {
+							result = caap.quests();
+							if (caap.passThrough(result)) { // If just about to do big hit, do any quests to use energy first.
+								return result;
+							}
 						}
+						// If too close to levelling for a power attack, do max attack to carry over xp
+						setGeneralVarsFunc(levelUpGen, stat);
+						statRequire = statRequireBig;
 					}
 					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
 				} else if (statList[0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
@@ -1366,6 +1375,10 @@ config,con,gm,schedule,state,general,session,monster:true */
 				statAvailable = 0;
 
 			});
+			
+			if (caap.passThrough(result)) { 
+				return result;
+			}
 
 			if (!statAvailable) {
 				schedule.setItem('NotargetFrombattle_monster', 60);
@@ -2663,7 +2676,7 @@ config,con,gm,schedule,state,general,session,monster:true */
                     }
 
                     monsterConditions = cM.conditions;
-                    achLevel = monster.parseCondition('ach', monsterConditions);
+                    achLevel = Number(monster.parseCondition('ach', monsterConditions));
                     maxDamage = monster.parseCondition('max', monsterConditions);
                     if (cM.link.length) {
                         link = caap.domain.altered + '/' + cM.link;
@@ -2705,13 +2718,14 @@ config,con,gm,schedule,state,general,session,monster:true */
 
                                 switch (displayItem) {
                                 case 'damage':
+									title = "Stamina used: " + cM.spentStamina + " Energy used: " + cM.spentEnergy;
                                     if (achLevel) {
-                                        title = "User Set Monster Achievement: " + achLevel.addCommas();
+                                        title += " User Set Monster Achievement: " + achLevel.addCommas();
                                     } else if (config.getItem('AchievementMode', false)) {
-                                        title = "Stamina used: " + cM.spentStamina + " Energy used: " + cM.spentEnergy + " Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
+                                        title +=  " Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
                                         title += cM.page === 'festival_battle_monster' ? " Festival Monster Achievement: " + monster.getInfo(cM, 'festival_ach').addCommas() : '';
                                     } else {
-                                        title = "Achievement Mode Disabled";
+                                        title += " Achievement Mode Disabled";
                                     }
 
                                     title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';

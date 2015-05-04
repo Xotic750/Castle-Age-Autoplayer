@@ -122,20 +122,29 @@ schedule,state,general,session,battle:true */
 				
 				fR = gb.getRecord('lom');
 				
-				$j('div[id^="special_defense_button"] form input[type="image"]').each( function() {
-					powers.addToList($j(this).attr('src').regex(/.*\/(\w+\.\w+)/));
-				});
+				// Your health is too low to use a special ability, heal first
 				
-				if ($u.hasContent(powers)) {
-					fR.state = 'Active';
-					session.setItem('gbWhich', fR.label);
-					battle.readWinLoss(resultsText, gb.testList);
-					gb.setrPage(fR, gb.makePath(gb.lom, 'your', slot), 'review', Date.now());
-					gb.readTower(fR, 'your', slot, $j('#your_guild_member_list_1'), powers);
-				} else if (fR.state == 'Active') { 
-				// Add a timeout here in case wasn't in last defend, script wasn't run during protect so not deleted but now defending?
-					con.log(2, 'LoM: No defense actions, so ignoring land ' + slot);
+				if (resultsText.match(/Your health is too low to use a special ability, heal first/)) {
+					con.log(2, 'LoM: Health too low, so disabling LoM guardian until next land', fR);
 					fR.state = 'No Battle';
+					
+				} else {
+					
+					$j('div[id^="special_defense_button"] form input[type="image"]').each( function() {
+						powers.addToList($j(this).attr('src').regex(/.*\/(\w+\.\w+)/));
+					});
+					
+					if ($u.hasContent(powers)) {
+						fR.state = 'Active';
+						session.setItem('gbWhich', fR.label);
+						battle.readWinLoss(resultsText, gb.winLoss);
+						gb.setrPage(fR, gb.makePath(gb.lom, 'your', slot), 'review', Date.now());
+						gb.readTower(fR, 'your', slot, $j('#your_guild_member_list_1'), powers);
+					} else if (fR.state == 'Active') { 
+					// Add a timeout here in case wasn't in last defend, script wasn't run during protect so not deleted but now defending?
+						con.log(2, 'LoM: No defense actions, so ignoring land ' + slot);
+						fR.state = 'No Battle';
+					}
 				}
 				
 				gb.setRecord(fR);

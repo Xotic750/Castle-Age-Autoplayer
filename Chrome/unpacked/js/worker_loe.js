@@ -86,7 +86,7 @@ schedule,state,general,session,battle:true */
 				which = guild_id == stats.guild.id ? 'your' : 'enemy';
 				fR = gb.getRecord('loe');
 				session.setItem('gbWhich', fR.label);
-				battle.readWinLoss(resultsText, gb.testList);
+				battle.readWinLoss(resultsText, gb.winLoss);
 				
 				towerDivs = which == 'enemy' ? $j('#hover_tab_1_1').closest('.tower_tab').find('div[onmouseover*="hover_tab_1_"]') :
 					$j('div[id^="tower_"]').not('[id*="fort"]').not('[id*="tab"]');

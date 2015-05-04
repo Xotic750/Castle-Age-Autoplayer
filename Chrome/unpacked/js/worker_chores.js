@@ -14,7 +14,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	chores.checkResults = function(page, resultsText) {
 		try {
 			var pagesHeaders = worker.pagesList.flatten('page'),
-				url = 'ajax:' + session.getItem('clickUrl', 'none'),
+				url = 'ajax:' + caap.clickUrl,
 				picList = [],
 				dupList = [],
 				nameList = [],
@@ -52,6 +52,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.log(2, 'Alchemy ingredients in multiple recipes list: ' + nameList.join(', '), dupList);
 				break;
 			case 'goblin_emp' :
+				if (config.getItem("goblinHinting", true)) {
+					spreadsheet.doTitles(true);
+				}
 				if (/You have exceeded the 10 emporium roll limit for the day/.test(resultsText)) {
 					schedule.setItem('koboTimerDelay', 7 * 3600, 100);
 					con.log(2, 'Kobo: hit maximum rolls');
@@ -480,14 +483,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
  	worker.addAction({fName : 'chores.checkPages', priority : -1200, description : 'Reviewing Pages'});
 	
-	worker.addPageCheck({page : 'oracle'});
-
-	worker.addPageCheck({page : 'battlerank', path : 'battle,battlerank', level : 8});
-
-	worker.addPageCheck({page : 'war_rank', path : 'battle,war_rank', level : 100});
-
-	worker.addPageCheck({page : 'conquest_battlerank', level : 80});
-
 	worker.addPageCheck({page : 'conquest_duel'});
 
 	worker.addPageCheck({page : 'achievements'});
@@ -504,7 +499,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				: $u.isString(page) ? [{page : page}] : worker.pagesList,
 				hours = 0;
 			return list.some( function(o) {
-				if (o.config && !config.getItem(o.config, false)) {
+				if ((o.config && !config.getItem(o.config, false)) ||
+						(o.func && !window[o.func.regex(/(\w+)\./)][o.func.regex(/\.(\w+)/)]())) {
 					return false;
 				}
 				hours = o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);
