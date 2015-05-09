@@ -26,31 +26,36 @@ recon worker holds the records for possible good targets that haven't been hit y
             name: '',
             rank: -1,
             warRank: -1,
+			festRank: -1,
             //arenaRank: -1,
             level: 0,
-            army: 0,
-            deity: 0
+            army: 0
         };
     };
 	
-	recon.init = function() {
+	recon.init = function(which) {
 		try {
+			which = $u.setContent(which, config.getItem('battleWhich', 'Invade'));
+				
+			var w = battle[which],
+				recName = w.recon,
+				records = window[w.recon].records,
+				origLen = records.length;
 
 			// Keep best 250 targets
-			if (recon.records.length > 250) {
-				var which = config.getItem('battleWhich', 'Invade');
-				
-				recon.records.forEach( function(r) {
+			if (records.length > 250) {
+				records = battle.filterF(records, which);
+			
+				records.forEach( function(r) {
 					r.score = battle.scoring(r, which);
 				});
 				
-				recon.records.sort($u.sortBy(true, 'score'));
+				records.sort($u.sortBy(true, 'score'));
 				
-				con.log(2, 'Recon: Removed ' + (recon.records.length - 250) + ' lesser targets');
-				recon.records = recon.records.slice(0, 250);
-				state.setItem('battleScore', recon.records[249].score);
-				state.setItem('wsave_recon', true);
-				state.setItem('wsave_recon_noWarning', true);
+				window[w.recon].records = records.slice(0, 250);
+				con.log(2, recName.ucWords() + ': Removed ' + (origLen - window[w.recon].records.length) + ' lesser targets');
+				state.setItem('wsave_' + recName, true);
+				state.setItem('wsave_' + recName + '_noWarning', true);
 			}
 			
         } catch (err) {

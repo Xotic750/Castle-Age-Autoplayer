@@ -674,7 +674,7 @@ schedule,state,general,session,battle:true */
 				img = '',
 				bR = {}, // battle record
 				big = {level: 0}, // highest level in tower
-				scoring = config.getItem(gf.scoring,''),
+				scoring = yourlo && fR.label == 'loe' ? config.getItem(gb.lom.scoring,'') : config.getItem(gf.scoring,''),
 				normal = [],
 				seal = {},
 				sOrN,
@@ -840,9 +840,9 @@ schedule,state,general,session,battle:true */
 								case 'rogue' :
 								case 'warrior' :
 								case 'mage' :		tf = key == mR.mclass;												break;
-								case 'l900' :		tf = mR.level >=900;												break;
-								case 'l600' :		tf = mR.level >=600 && mR.level <900;								break;
-								case 'l300' :		tf = mR.level >=300 && mR.level <600;								break;
+								case 'l900' :		tf = mR.level > 900;												break;
+								case 'l600' :		tf = mR.level > 600 && mR.level <= 900;								break;
+								case 'l300' :		tf = mR.level > 300 && mR.level <= 600;								break;
 								case 't1' :
 								case 't2' :
 								case 't3' :

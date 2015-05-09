@@ -2,7 +2,7 @@
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,worker,$j,chores,stats,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
+$u,chrome,spreadsheet,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -110,7 +110,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 highest = battleHealth >= conquesthealth ? battleHealth : conquesthealth;
                 if ((caap.inLevelUpMode() || stats.stamina.num >= stats.stamina.max) && stats.health.num < highest) {
                     con.log(1, 'Heal');
-                    return caap.navigateTo('keep,keep_healbtn.gif');
+					return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
                 }
             }
 
@@ -124,7 +124,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Heal');
-            return caap.navigateTo('keep,keep_healbtn.gif');
+			return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
         } catch (err) {
             con.error("ERROR in chores.heal: " + err.stack);
             return false;

@@ -183,10 +183,6 @@ chores,town,general,session,monster:true */
 			}, {'score' : 0, conditions : ''});
 			attackReady = tR.score && stats.stamina.num > tR.listStamina[0];
 			
-			if (attackReady && general.Select('MonsterGeneral')) {
-				return true;
-			}
-			
 			if (!attackReady || !tR.joinConditions.match(/:burn\b/)) {
 				result = monster.records.some( function(cM, i) {
 					//con.log(2, 'SCAN1', cM, cM.hide, cM.state, schedule.since(cM.review, reviewInterval));
@@ -293,6 +289,7 @@ chores,town,general,session,monster:true */
 					poolTimer = 'feed' + mpool,
 					mName = item.trim().replace(/:.*/, ''),
 					mTimer = 'feed' + mName,
+					text,
 					sOname = 'feedSummonObj' + mpool,
 					sO = state.getItem(sOname, {}),
 					poolReg = new RegExp ('user=' + stats.FBID + '&mpool=(' + mpool + ')\\b'),
@@ -371,13 +368,14 @@ chores,town,general,session,monster:true */
 					tempDiv = $j('#app_body tr .quest_desc').has('img[src*="' + sO.missing + '"]');
 					if ($u.hasContent(tempDiv)) {
 						// Have enough energy?
-						sO.energy = tempDiv.text().regexd(/(\d+) Energy/, 0);
-						if (sO.energy > stats.energy.num) {
+						text = tempDiv.text().trim().innerTrim();
+						sO.energy = text.regexd(/(\d+) Energy/, 0);
+						if (sO.energy > stats.energy.num || text.regexd(/(\d+) Experience/, 0) >= stats.exp.dif) {
 							state.setItem(sOname, sO);	
 							return false;
 						}
 						feed.sO = sO;
-						caap.ajaxLink('quests.php?' + tempDiv.find('form').serialize());
+						caap.navigate3('quests', 'quests.php?' + tempDiv.find('form').serialize(), 'QuestGeneral');
 						state.setItem(sOname, sO);
 						con.log(1, 'Doing quest for ' + mName + ' orb in quest land ' + sO.land, item);
 						return true;

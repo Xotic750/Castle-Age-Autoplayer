@@ -177,7 +177,7 @@ schedule,state,general,session,battle:true */
 				t = {score : 0},
 				result = false,
 				seal = fR[which].seal ? 'seal' : 'normal',
-				landReturn = isloe ? when == 'Blue Crystals' && !loe.blueDay() : fR.state != 'Active' || stats.conquest.Guardian > when;
+				landReturn = which == 'your' && stats.conquest.Guardian > when ? false : isloe ? when == 'Blue Crystals' && !loe.blueDay() : fR.state != 'Active' ;
 				
 			if (when == 'Never' || !stats.guildTokens.num || landReturn) {
 				return false;

@@ -87,7 +87,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
         'Income',
         'Banking',
         'Collect',
-        'SubQuest',
+        'Quest',
         'Classic Class',
         '10v10 Class',
         '100v100 Class',
@@ -115,7 +115,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				worker.addPageCheck({page : 'ajax:player_loadouts.php?loadout=' + v + '&selection=4', hours : 5});
 			});
 			
-			['SubQuest', 'Monster', 'Buy', 'Idle', 'Collect'].forEach( function(g) {
+			['Quest', 'Monster', 'Buy', 'Idle', 'Collect', 'Fortify', 'Invade', 'Duel', 'War', 'GuildMonster'].forEach( function(g) {
 				config.deleteItem(g + 'LevelUpGeneral');
 			});
 				
@@ -159,6 +159,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				if (general.records.length < i + 1) {
 					general.records.push(new general.record().data);
 				}
+				
 				gR = general.records[i];
 				if (name !== gR.name) {
 					gR = general.isLoadout(gR.name) ? gR : new general.record().data;
@@ -168,6 +169,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 					state.setItem('wsave_general', true);
 				}
 				gR.nameBeforeReset = l.match(/Set\d+/i) ? gR.nameBeforeReset : l;
+				general.records[i] = gR;
 			});
 			stats.records.total = general.records.length;
 			
@@ -338,9 +340,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				gR = general.getRecordByField('value', tNum.numberOnly());
 				
 				text = $j('#loadout_general img').attr('src');
-				if ($u.hasContent(text)) {
-					gR.general = general.getRecordByField('img', text.regex(/.*\/(\w+\.\w+)/)).name;
-				}
+				gR.general = $u.hasContent(text) ? general.getRecordByField('img', text.regex(/.*\/(\w+\.\w+)/)).name : 'Use Current';
 				
 				gR.powers = $j.makeArray($j('#loadout_powers').find('img').map(function() {
 					return $j(this).attr('src').regex(/(\w+\.\w+)$/); 
@@ -355,7 +355,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 					state.deleteItem('generalKeep');
 				}
 				
-				tNum = ['No', 'Warrior', 'Rogue', 'Mage', 'Cleric'].indexOf($j('#loadout_class').text().trim().innerTrim().regexd(/CLASS (\w+)/, 'No'))
+				tNum = ['No', 'Warrior', 'Rogue', 'Mage', 'Cleric'].indexOf($j('#loadout_class').text().trim().innerTrim().regexd(/CLASS (\w+)/, 'No'));
 				gR.mClass = tNum == 0 ? gR.mClass : tNum;
 				
 				tempDiv = $j('#app_body div[id^="open_power_slot_"]');
@@ -509,7 +509,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
             'Angelica',
             'Morrigan',
             'Valiant'],
-        SubQuest : [
+        Quest : [
             'Under Level',
             'Sano',
             'Titania']
@@ -744,38 +744,6 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
         }
     };
 
-    general.LevelUpCheck = function (whichGeneral) {
-        try {
-            var generalType = '',
-                use = false,
-                keepGeneral = false;
-
-            generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
-            if ((stats.stamina.num > stats.stamina.max || stats.energy.num > stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
-                if (config.getItem(generalType + 'LevelUpGeneral', false)) {
-                    con.log(2, "Keep Level Up General");
-                    keepGeneral = true;
-                } else {
-                    con.warn("User opted out of keep level up general for", generalType);
-                }
-            } else if (state.getItem('KeepLevelUpGeneral', false)) {
-                con.log(1, "Clearing Keep Level Up General flag");
-                state.setItem('KeepLevelUpGeneral', false);
-            }
-
-            if (config.getItem('Level_UpGeneral', 'Use Current') !== 'Use Current' && (general.menuList.hasIndexOf(generalType) || generalType === 'Quest')) {
-                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && stats.exp.dif && stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
-                    use = true;
-                }
-            }
-
-            return use;
-        } catch (err) {
-            con.error("ERROR in general.LevelUpCheck: " + err.stack);
-            return undefined;
-        }
-    };
-
     general.getCoolDownType = function (whichGeneral) {
         try {
             var generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
@@ -818,10 +786,11 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 	
     // Convert from a role like "IdleGeneral" to a specific general required, and then calls a function to select that general
 	// If returnNametf is true, it returns the name of the general it would select, but doesn't actually change
-    general.Select = function (whichGeneral, returnNametf) {
+    general.Select = function (whichGeneralwExp, returnNametf) {
         try {
             var targetGeneral = '',
-                levelUp = general.LevelUpCheck(whichGeneral),
+				expGain = whichGeneralwExp.regexd(/:(\d+)/, 0),
+				whichGeneral = whichGeneralwExp.replace(/:.*/, ''),
 				underLevelGenerals = [],
 				useStaminaAction = !['arena.doArenaBattle', 'caap.conquestBattle'].hasIndexOf(session.getItem('ThisAction', 'none'))
 					&& !caap.inLevelUpMode() && ['InvadeGeneral', 'DuelGeneral'].hasIndexOf(whichGeneral)
@@ -836,10 +805,10 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
                 return caap.navigateTo('generals');
             }
 			
-            con.log(3, 'Cool', coolType, coolName);
-            if (levelUp) {
+            if (expGain >= stats.exp.dif && config.getItem('Level_UpGeneral', 'Use Current') != 'Use Current') {
                 whichGeneral = 'Level_UpGeneral';
-                con.log(2, 'Using level up general');
+				coolType = general.getCoolDownType(whichGeneral);
+                con.log(2, 'Level Up! Action could give up to ' + expGain + ' exp and only ' + stats.exp.dif + ' exp to next level');
             }
 
             //Check what target general should be
@@ -850,7 +819,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
                 return returnNametf ? 'Use Current' : false;
             }
 			
-            if (!levelUp && /under level/i.test(targetGeneral)) {
+            if (/under level/i.test(targetGeneral)) {
 				underLevelGenerals = general.records.filter( function(g) {
 					return !general.isLoadout(g.name) && g.pct < 100;
 				});
@@ -1056,18 +1025,18 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
     general.menu = function () {
         try {
 			general.BuildLists();
+			
+			// Should be ok to remove update step after June 2015 -- Artifice
+			if (!config.getItem('QuestGeneral') && config.getItem('SubQuestGeneral')) {
+				config.setItem('QuestGeneral', config.getItem('SubQuestGeneral'));
+				config.deleteItem('SubQuestGeneral');
+			}
+			
             // Add General Comboboxes
             var LevelLowestFirstInst = "This will make the script level lowest level generals first. If unchecked, it will level up the highest generals first.",
-	            LevelUpGenExpInstructions = "Specify the number of experience " +
-                    "points below the next level up to begin using the level up general.",
-                LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
-                LevelUpGenInstructions4 = "Use the Level Up General for Invade mode.",
-                LevelUpGenInstructions5 = "Use the Level Up General for Duel mode.",
-                LevelUpGenInstructions6 = "Use the Level Up General for War mode.",
                 LevelUpGenInstructions9 = "Ignore Banking until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
-                LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
                 timedLoadoutsList = "List of specific loadouts and time that loadout should loaded, such as '1 PM@Loadout Guild, 7 PM@Loadout Guild, 3@Loadout LoM, 14:30 - 18:30@Use Current",
                 timedFreezeInstructions = "If CAAP tries to equip a different general during a timed loadout or Guild Battle, freeze CAAP until time is up.  If not checked, CAAP will continue but without changing the general.",
                 coolDown = '',
@@ -1084,12 +1053,6 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
                 htmlCode += coolDown ? caap.makeDropDownTR("Cool", coolDown, general.coolDownList, '', '', '', true, false, 62, '', '_cool_row', general.coolDownList.length > 1 ? "display: block;" : "display: none;") : '';
             });
             htmlCode += caap.display.start('Level_UpGeneral', 'isnot', 'Use Current');
-            htmlCode += caap.makeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 55, '', '', true, false);
-            htmlCode += caap.makeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Fortify", 'FortifyLevelUpGeneral', true, LevelUpGenInstructions3, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
-            htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
             htmlCode += caap.makeCheckTR("Do not Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
             htmlCode += caap.makeCheckTR("Do not Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
             htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
@@ -1227,11 +1190,11 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 							item: ''
 						},
 						i = 0,
-                        len = 0,
+                        len2 = 0,
                         gen = {},
                         page = session.getItem("page", "");
 
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                    for (i = 0, len2 = e.target.attributes.length; i < len2; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             changeLink.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
