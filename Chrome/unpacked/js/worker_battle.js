@@ -305,7 +305,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Calculate min or max Rank to fight based on config menu setting
 	battle.minMaxRankF = function(w, minMax) {
 		var conf = $u.setContent(config.getItem(w[minMax], ''), minMax.match(/max/i) ? '1000' : '0');	
-		return conf.match(/[\+\-]/) ? stats.rank[w.myRank] + Number(conf) : conf;
+		return conf.toString().match(/[\+\-]/) ? stats.rank[w.myRank] + Number(conf) : conf;
 	};
 	
 	battle.init = function() {
@@ -428,6 +428,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 	worker.addAction({worker : 'battle', priority : 1050, description : 'Battling Players'});
 	
+	// Options either used for 'monster' to trigger lower priority call, or with a number when called from monster to burn extra stamina
     battle.worker = function(options) {
         try {
             var type = config.getItem('TargetType', 'Invade'),
@@ -445,39 +446,47 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			Check ready to battle and what type of battle
 			\-------------------------------------------------------------------------------------*/
 			
-			switch (whenBattle) {
-			case 'Never':
-				return {action: false, mess: ''};
-			case 'Stay Hidden':
-				if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
-					return {action: false, mess: 'No need to hide'};
+			if (!$u.isNumber(options) && whenBattle != 'Never') {
+				switch (whenBattle) {
+				case 'Never':
+					return {action: false, mess: ''};
+				case 'Stay Hidden':
+					if (!caap.needToHide() && config.getItem('delayStayHidden', true) === true) {
+						return {action: false, mess: 'No need to hide'};
+					}
+					break;
+				case 'Only Demipoints or Zin/Misa':
+					if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(w.general)) {
+						return {action: false, mess: 'Demipoints and Zin/Misa done'};
+					}
+					break;
+				default:
+					break;
 				}
-				break;
-			case 'Only Demipoints or Zin/Misa':
-				if (!battle.demisPointsToDo('left') && !general.ZinMisaCheck(w.general)) {
-					return {action: false, mess: 'Demipoints and Zin/Misa done'};
+				
+				// What kind of battle?
+				if (demisLeft || general.ZinMisaCheck(w.general)) {
+					battleOrOverride = 'battleOverride';
+					caap.setDivContent('battle_mess', 'Battle: Doing ' + (demisLeft ? 'Demi Points' : 'Zin or Misa'));
+					if (which == 'War') {
+						which = config.getItem('zinDemiType', 'Invade');
+						w = battle[which];
+					} 
+					
+				} else if (config.getItem('battleMonsterWait', false)) {
+					if (options != 'monster') {
+						return false;
+					}
+					if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
+						return {action: false, mess: 'Waiting for monster'};
+					}
 				}
-				break;
-			default:
-				break;
-			}
-			
-			// What kind of battle?
-			if (demisLeft || general.ZinMisaCheck(w.general)) {
-				battleOrOverride = 'battleOverride';
-				caap.setDivContent('battle_mess', 'Battle: Doing ' + (demisLeft ? 'Demi Points' : 'Zin or Misa'));
+			} else {
 				if (which == 'War') {
 					which = config.getItem('zinDemiType', 'Invade');
 					w = battle[which];
-				} 
-				
-			} else if (config.getItem('battleMonsterWait', false)) {
-				if (options != 'monster') {
-					return false;
 				}
-				if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
-					return {action: false, mess: 'Waiting for monster'};
-				}
+				battleOrOverride = 'battleOverride';
 			}
 			
             if (stats.level < w.minLevel) {
