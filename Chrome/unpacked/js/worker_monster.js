@@ -101,7 +101,9 @@ config,con,gm,schedule,state,general,session,monster:true */
         }
     };
 	
+	/*jslint unparam: false */
     monster.checkResults_list = function (page, resultsText, ajax, slice) {
+	/*jslint unparam: true */
         try {
 			var lastClick = $u.setContent(monster.lastClick, session.getItem('clickUrl','')),
 				pageURL = session.getItem('clickUrl', ''),
@@ -325,7 +327,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				cM.name = 'Your ' + $u.setContent(cM.monster, 'Unknown Monster');
 			} else {
 				if ($u.hasContent(monsterDiv)) {
-					cM.userName = monsterDiv.text().trim().innerTrim().regex(isRaid ? /(.+)'s The Deathrune/i : /(?:Monster Codes: \w+:\d )?(.+?)(?:'s)? summoned/i);
+					cM.userName = monsterDiv.text().trim().innerTrim().regex(isRaid ? /(.+)'s The Deathrune/i : /(?:Monster Codes?: \w+:\d+ )?(.+?)(?:'s)? summoned/i);
 					if (!cM.userName) {
 						con.warn('Unable to find summoner name in monster div', monsterDiv.text(), monsterDiv);
 					}
@@ -561,6 +563,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 						con.warn("Missing nm_bottom to find class");
 						cM.charClass = false;
 					}
+				} else {
+					cM.charClass = false;
 				}
 
 				// if the monster has parts, hit the weakest minion first, and then hit the part with the least health next
@@ -1019,12 +1023,11 @@ config,con,gm,schedule,state,general,session,monster:true */
             }
 
             var link = '',
-                result = false,
 				i = 0,
 				time = 60,
 				hunterPts = config.getItem('WhenHunter','Never'),
 				conquestCollect = false,
-				cM = {},
+				result = false,
 				message = 'Reviewing ';
 
             for (i = 0; i < stats.reviewPages.length; i++) {
@@ -1038,17 +1041,15 @@ config,con,gm,schedule,state,general,session,monster:true */
                 return false;
             }
 
-            for (i = 0; i < monster.records.length; i++) {
-                cM = monster.records[i];
-                /*jslint continue: true */
+            monster.records.some( function(cM, i) {
 				
 				// Skip monsters we haven't joined, unless in conquest lands
                 if (cM.state == 'Join' && cM.lpage != "ajax:player_monster_list.php?monster_filter=2") {
-                    continue;
+                    return false;
                 }
 				// Skipping raids until fixed
                 if (cM.link.hasIndexOf('raid.php')) {
-                    continue;
+                    return false;
                 }
                 if (cM.color === 'grey' && cM.life == 100) {
                     cM.life = 0;
@@ -1102,24 +1103,16 @@ config,con,gm,schedule,state,general,session,monster:true */
 				}
 				
                 if (message === 'Reviewing ' && !schedule.since(cM.review, time)) {
-                    continue;
+                    return false;
                 }
-                /*jslint continue: false */
 
-                caap.setDivContent('monster_mess', message + (i + 1) + '/' + monster.records.length + ' ' + cM.name);
-
-				con.log(1, message + (i + 1) + '/' + monster.records.length + ' ' + cM.name, link, cM);
-
-				result = caap.navigate2(link);
-				if (result == 'fail') {
-					caap.navigate2('keep');
-				}
+				caap.navigate2(link);
 				monster.lastClick = cM.link;
-				return result;
-            }
+				result = {mlog: message + (i + 1) + '/' + monster.records.length + ' ' + cM.name};
+				return true;
+            });
 
-            caap.setDivContent('monster_mess', '');
-            return false;
+            return result;
         } catch (err) {
             con.error("ERROR in monster.review: " + err.stack);
             return false;
@@ -1242,11 +1235,28 @@ config,con,gm,schedule,state,general,session,monster:true */
 					
 					if (!statRequire || statRequire * xpPerPt >= stats.exp.dif) { // Small power hit no go
 						if (statList[0] == 1 && gMult * xpPerPt < stats.exp.dif) { // Small single hit ok?
-							statRequire = 1 * gMult;
-						} else if (stats.energy.num > cQ.energy && (cQ.experience < stats.exp.dif || cQ.experience > statRequireBig * 2.2)) {
-							result = caap.quests();
-							if (caap.passThrough(result)) { // If just about to do big hit, do any quests to use energy first.
-								return result;
+							statRequire = gMult;
+						} else {
+							// If just about to do big hit, do any quests to use energy first.
+							if (stats.energy.num > cQ.energy && cQ.experience < stats.exp.dif) {
+								result = caap.quests();
+								if (caap.passThrough(result)) { 
+									return result;
+								}
+							}
+							// Next see if we can use any of the remaining stamina in battle
+							if (stats.exp.dif > 5 && stats.stamina.num - statRequireBig > 0) {
+								result = battle.worker(stats.stamina.num - statRequireBig);
+								if (caap.passThrough(result)) { 
+									return result;
+								}
+							}
+							// Last do a big quest if that's the biggest we've got
+							if (stats.energy.num > cQ.energy && cQ.experience > statRequireBig * 2.2) {
+								result = caap.quests();
+								if (caap.passThrough(result)) { // If just about to do big hit, do any quests to use energy first.
+									return result;
+								}
 							}
 						}
 						// If too close to levelling for a power attack, do max attack to carry over xp
@@ -1320,8 +1330,8 @@ config,con,gm,schedule,state,general,session,monster:true */
                     // not power attack only normal attacks
                     buttonList = monster.singleButtons;
                 } else {
-					if (caap.ifClick('darkrage_button1.gif')) {
-						return {mlog: 'Engaging Dark Raaaage on ' + cM.name};
+					if (!cM.conditions.match(/:!dr\b/) && caap.ifClick('darkrage_button1.gif')) {
+						return {mlog: 'Engaging Dark RAAAAAGE on ' + cM.name};
 					}
                     if (/:tac/i.test(cM.conditions) && stats.level >= 50) {
                         useTactics = true;
@@ -1637,10 +1647,10 @@ config,con,gm,schedule,state,general,session,monster:true */
 	monster.cleanLink = function(link, casuser, mpool) {
 		var temp;
 		if (!$u.isString(link) || link.length === 0) {
-			link = session.getItem('clickUrl', '').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
+			link = session.getItem('clickUrl', '');
 		}
 		//con.log(2, 'CleanLink', link, casuser, mpool);
-		temp = link.replace(/http.*\//,'');
+		temp = link.replace(/http.*\//,'').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 		link = temp.replace(/\?.*/,'') + '?';
 		['casuser=', 'mpool=', 'guild_creator_id=', 'guild_created_at=', 'slot=', 'monster_slot=', 'mid=', 'tower='].forEach( function(piece) {
 			if (piece == 'casuser=' && temp.indexOf(piece) >= 0 && $u.setContent(casuser, 0) > 0) {
@@ -2062,7 +2072,10 @@ config,con,gm,schedule,state,general,session,monster:true */
         try {
 
 			monster.records = monster.records.filter( function(mR) {
-				return (which == 'Feed') !== (mR.state == 'Join');
+				var joinable = (mR.state == 'Join'),
+					isFeed = (which == 'Feed');
+					
+				return isFeed !== joinable;
 			});
 			
 			if (which != 'Feed') {
@@ -2581,8 +2594,10 @@ config,con,gm,schedule,state,general,session,monster:true */
                 head = caap.makeTr(head);
                 values.shift();
                 monster.records.forEach(function(cM) {
-					//con.log(2, "MONSTER DASH",cM);
-					if ((cM.state == 'Join') != (which == 'Feed')) {
+					var joinable = cM.state == 'Join',
+						isFeed = which == 'Feed';
+
+					if (joinable != isFeed) {
 						return;
 					}
                     row = '';
@@ -2764,17 +2779,17 @@ config,con,gm,schedule,state,general,session,monster:true */
 							mname: '',
 							rlink: '',
 							arlink: ''},
-						i = 0,
-						len = 0;
+						ii = 0,
+						len2 = 0;
 
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[i].value;
-                        } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitMonsterLink.rlink = e.target.attributes[i].value;
+                    for (ii = 0, len2 = e.target.attributes.length; ii < len2; ii += 1) {
+                        if (e.target.attributes[ii].nodeName === 'mname') {
+                            visitMonsterLink.mname = e.target.attributes[ii].value;
+                        } else if (e.target.attributes[ii].nodeName === 'rlink') {
+                            visitMonsterLink.rlink = e.target.attributes[ii].value;
                             visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.altered + "/", "");
-                        } else if (e.target.attributes[i].nodeName === 'mlink') {
-                            visitMonsterLink.mlink = e.target.attributes[i].value;
+                        } else if (e.target.attributes[ii].nodeName === 'mlink') {
+                            visitMonsterLink.mlink = e.target.attributes[ii].value;
                         }
                     }
 
@@ -2794,9 +2809,9 @@ config,con,gm,schedule,state,general,session,monster:true */
                         arlink: ''
                     },
                     i = 0,
-                    len = 0;
+                    len2 = 0;
 
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                    for (i = 0, len2 = e.target.attributes.length; i < len2; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             monsterRemove.mname = e.target.attributes[i].value;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
