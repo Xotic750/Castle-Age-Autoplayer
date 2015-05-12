@@ -273,7 +273,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 			}
 			
             if (stats.energy.num < Math.min(minEnergy + 100, stats.energy.norm - 15)) {
-				return {action: false, mess: 'Waiting for ' + stats.energy.num + '/' + (unitMin * 25 + energyConfig)};
+				return {action: false, mess: 'Waiting for ' + stats.energy.num + '/' + Math.min(minEnergy + 100, stats.energy.norm - 15)};
 			}
 			
 			if (essence.eR && caap.ifClick(caap.checkForImage('trade_btn_confirm.gif', $j("#single_popup_content")))) {

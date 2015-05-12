@@ -27,29 +27,7 @@ schedule,state,general,session */
     };
 	
 	conquest.init = function() {
-		try {
-
-			// Keep best 250 targets
-			if (conquest.records.length > 250) {
-				var which = 'Conq' + config.getItem('ConquestType', 'Invade');
-				
-				conquest.records.forEach( function(r) {
-					r.score = battle.scoring(r, which);
-				});
-				
-				conquest.records.sort($u.sortBy(true, 'score'));
-				
-				con.log(2, 'Conquest: Kept 250 recon targets and removed ' + (conquest.records.length - 250) + ' lesser targets');
-				conquest.records = conquest.records.slice(0, 249);
-				state.setItem('conqScore', conquest.records[249].score);
-				state.setItem('wsave_conquest', true);
-				state.setItem('wsave_conquest_noWarning', true);
-			}
-			
-        } catch (err) {
-            con.error("ERROR in conquest.init: " + err.stack);
-            return false;
-        }
+		recon.init('Conq' + config.getItem('ConquestType', 'Invade'));
     };
 	
 	conquest.checkResults = function(page, resultsText) {
@@ -315,7 +293,7 @@ schedule,state,general,session */
                     'Target levels 900 and up'
                 ],
                 typeList = ['Invade', 'Duel'],
-                levelList = ['Any', '300+', '600+', '900+'],
+                levelList = ['Any', '301+', '601+', '901+'],
                 typeInst = ['Conquest using Invade button', 'Conquest using Duel button - no guarentee you will win though'],
                 htmlCode = '',
 				catList = [],

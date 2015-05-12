@@ -48,11 +48,15 @@ gm,hiddenVar,battle,general */
 			indicators: {
 				bsi: 0,
 				lsi: 0,
-				sppl: 0,
+				bsib: 0,
+				lsib: 0,
+				spplb: 0,
 				api: 0,
 				dpi: 0,
 				mpi: 0,
-				mhbeq: 0,
+				ttl: 0,
+				eSta: 0,
+				eEne: 0,
 				htl: 0,
 				hrtl: 0,
 				enl: 0,
@@ -443,14 +447,19 @@ gm,hiddenVar,battle,general */
 				// Indicators
 				if (stats.level >= 10) {
 					stats.indicators.bsi = ((stats.attack + stats.defense) / stats.level).dp(2);
+					stats.indicators.bsib = ((stats.attack + stats.bonus.attack + stats.defense + stats.bonus.defense) / stats.level).dp(2);
+					stats.indicators.lsi = ((stats.energy.max + (2 * stats.stamina.max)) / stats.level).dp(2);
 					stats.indicators.lsi = ((stats.energy.max + (2 * stats.stamina.max)) / stats.level).dp(2);
 					stats.indicators.sppl = ((stats.energy.max + (2 * stats.stamina.max) + stats.attack + stats.defense + stats.health.max - 122) / stats.level).dp(2);
+					stats.indicators.spplb = ((stats.energy.max + (2 * stats.stamina.max) + stats.indicators.bsib * stats.level + stats.health.max - 122) / stats.level).dp(2);
 					stats.indicators.api = (stats.attack + (stats.defense * 0.7)).dp(0);
 					stats.bonus.api = stats.indicators.api + (stats.bonus.attack + (stats.bonus.defense * 0.7)).dp(0);
 					stats.indicators.dpi = ((stats.defense + (stats.attack * 0.7))).dp(0);
 					stats.bonus.dpi = stats.indicators.dpi + (stats.bonus.defense + (stats.bonus.attack * 0.7)).dp(0);
 					stats.indicators.mpi = (((stats.indicators.api + stats.indicators.dpi) / 2)).dp(0);
-					stats.indicators.mhbeq = ((stats.attack + (2 * stats.stamina.max)) / stats.level).dp(2);
+					stats.indicators.ttl = ((12.5 * stats.level + 6.25 - stats.energy.max * 1.4 - stats.stamina.max * 2.2) / 3.6 / (60 / 2.5) / 24).dp(2);
+					stats.indicators.eSta = (24 * 24 + stats.stamina.max / stats.indicators.ttl).dp(0);
+					stats.indicators.eEne = (24 * 24 + stats.energy.max / stats.indicators.ttl).dp(0);
 					if (stats.attack >= stats.defense) {
 						temp = stats.attack / stats.defense;
 						if (temp === stats.attack) {
@@ -572,7 +581,7 @@ gm,hiddenVar,battle,general */
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.bsi,
+						text: stats.indicators.bsi + ' (' + stats.indicators.bsib + ')',
 						color: '',
 						id: '',
 						title: ''
@@ -600,7 +609,7 @@ gm,hiddenVar,battle,general */
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.sppl,
+						text: stats.indicators.sppl + ' (' + stats.indicators.spplb + ')',
 						color: '',
 						id: '',
 						title: ''
@@ -623,7 +632,7 @@ gm,hiddenVar,battle,general */
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.api,
+						text: stats.indicators.api + ' (' + stats.bonus.api + ')',
 						color: '',
 						id: '',
 						title: ''
@@ -637,7 +646,7 @@ gm,hiddenVar,battle,general */
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.dpi,
+						text: stats.indicators.dpi + ' (' + stats.bonus.dpi + ')',
 						color: '',
 						id: '',
 						title: ''
@@ -667,28 +676,28 @@ gm,hiddenVar,battle,general */
 					});
 
 					row += caap.makeTd({
-						text: 'MHBEQ',
+						text: 'eSTA',
 						color: '',
 						id: '',
-						title: 'Monster Hunting Build Effective Quotent'
+						title: 'Effective Daily Stamina'
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.mhbeq,
+						text: stats.indicators.eSta,
 						color: '',
 						id: '',
 						title: ''
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: 'Build',
+						text: 'eEne',
 						color: '',
 						id: '',
-						title: 'Character build type'
+						title: 'Effective Daily Energy'
 					}, "font-size:14px;");
 
 					row += caap.makeTd({
-						text: stats.indicators.build,
+						text: stats.indicators.eEne,
 						color: '',
 						id: '',
 						title: ''

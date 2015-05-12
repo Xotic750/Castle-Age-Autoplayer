@@ -167,7 +167,8 @@ schedule,state,general,session,battle:true */
 	loe.worker = function (which, land) {
         try {
 			var isloe = land == 'loe',
-				when = config.getItem('When' + (isloe ? 'LoE' : 'Guardian'), 'Never'),
+				whenLoE = config.getItem('When' + (isloe ? 'LoE' : 'Guardian'), 'Never'),
+				whenGuard = config.getItem('WhenGuardian', 'Never').regexd(/(\d+)/, 0),
 				fR = gb.getRecord(land),
 				gf = gb[fR.label], 
 				stun = 'unstunned',
@@ -177,9 +178,10 @@ schedule,state,general,session,battle:true */
 				t = {score : 0},
 				result = false,
 				seal = fR[which].seal ? 'seal' : 'normal',
-				landReturn = isloe ? when == 'Blue Crystals' && !loe.blueDay() : fR.state != 'Active' || stats.conquest.Guardian > when;
+				doLand = which == 'your' && stats.conquest.Guardian >= whenGuard ? false : isloe ?
+					whenLoE != 'Never' && (whenLoE != 'Blue Crystals' || loe.blueDay()) : fR.state == 'Active';
 				
-			if (when == 'Never' || !stats.guildTokens.num || landReturn) {
+			if (!stats.guildTokens.num || !doLand) {
 				return false;
 			}
 			if (!fR.t.score) {

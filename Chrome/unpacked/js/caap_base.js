@@ -2656,245 +2656,6 @@ gb,essence,gift,chores */
         }
     };
 
-    caap.addDashboard = function() {
-        try {
-            /*-------------------------------------------------------------------------------------\
-             Here is where we construct the HTML for our dashboard. We start by building the outer
-             container and position it within the main container.
-             \-------------------------------------------------------------------------------------*/
-            var layout = "<div id='caap_top'>",
-                displayList = [
-                    'Arena Stats',
-                    'Army',
-                    'Battle Stats',
-                    'Feed',
-                    '100v100',
-                    'Generals Stats',
-//                    'Gift Queue',
-//                    'Gifting Stats',
-                    'Guild Essence',
-                    'Guild Monster',
-                    'Classic',
-                    '10v10',
-                    'Monster',
-                    'Target List',
-                    'Town Stats',
-                    'User Stats'
-                ],
-                displayInst = [
-                    'Display your Army Members, the last time they leveled up and choose priority Elite Guard.',
-                    'Display your Battle history statistics, who you fought and if you won or lost.',
-                    'Display the monsters that have been seen in your Live Feed and/or Guild Feed that are still valid.',
-                    'Display the 100v100 battle in progress.',
-                    'Display information about your Generals.',
-//                    'Display your current Gift Queue.',
-//                    'Display your Gifting history, how many gifts you have received and returned to a user.',
-                    'Display Essence Storage space for Guilds that have been scouted.',
-                    'Display information about your Guild Monster.',
-                    'Display the Guild battle in progress.',
-                    'Display the 10v10 battle in progress.',
-                    'Display your Monster battles.',
-                    'Display information about Targets that you have performed reconnaissance on.',
-                    'Display information about items and solders',
-                    'Display information about your account and character statistics.'
-                    ],
-                    styleXY = {
-                        x : 0,
-                        y : 0
-                    },
-                    bgc = state.getItem("StyleBackgroundLight", "#E0C961");
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in our Refresh Monster List button which will only show when we have
-            selected the Monster display.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'None') === 'Monster' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in our Refresh Feed List button which will only show when we have
-            selected the Feed display.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'None') === 'Feed' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_refreshFeeds' value='Refresh Feed List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in our Guild and Festival battle dropdown which will only show when we have
-            selected the Guild or Festival battle display.
-            \-------------------------------------------------------------------------------------*/
-
-            layout += "<div id='caap_GFDisplay' style='font-size: 9px;position:absolute;top:0px;left:250px;display:" + (['100v100','Classic', '10v10'].hasIndexOf(config.getItem('DBDisplay', 'Monster')) ? 'block' : 'none') + "'>Table: ";
-            layout += caap.makeDropDown('GFDisplay', ['Opponent','My Guild'], ['Them','Us'], '', 'Opponent', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in our Refresh Generals List button which will only show when we have
-            selected the Generals display.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonGenerals' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_refreshGenerals' value='Refresh Generals List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in our Refresh Guild Monster List button which will only show when we have
-            selected the Guild Monster display.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonGuildMonster' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_refreshGuildMonsters' value='Refresh Guild Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Target List button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearTargets' value='Clear Targets List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Battle Stats button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonBattle' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearBattle' value='Clear Battle Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Arena Stats button which will only show when we have
-            selected the Target List display
-            \-------------------------------------------------------------------------------------
-            layout += "<div id='caap_buttonArena' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearArena' value='Clear Arena Stats' style='padding: 0; font-size: 9px; height: 18px' /></div>";*/
-
-            /*-------------------------------------------------------------------------------------\
-            Next we put in the Clear Guild Essence button which will only show when we have
-            selected the Guild Essence display
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonGuilds' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'>";
-            layout += "<input type='button' id='caap_clearGuilds' value='Clear Guild Essence' style='padding: 0; font-size: 9px; height: 18px' />";
-            layout += "<input type='button' id='caap_rescanGuilds' value='Rescan Essence' style='padding: 0; font-size: 9px; height: 18px' />";
-            layout += "</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Then we put in the Live Feed link since we overlay the Castle Age link.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:10px;'><input id='caap_liveFeed' type='button' value='Live Feed' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-             Then we put in the Crusaders link since we overlay the Castle Age link.
-             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonCrusaders' style='position:absolute;top:0px;left:80px;'><input id='caap_crusaders' type='button' value='Crusaders' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            Then we put in the Fast Heal.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonFastHeal' style='position:absolute;top:0px;left:160px;'><input id='caap_fastHeal' type='button' value='Fast Heal' style='padding: 0; font-size: 9px; height: 18px' /></div>";
-
-            /*-------------------------------------------------------------------------------------\
-            We install the display selection box that allows the user to toggle through the
-            available displays.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:25px;'>Display: ";
-            layout += caap.makeDropDown('DBDisplay', displayList, displayInst, '', 'User Stats', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            We install the minimize/maximise button that allows the user to make the dashboard
-            appear or disappear.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_dashMin' class='ui-icon ui-icon-circle-minus' style='position:absolute;top:0px;right:5px;' title='Minimise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            And here we build our empty content divs.  We display the appropriate div
-            depending on which display was selected using the control above
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_guildMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gbClassic' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Classic' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gb10' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '10v10' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoArena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_Town_Stats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Town Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_gb100' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === '100v100' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoFeed' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Feed' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoGuilds' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Guild Essence' ? 'block' : 'none') + "'></div>";
-            layout += "</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            No we apply our CSS to our container
-            \-------------------------------------------------------------------------------------*/
-            caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
-            caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top);
-            styleXY = caap.getDashboardXY();
-            $j(layout).css({
-                background : bgc,
-                color : $u.bestTextColor(bgc),
-                padding : "5px",
-                height : "175px",
-                width : "610px",
-                margin : "0 auto",
-                opacity : state.getItem('StyleOpacityLight', 1),
-                top : styleXY.y + 'px',
-                left : styleXY.x + 'px',
-                zIndex : state.getItem('caap_top_zIndex', 1),
-                position : 'absolute',
-                display : config.getItem("dashMinimised", false) ? 'none' : 'block'
-            }).appendTo(document.body);
-
-            caap.caapTopObject = $j('#caap_top');
-            $j("input[type='button']", caap.caapTopObject).button();
-            return true;
-        } catch (err) {
-            con.error("ERROR in addDashboard: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.addDashboardMin = function() {
-        try {
-            /*-------------------------------------------------------------------------------------\
-            Here is where we construct the HTML for our dashboard. We start by building the outer
-            container and position it within the main container.
-            \-------------------------------------------------------------------------------------*/
-            var layout = "<div id='caap_topmin'>",
-                styleXY = {
-                    x : 0,
-                    y : 0
-                },
-                bgc = state.getItem("StyleBackgroundLight", "#E0C961");
-
-            /*-------------------------------------------------------------------------------------\
-            We install the display selection box that allows the user to toggle through the
-            available displays.
-            \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_dashMax' class='ui-icon ui-icon-circle-plus' style='position:absolute;top:0px;left:0px;' title='Maximise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
-            layout += "</div>";
-
-            /*-------------------------------------------------------------------------------------\
-            No we apply our CSS to our container
-            \-------------------------------------------------------------------------------------*/
-            styleXY = caap.getDashboardXY();
-            $j(layout).css({
-                background : bgc,
-                color : $u.bestTextColor(bgc),
-                padding : "5px",
-                height : "6px",
-                width : "6px",
-                margin : "0 auto",
-                opacity : state.getItem('StyleOpacityLight', 1),
-                top : styleXY.y + 'px',
-                left : styleXY.x + 'px',
-                zIndex : state.getItem('caap_top_zIndex', 1),
-                position : 'absolute',
-                display : config.getItem("dashMinimised", false) ? 'block' : 'none'
-            }).appendTo(document.body);
-
-            caap.caapTopMinObject = $j('#caap_topmin');
-            return true;
-        } catch (err) {
-            con.error("ERROR in addDashboardMin: " + err.stack);
-            return false;
-        }
-    };
-
     caap.addPlayButton = function() {
         try {
             /*-------------------------------------------------------------------------------------\
@@ -4146,9 +3907,6 @@ gb,essence,gift,chores */
         'index': {
             signaturePic: 'choose_demi.jpg'
         },
-        'onMonster': {
-            signaturePic: 'tab_monster_active.gif'
-        },
         'battle_monster': {
             signaturePic: 'tab_monster_active.gif'
         },
@@ -4158,18 +3916,14 @@ gb,essence,gift,chores */
         'battle_expansion_monster': {
             signaturePic: 'tab_monster_active.gif'
         },
-        'onRaid': {
-            signaturePic: 'raid_map'
-        },
         'player_monster_list': {
-            signaturePic: 'tab_monster_list_on.gif',
-            subpages: ['onMonster']
+            signaturePic: 'tab_monster_list_on.gif'
         },
         'public_monster_list': {
-            signaturePic: 'monster_button_pubmonster_on.jpg'       },
+            signaturePic: 'monster_button_pubmonster_on.jpg'
+		},
         'raid': {
-            signaturePic: 'battle_tab_raid_on.jpg',
-            subpages: ['onRaid']
+            signaturePic: 'battle_tab_raid_on.jpg'
         },
         'land': {
             signaturePic: 'fb_tab_land_on.jpg',
@@ -4509,10 +4263,8 @@ gb,essence,gift,chores */
 
     caap.checkResults_oracle = function () {
         try {
-            var favorDiv = $j("#app_body .title_action"),
-                text = '',
+            var text = '',
                 tNum = 0,
-                save = false,
                 tDiv,
                 lDiv;
 
@@ -5131,12 +4883,8 @@ gb,essence,gift,chores */
 					con.log(1, 'Getting $' + storeRetrieve + ' from bank');
 					return true;
 				}
-            } else if (caap.inLevelUpMode() && qO.experience >= stats.exp.dif) {
-				if (general.Select('Level_UpGeneral')) {
-					return {log: 'Using level up general for quest'};
-				}
-			} else if (general.Select('SubQuestGeneral')) {
-				return {log: 'Setting subquest general'};
+			} else if (general.Select('QuestGeneral:' + qO.experience)) {
+				return {log: 'Setting quest general'};
             }
 
             pathToPage = 'quests';
