@@ -1049,7 +1049,7 @@ config,con,gm,schedule,state,general,session,monster:true */
                 }
 				// Skipping raids until fixed
                 if (cM.link.hasIndexOf('raid.php')) {
-                    continue;
+                    return false;
                 }
                 if (cM.color === 'grey' && cM.life == 100) {
                     cM.life = 0;
