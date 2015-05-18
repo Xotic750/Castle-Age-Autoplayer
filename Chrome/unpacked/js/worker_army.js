@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,gm,ss,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,sort,
+/*global window,escape,stats,$j,rison,utility,gm,ss,
+$u,chrome,worker,self,caap,config,con,sort,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -69,6 +69,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				break;
 			case 'army_member' :
 				army.page();
+				break;
 			default:
 				break;
 			}
@@ -262,7 +263,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				con.warn('Army Add: no text field to enter army code', $j("input[name='army_code']").val(), addCode);
 				schedule.setItem('lastArmyAdd', 300);
 				return false;
-			} else if ($j("input[name='army_code']").val() != addCode) {
+			} 
+			if ($j("input[name='army_code']").val() != addCode) {
 				$j("input[name='army_code']").val(addCode);
 				return true;
 			}
@@ -274,7 +276,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				return false;
 			}
 			caap.click(inviteButton);
-			armyCodes = armyCodes.replace(new RegExp('\s*' + addCode + '\s*'), '').trim();
+			armyCodes = armyCodes.replace(new RegExp('\\s*' + addCode + '\\s*'), '').trim();
 			con.log(1, 'Army Add: Invited ' + addCode + ', ' + invites + ' invites, and ' + armyCodesLeft + ' codes left',armyCodes);
 			config.setItem('army_codes',armyCodes);
 			$j('#caap_army_codes').val(armyCodes); 
@@ -505,273 +507,53 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    army.dashboard = function () {
-        try {
-            /*-------------------------------------------------------------------------------------\
-            Next we build the HTML to be included into the 'caap_army' div. We set our
-            table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Army' && session.getItem("ArmyDashUpdate", true)) {
-                var headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', '&nbsp;'],
-                    values = ['userId', 'user', 'name', 'lvl', 'change'],
-                    color = '',
-                    pp = 0,
-                    i = 0,
-                    userIdLink = '',
-                    userIdLinkInstructions = '',
-                    removeLinkInstructions = '',
-                    len = 0,
-                    len1 = 0,
-                    str = '',
-                    header = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: '',
-                        width: ''
-                    },
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    handler = null,
-                    head = '',
-                    body = '',
-                    row = '',
-                    tempVar;
-
-                for (pp = 0; pp < headers.length; pp += 1) {
-                    header = {
-                        text: headers[pp],
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: '',
-                        width: ''
-                    };
-
-                    switch (headers[pp]) {
-                        case 'UserId':
-                            header.width = '18%';
-                            break;
-                        case 'User':
-                            header.width = '27%';
-                            break;
-                        case 'Name':
-                            header.width = '30%';
-                            break;
-                        case 'Level':
-                            header.width = '7%';
-                            break;
-                        case 'Change':
-                            header.width = '10%';
-                            break;
-                        case 'Elite':
-                            header.width = '7%';
-                            break;
-                        case '&nbsp;':
-                            header.width = '1%';
-                            break;
-                        default:
-                    }
-
-                    head += caap.makeTh(header);
-                }
-
-                head = caap.makeTr(head);
-                for (i = 0, len = army.records.length; i < len; i += 1) {
-                    if (army.records[i].userId > 0) {
-                        row = "";
-                        if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays4", 28) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor4", 'red');
-                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays3", 21) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
-                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays2", 14) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor2", 'gold');
-                        } else if (schedule.since(army.records[i].change, config.getItem("ArmyAgeDays1", 7) * 86400)) {
-                            color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
-                        } else {
-                            color = config.getItem("ArmyAgeDaysColor0", 'green');
-                        }
-
-                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            if (values[pp] === "change") {
-                                row += caap.makeTd({
-                                    text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? $u.makeTime(army.records[i][values[pp]], "d-m-Y") : '',
-                                    bgcolor: color,
-                                    color: $u.bestTextColor(color),
-                                    id: '',
-                                    title: ''
-                                });
-                            } else if (values[pp] === "userId") {
-                                str = $u.setContent(army.records[i][values[pp]], '');
-                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = "keep.php?casuser=" + str;
-                                data = {
-                                    text: '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
-                                    color: 'blue',
-                                    id: '',
-                                    title: ''
-                                };
-
-                                row += caap.makeTd(data);
-                            } else if (values[pp] === "user") {
-                                tempVar = army.records[i].appUser ? '' : config.getItem("ArmyAgeDaysColor4", 'red');
-                                userIdLinkInstructions = "Clicking this link will take you to the Facebook page of " + army.records[i][values[pp]];
-                                row += caap.makeTd({
-                                    text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? "<a href='http://www.facebook.com/profile.php?id=" +
-                                        army.records[i].userId + "'>" + army.records[i][values[pp]] + "</a>" : '',
-                                    bgcolor: tempVar,
-                                    color: $u.hasContent(tempVar) ? $u.bestTextColor(tempVar) : '',
-                                    id: '',
-                                    title: $u.hasContent(tempVar) ? 'User has either blocked Castle Age or is no longer a friend.' : userIdLinkInstructions
-                                });
-                            } else {
-                                row += caap.makeTd({
-                                    text: $u.hasContent(army.records[i][values[pp]]) && ($u.isString(army.records[i][values[pp]]) || army.records[i][values[pp]] > 0) ? army.records[i][values[pp]] : '',
-                                    color: '',
-                                    id: '',
-                                    title: ''
-                                });
-                            }
-                        }
-
-                        data = {
-                            text: '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.records[i].userId +
-                                '" cstate="' + (army.records[i].elite ? 'true' : 'false') + '" ' + (army.records[i].elite ? ' checked' : '') + ' />',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-
-                        tempVar = $u.setContent(army.records[i].user, '').escapeHTML();
-                        removeLinkInstructions = "Clicking this link will remove " + tempVar + " from your army!";
-                        data = {
-                            text: '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.records[i].userId + '" mname="' + tempVar +
-                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                        body += caap.makeTr(row);
-                    }
-                }
-
-                $j("#caap_army", caap.caapTopObject).html(
-                    $j(caap.makeTable("army", head, body)).dataTable({
-                        "bAutoWidth": false,
-                        "bFilter": false,
-                        "bJQueryUI": false,
-                        "bInfo": false,
-                        "bLengthChange": false,
-                        "bPaginate": false,
-                        "bProcessing": false,
-                        "bStateSave": true,
-                        "bSortClasses": false,
-                        "aoColumnDefs": [{
-                            "bSortable": false,
-                            "aTargets": [6]
-                        }, {
-                            "sSortDataType": "dom-checkbox",
-                            "aTargets": [5]
-                        }, {
-                            "sSortDataType": "scan-date",
-                            "aTargets": [4]
-                        }]
-                    })
-                );
-
-                handler = function (e) {
-                    var visitUserIdLink = {
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                        len = 0;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            visitUserIdLink.arlink = visitUserIdLink.rlink;
-                        }
-                    }
-
-                    caap.ajaxLink(visitUserIdLink.arlink);
-                };
-
-                $j("span[id*='caap_targetarmy_']", caap.caapTopObject).off('click', handler).on('click', handler);
-                handler = null;
-
-                handler = function (e) {
-                    var userid = 0,
-                        cstate = false,
-                        i = 0,
-                        len = 0,
-                        record = {};
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'userid') {
-                            userid = e.target.attributes[i].nodeValue.parseInt();
-                        } else if (e.target.attributes[i].nodeName === 'cstate') {
-                            cstate = e.target.attributes[i].nodeValue === 'true' ? true : false;
-                        }
-                    }
-
-                    if ($u.hasContent(userid) && userid > 0) {
-                        record = this.getRecord(userid);
-                        record.elite = !cstate;
-                        this.setRecord(record);
-                        session.setItem("ArmyDashUpdate", true);
-                        caap.updateDashboard(true);
-                    }
-                };
-
-                $j("input[id*='caap_elitearmy_']", caap.caapTopObject).off('change', handler).on('change', handler);
-                handler = null;
-
-                handler = function (e) {
-                    var mname = '',
-                        userid = '',
-                        i = 0,
-                        len = 0,
-                        resp = false;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'userid') {
-                            userid = e.target.attributes[i].nodeValue.parseInt();
-                        } else if (e.target.attributes[i].nodeName === 'mname') {
-                            mname = e.target.attributes[i].nodeValue;
-                        }
-                    }
-
-                    resp = confirm("Are you sure you want to remove " + mname + " from your army?");
-                    if (resp === true) {
-                        caap.ajaxLink("army_member.php?action=delete&player_id=" + userid);
-                        this.deleteRecord(userid);
-                        session.setItem("ArmyDashUpdate", true);
-                        caap.updateDashboard(true);
-                    }
-                };
-
-                $j("span[id*='caap_removearmy_']", caap.caapTopObject).off('click', handler).on('click', handler);
-                handler = null;
-
-                session.setItem("ArmyDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in army.dashboard: " + err.stack);
-            return false;
-        }
-    };
+	army.dashboard = {
+		name: 'Army',
+		inst: 'Display your Army Members, the last time they leveled up',
+		records: 'army',
+		tableTemplate: {
+			colorF: function(r) {
+				if (schedule.since(r.change, config.getItem("ArmyAgeDays4", 28) * 86400)) {
+					return config.getItem("ArmyAgeDaysColor4", 'red');
+				} 
+				if (schedule.since(r.change, config.getItem("ArmyAgeDays3", 21) * 86400)) {
+					return config.getItem("ArmyAgeDaysColor3", 'darkorange');
+				} 
+				if (schedule.since(r.change, config.getItem("ArmyAgeDays2", 14) * 86400)) {
+					return config.getItem("ArmyAgeDaysColor2", 'gold');
+				} 
+				if (schedule.since(r.change, config.getItem("ArmyAgeDays1", 7) * 86400)) {
+					return config.getItem("ArmyAgeDaysColor1", 'greenyellow');
+				}
+				return config.getItem("ArmyAgeDaysColor0", 'green');
+			}
+		},
+		
+		tableEntries: [  
+			{name: 'User ID', color: 'blue', format: 'text',
+				valueF: function(r) {
+					return '<a href="' + caap.domain.altered + '/keep.php?casuser=' + r.userId +
+						'" onclick="ajaxLinkSend(\'globalContainer\', \'keep.php?casuser=' + r.userId +
+						'\'); return false;" style="text-decoration:none;font-size:9px;color:blue;">' +
+						r.userId + '</a>';
+			}},
+			{name: 'User',
+				valueF: function(r) {
+					return $u.hasContent(r.user) && ($u.isString(r.user) || r.user > 0) ?
+						"<a href='http://www.facebook.com/profile.php?id=" + r.userId + "'>" + r.user + "</a>" : '';
+			}},
+			{name: 'Name'},
+			{name: 'Level', value: 'lvl'},
+			{name: 'Change',
+				valueF: function(r) {
+					return $u.hasContent(r.change) && ($u.isString(r.change) || r.change > 0) ? $u.makeTime(r.change, "d-m-Y") : '';		
+			}},
+			{name: '&nbsp;', format: 'unsortable',
+				valueF: function(r) {
+					return '<a href="' + caap.domain.altered + '/army_member.php?action=delete&player_id=' + r.userId +
+						'" onclick="ajaxLinkSend(\'globalContainer\', \'army_member.php?action=delete&player_id=' + r.userId + '\'); return false;" class="ui-icon ui-icon-circle-close" style="text-decoration:none;font-size:9px;">X</a>';
+			}}
+		]
+	};
 
 }());

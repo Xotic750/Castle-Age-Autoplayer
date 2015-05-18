@@ -250,6 +250,64 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    caap.setDisplay = function (area, idName, display, quiet) {
+        try {
+            if (!$u.hasContent(idName)) {
+                con.warn("idName", idName);
+                throw "Bad idName!";
+            }
+
+            var areaDiv = caap[area],
+                areatest = area,
+				attr = 'id';
+				
+			if ($u.isObject(idName)) {
+				attr = Object.keys(idName).pop();
+				idName = idName[attr];
+			}
+
+            if (!$u.hasContent(areaDiv)) {
+                areatest = "default";
+                areaDiv = $j(document.body);
+                con.warn("Unknown area. Using document.body", area);
+            }
+
+            con.log(2, "Change: display of 'caap_" + idName + "' to '" + (display === true ? 'block' : 'none') + "'", areatest);
+			areaDiv = $j('div[' + attr + '="caap_' + idName + '"]', areaDiv);
+            if (!$u.hasContent(areaDiv) && !quiet) {
+                con.warn("Unable to find idName in area!", idName, area);
+				return false;
+            }
+            areaDiv.each( function() {
+				$j(this).css('display', display === true ? 'block' : 'none');
+			});
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in setDisplay: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.setDisplayById = function (idName) {
+        try {
+			$j("div[id^='caap_displayIf__" + idName + "__is']").each( function() {
+				var id = $j(this).attr('id'),					
+					arr = id.regex(/caap_displayIf__(\w+)__(is|isnot)__(\w+)/);
+				if (arr) {
+					caap.setDisplay('', id.replace('caap_',''), (config.getItem(arr[0], false).toString() == arr[2].replace(/_/g,' ')) == (arr[1] == 'is'));
+				} else {
+					con.warn('caap.dropBoxListener: Unable to parse setting change for id ' + id);
+				}
+			});
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in setDisplayById: " + err.stack);
+            return false;
+        }
+    };
+
 	caap.display = {};
 	
 	// If config setting for idName is the same as test, display
