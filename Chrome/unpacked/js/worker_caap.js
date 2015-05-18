@@ -79,7 +79,6 @@ schedule,gifting,state,army, general,session,monster,feed */
         if (caap.doCTAs()) {
             return true;
         }
-        caap.updateDashboard();
         return true;
     };
 

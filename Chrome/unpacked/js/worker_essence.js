@@ -27,35 +27,6 @@ regexp: true, eqeq: true, newcap: true, forin: false */
         };
     };
 
-    essence.clear = function() {
-        try {
-            essence.records = [];
-            state.setItem('wsave_essence', true);
-            session.setItem("essenceDashUpdate", true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in essence.clear: " + err);
-            return false;
-        }
-    };
-
-    essence.rescan = function() {
-        try {
-            essence.records.forEach( function(e) {
-                e.lastCheck = Date.now();
-				['attack', 'defense', 'damage', 'health'].forEach( function(a) {
-					e[a] = -1;
-				});
-            });
-            state.setItem('wsave_essence', true);
-            session.setItem("essenceDashUpdate", true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in essence.clear: " + err);
-            return false;
-        }
-    };
-
     essence.checkResults = function(page) {
         try {
 			var storageDivs, guildCapsules, eR;
@@ -108,149 +79,6 @@ regexp: true, eqeq: true, newcap: true, forin: false */
         }
     };
 	
-    essence.dashboard = function() {
-        try {
-            /*-------------------------------------------------------------------------------------\
-            Next we build the HTML to be included into the 'caap_infoGuilds' div. We set our
-            table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Guild Essence' && session.getItem("essenceDashUpdate", true)) {
-                var headers = ['Name', 'Attack', 'Defense', 'Damage', 'Health'],
-                    values = ['name', 'attack', 'defense', 'damage', 'health'],
-                    pp = 0,
-                    i = 0,
-                    userIdLink = '',
-                    userIdLinkInstructions = '',
-                    len = 0,
-                    len1 = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    head = '',
-                    body = '',
-                    row = '';
-
-                for (pp = 0; pp < headers.length; pp += 1) {
-                    switch (headers[pp]) {
-                    case 'Name':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '30%'
-                        });
-                        break;
-                    case 'attack':
-                    case 'defense':
-                    case 'damage':
-                    case 'health':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '10%'
-                        });
-                        break;
-                    default:
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '7%'
-                        });
-                    }
-                }
-
-                head = caap.makeTr(head);
-                for (i = 0, len = essence.records.length; i < len; i += 1) {
-                    row = "";
-                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                        switch (values[pp]) {
-                        case 'name':
-                            userIdLinkInstructions = "Clicking this link will take you to the guild keep of " + essence.records[i][values[pp]];
-                            userIdLink = "guild_conquest_market.php?guild_id=" + essence.records[i].guildId;
-                            data = {
-                                text: '<span id="caap_Guilds_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + essence.records[i][values[pp]] + '</span>',
-                                color: 'blue',
-                                id: '',
-                                title: ''
-                            };
-
-                            row += caap.makeTd(data);
-                            break;
-                        case 'attack':
-                        case 'defense':
-                        case 'damage':
-                        case 'health':
-							row += caap.makeTd({
-                                text: essence.records[i][values[pp]],
-                                color: essence.records[i][values[pp]] > 0 ? 'green' : 'black'			,
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        default:
-                            row += caap.makeTd({
-                                text: essence.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                        }
-                    }
-
-                    body += caap.makeTr(row);
-                }
-
-                $j("#caap_infoGuilds", caap.caapTopObject).html(
-                $j(caap.makeTable("Guilds", head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false
-                }));
-
-                $j("span[id*='caap_Guilds_']", caap.caapTopObject).click(function(e) {
-                    var visitUserIdLink = {
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                    len = 0;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                            visitUserIdLink.arlink = visitUserIdLink.rlink;
-                        }
-                    }
-
-                    caap.ajaxLink(visitUserIdLink.arlink);
-                });
-
-                session.setItem("essenceDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in essence.dashboard: " + err);
-            return false;
-        }
-    };
-
 	worker.addPageCheck({page : 'trade_market', config: 'EssenceScanCheck'});
 	
 	worker.addAction({worker : 'essence', priority : -2600, description : 'Scout Guild Essence'});
@@ -382,5 +210,36 @@ regexp: true, eqeq: true, newcap: true, forin: false */
             return '';
         }
     };
+	
+	essence.dashboard = {
+		name: 'Essence Stats',
+		inst: 'Display Essence storage space for Guilds that have been scouted',
+		records: 'essence',
+		buttons: ['clear',
+			{name: 'Rescan Essence',
+				func: function() {
+					essence.records.forEach( function(e) {
+						e.lastCheck = Date.now();
+						['attack', 'defense', 'damage', 'health'].forEach( function(a) {
+							e[a] = -1;
+						});
+					});
+					essence.save('update');
+			}}
+		],
+		tableEntries: [
+			{name: 'User ID', color: 'blue', format: 'text',
+				valueF: function(r) {
+					return '<a href="' + caap.domain.altered + '/guild_conquest_market.php?guild_id=' + r.guildId +
+						'" onclick="ajaxLinkSend(\'globalContainer\', \'guild_conquest_market.php?guild_id=' + r.guildId +
+						'\'); return false;" style="text-decoration:none;font-size:9px;">' + r.name + '</a>';
+			}},
+			{name: 'Attack', format: 'nonnegative'},
+			{name: 'Defense', format: 'nonnegative'},
+			{name: 'Damage', format: 'nonnegative'},
+			{name: 'Health', format: 'nonnegative'},
+			{name: 'name', type: 'remove'}
+		]
+	};
 	
 }());

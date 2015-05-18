@@ -25,16 +25,16 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
             pct : 0,
             last : 0,
             special : '',
-            atk : 0,
-            def : 0,
-            api : 0,
-            dpi : 0,
-            mpi : 0,
-            eatk : 0,
-            edef : 0,
-            eapi : 0,
-            edpi : 0,
-            empi : 0,
+            atk : -1,
+            def : -1,
+            api : -1,
+            dpi : -1,
+            mpi : -1,
+            eatk : -1,
+            edef : -1,
+            eapi : -1,
+            edpi : -1,
+            empi : -1,
             energy : 0,
             stamina : 0,
             attackItemBonus : 0,
@@ -340,7 +340,8 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				gR = general.getRecordByField('value', tNum.numberOnly());
 				
 				text = $j('#loadout_general img').attr('src');
-				gR.general = $u.hasContent(text) ? general.getRecordByField('img', text.regex(/.*\/(\w+\.\w+)/)).name : 'Use Current';
+				gR.general = $u.hasContent(text) ? general.getRecordByField('img', text.regex(/.*\/(\w+\.\w+)/)).name :
+					$u.setContent(gR.general, 'Use Current');
 				
 				gR.powers = $j.makeArray($j('#loadout_powers').find('img').map(function() {
 					return $j(this).attr('src').regex(/(\w+\.\w+)$/); 
@@ -932,7 +933,8 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 					
 					con.log(2, 'Houston, we have a problem. Loadout ' + g.nameBeforeReset + ' appears to be reset. Attempting to rebuild');
 					if (caap.page != 'player_loadouts' || !caap.clickUrl.hasIndexOf('loadout=' + g.value)) {
-						caap.ajaxLink('player_loadouts.php?item_id=' + general.getRecordVal(g.general, 'item', false) + '&item_category=1&action=select_loadout_general&selection=1&loadout=' + g.value);
+						caap.ajaxLink('player_loadouts.php?item_id=' + general.getRecordVal(g.general, 'item', false) + '&item_category=' +
+						general.getRecordVal(g.general, 'itype', false) + '&action=select_loadout_general&selection=1&loadout=' + g.value);
 						click = true;
 						return true;
 					}
@@ -1069,164 +1071,30 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
         }
     };
 
-    general.dashboard = function () {
-        try {
-            /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Generals Stats' && session.getItem("GeneralsDashUpdate", true)) {
-                var headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'],
-                    values = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'],
-                    calc = 0,
-                    pp = 0,
-                    link = '',
-                    instructions = '',
-                    it = 0,
-                    len = 0,
-                    len1 = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    header = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: '',
-                        width: ''
-                    },
-                    handler = null,
-                    head = '',
-                    body = '',
-                    row = '';
-
-                for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                    header = {
-                        text: headers[pp],
-                        color: '',
-                        id: '',
-                        title: '',
-                        width: '7%'
-                    };
-
-                    switch (headers[pp]) {
-                        case 'General':
-                            header.width = '13%';
-                            break;
-                        case 'Lvl':
-                        case 'Atk':
-                        case 'Def':
-                        case 'API':
-                        case 'DPI':
-                        case 'MPI':
-                            header.width = '5.5%';
-                            break;
-                        case 'Special':
-                            header.width = '19%';
-                            break;
-                        default:
-							break;
-                    }
-
-                    head += caap.makeTh(header);
-                }
-
-                head = caap.makeTr(head);
-                for (it = 0, len = general.records.length; it < len; it += 1) {
-                    row = "";
-                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                        if (values[pp] === 'name') {
-                            link = "generals.php";
-                            instructions = "Clicking this link will change General to " + general.records[it].name;
-                            data = {
-                                text: '<span id="caap_general_' + it + '" title="' + instructions + '" mname="' + general.records[it].name + '" rlink="' + link + '" itype="' + general.records[it].itype + '" item="' + general.records[it].item +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + general.records[it].name + '</span>',
-                                color: 'blue',
-                                id: '',
-                                title: ''
-                            };
-
-                            row += caap.makeTd(data);
-                        } else {
-                            calc = general.getRecordVal(general.records[it].name,[values[pp]]) || '';
-                            row += caap.makeTd({
-                                text: $u.setContent(calc, ''),
-                                color: '',
-                                title: ''
-                            });
-                        }
-                    }
-
-                    body += caap.makeTr(row);
-                }
-
-                $j("#caap_generalsStats", caap.caapTopObject).html(
-                $j(caap.makeTable("general", head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false,
-                    "aoColumnDefs": [{
-                        "bSortable": false,
-                        "aTargets": [12]
-                    }]
-                }));
-
-                handler = function (e) {
-                    var changeLink = {
-							mname: '',
-							rlink: '',
-							itype: '',
-							item: ''
-						},
-						i = 0,
-                        len2 = 0,
-                        gen = {},
-                        page = session.getItem("page", "");
-
-                    for (i = 0, len2 = e.target.attributes.length; i < len2; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'mname') {
-                            changeLink.mname = e.target.attributes[i].value;
-                        } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            changeLink.rlink = e.target.attributes[i].value;
-                        } else if (e.target.attributes[i].nodeName === 'itype') {
-                            gen.itype = changeLink.itype = e.target.attributes[i].value.parseInt();
-                        } else if (e.target.attributes[i].nodeName === 'item') {
-                            gen.item = changeLink.item = e.target.attributes[i].value.parseInt();
-                        }
-                    }
-
-                    if ($u.hasContent(changeLink.rlink)) {
-                        caap.ajaxLoadIcon.css("display", "block");
-                        if (page === "generals") {
-                            caap.ajaxLink(changeLink.rlink + "?itype=" + gen.itype + "&item=" + gen.item);
-                        } else {
-                            general.quickSwitch = true;
-                            caap.ajaxLoad(changeLink.rlink, gen, "#equippedGeneralContainer", "#equippedGeneralContainer", page);
-                        }
-                    }
-                };
-
-                $j("span[id*='caap_general_']", caap.caapTopObject).off('click', handler).click(handler);
-
-                session.setItem("GeneralsDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in general.dashboard: " + err.stack);
-            return false;
-        }
-    };
+	general.dashboard = {
+		name: 'Generals',
+		inst: 'Display information about your Generals',
+		records: 'general',
+		buttons: ['clear'],
+		tableTemplate: { width: '5.5%', format: 'nonnegative' },
+		
+		tableEntries: [ 
+			{name: 'General', value: 'name', color: 'blue', width: '13%', format: 'text',
+				valueF: function(r) {
+					return '<div class="hotSwapGenName" onclick="doHotSwapGeneral(\'' + r.item + '\', \'' + r.itype + '\', false);">' + 
+						r.name + '</div>';
+			}},
+			{name: 'Lvl',
+				valueF: function(r) {
+					return r.lvl + '/' + r.lvlmax;
+			}},
+			{name: 'Atk'},
+			{name: 'Def'},
+			{name: 'EAPI'},
+			{name: 'EDPI'},
+			{name: 'EMPI'},
+			{name: 'Special', width: '46.5%'}
+		]
+	};
 
 }());

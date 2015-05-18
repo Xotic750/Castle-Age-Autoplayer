@@ -9,7 +9,7 @@ image64:true,offline:true,profiles:true,
 session:true,state:true,css:true,gm:true,ss:true,db:true,sort:true,schedule:true,
 general:true,monster:true,guild_monster:true,gifting:true,army:true,caap:true,con:true,
 schedule,gifting,state,army, general,session,monster,guild_monster,worker,conquestLands,
-stats,statsFunc,throwError,configOld,configDefault,hyper,stateOld,
+stats,statsFunc,throwError,configOld,configDefault,hyper,stateOld,ignoreJSLintError,
 gb,essence,gift,chores */
 /*jslint maxlen: 256 */
 
@@ -1798,8 +1798,9 @@ gb,essence,gift,chores */
 				conquestLands.load();
 
 				worker.list.forEach( function(i) {
-					if ($u.isFunction(window[i].init)) {
-						window[i].init();
+					var wO = window[i];
+					if ($u.isFunction(wO.init)) {
+						wO.init();
 					}
 				});
 
@@ -1813,6 +1814,18 @@ gb,essence,gift,chores */
             }
 
             if (caap.domain.which === 2 || caap.domain.which === 3) {
+				worker.list.forEach( function(i) {
+					var wO = window[i],
+						dO = wO.dashboard; // Dash objects
+						
+					if ($u.isObject(dO)) {
+						worker.dashList.addToList(wO.name);
+						worker.dashRecords.addToList({records: dO.records, dash: dO.name});
+						session.setItem('DashUpdate' + dO.name.underline(), true);
+					}
+					
+				});
+
                 caap.addDashboard();
                 caap.addDashboardMin();
             }
@@ -1909,7 +1922,9 @@ gb,essence,gift,chores */
             }
 
 			array = array.filter(function(value) {
-				return ($u.isNumber(lowerBound) ? value > lowerBound : true) && ($u.isNumber(upperBound) ? value < upperBound : true);
+				var lowerBoundOk = $u.isNumber(lowerBound) ? value > lowerBound : true,
+					upperBoundOk = $u.isNumber(upperBound) ? value < upperBound : true;
+				return lowerBoundOk && upperBoundOk;
 			});
 			result = Math[minMax].apply(null, array);
 
@@ -2703,58 +2718,6 @@ gb,essence,gift,chores */
     // Watch for changes and update the controls
     /////////////////////////////////////////////////////////////////////
 
-    caap.setDisplay = function (area, idName, display, quiet) {
-        try {
-            if (!$u.hasContent(idName) || (!$u.isString(idName) && !$u.isNumber(idName))) {
-                con.warn("idName", idName);
-                throw "Bad idName!";
-            }
-
-            var areaDiv = caap[area],
-                areatest = area;
-
-            if (!$u.hasContent(areaDiv)) {
-                areatest = "default";
-                areaDiv = $j(document.body);
-                con.warn("Unknown area. Using document.body", area);
-            }
-
-            con.log(2, "Change: display of 'caap_" + idName + "' to '" + (display === true ? 'block' : 'none') + "'", areatest);
-			areaDiv = $j('div[id="caap_' + idName + '"]', areaDiv);
-            if (!$u.hasContent(areaDiv) && !quiet) {
-                con.warn("Unable to find idName in area!", idName, area);
-				return false;
-            }
-            areaDiv.each( function() {
-				$j(this).css('display', display === true ? 'block' : 'none');
-			});
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in setDisplay: " + err.stack);
-            return false;
-        }
-    };
-
-    caap.setDisplayById = function (idName) {
-        try {
-			$j("div[id^='caap_displayIf__" + idName + "__is']").each( function() {
-				var id = $j(this).attr('id'),					
-					arr = id.regex(/caap_displayIf__(\w+)__(is|isnot)__(\w+)/);
-				if (arr) {
-					caap.setDisplay('', id.replace('caap_',''), (config.getItem(arr[0], false).toString() == arr[2].replace(/_/g,' ')) == (arr[1] == 'is'));
-				} else {
-					con.warn('caap.dropBoxListener: Unable to parse setting change for id ' + id);
-				}
-			});
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in setDisplayById: " + err.stack);
-            return false;
-        }
-    };
-
     caap.checkBoxListener = function (e) {
         try {
             var idName = e.target.id.stripCaap(),
@@ -3098,7 +3061,7 @@ gb,essence,gift,chores */
                         caap.colorDiv[e.target.id] = t.colorInput(fb2call, d1call).concat(t);
                         break;
                     default:
-                        caap.colorDiv[e.target.id] = t.colorInput(function () {}, d1call).concat(t);
+                        caap.colorDiv[e.target.id] = t.colorInput(function () { return; }, d1call).concat(t);
                 }
 
                 caap.colorDiv[e.target.id][1].css({
@@ -6158,6 +6121,8 @@ gb,essence,gift,chores */
         defense = 0,
         health = 0,
         n;
+		
+		ignoreJSLintError(level);
 
         if (autoBless.match('Auto Upgrade')) {
             try {
@@ -6844,60 +6809,6 @@ gb,essence,gift,chores */
         }
     };
 
-	worker.addAction({worker : 'caap', priority : -300, description : 'Moving to LoM Land', functionName : 'LoMmove'});
-	
-    caap.LoMmove = function () {
-        try {
-			var myIndex = stats.LoMland,
-				myLand = {},
-				nextLand = -1,
-				result = false,
-				defendable = function(land) {
-					return land.status == 'enter' && land.defenders < 25 && land.phaseLeft < land.timeLeft + 2;
-				};
-			
-			if (config.getItem('doLoMmove', 'Never') == 'Never' || (myIndex >= 0 && conquestLands.records[myIndex].status != 'enter') || !schedule.check('LoMmoveWait')) {
-				return false;
-			}
-			// Find the land with the least time until it goes into defend
-			nextLand = conquestLands.records.reduce( function(previous, land) {
-				return defendable(land)	&& (previous == -1 || land.phaseLeft < previous.phaseLeft) ? land : previous;
-			}, nextLand);
-			
-			// See if there is a land with more hours on it, that will be in defend during the same time
-			if (config.getItem('doLoMmove', 'Never') == 'Newest') {
-				if (nextLand !== -1) {
-					nextLand = conquestLands.records.reduce( function(previous, land) {
-						return defendable(land)	&& Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2 > land.phaseLeft 
-							&& land.timeLeft > previous.timeLeft ? land : previous;
-					}, nextLand);
-				}
-			}
-
-			if (nextLand != -1) {
-				if (myIndex == -1) {
-					result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
-					//result = caap.navigate2("guildv2_conquest_command");
-					stats.LoMland = result == 'done' ? nextLand.index : stats.LoMland;
-				} else {
-					myLand = conquestLands.records[myIndex];
-					// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
-					if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
-						result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
-						stats.LoMland = result == 'done' ? -1 : stats.LoMland;
-					}
-				}
-				if (result == 'fail') {
-					schedule.setItem('LoMmoveWait', 5 * 60);
-				}
-			}
-            return result == 'done' || result === true;
-        } catch (err) {
-            con.error("ERROR in LoMmove: " + err.stack);
-            return false;
-        }
-    };
-	
     caap.checkMyGuildIds = function () {
 		try {
 			var tempDiv = $j("#guildv2_formation_middle"),

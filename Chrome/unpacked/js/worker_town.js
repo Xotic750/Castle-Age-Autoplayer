@@ -1,9 +1,9 @@
 
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,offline,town,gm,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,spreadsheet,ss,
+$u,chrome,worker,self,caap,config,con,spreadsheet,ss,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -37,11 +37,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         };
     };
 
-	worker.addPageCheck({page : 'soldiers'});
+	worker.addPageCheck({page : 'soldiers', config: 'itemIventory'});
 		
-	worker.addPageCheck({page : 'item'});
+	worker.addPageCheck({page : 'item', config: 'itemIventory'});
 		
-	worker.addPageCheck({page : 'magic'});
+	worker.addPageCheck({page : 'magic', config: 'itemIventory'});
 	
 	town.checkResults = function(page) {
         try {
@@ -107,6 +107,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 					town.setRecord(current);
 				});
+				break;
 
 			default :
 				break;
@@ -121,129 +122,23 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         return $u.isString(image) ? $u.setContent(town.getRecord(image).owned, 0) : 0;
     };
 
-    town.dashboard = function() {
-        try {
-            /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
-                We set our table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Town Stats' && session.getItem("townDashUpdate", true)) {
-                var headers = ['Name', 'Type', 'Own', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'],
-                    values = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'],
-                    pp = 0,
-                    i = 0,
-                    it = 0,
-                    len = 0,
-                    len1 = 0,
-                    len2 = 0,
-                    str = '',
-                    num = 0,
-                    header = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: '',
-                        width: ''
-                    },
-                    head = '',
-                    body = '',
-                    row = '';
-
-				for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
-
-					header = {
-						text: headers[pp],
-						color: '',
-						id: '',
-						title: '',
-						width: ''
-					};
-
-					switch (headers[pp]) {
-					case 'Name':
-						header.width = '30%';
-						break;
-					case 'Type':
-						header.width = '7%';
-						break;
-					case 'Own':
-						header.width = '6%';
-						break;
-					case 'Atk':
-						header.width = '6%';
-						break;
-					case 'Def':
-						header.width = '6%';
-						break;
-					case 'API':
-						header.width = '6%';
-						break;
-					case 'DPI':
-						header.width = '6%';
-						break;
-					case 'MPI':
-						header.width = '6%';
-						break;
-					case 'Cost':
-						header.width = '9%';
-						break;
-					case 'Upkeep':
-						header.width = '9%';
-						break;
-					case 'Hourly':
-						header.width = '9%';
-						break;
-					default:
-					}
-
-					head += caap.makeTh(header);
-				}
-
-				head = caap.makeTr(head);
-				for (it = 0, len1 = town.records.length; it < len1; it += 1) {
-					row = "";
-					for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
-
-						if ($u.isNaN(town.records[it][values[pp]]) || !$u.hasContent(town.records[it][values[pp]])) {
-							str = $u.setContent(town.records[it][values[pp]], '');
-						} else {
-							num = town.records[it][values[pp]];
-							str = $u.hasContent(num) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + num.SI() : num.addCommas();
-						}
-
-						row += caap.makeTd({
-							text: str,
-							color: '',
-							id: '',
-							title: ''
-						});
-					}
-
-					body += caap.makeTr(row);
-				}
-
-				$j("#caap_Town_Stats", caap.caapTopObject).html(
-				$j(caap.makeTable('Town', head, body)).dataTable({
-					"bAutoWidth": false,
-					"bFilter": false,
-					"bJQueryUI": false,
-					"bInfo": false,
-					"bLengthChange": false,
-					"bPaginate": false,
-					"bProcessing": false,
-					"bStateSave": true,
-					"bSortClasses": false
-				}));
-
-				session.setItem("townDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in town.dashboard: " + err);
-            return false;
-        }
-    };
+	town.dashboard = {
+		name: 'Items',
+		inst: 'Display information about items and solders',
+		records: 'town',
+		tableEntries: [
+			{name: 'Name'},
+			{name: 'Type'},
+			{name: 'Own', value: 'owned'},
+			{name: 'Atk'},
+			{name: 'Def'},
+			{name: 'API'},
+			{name: 'DPI'},
+			{name: 'MPI'},
+			{name: 'Cost', format: '$SI'},
+			{name: 'Upkeep', format: '$SI'},
+			{name: 'Hourly', format: '$SI'}
+		]
+	};
 
 }());

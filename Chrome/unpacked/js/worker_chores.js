@@ -533,6 +533,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 alchemyWhiteListInstructions = "List of recipes to combine. Will not combine recipes with ingredients that can be used in multiple recipes, like " + state.getItem('alchemydupNames', ['Battle Hearts']).join(', ') + 
 					". Leave blank to combine any other recipes. Not case sensitive.",
                 alchemyBlackListInstructions = "List of recipes not to combine. " + "Not case sensitive.",
+                itemInvInst = "Inventory all items. Uses local storage space and not used by CAAP except to display the Item dashboard.",
                 potionsInstructions0 = "Enable or disable the consumption " + "of energy and stamina potions.",
                 potionsInstructions1 = "Number of stamina potions at which to " + "begin consuming.",
                 potionsInstructions2 = "Number of stamina potions to keep.",
@@ -541,7 +542,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 potionsInstructions5 = "Do not consume potions if the " + "experience points to the next level are within this value.",
                 htmlCode = '';
 
-            htmlCode += caap.startToggle('Item', 'ITEM');
+            htmlCode += caap.startToggle('Item', 'ITEMS');
             htmlCode += caap.makeCheckTR('Potions', 'potions', false, potionsInstructions0);
             htmlCode += caap.display.start('potions');
             htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', potionsInstructions1, 30, '', '', true, false);
@@ -565,6 +566,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD("Kobo Item Black List",true);
             htmlCode += caap.makeTextBox('kobo_blacklist', koboBlackListInstructions, '', '');
             htmlCode += caap.display.end('kobo');
+            htmlCode += caap.makeCheckTR('Inventory Items', 'itemIventory', false, itemInvInst);
             htmlCode += caap.endToggle;
             return htmlCode;
         } catch (err) {
