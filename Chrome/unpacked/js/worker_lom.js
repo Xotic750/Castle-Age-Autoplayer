@@ -160,6 +160,60 @@ schedule,state,general,session,battle:true */
         }
     };
 	
+	worker.addAction({worker : 'lom', priority : -300, description : 'Moving to LoM Land', functionName : 'move'});
+	
+    lom.move = function () {
+        try {
+			var myIndex = stats.LoMland,
+				myLand = {},
+				nextLand = -1,
+				result = false,
+				defendable = function(land) {
+					return land.status == 'enter' && land.defenders < 25 && land.phaseLeft < land.timeLeft + 2;
+				};
+			
+			if (config.getItem('doLoMmove', 'Never') == 'Never' || (myIndex >= 0 && conquestLands.records[myIndex].status != 'enter') || !schedule.check('LoMmoveWait')) {
+				return false;
+			}
+			// Find the land with the least time until it goes into defend
+			nextLand = conquestLands.records.reduce( function(previous, land) {
+				return defendable(land)	&& (previous == -1 || land.phaseLeft < previous.phaseLeft) ? land : previous;
+			}, nextLand);
+			
+			// See if there is a land with more hours on it, that will be in defend during the same time
+			if (config.getItem('doLoMmove', 'Never') == 'Newest') {
+				if (nextLand !== -1) {
+					nextLand = conquestLands.records.reduce( function(previous, land) {
+						return defendable(land)	&& Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2 > land.phaseLeft 
+							&& land.timeLeft > previous.timeLeft ? land : previous;
+					}, nextLand);
+				}
+			}
+
+			if (nextLand != -1) {
+				if (myIndex == -1) {
+					result = caap.navigate2("ajax:guildv2_conquest_command.php?tier=3,clickjq:#app_body div[style*='conq2_capsule']:eq( " + nextLand.index + " ) img[src*='conq2_btn_enter.jpg'],guildv2_conquest_expansion_fort,clickimg:conq2_btn_joinpos.gif");
+					//result = caap.navigate2("guildv2_conquest_command");
+					stats.LoMland = result == 'done' ? nextLand.index : stats.LoMland;
+				} else {
+					myLand = conquestLands.records[myIndex];
+					// If I can move, and there is an enter-able land with enough time for me to join it and get back to my land, then join.
+					if (myLand.status == 'enter' && nextLand.index !== myIndex && myLand.phaseLeft > Math.min(nextLand.phaseLeft + 24, nextLand.timeLeft) + 2) {
+						result = caap.navigate2('ajax:guildv2_conquest_command.php?tier=3,clickimg:_smallX.jpg');
+						stats.LoMland = result == 'done' ? -1 : stats.LoMland;
+					}
+				}
+				if (result == 'fail') {
+					schedule.setItem('LoMmoveWait', 5 * 60);
+				}
+			}
+            return result == 'done' || result === true;
+        } catch (err) {
+            con.error("ERROR in lom.move: " + err.stack);
+            return false;
+        }
+    };
+	
     lom.conquestMenu = function() {
         try {
             // Guild Battle controls

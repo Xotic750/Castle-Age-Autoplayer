@@ -1,7 +1,7 @@
 /*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global $j,$u,caap,config,con,feed:true,schedule,stats,state,worker,
+/*global $j,$u,caap,config,con,feed:true,schedule,stats,state,worker,ignoreJSLintError,
 chores,town,general,session,monster:true */
 /*jslint maxlen: 256 */
 
@@ -17,6 +17,10 @@ chores,town,general,session,monster:true */
 	
     feed.init = function() {
 		try {
+			// Fill out dashboard with monster dash entries
+			feed.dashboard = $j.extend(true, {}, monster.dashboard, feed.dashboard);
+			feed.dashboard.tableEntries[2] = {name: 'Score', value: 'score', format: 'number'};
+				
 			if (!config.getItem('enableMonsterFinder', false)) {
 				return false;
 			}
@@ -143,6 +147,7 @@ chores,town,general,session,monster:true */
 						return false;
 					}
 					cM.joinConditions = conditions;
+					cM.jFullC = item;
 					matched = feed.scoring(cM);
 					return true;
 				}
@@ -252,6 +257,10 @@ chores,town,general,session,monster:true */
 					} else {
 						link += ",clickimg:battle_enter_battle.gif";
 					}
+				}
+				
+				if (general.select('MonsterGeneral')) {
+					return true;
 				}
 			
 				con.log(1, 'Joining ' + tR.name, tR, link);
@@ -472,6 +481,10 @@ chores,town,general,session,monster:true */
 				achleft = 0,
 				conq = cM.link.hasIndexOf('guildv2_battle_monster'),
 				achrecords = stats.achievements.monster;
+
+			ignoreJSLintError(filterok, userid, life, t2k, dp, sameundermax, undermax, targetpart, parts, time, monstername, damagemod, rogue,
+				warlock, cleric, warrior, mage, ranger, levelup, energy, atmaxenergy, atmaxstamina, exp, needpic, needrecipe, userdamage, keep,
+				guild, achleft);
 				
 			killed = killed ? achrecords[killed] : Object.keys(achrecords).reduce(function(previous, current) {
 				return previous || (current.hasIndexOf(cM.monster) && !current.match(/'s/) ? achrecords[current] : 0);
@@ -543,15 +556,19 @@ chores,town,general,session,monster:true */
 		}
 	};
 
-    feed.dashboard = function() {
-		try {
-			monster.dashboardCommon('Feed');
-		} catch (err) {
-			con.error("ERROR in feed.dashboard: " + err.stack);
-			return false;
-		}
+	feed.dashboard = {
+		name: 'Feed',
+		inst: 'Display the monsters that are public or from your Guild Priority list',
+		filterF: function(cM) {
+			return cM.state == 'Join';
+		},
+		buttons: [{name: 'Clear Feed',
+			func: function() {
+				monster.fullReview('Feed');
+			}
+		}]
 	};
-
+	
     feed.menu = function() {
 		try {
 			var htmlCode = '',

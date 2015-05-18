@@ -1,7 +1,7 @@
 /*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global $j,gb,stats,worker,$u,caap,config,con,
+/*global $j,gb,stats,worker,$u,caap,config,con,ignoreJSLintError,gb100Dash,gb10Dash,
 schedule,state,general,session,battle:true */
 /*jslint maxlen: 256 */
 
@@ -165,6 +165,7 @@ schedule,state,general,session,battle:true */
 	};
 	
 	gb.otherCalc = function(fR, pOa, i, ns, metric) {
+		ignoreJSLintError(fR);
 		ns = ns.regex(/(?:normal|seal)?(normal|seal)/);
 		return metric * pOa[ns][i].t + pOa[ns][i].p;
 	};
@@ -237,6 +238,9 @@ schedule,state,general,session,battle:true */
 
 	gb.your = {
 		mage: [
+			{name: 'mirror', self: false, image : 'mage_illusion', score: function(fR, pOa, i, ns, mR) {
+				return gb.otherCalc(fR, pOa, i, ns, gb.r100(mR.level));
+			}},
 			{name: 'swap', image:'wall_move_icon', score: function(fR, pOa, i, ns, mR) {
 				return gb.otherCalc(fR, pOa, i, ns, gb.r100(mR.healthNum));
 			}}
@@ -265,6 +269,7 @@ schedule,state,general,session,battle:true */
 			{name: 'cduel',	image: 'attack', healSplash: true},
 			{name: 'divine_favor', tokens: 2, healSplash: true},
 			{name: 'revive', score: function(fR, pOa, i, ns, mR) {
+				ignoreJSLintError(fR, mR);
 				ns = ns.regex(/(?:normal|seal)?(normal|seal)/);
 				return gb.r100(125 + stats.rune.health + gb.gs(pOa.gO, /([\d\.]+) health restored/)) * pOa[ns][i].t + pOa[ns][i].p;
 			}},
@@ -274,6 +279,7 @@ schedule,state,general,session,battle:true */
 				return gb.damageCalc(fR, pOa, i, ns, 100, [1], baseBonus + runeBonus);
 			}},
 			{name: 'mass_heal',	tokens: 2, score: function(fR, pOa, i, ns, mR) {
+				ignoreJSLintError(mR);
 				var heal = (160 + stats.rune.health) * (1 + gb.gs(pOa.gO, /([\d\.]+)% to Mass Heal/) / 100);
 				return gb.damageCalc(fR, pOa, i, ns, 100, [0.25, 0.5, 1, 0.5, 0.25], heal);
 			}},
@@ -367,9 +373,6 @@ schedule,state,general,session,battle:true */
 				break;
 			}
 			if (fR) {
-				session.setItem("gbClassicDashUpdate", true);
-				session.setItem("gb10DashUpdate", true);
-				session.setItem("gb100DashUpdate", true);
 				gb.setRecord(fR);
 			}
 			return false;
@@ -384,10 +387,10 @@ schedule,state,general,session,battle:true */
 			if (!gb.getRecord('winLoss').newRecord) {
 				gb.deleteRecord('winLoss');
 			}
-			session.setItem("gbClassicDashUpdate", true);
-			session.setItem("gb10DashUpdate", true);
-			session.setItem("gb100DashUpdate", true);
 			
+			gb100Dash.dashboard = $j.extend({}, gb.dashboard, {name: '100v100', gbLabel : 'gb100', inst: 'Display the current 100v100 Guild battle'});
+			gb10Dash.dashboard = $j.extend({}, gb.dashboard, {name: '10v10', gbLabel : 'gb10', inst: 'Display the current 10v10 Guild battle'});
+
 			gb.winLoss = {	
 				invade:		false,
 				lost:		'duelLost',
@@ -501,7 +504,6 @@ schedule,state,general,session,battle:true */
 				towerPops = [],
 				towerTypes = [],
 				sealedTowers = 0,
-				notStarted = '',
 				battleOver = '',
 				now = Date.now();
 
@@ -509,10 +511,7 @@ schedule,state,general,session,battle:true */
             caap.chatLink("#app_body #guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             tempDiv = $j("#globalContainer #guild_battle_banner_section");
 			myStatsTxt = $u.setContent(tempDiv.text().trim().innerTrim(), '');
-			//con.log(2,'Do I have Shout? ' + fR.me.shout);
-			notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
 			battleOver = myStatsTxt.regex(/(Battle Is Over)/i) || myStatsTxt.regex(/(Have Your Guild Master .* Initiate More)/i) || myStatsTxt.regex(/your team.*was (defeated|victorious)/i);
-			con.log(2, gf.name + " battle screen arena_battle_banner_section", myStatsTxt, notStarted, battleOver);
 			if (myStatsTxt.regex(/(You Are Not A Part Of This .*Battle)/)) {
 				return fR;
 			}
@@ -567,10 +566,11 @@ schedule,state,general,session,battle:true */
 					fR.att = stats.bonus.api;
 				}
 				fR.me.shout = pics.hasIndexOf('warrior_effect_shout.gif') ? true : false;
-			} else if (myStatsTxt.hasIndexOf('Battle Has Not Started')) {
-				// Wait retry until started
-				return fR;
 			} else {
+				if (myStatsTxt.hasIndexOf('Battle Has Not Started')) {
+					// Wait retry until started
+					return fR;
+				}
 				con.warn("args error", args, myStatsTxt);
 			}
 
@@ -671,6 +671,7 @@ schedule,state,general,session,battle:true */
 				noSwap = !picsText.hasIndexOf('wall_move_icon.jpg'),
 				n = 0,
 				args = [],
+				notArg = false,
 				img = '',
 				bR = {}, // battle record
 				big = {level: 0}, // highest level in tower
@@ -908,7 +909,8 @@ schedule,state,general,session,battle:true */
 							args = text.match(new RegExp('(!?)' + key + ':(\\*?)(-?)([\\.\\d]+)'));
 							
 							// Deliberate avoidance of "tf !==" to catch 0 or undefined, etc.
-							if (args && args.length == 5 && (tf != false) !== (args[1] == '!')) { 
+							notArg = (args[1] == '!');
+							if (args && args.length == 5 && tf !== notArg) { 
 								normal[args[2] == '*' ? 't' : 'p'] += args[3] == '-' ? -args[4].parseFloat() : args[4].parseFloat();
 							}
 							if (sealCheck === true) {
@@ -1203,10 +1205,11 @@ schedule,state,general,session,battle:true */
 						result = caap.navigate2(pgO.path);
 						if (result == 'fail') {
 							gb.deleterPage(fR, 'path', pgO.path);
-						} else if (result) {
-							gb.setRecord(fR);
-							return true;
 						} else {
+							if (result) {
+								gb.setRecord(fR);
+								return true;
+							}
 							con.log(2, 'Loading keep page to force page reload', pgO.path, result);
 							gb.setRecord(fR);
 							return caap.navigateTo('keep');
@@ -1517,235 +1520,81 @@ schedule,state,general,session,battle:true */
         }
     };
 
-    gb.dashboard = function() {
-		gb.dashboardCommon(gb.gbClassic);
-		gb.dashboardCommon(gb.gb10);
-		gb.dashboardCommon(gb.gb100);
-	};
-
-    gb.dashboardCommon = function(gf) {
-        try {
-            /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_guildBattle' div. We set our
-                table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-			
-            if (config.getItem('DBDisplay', '') === gf.name && session.getItem(gf.label + "DashUpdate", true)) {
-                var color = '',
-                    headers1 = ['Index', 'Name'],
-                    values1 = ['index', 'name'],
-                    headers2 = ['Class', 'Level', 'Health', 'Max', 'Status', 'Activity', 'Points', 'Win%'],
-                    values2 = ['mclass', 'level', 'healthNum', 'healthMax', 'status', 'battlePoints', 'points', 'winChance'],
-					headers = [],
-					values = [],
-                    pp = 0,
-                    value = '',
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    handler = null,
-					fR = gb.getRecord(gf.label),
-					members = {},
-					towers = {},
-					tower = {},
-					style = '',
-					seal = '',
-					whichLabel = '',
-                    head = '',
-                    body = '',
-                    row = '',
-					towerHtml = '';
-				//con.log(2, "Dash record",fR);
+	gb.dashboard = {
+		name: 'Classic',
+		inst: 'Display the current Classic Guild battle',
+		records: 'gb',
+		gbLabel : 'gbClassic',
+		buttons: [{name: 'Opponent',
+			func: function() {
+				if (config.getItem('gbDashWhich', 'enemy') != 'enemy') {
+					config.setItem('gbDashWhich', 'enemy');
+					caap.updateDashboard('force');
+				}
+		}},
+		{name: 'Your Guild',
+			func: function() {
+				if (config.getItem('gbDashWhich', 'enemy') != 'your') {
+					config.setItem('gbDashWhich', 'your');
+					caap.updateDashboard('force');
+				}
+		}}],
+		headerF: function(fR) {
+			var which = config.getItem('gbDashWhich', 'enemy'),
+				towerHtml = '';
 				
-				['your','enemy'].forEach(function(which) {
-					whichLabel = which == 'your' ? 'My Guild' : which == 'enemy' ? 'Opponent' : '';
-					style = '" style="display:' + (config.getItem('GFDisplay', 'Opponent') == whichLabel ? 'block' : 'none') + '"';
-					$j("#caap_" + gf.label, caap.caapTopObject).append('<div id="caap_'+ which + gf.label + style + '></div>');
-
-					if (config.getItem('GFDisplay', 'Opponent') != whichLabel) {
-						return;
-					}
-                    head = '';
-                    body = '';
-                    row = '';
-					towerHtml = '';
-					headers = [];
-					values = [];
-
-					if (fR[which].attacks && $u.isArray(fR[which].attacks)) {
-						headers = headers1.concat(fR[which].attacks);
-						headers = headers.concat(headers2);
-						values = values1.concat(fR[which].attacks);
-						values = values.concat(values2);
-						//con.log(2, 'Dashboard New arrays',fR[which].attacks, headers, values);
-					} else {
-						headers = headers1.concat(headers2);
-						values = values1.concat(values2);
-						con.log(2, 'No attacks scored yet',fR[which].attacks);
-					}
-					headers.push('Cnd');
-
-					members = fR[which].members;
-					towers = fR[which].towers;
-					['1','2','3','4'].forEach( function(p) {
-						tower = towers[p];
-						if (!tower) {
-							return;
-						}
-						towerHtml += 'Tower ' + p + ' #' + tower.players + '  Act: ' + tower.actives + ' Clr: ' + tower.clerics + ' AC: ' + tower.AC + ' Health Life%: ' + tower.life + '<br>';
-					});
-
-					for (pp = 0; pp < headers.length; pp += 1) {
-						head += caap.makeTh({
-							text: headers[pp],
-							color: '',
-							id: '',
-							title: '',
-							width: ''
-						});
-					}
-
-					head = caap.makeTr(head);
-					//con.log(2, "members", members, fR);
-					$j.each(members, function(key, mR) {
-						row = "";
-						for (pp = 0; pp < values.length; pp += 1) {
-							switch (values[pp]) {
-							case 'name':
-								data = {
-									text: '<span id="caap_' + gf.label + '_' + pp + '" title="Clicking this link will take you to (' +  ') ' + fR.name + '" mname="1"' +
-										'" rlink="guild_battle_battle.php?twt2=' + '&guild_id=' + fR.guildId + '&slot='  +
-										'" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + mR[values[pp]] + '</span>',
-									color: fR.color,
-									id: '',
-									title: ''
-								};
-
-								row += caap.makeTd(data);
-
-								break;
-							case 'index':
-								row += caap.makeTd({
-									text: key,
-									color: fR.color,
-									id: '',
-									title: ''
-								});
-
-								break;
-							case 'ticker':
-								row += caap.makeTd({
-									text: $u.hasContent(fR[values[pp]]) ? fR[values[pp]].regex(/(\d+:\d+):\d+/) : '',
-									color: fR.color,
-									id: '',
-									title: ''
-								});
-
-								break;
-							default:
-								if (fR[which].attacks && fR[which].attacks.indexOf(values[pp]) >= 0) {
-									seal = fR.me.mclass != 'cleric' ? (key.replace(/-.*/,'') == fR[which].seal ? 'seal' : 'normal') :
-										which == 'your' ? 'normal' + (key.replace(/-.*/,'') == fR.your.seal ? 'seal' : 'normal') :
-										(key.replace(/-.*/,'') == fR.enemy.seal ? 'seal' : 'normal') +
-											(fR.me.tower == fR.your.seal ? 'seal' : 'normal');
-									if ($u.hasContent(mR.scores) && $u.hasContent(mR.scores[values[pp]]) && $u.hasContent(mR.scores[values[pp]][seal])) {
-										value = mR.scores[values[pp]][seal];
-									} else {
-										value = '-1';
-									}
-								} else {
-									value = $u.hasContent(mR[values[pp]]) ? mR[values[pp]] : '';
-								}
-								row += caap.makeTd({
-									text: value,
-									color: fR.color,
-									id: '',
-									title: ''
-								});
-								break;
-							}
-						}
-	/*
-						data = {
-							text: '<a href="' + caap.domain.altered + '/guild_battle_battle.php?twt2=' + gb.info[fR.name].twt2 + '&guild_id=' + fR.guildId +
-								'&action=doObjective&slot=' + fR.slot + '&ref=nf">Link</a>',
-							color: 'blue',
-							id: '',
-							title: 'This is a siege link.'
-						};
-						row += caap.makeTd(data);
-	*/
-						if ($u.hasContent(fR.conditions) && fR.conditions !== 'none') {
-							data = {
-								text: '<span title="User Set Conditions: ' + fR.conditions + '" class="ui-icon ui-icon-info">i</span>',
-								color: fR.color,
-								id: '',
-								title: ''
-							};
-
-							row += caap.makeTd(data);
-						} else {
-							row += caap.makeTd({
-								text: '',
-								color: color,
-								id: '',
-								title: ''
-							});
-						}
-
-						body += caap.makeTr(row);
-					});
-
-					$j("#caap_" + which + gf.label, caap.caapTopObject).html($j(caap.makeTable("guild_battle", head, body)).dataTable({
-						"bAutoWidth": false,
-						"bFilter": false,
-						"bJQueryUI": false,
-						"bInfo": false,
-						"bLengthChange": false,
-						"bPaginate": false,
-						"bProcessing": false,
-						"bStateSave": true,
-						"bSortClasses": false
-					}));
-					$j("#caap_" + which + gf.label, caap.caapTopObject).prepend(towerHtml);
-
-					handler = function(e) {
-						var visitBattleLink = {
-							mname: '',
-							arlink: ''
+			['1','2','3','4'].forEach( function(p) {
+				var tower = fR[which].towers[p];
+				if (!tower) {
+					return;
+				}
+				towerHtml += 'Tower ' + p + ' Toons:' + tower.players + '  Active: ' + tower.actives + ' Clerics: ' + tower.clerics + ' Active Clerics: ' + tower.AC + ' Health Life%: ' + tower.life + '<br>';
+			});
+			return towerHtml;
+		},
+		tableEntriesF: function(fR) {
+			var which = config.getItem('gbDashWhich', 'enemy'),
+				actions = fR[which].attacks.map( function(a) {
+					return {name: a, 
+						colorF: function(r) {
+							return $u.hasContent(fR.t) && $u.hasContent(fR.t.id) && r.target_id == fR.t.id ? 'green' : 'black';
 						},
-						i = 0,
-						len = 0;
-
-						for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-							if (e.target.attributes[i].nodeName === 'mname') {
-								visitBattleLink.mname = e.target.attributes[i].value;
-							} else if (e.target.attributes[i].nodeName === 'rlink') {
-								visitBattleLink.arlink = e.target.attributes[i].value;
-							}
-						}
-
-						// caap.clickAjaxLinkSend(visitBattleLink.arlink);
-						gb.path = visitBattleLink.arlink;
-						//con.log(2,'battle path set',gb.path);
-					};
-
-					$j("span[id*='caap_" + which + gf.label + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
-					handler = null;
+						valueF: function(r, key) {
+							var seal = fR.me.mclass != 'cleric' ? (key.replace(/-.*/,'') == fR[which].seal ? 'seal' : 'normal') :
+								which == 'your' ? 'normal' + (key.replace(/-.*/,'') == fR.your.seal ? 'seal' : 'normal') :
+								(key.replace(/-.*/,'') == fR.enemy.seal ? 'seal' : 'normal') +
+									(fR.me.tower == fR.your.seal ? 'seal' : 'normal');
+							return $u.hasContent(r.scores) && $u.hasContent(r.scores[a]) && $u.hasContent(r.scores[a][seal]) ?
+									r.scores[a][seal] : -1;
+					}};
 				});
-
-                session.setItem(gf.label + "DashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in gb.dashboardCommon: " + err.stack);
-            return false;
-        }
-    };
+			return gb.dashboard.tableEntries.slice(0,2).concat(actions).concat(gb.dashboard.tableEntries.slice(2));
+		},
+		tableEntries: [
+			{name: 'Index',
+				valueF: function(r, i) {
+					ignoreJSLintError(r);
+					return i;
+			}},
+			{name: 'Name',
+				valueF: function(r) {
+					return '<a href="' + caap.domain.altered + '/keep.php?casuser=' + r.target_id +
+						'" onclick="ajaxLinkSend(\'globalContainer\', \'keep.php?casuser=' + r.target_id +
+						'\'); return false;" style="text-decoration:none;font-size:9px;color:blue;">' +
+						r.name + '</a>';
+			}},
+			{name: 'Class', value: 'mclass'},
+			{name: 'Level'},
+			{name: 'Health', value: 'healthNum'},
+			{name: 'Max', value: 'healthMax'},
+			{name: 'Status'},
+			{name: 'Activity', value: 'battlePoints'},
+			{name: 'Points'},
+			{name: 'Win Chance', value: 'winChance'}
+		]
+	};
+	
+	worker.add({ name: 'gb100Dash'}); // Details of dash added in gb.init
+	worker.add({ name: 'gb10Dash'}); // Details of dash added in gb.init
 
 }());

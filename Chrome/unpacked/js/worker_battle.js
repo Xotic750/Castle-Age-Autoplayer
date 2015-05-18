@@ -285,20 +285,22 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Calculate an a score based on level, army size, and previous experience for a battle record to pick the best target
 	battle.scoring = function(r, which) {
 		var w = battle[which],
-			defBonus = which == 'War' ? 'War' : w.invade ? r.army / stats.army.capped : 1; 
+			defBonus = which == 'War' ? 'War' : w.invade ? r.army / stats.army.capped : 1,
+			mult = battle.demisPointsToDo('left') ? 1 : battle.pointF(w.pointList, r[w.rank] - stats.rank[w.myRank]); 
 			
-		return battle.winChance(r, stats.bonus.api, defBonus) * battle.pointF(w.pointList, r[w.rank] - stats.rank[w.myRank]); 
+		return battle.winChance(r, stats.bonus.api, defBonus) * mult; 
 	};
 	
 	// Calculate an a score based on level, army size, and previous experience for a battle record to pick the best target
 	battle.filterF = function(arr, which) {
 		var	w = battle[which],
-			minRank = battle.minMaxRankF(w, 'min'),
+			minRank = battle.demisPointsToDo('left') ? 0 : battle.minMaxRankF(w, 'min'),
 			maxRank = battle.minMaxRankF(w, 'max'),
 			conqLevel = w.conq ? config.getItem('conquestLevels', 'Any').regexd(/(\d+)/, 0) : 0;
 			
 		return arr.filter( function(r) {
-			return r[w.rank] >= minRank && r[w.rank] <= maxRank && (!w.invade || r.army > 0) &&	(!w.conq || r.level >= conqLevel);
+			return r[w.rank] >= minRank && r[w.rank] <= maxRank && !r[w.lost] && (!w.invade || r.army > 0) &&
+				(!w.conq || r.level >= conqLevel);
 		});
 	};
 	
@@ -446,7 +448,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			Check ready to battle and what type of battle
 			\-------------------------------------------------------------------------------------*/
 			
-			if (!$u.isNumber(options) && whenBattle != 'Never') {
+			if (!$u.isNumber(options) || whenBattle != 'Never') {
 				switch (whenBattle) {
 				case 'Never':
 					return {action: false, mess: ''};
@@ -477,7 +479,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (options != 'monster') {
 						return false;
 					}
-					if (whenMonster !== 'Never' && monsterObject && !/the deathrune siege/i.test(monsterObject.name)) {
+					if (whenMonster !== 'Never' && $u.hasContent(monsterObject) && !/the deathrune siege/i.test(monsterObject.name)) {
 						return {action: false, mess: 'Waiting for monster'};
 					}
 				}
@@ -511,7 +513,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         try {
             var w = battle[which],
 				tempTxt,
-				result,
+				result = false,
 				targets = [],
 				targetRaid,
 				arenaTokens = 0, // Need to move this out of here eventually
@@ -523,34 +525,28 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 idList = $u.hasContent(w.idList) ? config.getList(w.idList, []) : [],
 				randomNum = Math.random() * 100,
 				valid,
-				demisLeft = battle.demisPointsToDo('left') || Math.floor(Math.random() * 5 + 1);
-
-			function freshmeat() {
-				targets = battle.records.filter( function(r) {
-					// Check timers/valid
-					return schedule.since(r[w.dead], 10 * 60) && schedule.since(r[w.chained], 0) && r[w.valid];
-				});
-				
-				targets = targets.concat(window[w.recon].records);
-				
-				targets = battle.filterF(targets, which);
-
-				targets.forEach( function(r) {
-					r.score = battle.scoring(r, which);
-				});
-				
-				if (!targets.length) {
-					if (schedule.check(w.reconDelay, 5 * 60)) { 
-						caap.ajaxLink(w.page);
-						return {mlog: 'Looking for ' + type + ' targets on ' + w.page};
+				demisLeft = battle.demisPointsToDo('left') || Math.floor(Math.random() * 5 + 1),
+				freshmeat = function() {
+					targets = battle.records.filter( function(r) {
+						// Check timers/valid
+						return schedule.since(r[w.dead], 10 * 60) && schedule.since(r[w.chained], 0) && r[w.valid];
+					});
+					targets = targets.concat(window[w.recon].records);
+					targets = battle.filterF(targets, which);
+					targets.forEach( function(r) {
+						r.score = battle.scoring(r, which);
+					});
+					if (!targets.length) {
+						if (schedule.check(w.reconDelay, 5 * 60)) { 
+							caap.ajaxLink(w.page);
+							return {mlog: 'Looking for ' + type + ' targets on ' + w.page};
+						}
+						return {action: false, mess: 'Recon for targets in ' + rejoinSecs};
 					}
-					return {action: false, mess: 'Recon for targets in ' + rejoinSecs};
-				}
-				
-				bR = targets.sort($u.sortBy(false, 'score')).pop();
-				state.setItem('wsave_battle_noWarning', true);
-				state.setItem('wsave_' + w.recon + '_noWarning', true);
-			}
+					bR = targets.sort($u.sortBy(false, 'score')).pop();
+					state.setItem('wsave_battle_noWarning', true);
+					state.setItem('wsave_' + w.recon + '_noWarning', true);
+				};
 			
 			if (!schedule.check(w.battleDelay)) {
 				return false;
@@ -569,14 +565,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				cM = monster.getRecord(targetRaid);
 				
 				monster.lastClick = cM.link;
-				freshmeat();
+				result = freshmeat();
 				break;
 
 			case 'Freshmeat' :
 			/*-------------------------------------------------------------------------------------\
 				FRESHMEAT List targets, score, and hit best
 			\-------------------------------------------------------------------------------------*/
-				freshmeat();
+				result = freshmeat();
 				break;
 				
 			case 'User ID List' :
@@ -633,6 +629,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			default :
 				return {action: false, mwarn: 'Battle: invalid setting for Target Type: ' + config.getItem('targetType', 'Freshmeat')};
             }
+			
+			if ($u.isObject(result)) {
+				return result;
+			}
 
 			result = caap.navigate3($u.setContent(cM.link, w.page), w.linkF(bR.userId, demisLeft, cM.link), w.general);
 			if (result) {
@@ -928,266 +928,70 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return '';
         }
     };
-
-    battle.dashboard = function(which) {
-        try {
-            /*-------------------------------------------------------------------------------------\
-            Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
-            table and then build the header row.
-            \-------------------------------------------------------------------------------------*/
-			
-			which = which == 'Arena' ? which : 'Battle';
-            if (config.getItem('DBDisplay', '') === (which + ' Stats') && session.getItem(which + "DashUpdate", true)) {
-                var headers = ['UserId', 'Name', 'BR', 'WR', 'CR', 'Level', 'Army', 'Min Def', 'Max Def', 'Duel Win Chance', 'Invade', 'Duel', 'War', 'Points', '&nbsp;'],
-                    values = ['userId', 'name', 'rank', 'warRank', 'conqRank', 'level', 'army', 'minDef', 'maxDef', 'wc', 'invadeWon', 'duelWon', 'warWon', 'points'],
-                    pp = 0,
-                    i = 0,
-                    userIdLink = '',
-                    userIdLinkInstructions = '',
-                    len = 0,
-                    len1 = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    head = '',
-                    body = '',
-                    row = '',
-					arenaers = [],
-					winnerF = function(bR) {
-						return bR.duelWon > 0 && !bR.duelLost;
-					},
-					report = '',
-					types = ['duel', 'invade', 'war', 'conqInvade', 'conqDuel', 'gb'];
-
-				if (which == 'Arena') {
-					headers = ['UserId', 'Name', 'Points', 'Total', 'Duel', 'AR', 'Level', 'Army', '&nbsp;'];
-                    values = ['userId', 'name', 'arenaPoints', 'arenaTotal', 'duelWon', 'arenaRank', 'level', 'army'];
-					arenaers = battle.records.filter( function(bR) {
-						return bR.arenaRank;
-					});
-					
-					[1, 2, 3, 4, 5, 6, 7].forEach( function(rank) {
-						report += 'R' + rank + ': ';
-						var aRankArr = arenaers.filter( function(bR) {
-								return bR.arenaRank == rank;
-							}),
-							winnerSum = aRankArr.filter(winnerF).length;
-						report += winnerSum + '/' + aRankArr.length + ' ' + (winnerSum / aRankArr.length * 100).dp(1) + '% ';
-					});
-				}
-				
-                for (pp = 0; pp < headers.length; pp += 1) {
-                    switch (headers[pp]) {
-                    case 'UserId':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '16%'
-                        });
-                        break;
-                    case 'Name':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '20%'
-                        });
-                        break;
-                    case 'Invade':
-                    case 'Duel':
-                    case 'War':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '7%'
-                        });
-                        break;
-                    case 'CR':
-                    case 'BR':
-                    case 'WR':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '5%'
-                        });
-                        break;
-                    case '&nbsp;':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '1%'
-                        });
-                        break;
-                    default:
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '7%'
-                        });
-                    }
-                }
-
-                head = caap.makeTr(head);
-                for (i = 0, len = battle.records.length; i < len; i += 1) {
-                    row = "";
-                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                        switch (values[pp]) {
-                        case 'userId':
-                            userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
-                            userIdLink = "keep.php?casuser=" + battle.records[i][values[pp]];
-                            data = {
-                                text: '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.records[i][values[pp]] + '</span>',
-                                color: 'blue',
-                                id: '',
-                                title: ''
-                            };
-
-                            row += caap.makeTd(data);
-                            break;
-                        case 'rank':
-                        case 'warRank':
-                        case 'conqRank':
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]] < 0 ? '' : battle.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: battle.records[i][values[pp]] < 0 ? 'Unknown' : battle.ranks[values[pp]][battle.records[i][values[pp]]]
-                            });
-                            break;
-                        case 'wc':
-                            row += caap.makeTd({
-                                text: battle.winChance(battle.records[i], stats.bonus.api),
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'invadeWon':
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].invadeLost,
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'duelWon':
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].duelLost,
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'warWon':
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]] + "/" + battle.records[i].warLost,
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                            break;
-                        case 'points':
-                            row += caap.makeTd({
-                                text:  types.reduce( function(p, c) {
-									return p + battle.records[i][c + 'Points'];
-								}, 0),
-                                color: '',
-                                id: '',
-                                title: types.map( function(e) {
-									return e.ucWords() + ': ' + battle.records[i][e + 'Points'];
-								}).join(', ')
-                            });
-                            break;
-                        default:
-                            row += caap.makeTd({
-                                text: battle.records[i][values[pp]],
-                                color: '',
-                                id: '',
-                                title: ''
-                            });
-                        }
-                    }
-
-					userIdLinkInstructions = "Clicking this link will remove " + battle.records[i].name + "'s data from CAAP.";
-					data = {
-						text: '<span id="caap_battle_remove_' + battle.records[i].userId + '" title="' + userIdLinkInstructions 
-							+ '" userid="' + battle.records[i].userId + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-						color: 'blue',
-						id: '',
-						title: ''
-					};
-
-					row += caap.makeTd(data);
-
-                    body += caap.makeTr(row);
-                }
-
-                $j("#caap_info" + which, caap.caapTopObject).html(
-                $j(caap.makeTable(which.toLowerCase(), head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false,
-                    "aoColumnDefs": [{
-                        "bSortable": false,
-                        "aTargets": [headers.length - 1]
-                    }]
-					}));
-				$j("#caap_info" + which, caap.caapTopObject).prepend(report);
-				
-                $j("span[id*='caap_battle_']", caap.caapTopObject).click(function(e) {
-					i = 0;
-					len = 0;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'rlink') {
-							caap.ajaxLink(e.target.attributes[i].nodeValue);
-							return true;
-                        }
-                    }
-
-                });
-
-                $j("span[id^='caap_battle_remove_']", caap.caapTopObject).click(function(e) {
-                    i = 0;
-                    len = 0;
-						
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'userid') {
-                            battle.deleteRecord(e.target.attributes[i].value);
-                        }
-                    }
-                });
-
-                session.setItem(which + "DashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in battle.dashboard: " + err.stack, which);
-            return false;
-        }
-    };
+	
+	battle.dashboard = {
+		name: 'Battle Stats',
+		inst: 'Display your Battle history statistics, who you fought and if you won or lost',
+		records: 'battle',
+		buttons: ['clear'],
+		tableEntries: [
+			{name: 'User ID', color: 'blue', format: 'text',
+				valueF: function(r) {
+					return '<a href="' + caap.domain.altered + '/keep.php?casuser=' + r.userId +
+						'" onclick="ajaxLinkSend(\'globalContainer\', \'keep.php?casuser=' + r.userId +
+						'\'); return false;" style="text-decoration:none;font-size:9px;color:blue;">' +
+						r.userId + '</a>';
+			}},
+			{name: 'Name'},
+			{name: 'BR', value: 'rank', format: 'nonnegative',
+				titleF: function(r) {
+					return 'Battle Rank ' + r.rank < 0 ? 'Unknown' : battle.ranks.rank[r.rank];
+			}},
+			{name: 'WR', value: 'warRank', format: 'nonnegative',
+				titleF: function(r) {
+					return 'War Rank ' + r.warRank < 0 ? 'Unknown' : battle.ranks.warRank[r.warRank];
+			}},
+			{name: 'FR', value: 'festRank', format: 'nonnegative',
+				titleF: function(r) {
+					return 'Festival Rank ' + r.festRank < 0 ? 'Unknown' : battle.ranks.festRank[r.festRank];
+			}},
+			{name: 'CR', value: 'conqRank', format: 'nonnegative',
+				titleF: function(r) {
+					return 'Conquest Rank ' + r.conqRank < 0 ? 'Unknown' : battle.ranks.conqRank[r.conqRank];
+			}},
+			{name: 'Level'},
+			{name: 'Army'},
+			{name: 'Min Def', value: 'minDef'},
+			{name: 'Max Def', value: 'maxDef'},
+			{name: 'Duel Win Chance', 
+				valueF: function(r) {
+					return  battle.winChance(r, stats.bonus.api);
+			}},
+			{name: 'Invade', 
+				valueF: function(r) {
+					return  r.invadeWon + "/" + r.invadeLost;
+			}},
+			{name: 'Duel', 
+				valueF: function(r) {
+					return  r.duelWon + "/" + r.duelLost;
+			}},
+			{name: 'War', 
+				valueF: function(r) {
+					return  r.warWon + "/" + r.warLost;
+			}},
+			{name: 'Points', 
+				valueF: function(r) {
+					return ['duel', 'invade', 'war', 'fest', 'conqInvade', 'conqDuel', 'gb'].reduce( function(p, c) {
+							return p + r[c + 'Points'];
+						}, 0);
+				},
+				titleF: function(r) {
+					return ['duel', 'invade', 'war', 'fest', 'conqInvade', 'conqDuel', 'gb'].map( function(e) {
+							return e.ucWords() + ': ' + r[e + 'Points'];
+						}).join(', ');
+			}},
+			{name: 'name', type: 'remove'}
+		]
+	};
 
 }());

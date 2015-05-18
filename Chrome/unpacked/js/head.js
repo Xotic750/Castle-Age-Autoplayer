@@ -7,7 +7,7 @@
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
@@ -53,6 +53,14 @@ String.prototype.stripCaap = function() {
     return this.replace(/caap_/i, '');
 };
 
+String.prototype.spaces = function() {
+    return this.replace('_', ' ');
+};
+
+String.prototype.underline = function() {
+    return this.replace(/ /g, '_');
+};
+
 String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
 };
@@ -94,7 +102,7 @@ Array.prototype.sum = function() {
 	return this.reduce(function(a,b) {
 		return a+b;
 	}, 0);
-}
+};
 
 Array.prototype.removeFromList = function(v) {
 	var i = this.indexOf(v);
@@ -154,3 +162,7 @@ String.prototype.parseTimer = function() {
 
     return b;
 };
+
+function ignoreJSLintError() {
+	1;
+}

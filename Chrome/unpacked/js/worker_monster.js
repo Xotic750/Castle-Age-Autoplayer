@@ -1,7 +1,7 @@
 /*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,stats,$j,battle,$u,worker,feed,caap,statsFunc,
+/*global window,stats,$j,battle,$u,worker,feed,caap,statsFunc,ignoreJSLintError,
 config,con,gm,schedule,state,general,session,monster:true */
 /*jslint maxlen: 256 */
 
@@ -101,10 +101,10 @@ config,con,gm,schedule,state,general,session,monster:true */
         }
     };
 	
-	/*jslint unparam: false */
     monster.checkResults_list = function (page, resultsText, ajax, slice) {
-	/*jslint unparam: true */
         try {
+			ignoreJSLintError(resultsText, ajax);
+			
 			var lastClick = $u.setContent(monster.lastClick, session.getItem('clickUrl','')),
 				pageURL = session.getItem('clickUrl', ''),
 				mR = {},
@@ -181,31 +181,19 @@ config,con,gm,schedule,state,general,session,monster:true */
 				mR.listReviewed = now;
 				
 				switch ($u.setContent($j(which.button, this).attr("src"), '').regex(/_btn_(\w*)/)) {
-				case 2:
-					mR.state = 'Collect';
-					break;
-				case 3:
-					mR.state = 'Attack';
-					break;
-				case 4:
-					feed.checkDeath(mR);
-					mR.state = 'Dead';
-					break;
-				case 'collect':
-					feed.checkDeath(mR);
-					mR.state = mR.state == 'Attack' ? 'Dead or fled' : $u.setContent(mR.state, 'Dead or fled');
-					break;
-				case 'atk':
-					mR.state = $u.setContent(mR.state, 'Attack');
-					break;
-				case 'join':
-				case 'joinmonster':
-					mR.state = $u.setContent(mR.state, 'Join');
-					break;
-				default:
-					con.warn("Unknown engageButtonName state for " + mR.name);
-					break;
+				case 2:				mR.state = 'Collect';									 		break;
+				case 3:				mR.state = 'Attack';											break;
+				case 4:				feed.checkDeath(mR);			mR.state = 'Dead';				break;
+				case 'view':		mR.state = 'Dead';												break;
+				case 'atk':			mR.state = $u.setContent(mR.state, 'Attack');					break;
+				case 'join':	
+				case 'joinmonster':	mR.state = $u.setContent(mR.state, 'Join');						break;
+				case 'collect':		feed.checkDeath(mR);
+									mR.state = mR.state == 'Attack' ? 'Dead or fled' : $u.setContent(mR.state, 'Dead or fled');
+									break;
+				default:			con.warn("Unknown engageButtonName state for " + mR.name);		break;
 				}
+				
 				mR.color = ['Dead', 'Collect', 'Dead or fled'].hasIndexOf(mR.state) ? 'grey' : mR.state == 'Attack' && mR.color == 'grey' ? 'black' : mR.color;
 				if (publicList && !feed.joinable(mR)) {
 					return true;
@@ -350,9 +338,9 @@ config,con,gm,schedule,state,general,session,monster:true */
 			} else {
 				tempDiv = $j("div[style*='monster_health_back.jpg']", slice);
 			}
-			tempText = tempDiv.text().trim();
+			tempText = tempDiv.text().trim().innerTrim();
 			if (tempText.toLowerCase().hasIndexOf('life') || tempText.toLowerCase().hasIndexOf('soldiers')) {
-				cM.monster = tempText.regex(/\s*([^']+)'s\s+\w+/i).replace(/,.*/,'').toLowerCase().ucWords();
+				cM.monster = tempText.regex(/(?:^The )?([^']+)'s \w+/i).replace(/,.*/,'').toLowerCase().ucWords();
 				cM.monster = monster.getInfo(cM.monster, 'alias', cM.monster);
 				if (visiblePageChangetf && config.getItem("monsterEnableLabels", true)) {
 					tempDiv.text(tempText + " (" + cM.life + "%)");
@@ -1650,7 +1638,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 			link = session.getItem('clickUrl', '');
 		}
 		//con.log(2, 'CleanLink', link, casuser, mpool);
-		temp = link.replace(/http.*\//,'').replace('battle_expansion_monster.php','guildv2_battle_monster.php');
+		temp = link.replace(/http.*\//,'');
 		link = temp.replace(/\?.*/,'') + '?';
 		['casuser=', 'mpool=', 'guild_creator_id=', 'guild_created_at=', 'slot=', 'monster_slot=', 'mid=', 'tower='].forEach( function(piece) {
 			if (piece == 'casuser=' && temp.indexOf(piece) >= 0 && $u.setContent(casuser, 0) > 0) {
@@ -1664,7 +1652,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				link += '&' + temp.match(new RegExp('(' + piece +  '\\w+)'))[1];
 			}
 		});
-		return link.indexOf('=') >= 0 ? link.replace('?&', '?') : monster.lastClick;
+		return (link.indexOf('=') >= 0 ? link.replace('?&', '?') : monster.lastClick).replace('battle_expansion_monster.php','guildv2_battle_monster.php');
 	};
 
     monster.which = function(img, entity) {
@@ -2084,7 +2072,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				});
 				schedule.setItem('NotargetFrombattle_monster', 0);
 			}
-			state.setItem('wsave_monster', true);
+			monster.save('update');
             localStorage.AFrecentAction = false;
 
             return true;
@@ -2443,398 +2431,93 @@ config,con,gm,schedule,state,general,session,monster:true */
         }
     };
 
-	monster.dashboard = function() {
-		monster.dashboardCommon('Monster');
+	monster.dashboard = {
+		name: 'Monster',
+		inst: 'Display your Monster battles',
+		records: 'monster',
+		filterF: function(cM) {
+			return cM.state != 'Join';
+		},
+		buttons: [{name: 'Refresh Monster List',
+			func: function() {
+				monster.fullReview();
+			}
+		}],
+		tableTemplate: {
+			colorF: function(cM) {
+				return cM.link === state.getItem('targetFromFortify', '') ? 'blue' : 
+					cM.link === state.getItem('targetFromMonster', '') || cM.link === state.getItem('targetFromraid', '') ? 'green' :
+					cM.color;
+				}
+		},
+		tableEntries: [
+			{name: 'Summoner', color: 'blue', 
+				valueF: function(cM) {
+					var link = caap.domain.altered + '/' + cM.link;
+					return '<a href="' + link + '" onclick="ajaxLinkSend(\'globalContainer\', \'' + cM.link + '\'); ' + 
+						' return false;" style="text-decoration:none;font-size:9px;">' +
+						cM.userName + '</a>';
+			}},
+			{name: 'Monster', color: 'blue', 
+				valueF: function(cM) {
+					var link = caap.domain.altered + '/' + cM.link;
+					return '<a href="' + link + '" onclick="ajaxLinkSend(\'globalContainer\', \'' + cM.link + '\'); ' + 
+						' return false;" style="text-decoration:none;font-size:9px;">' +
+						cM.monster + '</a>';
+			}},
+			{name: 'Damage', format: 'SI',
+				titleF: function(cM) {
+					var achLevel = Number(monster.parseCondition('ach', cM.conditions)),
+						maxDamage = monster.parseCondition('max', cM.conditions),
+						title = "Stamina used: " + cM.spentStamina + " Energy used: " + cM.spentEnergy;
+					
+					if (achLevel) {
+						title += " User Set Monster Achievement: " + achLevel.addCommas();
+					} else if (config.getItem('AchievementMode', false)) {
+						title +=  " Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
+						title += cM.page === 'festival_battle_monster' ? " Festival Monster Achievement: " + monster.getInfo(cM, 'festival_ach').addCommas() : '';
+					} else {
+						title += " Achievement Mode Disabled";
+					}
+
+					title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
+					return title;
+			}},
+			{name: 'Life%', value: 'life', 
+				titleF: function(cM) {
+					return "Percentage of monster life remaining: " + cM.life + "%";
+			}},
+			{name: 'Fort%', value: 'fortify', format: 'nonnegative',
+				titleF: function(cM) {
+					return (config.getItem('HealPercStam', 20) && cM.debtStamina > 0 ? 'Stamina debt: ' + cM.debtStamina + ' or until Fort % > ' + cM.debtStart + ' ' : '') +"Percentage of party health/monster defense: " + cM.fortify + "%";
+			}},
+			{name: 'Str%', value: 'strength', format: 'nonnegative',
+				titleF: function(cM) {
+					return "Percentage of party strength: " + cM.strength + "%";
+			}},
+			{name: 'Time', format: 'time',
+				titleF: function(cM) {
+					return "Total Monster Duration: " + monster.getInfo(cM, 'duration', 168) + " hours";
+			}},
+			{name: 'T2K', format: 'time',
+				titleF: function(cM) {
+					return "Estimated Time To Kill: " + cM.t2k + " hours:mins";
+			}},
+			{name: 'Phase',
+				valueF: function(cM) {
+					return !['Attack', 'Join'].hasIndexOf(cM.state) ? cM.state : cM.phase >= 0 ?
+						cM.phase + "/" + monster.getInfo(cM, 'siege') + " need " + cM.miss +' next ' + cM.siegeLevel  : '';
+				},
+				titleF: function(cM) {
+					return "Siege: on " + cM.phase +  " of " + monster.getInfo(cM, 'siege') + " phases, need " + cM.miss + ' more clicks. Next click costs ' + cM.siegeLevel;
+			}},
+			{name: '&nbsp;', color: 'blue', format: 'unsortable',
+				valueF: function(cM) {
+					return '<span title="User Set Condition string: ' + $u.setContent(cM.fullC, cM.jFullC) +
+						'" class="ui-icon ui-icon-info">i</span>';
+			}},
+			{name: 'name', type: 'remove'}
+		]
 	};
 	
-	// Creates the Monster Dashboard and Feed Dashboards
-    monster.dashboardCommon = function(which) {
-        try {
-            if (config.getItem('DBDisplay', '') === which && session.getItem(which.toLowerCase() + "DashUpdate", true)) {
-                var headers = ['Name', 'Damage', 'Dmg%', 'Fort%', 'Str%', 'Time', 'T2K', 'Phase', '&nbsp;', '&nbsp;', '&nbsp;'],
-                    values = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'],
-                    pp = 0,
-                    value = null,
-                    color = '',
-                    monsterConditions = '',
-                    achLevel = 0,
-                    maxDamage = 0,
-                    title = '',
-                    id = '',
-                    link = '',
-                    visitMonsterInstructions = '',
-                    removeLink = '',
-                    removeLinkInstructions = '',
-                    len = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    count = 0,
-                    handler = null,
-                    head = '',
-                    body = '',
-                    row = '',
-					whichL = which.toLowerCase();
-
-				if (which == 'Feed') {
-					headers[1] = 'Score';
-					values[1]= 'score';
-				}
-					
-                for (pp = 0, len = headers.length; pp < len; pp += 1) {
-                    switch (headers[pp]) {
-                    case 'Name':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '30%'
-                        });
-                        break;
-                    case 'Damage':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '13%'
-                        });
-                        break;
-                    case 'Score':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '13%'
-                        });
-                        break;
-                    case 'Dmg%':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '8%'
-                        });
-                        break;
-                    case 'Fort%':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '8%'
-                        });
-                        break;
-                    case 'Str%':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '8%'
-                        });
-                        break;
-                    case 'Time':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '8%'
-                        });
-                        break;
-                    case 'T2K':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '8%'
-                        });
-                        break;
-                    case 'Link':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '2%'
-                        });
-                        break;
-                    case 'Phase':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '13%'
-                        });
-                        break;
-                    case '&nbsp;':
-                        head += caap.makeTh({
-                            text: headers[pp],
-                            color: '',
-                            id: '',
-                            title: '',
-                            width: '1%'
-                        });
-                        break;
-                    default:
-						break;
-                    }
-                }
-
-                head = caap.makeTr(head);
-                values.shift();
-                monster.records.forEach(function(cM) {
-					var joinable = cM.state == 'Join',
-						isFeed = which == 'Feed';
-
-					if (joinable != isFeed) {
-						return;
-					}
-                    row = '';
-                    color = cM.color;
-                    if (cM.link === state.getItem('targetFromFortify', '')) {
-                        color = 'blue';
-                    } else if (cM.link === state.getItem('targetFromMonster', '') || cM.link === state.getItem('targetFromraid', '')) {
-                        color = 'green';
-                    }
-
-                    monsterConditions = cM.conditions;
-                    achLevel = Number(monster.parseCondition('ach', monsterConditions));
-                    maxDamage = monster.parseCondition('max', monsterConditions);
-                    if (cM.link.length) {
-                        link = caap.domain.altered + '/' + cM.link;
-                        visitMonsterInstructions = "Clicking this link will take you to " + cM.name;
-                        data = {
-                            text: '<span id="caap_' + whichL + '_' + count + '" title="' + visitMonsterInstructions + '" mname="' + cM.name + '" mlink="' + cM.link +
-                                '" rlink="' + link + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + cM.name + '</span>',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                    } else {
-                        row += caap.makeTd({
-                            text: cM.name,
-                            color: color,
-                            id: '',
-                            title: ''
-                        });
-                    }
-
-                    values.forEach(function(displayItem) {
-                        id = "caap_" + displayItem + "_" + count;
-                        title = '';
-                        if (displayItem === 'phase' && color === 'grey') {
-                            row += caap.makeTd({
-                                text: cM.state,
-                                color: color,
-                                id: '',
-                                title: ''
-                            });
-                        } else {
-                            value = cM[displayItem];
-                            if (value !== '' && (value >= 0 || value.length)) {
-                                if (displayItem !== "time" && displayItem !== "t2k" && !$u.isNaN(value) && value > 999) {
-                                    value = value.addCommas();
-                                }
-
-                                switch (displayItem) {
-                                case 'damage':
-									title = "Stamina used: " + cM.spentStamina + " Energy used: " + cM.spentEnergy;
-                                    if (achLevel) {
-                                        title += " User Set Monster Achievement: " + achLevel.addCommas();
-                                    } else if (config.getItem('AchievementMode', false)) {
-                                        title +=  " Default Monster Achievement: " + monster.getInfo(cM, 'ach').addCommas();
-                                        title += cM.page === 'festival_battle_monster' ? " Festival Monster Achievement: " + monster.getInfo(cM, 'festival_ach').addCommas() : '';
-                                    } else {
-                                        title += " Achievement Mode Disabled";
-                                    }
-
-                                    title += $u.hasContent(maxDamage) && $u.isNumber(maxDamage) ? " - User Set Max Damage: " + maxDamage.addCommas() : '';
-                                    break;
-                                case 'time':								
-									value = $u.minutes2hours(value);
-									title = "Total Monster Duration: " + monster.getInfo(cM, 'duration', 168) + " hours";
-                                    break;
-                                case 't2k':
-                                    value = $u.minutes2hours(value);
-                                    title = "Estimated Time To Kill: " + value + " hours:mins";
-                                    break;
-                                case 'life':
-                                    title = "Percentage of monster life remaining: " + value + "%";
-                                    break;
-                                case 'phase':
-                                    value = value + "/" + monster.getInfo(cM, 'siege') + " need " + cM.miss;
-                                    title = "Siege Phase: " + value + " more clicks";
-                                    break;
-                                case 'fortify':
-                                    title = (config.getItem('HealPercStam', 20) && cM.debtStamina > 0 ? 'Stamina debt: ' + cM.debtStamina + ' or until Fort % > ' + cM.debtStart + ' ' : '') +"Percentage of party health/monster defense: " + value + "%";
-                                    break;
-                                case 'strength':
-                                    title = "Percentage of party strength: " + value + "%";
-                                    break;
-                                case 'link':
-                                    value = "<a href='" + link + "'>Link</a>";
-                                    break;
-                                default:
-									break;
-                                }
-
-                                row += caap.makeTd({
-                                    text: value,
-                                    color: color,
-                                    id: id,
-                                    title: title
-                                });
-                            } else {
-                                row += caap.makeTd({
-                                    text: '',
-                                    color: color,
-                                    id: '',
-                                    title: ''
-                                });
-                            }
-                        }
-                    });
-					
-					monsterConditions = $u.setContent(cM.fullC, cM.jFullC);
-
-                    if ($u.hasContent(monsterConditions)) {
-                        data = {
-                            text: '<span title="User Set Condition string: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                    } else {
-                        row += caap.makeTd({
-                            text: '',
-                            color: color,
-                            id: '',
-                            title: ''
-                        });
-                    }
-
-                    if (cM.link.length) {
-                        removeLink = link.replace("casuser", "remove_list") + (cM.page === 'festival_battle_monster' ? '&remove_monsterKey=' + cM.mid.replace("&mid=", "") : '');
-                        removeLinkInstructions = "Clicking this link will remove " + cM.name + " from CAAP. If still on your monster list, it will reappear when CAAP sees it again.";
-                        data = {
-                            text: '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + cM.name + '" mlink="' + cM.link +
-                                '" rlink="' + removeLink + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                            color: 'blue',
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                    } else {
-                        row += caap.makeTd({
-                            text: '',
-                            color: color,
-                            id: '',
-                            title: ''
-                        });
-                    }
-
-                    body += caap.makeTr(row);
-                    count += 1;
-                });
-
-                $j("#caap_info" + which, caap.caapTopObject).html(
-                $j(caap.makeTable(whichL, head, body)).dataTable({
-                    "bAutoWidth": false,
-                    "bFilter": false,
-                    "bJQueryUI": false,
-                    "bInfo": false,
-                    "bLengthChange": false,
-                    "bPaginate": false,
-                    "bProcessing": false,
-                    "bStateSave": true,
-                    "bSortClasses": false,
-                    "aoColumnDefs": [{
-                        "bSortable": false,
-                        "aTargets": [8, 9, 10]
-                    }, {
-                        "sSortDataType": "remaining-time",
-                        "aTargets": [5, 6]
-                    }]
-                }));
-
-                handler = function(e) {
-                    var visitMonsterLink = {
-							mlink: '',
-							mname: '',
-							rlink: '',
-							arlink: ''},
-						ii = 0,
-						len2 = 0;
-
-                    for (ii = 0, len2 = e.target.attributes.length; ii < len2; ii += 1) {
-                        if (e.target.attributes[ii].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[ii].value;
-                        } else if (e.target.attributes[ii].nodeName === 'rlink') {
-                            visitMonsterLink.rlink = e.target.attributes[ii].value;
-                            visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.altered + "/", "");
-                        } else if (e.target.attributes[ii].nodeName === 'mlink') {
-                            visitMonsterLink.mlink = e.target.attributes[ii].value;
-                        }
-                    }
-
-					monster.lastClick = visitMonsterLink.mlink;
-					console.log('Visiting link ' + monster.lastClick);
-                    caap.ajaxLink(visitMonsterLink.arlink);
-                };
-
-                $j("span[id*='caap_" + whichL + "_']", caap.caapTopObject).off('click', handler).on('click', handler);
-                handler = null;
-
-                handler = function(e) {
-                    var monsterRemove = {
-                        mlink: '',
-                        mname: '',
-                        rlink: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                    len2 = 0;
-
-                    for (i = 0, len2 = e.target.attributes.length; i < len2; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'mname') {
-                            monsterRemove.mname = e.target.attributes[i].value;
-                        } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            monsterRemove.rlink = e.target.attributes[i].value;
-                            monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.altered + "/", "");
-                        } else if (e.target.attributes[i].nodeName === 'mlink') {
-                            monsterRemove.mlink = e.target.attributes[i].value;
-                        }
-                    }
-
-					monster.deleteRecord(monsterRemove.mlink);
-                };
-
-                $j("span[id*='caap_remove_']", caap.caapTopObject).off('click', handler).on('click', handler);
-                handler = null;
-                session.setItem(which.toLowerCase() + "DashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in monster.dashboardCommon: " + err.stack, which);
-            return false;
-        }
-    };
-
 }());

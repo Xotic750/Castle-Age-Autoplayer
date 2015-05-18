@@ -14,10 +14,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     "use strict";
 
 	window.worker = {};
-	
 	worker.list = [];
+	worker.dashList = [];
+	worker.dashRecords = [];
+	
 	worker.add = function(n) {
 		var o = $u.isObject(n) ? n : {};
+			
 		
 		o.name = $u.setContent(o.name, n);
 		window[o.name] = $u.setContent(window[o.name], {});
@@ -80,13 +83,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.warn(wO.name + ': Converted number indexed record(s) for ' + arr.join(', ') + ' to string record(s)');
 					state.setItem('wsave_' + wO.name, true);
 				}
-
-				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
-					session.setItem(wO.name + 'DashUpdate', true);
-				}
 			};
 
-			wO.save = function(src) {
+			wO.save = function(option) {
 				var newR = new wO.record().data,
 					undefinedKeyList = [];
 					
@@ -108,14 +107,24 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					caap.messaging.setItem(wO.name, wO.records);
 				} else {
 					gm.setItem(wO.name, wO.records, wO.hBest, false);
-					if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && src !== "caapif") {
+					if (caap.domain.which === 0 && caap.messaging.connected.hasIndexOf("caapif") && option !== "caapif") {
 						caap.messaging.setItem(wO.name, wO.records);
 					}
 				}
-				if ($u.isFunction(wO.dashboard) && caap.domain.which !== 0) {
-					session.setItem(wO.name + 'DashUpdate', true);
-				}
+
 				state.deleteItem('wsave_' + wO.name);
+				
+				if ($u.isObject(wO.dashboard) && caap.domain.which !== 0) {
+					worker.dashRecords.forEach( function(dO) {
+						if (dO.records == wO.name) {
+							session.setItem('DashUpdate' + dO.dash.underline(), true);
+						}
+					});
+				}
+				if (option == 'update') {
+					caap.updateDashboard();
+				}
+				
 			};
 			
 			wO.hasRecord = function(n) {
