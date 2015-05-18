@@ -722,7 +722,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					con.log(2, 'Unable to parse win/loss from ' + caap.page + ', setting wait time for target ' + userId, resultsText, w);
 				}
 				battle.setRecord(bR);
-				recon.deleteRecord(userId);
+				window[w.recon].deleteRecord(userId);
 				return false;
 			}
 			
@@ -761,7 +761,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			}
 
 			battle.setRecord(bR);
-			recon.deleteRecord(bR.userId);
+			window[w.recon].deleteRecord(bR.userId);
         } catch (err) {
             con.error("ERROR in battle.readWinLoss: " + err.stack);
             return false;
