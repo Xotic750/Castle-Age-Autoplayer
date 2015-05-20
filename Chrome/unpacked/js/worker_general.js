@@ -887,7 +887,9 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 
             if (timedGeneral && timedGeneral != targetGeneral && (targetGeneral != 'Use Current' || general.current != timedGeneral)) {
 				freezeTf = config.getItem('timedFreeze', true);
-                con.log(2,'General change to ' + targetGeneral + (freezeTf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
+                if (!returnNametf) {
+					con.log(2,'General change to ' + targetGeneral + (freezeTf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
+				}
                 targetGeneral = timedGeneral;
 				resultTrue = returnNametf ? targetGeneral : true;
 				resultFalse = returnNametf ? targetGeneral : freezeTf;

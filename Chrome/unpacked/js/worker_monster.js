@@ -46,7 +46,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 			multiNode: false,
 			score: 0, // Used to score monster finder targets to pick one to join
 			siegeLevel: 0,
-			doSiege: false,
 			spentEnergy: 0,
 			spentStamina: 0,
 			debtStamina: 0,
@@ -1014,7 +1013,9 @@ config,con,gm,schedule,state,general,session,monster:true */
 				hunterPts = config.getItem('WhenHunter','Never'),
 				conquestCollect = false,
 				result = false,
-				message = 'Reviewing ';
+				message = 'Reviewing ',
+				doSiege = false,
+				siegeLimit = 0;
 
             for (i = 0; i < stats.reviewPages.length; i++) {
                 if (schedule.since(stats.reviewPages[i].review, 60 * 60)) {
@@ -1073,7 +1074,17 @@ config,con,gm,schedule,state,general,session,monster:true */
 					}
 
 				} else if (cM.state == 'Attack') {
-					if (cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+					if (cM.siegeLevel > 0 && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+						siegeLimit = cM.conditions.regex(/:!s\b/) ? 0 : !cM.conditions.regex(/:fs\b/) ?
+							monster.parseCondition("s", cM.conditions) : (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ?
+							50 : 1;
+						siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
+						
+						doSiege = Number(cM.siegeLevel) <= Number(siegeLimit) && cM.damage > 0 &&
+							(cM.phase > 1 || (cM.conditions && cM.conditions.regex(/:fs\b/)));
+					}
+
+					if (doSiege) {
 						link += ',clickimg:siege_btn.gif';
 						message = 'Sieging ';
 					} else if (cM.canPri && monster.parseCondition("pri", cM.conditions) &&
@@ -2108,7 +2119,6 @@ config,con,gm,schedule,state,general,session,monster:true */
                 strengthTarget = '',
                 fortifyTarget = '',
                 stunTarget = '',
-				siegeLimit,
                 target = {
                     'battle_monster': '',
                     'raid': '',
@@ -2223,19 +2233,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 						
 						monster.parsing(cM);
 						
-						if (cM.siegeLevel > 0) {
-							siegeLimit = conditions.regex(/:!s\b/) ? 0 : !conditions.regex(/:fs\b/) ? monster.parseCondition("s", cM.conditions) 
-								: (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
-							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
-							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 &&
-								(cM.phase > 1 || (conditions && conditions.regex(/:fs\b/)));
-							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
-						} else {
-							cM.doSiege = false;
-							cM.siegeLevel = 1000;
-						}
-
                         // monster.parsing set our 'color' and 'over' values. Check these to see if this is the monster we should select
                         if (!firstUnderMax && cM.color !== 'purple') {
                             if (cM.over === 'ach') {

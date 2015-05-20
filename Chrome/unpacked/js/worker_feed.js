@@ -574,7 +574,7 @@ chores,town,general,session,monster:true */
 			var htmlCode = '',
 				filterInstructions = "List of filters to decide what monsters to look for. ",
 				keepInstruction = 'List of userid keeps and mpools to watch. Separate items by return or commas. ' + 
-					'Format like, "100000666:3, 55000000012341234:3"',
+					"Format like, '100000666:3, 55000000012341234:3'",
 				str = '';
 
 			htmlCode += caap.startToggle('MonsterFinder', 'MONSTER FINDER');
