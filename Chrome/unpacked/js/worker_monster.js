@@ -216,8 +216,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 					monster.setRecord(mR);
 				}
 			}
-			session.getItem("feedDashUpdate", true);
-			caap.updateDashboard(true);
         } catch (err) {
             con.error("ERROR in monster.checkResults_list: " + err.stack);
         }
@@ -253,7 +251,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 			if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
 				if (monster.hasRecord(lastClick)) {
 					monster.deleteRecord(lastClick);
-					con.log(1, "Deleting raid that has expired",lastClick);
+					con.log(1, "Deleting monster that has expired",lastClick);
 				}
 				return false;
 			}
@@ -771,8 +769,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 				monster.setRecord(cM);
 			}
 			monster.select(true);
-			session.getItem("feedDashUpdate", true);
-			caap.updateDashboard(true);
 			if (schedule.check('battleTimer')) {
 				window.setTimeout(function () {
 					caap.setDivContent('monster_mess', '');
@@ -1072,7 +1068,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 				} else if (cM.state == 'Done') {
 					if (cM.lpage == "player_monster_list" && (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false)))) {
 						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
-						//caap.updateDashboard(true);
 						message = 'Clearing ';
 						monster.deleteRecord(cM.link);
 					}
@@ -1217,6 +1212,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc(levelUpGen)) * gMultFunc(levelUpGen);
+					statRequireBig = $u.isNaN(statRequireBig) ? 0 : statRequireBig;
 					statRequireBig = $u.hasContent(cQ) && cQ.experience > statRequireBig * 2.2 && stats.energy.num >= cQ.energy ? 
 						0 : statRequireBig;
 					
@@ -1272,7 +1268,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 			}
 
 			if (!statAvailable) {
-				schedule.setItem('NotargetFrombattle_monster', 60);
 				return {action: false, mess: 'Waiting for stamina/energy'};
 			}
 
@@ -2323,7 +2318,6 @@ config,con,gm,schedule,state,general,session,monster:true */
             state.setItem('targetFromraid', target.raid);
             state.setItem('targetFromFortify', target.fortify);
 			
-            caap.updateDashboard(true);
             return true;
         } catch (err) {
             con.error("ERROR in monster.select: " + err.stack);

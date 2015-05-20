@@ -152,7 +152,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					invade:		false,
 					lost:		'duelLost',
 					won:		'duelWon',
-					link: function(userId, deity) {
+					linkF: function(userId, deity) {
 						return 'battle.php?symbol_id=' + deity + '&target_id=' + userId + '&action=battle&duel=true';
 					},
 					winLossRegex: /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
@@ -448,7 +448,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			Check ready to battle and what type of battle
 			\-------------------------------------------------------------------------------------*/
 			
-			if (!$u.isNumber(options) || whenBattle != 'Never') {
+			if ($u.isNumber(options) && whenBattle != 'Never') {
+				if (which == 'War') {
+					which = config.getItem('zinDemiType', 'Invade');
+					w = battle[which];
+				}
+				battleOrOverride = 'battleOverride';
+			} else {
 				switch (whenBattle) {
 				case 'Never':
 					return {action: false, mess: ''};
@@ -467,7 +473,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				}
 				
 				// What kind of battle?
-				if (demisLeft || general.ZinMisaCheck(w.general)) {
+				if (!caap.inLevelUpMode() && (demisLeft || general.ZinMisaCheck(w.general))) {
 					battleOrOverride = 'battleOverride';
 					caap.setDivContent('battle_mess', 'Battle: Doing ' + (demisLeft ? 'Demi Points' : 'Zin or Misa'));
 					if (which == 'War') {
@@ -483,12 +489,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						return {action: false, mess: 'Waiting for monster'};
 					}
 				}
-			} else {
-				if (which == 'War') {
-					which = config.getItem('zinDemiType', 'Invade');
-					w = battle[which];
-				}
-				battleOrOverride = 'battleOverride';
 			}
 			
             if (stats.level < w.minLevel) {
@@ -706,6 +706,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			
 			bR.name = $u.setContent(bR.name, r.name);
 			bR.army = $u.setContent(r.army, bR.army);
+			w.recon = $u.setContent(w.recon, 'recon');
 
 			if (!r.wl) {
 				if (w.points == 'gbPoints') {

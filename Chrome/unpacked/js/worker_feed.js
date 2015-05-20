@@ -259,7 +259,7 @@ chores,town,general,session,monster:true */
 					}
 				}
 				
-				if (general.select('MonsterGeneral')) {
+				if (general.Select('MonsterGeneral')) {
 					return true;
 				}
 			

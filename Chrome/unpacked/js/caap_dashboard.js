@@ -97,7 +97,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					bList = [],
                     bgc = state.getItem("StyleBackgroundLight", "#E0C961"),
 					confDisF = function(d) {
-						return d == config.getItem('DBDisplay', 'Monster') ? 'block' : 'none';
+						return d == config.getItem('DBDisplay', 'Stats') ? 'block' : 'none';
 					};
 
 			// Add new format dashboards by object
@@ -287,7 +287,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 throw "We are missing the Dashboard div!";
             }
 			
-			var activeDash = config.getItem('DBDisplay', 'None');
+			var activeDash = config.getItem('DBDisplay', 'Stats');
 				
 			worker.dashList.some( function(d) {
 				var wO = window[d],
