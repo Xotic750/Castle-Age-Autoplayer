@@ -110,6 +110,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 highest = battleHealth >= conquesthealth ? battleHealth : conquesthealth;
                 if ((caap.inLevelUpMode() || stats.stamina.num >= stats.stamina.max) && stats.health.num < highest) {
                     con.log(1, 'Heal');
+					monster.lastClick = '';
 					return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
                 }
             }
@@ -124,6 +125,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Heal');
+			monster.lastClick = '';
 			return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
         } catch (err) {
             con.error("ERROR in chores.heal: " + err.stack);

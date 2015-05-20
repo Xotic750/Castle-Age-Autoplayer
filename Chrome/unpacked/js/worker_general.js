@@ -313,7 +313,6 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 					if (state.getItem('wsave_general', true)) {
 						statsFunc.setRecord(stats);
 						if (update) {
-							caap.updateDashboard(true);
 							general.UpdateDropDowns();
 						}
 					}
@@ -700,7 +699,6 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				}
 			});
             generalRecord.last = Date.now();
-            caap.updateDashboard(true);
             general.setRecord(generalRecord);
             //con.log(2, "Got general stats for " + generalRecord.name, generalRecord);
             return true;
@@ -889,7 +887,9 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 
             if (timedGeneral && timedGeneral != targetGeneral && (targetGeneral != 'Use Current' || general.current != timedGeneral)) {
 				freezeTf = config.getItem('timedFreeze', true);
-                con.log(2,'General change to ' + targetGeneral + (freezeTf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
+                if (!returnNametf) {
+					con.log(2,'General change to ' + targetGeneral + (freezeTf ? '. Script paused' : ' ignored') + ' while equipping timed general ' + timedGeneral);
+				}
                 targetGeneral = timedGeneral;
 				resultTrue = returnNametf ? targetGeneral : true;
 				resultFalse = returnNametf ? targetGeneral : freezeTf;

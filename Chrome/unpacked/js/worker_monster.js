@@ -46,7 +46,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 			multiNode: false,
 			score: 0, // Used to score monster finder targets to pick one to join
 			siegeLevel: 0,
-			doSiege: false,
 			spentEnergy: 0,
 			spentStamina: 0,
 			debtStamina: 0,
@@ -216,8 +215,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 					monster.setRecord(mR);
 				}
 			}
-			session.getItem("feedDashUpdate", true);
-			caap.updateDashboard(true);
         } catch (err) {
             con.error("ERROR in monster.checkResults_list: " + err.stack);
         }
@@ -253,7 +250,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 			if ($u.hasContent($j("#app_body div[style*='no_monster_back.jpg']"))) {
 				if (monster.hasRecord(lastClick)) {
 					monster.deleteRecord(lastClick);
-					con.log(1, "Deleting raid that has expired",lastClick);
+					con.log(1, "Deleting monster that has expired",lastClick);
 				}
 				return false;
 			}
@@ -771,8 +768,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 				monster.setRecord(cM);
 			}
 			monster.select(true);
-			session.getItem("feedDashUpdate", true);
-			caap.updateDashboard(true);
 			if (schedule.check('battleTimer')) {
 				window.setTimeout(function () {
 					caap.setDivContent('monster_mess', '');
@@ -1018,7 +1013,9 @@ config,con,gm,schedule,state,general,session,monster:true */
 				hunterPts = config.getItem('WhenHunter','Never'),
 				conquestCollect = false,
 				result = false,
-				message = 'Reviewing ';
+				message = 'Reviewing ',
+				doSiege = false,
+				siegeLimit = 0;
 
             for (i = 0; i < stats.reviewPages.length; i++) {
                 if (schedule.since(stats.reviewPages[i].review, 60 * 60)) {
@@ -1072,13 +1069,22 @@ config,con,gm,schedule,state,general,session,monster:true */
 				} else if (cM.state == 'Done') {
 					if (cM.lpage == "player_monster_list" && (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false)))) {
 						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
-						//caap.updateDashboard(true);
 						message = 'Clearing ';
 						monster.deleteRecord(cM.link);
 					}
 
 				} else if (cM.state == 'Attack') {
-					if (cM.doSiege && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+					if (cM.siegeLevel > 0 && stats.stamina.num >= cM.siegeLevel && cM.monster.indexOf('Deathrune Siege') < 0) {
+						siegeLimit = cM.conditions.regex(/:!s\b/) ? 0 : !cM.conditions.regex(/:fs\b/) ?
+							monster.parseCondition("s", cM.conditions) : (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ?
+							50 : 1;
+						siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
+						
+						doSiege = Number(cM.siegeLevel) <= Number(siegeLimit) && cM.damage > 0 &&
+							(cM.phase > 1 || (cM.conditions && cM.conditions.regex(/:fs\b/)));
+					}
+
+					if (doSiege) {
 						link += ',clickimg:siege_btn.gif';
 						message = 'Sieging ';
 					} else if (cM.canPri && monster.parseCondition("pri", cM.conditions) &&
@@ -1217,6 +1223,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				if (caap.inLevelUpMode()) {  
 					// Check for the biggest hit we can make with our remaining stats
 					statRequireBig = caap.minMaxArray(statList, 'max', 1, (stats.stamina.num + 1) / gMultFunc(levelUpGen)) * gMultFunc(levelUpGen);
+					statRequireBig = $u.isNaN(statRequireBig) ? 0 : statRequireBig;
 					statRequireBig = $u.hasContent(cQ) && cQ.experience > statRequireBig * 2.2 && stats.energy.num >= cQ.energy ? 
 						0 : statRequireBig;
 					
@@ -1272,7 +1279,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 			}
 
 			if (!statAvailable) {
-				schedule.setItem('NotargetFrombattle_monster', 60);
 				return {action: false, mess: 'Waiting for stamina/energy'};
 			}
 
@@ -2113,7 +2119,6 @@ config,con,gm,schedule,state,general,session,monster:true */
                 strengthTarget = '',
                 fortifyTarget = '',
                 stunTarget = '',
-				siegeLimit,
                 target = {
                     'battle_monster': '',
                     'raid': '',
@@ -2228,19 +2233,6 @@ config,con,gm,schedule,state,general,session,monster:true */
 						
 						monster.parsing(cM);
 						
-						if (cM.siegeLevel > 0) {
-							siegeLimit = conditions.regex(/:!s\b/) ? 0 : !conditions.regex(/:fs\b/) ? monster.parseCondition("s", cM.conditions) 
-								: (stats.stamina.num >= caap.maxStatCheck('stamina') && cM.phase > 2) ? 50 : 1;
-							siegeLimit = siegeLimit !== false ? siegeLimit : config.getItem('siegeUpTo','Never') === 'Never' ? 0 : config.getItem('siegeUpTo','Never');
-							
-							cM.doSiege = cM.siegeLevel <= siegeLimit && cM.damage > 0 &&
-								(cM.phase > 1 || (conditions && conditions.regex(/:fs\b/)));
-							//con.log(2, "Page Review " + (cM.doSiege ? 'DO siege ' : "DON'T siege ") + cM.name, cM.siegeLevel, siegeLimit, cM.phase, config.getItem('siegeUpTo','None'), cM.conditions.match(':fs:'), cM.conditions.match(':!s:'));
-						} else {
-							cM.doSiege = false;
-							cM.siegeLevel = 1000;
-						}
-
                         // monster.parsing set our 'color' and 'over' values. Check these to see if this is the monster we should select
                         if (!firstUnderMax && cM.color !== 'purple') {
                             if (cM.over === 'ach') {
@@ -2323,7 +2315,6 @@ config,con,gm,schedule,state,general,session,monster:true */
             state.setItem('targetFromraid', target.raid);
             state.setItem('targetFromFortify', target.fortify);
 			
-            caap.updateDashboard(true);
             return true;
         } catch (err) {
             con.error("ERROR in monster.select: " + err.stack);
