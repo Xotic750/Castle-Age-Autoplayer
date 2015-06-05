@@ -104,7 +104,6 @@ caap_timeout,retryDelay,devVersion,caapVersion */
                                     window.guild_monster = null;
                                     //window.arena = null;
                                     window.spreadsheet = null;
-                                    window.gifting = null;
                                     window.con = null;
 									if (window.location.href.indexOf('web3.castleagegame.com/castle_ws') >= 0 
 										|| window.location.href.indexOf('apps.facebook.com/castle_age') >= 0) {
@@ -128,10 +127,6 @@ caap_timeout,retryDelay,devVersion,caapVersion */
 		//con.log(3, "schedule", schedule);
 		caap.lsUsed();
 		schedule.setItem("clickedOnSomething", 3600);
-
-		
-		gifting.init();
-		gifting.loadCurrent();
 
 		/////////////////////////////////////////////////////////////////////
 		// Put code to be run once to upgrade an old version's variables to

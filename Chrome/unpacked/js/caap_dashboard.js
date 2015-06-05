@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
-feed,battle,town,conquest,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,hiddenVar,
+feed,battle,town,conquest,ignoreJSLintError,
+$u,stats,worker,self,caap,config,con,essence,gb,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -81,7 +81,203 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.updateDashboardWaitLog = true;
+    caap.addDashboard = function() {
+        try {
+            /*-------------------------------------------------------------------------------------\
+             Here is where we construct the HTML for our dashboard. We start by building the outer
+             container and position it within the main container.
+             \-------------------------------------------------------------------------------------*/
+            var layout = "<div id='caap_top'>",
+                displayInst = [],
+				dashNames = [],
+                    styleXY = {
+                        x : 0,
+                        y : 0
+                    },
+					bList = [],
+                    bgc = state.getItem("StyleBackgroundLight", "#E0C961"),
+					confDisF = function(d) {
+						return d == config.getItem('DBDisplay', 'Stats') ? 'block' : 'none';
+					};
+
+			// Add new format dashboards by object
+			worker.dashList.forEach( function(d) {
+				var dO = window[d].dashboard;
+				dashNames.push(dO.name);
+				displayInst.push(dO.inst);
+			});
+			
+            /*-------------------------------------------------------------------------------------\
+            Then we put in the Guild tokens and FP total since we overlay them on the page.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div style='position:absolute;top:8 px;left:10px;padding: 0; font-size: 9px; height: 18px'><b>Tokens: " +
+				stats.guildTokens.num + '/' + stats.guildTokens.max + ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FP: ' + stats.points.favor + "</b></div>";
+
+            /*-------------------------------------------------------------------------------------\
+             Then we put in the Raid link since no longer available through normal CA web page.
+             \-------------------------------------------------------------------------------------*/
+            layout += "<div style='position:absolute;top:0px;left:140px;'><a href='raid.php' onclick=\"ajaxLinkSend('globalContainer'," +
+				"'raid.php'); return false;\"><input type='button' value='&nbsp;Raid&nbsp;' style='padding: 0; font-size: 9px; height: 18px' /></a></div>";
+
+            /*-------------------------------------------------------------------------------------\
+            We install the display selection box that allows the user to toggle through the
+            available displays.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:25px;'>Display: ";
+            layout += caap.makeDropDown('DBDisplay', dashNames, displayInst, '', 'User Stats', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
+
+            /*-------------------------------------------------------------------------------------\
+            We install the minimize/maximise button that allows the user to make the dashboard
+            appear or disappear.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_dashMin' class='ui-icon ui-icon-circle-minus' style='position:absolute;top:0px;right:5px;' title='Minimise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
+
+            /*-------------------------------------------------------------------------------------\
+            And here we build our empty content divs and buttons.  All are built hidden, and 
+			will be revealed if selected by caap.updateDashboard()
+            \-------------------------------------------------------------------------------------*/
+			worker.dashList.forEach( function(d) {
+				var wO = window[d],
+					dO = $u.extend({}, {buttons : [], tableTemplate: {}, handlers: [], tableEntries: []}, wO.dashboard),
+					rO = window[$u.setContent(dO.records)],
+					i= dO.buttons.indexOf('clear'),
+					bText = [];
+					
+				layout += "<div id='caap_dash_" + dO.name.underline() + "' class='caap_dash_" + dO.name.underline() +
+					"' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + confDisF(dO.name) + "'></div>";
+					
+				if (i >= 0) {
+					dO.buttons[i] = {name: 'Clear ' + dO.name + ' Records',
+						func: function() {
+							rO.records = [];
+							rO.save('update');
+						}
+					};
+				}
+					
+				dO.tableEntries.forEach( function(e, i) {
+					var name = $u.setContent(e.name, rO.recordIndex);
+					// Add remove buttons
+					if (e.type == 'remove') {
+						e = {name: '&nbsp;', format: 'unsortable',
+							valueF: function(r) {
+								return '<span title="Clicking this link will remove ' + r[name] +
+								' from CAAP" class="caap_' + rO.records + '_remove ui-icon ui-icon-circle-close" rlink="' +
+								r[rO.recordIndex] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">X</span>';
+						}};
+						dO.tableEntries[i] = e;
+						dO.handlers.addToList({
+							hClass: dO.records + '_remove',
+								handleF: function(e) {
+									$j.makeArray(e.target.attributes).some( function(n) {
+										if (n.nodeName === 'rlink') {
+											rO.deleteRecord(n.value);
+											rO.save('update');
+											return true;
+										}
+									});
+								}
+						});
+						window[d].dashboard = dO;
+					}
+				});
+					
+				if ($u.hasContent(dO.buttons)) {
+					layout += '<div class="caap_dash_' + dO.name.underline() + '" style="position:absolute;top:2px;left:200px;display:' + 
+						confDisF(dO.name) + '">';
+					dO.buttons.forEach( function(b) {
+						bText.push('<input type="button" id="caap_dashButton_' + b.name.underline() + '" value="&nbsp;' + b.name +
+							'&nbsp;" style="padding: 0; font-size: 9px; height: 18px;" />');
+						bList.addToList(b);
+					});
+					layout += bText.join('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;') + "</div>";
+				}
+			});
+
+            /*-------------------------------------------------------------------------------------\
+            No we apply our CSS to our container
+            \-------------------------------------------------------------------------------------*/
+            caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
+            caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top);
+            styleXY = caap.getDashboardXY();
+            $j(layout).css({
+                background : bgc,
+                color : $u.bestTextColor(bgc),
+                padding : "5px",
+                height : "175px",
+                width : "610px",
+                margin : "0 auto",
+                opacity : state.getItem('StyleOpacityLight', 1),
+                top : styleXY.y + 'px',
+                left : styleXY.x + 'px',
+                zIndex : state.getItem('caap_top_zIndex', 1),
+                position : 'absolute',
+                display : config.getItem("dashMinimised", false) ? 'none' : 'block'
+            }).appendTo(document.body);
+
+            caap.caapTopObject = $j('#caap_top');
+            $j("input[type='button']", caap.caapTopObject).button();
+			
+			// Add button handlers
+			bList.forEach( function(b) {
+				$j("input[id='caap_dashButton_" + b.name.underline() + "']", caap.caapTopObject).off('click', b.func).on('click', b.func);
+			});
+			
+			caap.updateDashboard();
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in addDashboard: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.addDashboardMin = function() {
+        try {
+            /*-------------------------------------------------------------------------------------\
+            Here is where we construct the HTML for our dashboard. We start by building the outer
+            container and position it within the main container.
+            \-------------------------------------------------------------------------------------*/
+            var layout = "<div id='caap_topmin'>",
+                styleXY = {
+                    x : 0,
+                    y : 0
+                },
+                bgc = state.getItem("StyleBackgroundLight", "#E0C961");
+
+            /*-------------------------------------------------------------------------------------\
+            We install the display selection box that allows the user to toggle through the
+            available displays.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_dashMax' class='ui-icon ui-icon-circle-plus' style='position:absolute;top:0px;left:0px;' title='Maximise' onmouseover='this.style.cursor=\"pointer\";' onmouseout='this.style.cursor=\"default\";'>-</div>";
+            layout += "</div>";
+
+            /*-------------------------------------------------------------------------------------\
+            No we apply our CSS to our container
+            \-------------------------------------------------------------------------------------*/
+            styleXY = caap.getDashboardXY();
+            $j(layout).css({
+                background : bgc,
+                color : $u.bestTextColor(bgc),
+                padding : "5px",
+                height : "6px",
+                width : "6px",
+                margin : "0 auto",
+                opacity : state.getItem('StyleOpacityLight', 1),
+                top : styleXY.y + 'px',
+                left : styleXY.x + 'px',
+                zIndex : state.getItem('caap_top_zIndex', 1),
+                position : 'absolute',
+                display : config.getItem("dashMinimised", false) ? 'block' : 'none'
+            }).appendTo(document.body);
+
+            caap.caapTopMinObject = $j('#caap_topmin');
+            return true;
+        } catch (err) {
+            con.error("ERROR in addDashboardMin: " + err.stack);
+            return false;
+        }
+    };
 
     caap.updateDashboard = function (force) {
         try {
@@ -92,29 +288,98 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (caap.caapTopObject.length === 0) {
                 throw "We are missing the Dashboard div!";
             }
-
-            if (!caap.oneMinuteUpdate('dashboard', force)) {
-                if (caap.updateDashboardWaitLog) {
-                    con.log(4, "Dashboard update is waiting on oneMinuteUpdate");
-                    caap.updateDashboardWaitLog = false;
-                }
-
-                return false;
-            }
-
-            caap.updateDashboardWaitLog = true;
-            con.log(3, "Updating Dashboard");
-			worker.list.forEach( function(i) {
-				if ($u.isFunction(window[i].dashboard)) {
-					window[i].dashboard();
+			
+			var activeDash = config.getItem('DBDisplay', 'Stats');
+				
+			worker.dashList.some( function(d) {
+				var wO = window[d],
+					dO = $u.extend({}, {buttons : [], tableTemplate: {}, handlers: [], tableEntries: []}, wO.dashboard),
+					ulName = dO.name.underline(),
+					tt = dO.tableTemplate,
+					head = '',
+					body = '',
+					fR = $u.hasContent(dO.gbLabel) ? gb.getRecord(dO.gbLabel) : {},
+					tE = $u.isFunction(dO.tableEntriesF) ? dO.tableEntriesF(fR) : dO.tableEntries,
+					records = $u.hasContent(fR) ? fR[config.getItem('gbDashWhich', 'enemy')].members : window[dO.records].records,
+					indices = function(format) {  
+						return tE.map( function(c, i) {
+							ignoreJSLintError(c);
+							return i;
+						}).filter( function(i) {
+							return tE[i].format == format;
+						});		
+					};
+					
+				if (activeDash != dO.name) {
+					return false;  // Wrong dashboard
 				}
+
+				if (!force && !session.getItem("DashUpdate" + ulName, true)) {
+					return true; // Right dashboard, but it's up to date
+				}
+				con.log(2, "Updating " + dO.name + " Dashboard ");
+				
+				if ($u.hasContent(tE)) {
+
+					tE.forEach( function(e) {
+						head += caap.makeTh({text: e.name, width: e.width});
+					});
+					$j.each(records, function(i, r) {
+						ignoreJSLintError(i);
+						if ($u.isFunction(dO.filterF) && !dO.filterF(r)) {
+							return;
+						}
+						var row = '';
+						tE.forEach( function(e) {
+							var text = $u.isDefined(e.value) ? r[e.value] : $u.isFunction(e.valueF) ? e.valueF(r, i) : r[e.name.toLowerCase()];
+							switch (e.format) {
+							case 'time' : 			text = $u.minutes2hours(text); 										break;
+							case 'nonnegative' : 	text = (text < 0 ? '' : text);										break;
+							case '$SI' : 			text = '$' + text.SI();		 										break;
+							case 'SI' : 			text = text.SI();			 										break;
+							default :																					break;
+							}
+
+							text = e.format != 'text' && $u.hasContent(text) && Number(text) == text ? Number(text).dp(1).addCommas() : text;
+							row += caap.makeTd({
+								text: text,
+								// Order: table entry from record, table entry function, table template fixed value, table template function, blank
+								color: $u.isString(e.color) ? r[e.color] : $u.isFunction(e.colorF) ? e.colorF(r) :
+									$u.isDefined(tt.color) ? tt.color : $u.isFunction(tt.colorF) ? tt.colorF(r) : '' ,
+								title: $u.isString(e.title) ? r[e.title] : $u.isFunction(e.titleF) ? e.titleF(r) : 
+									$u.isDefined(tt.title) ? tt.title : $u.isFunction(tt.titleF) ? tt.titleF(r) : ''
+							});
+						});
+						body += caap.makeTr(row);
+					});
+					
+					$j("#caap_dash_" + ulName, caap.caapTopObject).html(
+					$j(caap.makeTable(d, head, body)).dataTable({
+						"bAutoWidth": false,
+						"bFilter": false,
+						"bJQueryUI": false,
+						"bInfo": false,
+						"bLengthChange": false,
+						"bPaginate": false,
+						"bProcessing": false,
+						"bStateSave": true,
+						"bSortClasses": false,
+						"aoColumnDefs": [{"bSortable": false, 		"aTargets": indices('unsortable') },
+							{"sSortDataType": "remaining-time", 	"aTargets": indices('time')}]
+					}));
+				}
+				
+				if ($u.isFunction(dO.headerF)) {
+					$j("#caap_dash_" + ulName, caap.caapTopObject).prepend(dO.headerF(fR));
+				}
+				
+				dO.handlers.forEach( function(h) {
+					$j("span[class*='caap_" + h.hClass + "']", caap.caapTopObject).off('click', h.handleF).on('click', h.handleF);
+				});
+				session.setItem("DashUpdate" + ulName, false);
+				return true;
 			});
-
-            guild_monster.dashboard();
-            guilds.dashboard();
-            gifting.queue.dashboard();
-            gifting.history.dashboard();
-
+			
            return true;
         } catch (err) {
             con.error("ERROR in updateDashboard: " + err);
@@ -127,166 +392,20 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     \-------------------------------------------------------------------------------------*/
     caap.dbDisplayListener = function (e) {
         var idName = e.target.id.stripCaap(),
-            value = e.target.options[e.target.selectedIndex].value,
-            title = e.target.options[e.target.selectedIndex].title;
+            value = e.target.options[e.target.selectedIndex].value;
 
-        con.log(1, 'Change: dashboard setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+        con.log(1, 'Change: dashboard setting "' + idName + '" to "' + value + '"');
         config.setItem(idName, value);
-        e.target.title = title;
-        caap.setDisplay("caapTopObject", 'infoMonster', false);
-        caap.setDisplay("caapTopObject", 'guildMonster', false);
-        caap.setDisplay("caapTopObject", 'gbClassic', false);
-        caap.setDisplay("caapTopObject", 'infoArena', false);
-        caap.setDisplay("caapTopObject", 'gb100', false);
-        caap.setDisplay("caapTopObject", 'gb10', false);
-        caap.setDisplay("caapTopObject", 'infoFeed', false);
-        caap.setDisplay("caapTopObject", 'army', false);
-        caap.setDisplay("caapTopObject", 'infoTargets1', false);
-        caap.setDisplay("caapTopObject", 'infoBattle', false);
-        caap.setDisplay("caapTopObject", 'infoGuilds', false);
-        caap.setDisplay("caapTopObject", 'userStats', false);
-        caap.setDisplay("caapTopObject", 'generalsStats', false);
-        caap.setDisplay("caapTopObject", 'Town_Stats', false);
-        caap.setDisplay("caapTopObject", 'giftStats', false);
-        caap.setDisplay("caapTopObject", 'giftQueue', false);
-        caap.setDisplay("caapTopObject", 'buttonMonster', false);
-        caap.setDisplay("caapTopObject", 'buttonFeed', false);
-        caap.setDisplay("caapTopObject", 'GFDisplay', false);
-        caap.setDisplay("caapTopObject", 'buttonGuildMonster', false);
-        caap.setDisplay("caapTopObject", 'buttonTargets', false);
-        caap.setDisplay("caapTopObject", 'buttonGenerals', false);
-        caap.setDisplay("caapTopObject", 'buttonBattle', false);
-        caap.setDisplay("caapTopObject", 'buttonGuilds', false);
-        caap.setDisplay("caapTopObject", 'buttonGifting', false);
-        caap.setDisplay("caapTopObject", 'buttonGiftQueue', false);
-        caap.setDisplay("caapTopObject", 'buttonArmy', false);
-        switch (value) {
-            case "Target List":
-                caap.setDisplay("caapTopObject", 'infoTargets1', true);
-                caap.setDisplay("caapTopObject", 'buttonTargets', true);
+		
+		// Hide all dash objects
+		$j('#caap_top div[class^="caap_dash_"]:visible').each( function() {
+			$j(this).css('display', 'none');
+		});
+		
+		// Unhide the objects from this dash
+		caap.setDisplay("caapTopObject", {'class' : 'dash_' + value.underline()}, true);
 
-                break;
-            case "Battle Stats":
-                caap.setDisplay("caapTopObject", 'infoBattle', true);
-
-                break;
-            case "Arena Stats" :
-                caap.setDisplay("caapTopObject", 'infoArena', true);
-                //caap.setDisplay("caapTopObject", 'buttonBattle', true);
-                break;
-            case "Guild Essence":
-                caap.setDisplay("caapTopObject", 'infoGuilds', true);
-                caap.setDisplay("caapTopObject", 'buttonGuilds', true);
-
-                break;
-            case "User Stats":
-                caap.setDisplay("caapTopObject", 'userStats', true);
-
-                break;
-            case "Generals Stats":
-                caap.setDisplay("caapTopObject", 'generalsStats', true);
-                caap.setDisplay("caapTopObject", 'buttonGenerals', true);
-
-                break;
-            case "Town Stats":
-                caap.setDisplay("caapTopObject", 'Town_Stats', true);
-
-                break;
-            case "Gifting Stats":
-                caap.setDisplay("caapTopObject", 'giftStats', true);
-                caap.setDisplay("caapTopObject", 'buttonGifting', true);
-
-                break;
-            case "Gift Queue":
-                caap.setDisplay("caapTopObject", 'giftQueue', true);
-                caap.setDisplay("caapTopObject", 'buttonGiftQueue', true);
-
-                break;
-            case "Guild Monster":
-                caap.setDisplay("caapTopObject", 'guildMonster', true);
-                caap.setDisplay("caapTopObject", 'buttonGuildMonster', true);
-
-                break;
-            case "Classic":
-				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", 'gbClassic', true);
-
-                break;
-            case "Monster":
-                caap.setDisplay("caapTopObject", 'infoMonster', true);
-                caap.setDisplay("caapTopObject", 'buttonMonster', true);
-                break;
-            case "100v100":
-				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", 'gb100', true);
-
-                break;
-            case "10v10":
-				caap.setDisplay("caapTopObject", 'GFDisplay', true);
-                caap.setDisplay("caapTopObject", 'gb10', true);
-
-                break;
-            case "Feed":
-                caap.setDisplay("caapTopObject", 'infoFeed', true);
-                caap.setDisplay("caapTopObject", 'buttonFeed', true);
-
-                break;
-            case "Army":
-                caap.setDisplay("caapTopObject", 'army', true);
-                caap.setDisplay("caapTopObject", 'buttonArmy', true);
-
-                break;
-            default:
-        }
-
-        caap.updateDashboard(true);
-    };
-
-    /*-------------------------------------------------------------------------------------\
-    addDBListener creates the listener for guild battles control.
-    \-------------------------------------------------------------------------------------*/
-    caap.gfDisplayListener = function (e) {
-        var idName = e.target.id.stripCaap(),
-            value = e.target.options[e.target.selectedIndex].value,
-            title = e.target.options[e.target.selectedIndex].title;
-
-        con.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
-        config.setItem(idName, value);
-        e.target.title = title;
-        caap.setDisplay("caapTopObject", 'yourgb100', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'yourgbClassic', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'enemygb100', value == 'Opponent');
-        caap.setDisplay("caapTopObject", 'yourgb10', value == 'My Guild');
-        caap.setDisplay("caapTopObject", 'enemygb10', value == 'Opponent');
-        caap.setDisplay("caapTopObject", 'enemygbClassic', value == 'Opponent');
-        caap.updateDashboard(true);
-    };
-
-	// Pass through function used to pass arguments that might not be referred from a different context
-    caap.refreshFeedListener = function () {
-        monster.fullReview('Feed');
-    };
-
-    caap.refreshGeneralsListener = function () {
-		con.log(1, 'Cleared all general records');
-        general.records = [];
-		general.save();
-    };
-
-    caap.refreshGuildMonstersListener = function () {
-        con.log(1, "refreshGuildMonstersListener");
-        session.setItem('ReleaseControl', true);
-        guild_monster.clear();
-        caap.updateDashboard(true);
-        schedule.setItem("guildMonsterReview", 0);
-    };
-
-    caap.liveFeedButtonListener = function () {
-        caap.clickAjaxLinkSend('army_news_feed.php');
-    };
-
-    caap.crusadersButtonListener = function () {
-        caap.clickAjaxLinkSend('crusaders.php');
+        caap.updateDashboard();
     };
 
     caap.getBQH = function (cb) {
@@ -315,19 +434,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.fastHealButtonListener = function () {
-        if (stats.health.dif && stats.gold.total > 0) {
-            caap.getBQH(function (bqh) {
-                var params = {
-                    "action": "heal_avatar",
-                    "bqh": bqh
-                };
-
-                caap.ajaxLoad('keep.php', params, "#health_current_value", "#health_current_value", session.getItem("page", ""));
-            });
-        }
-    };
-
     caap.clearTargetsButtonListener = function () {
         battle.reconRecords = [];
         battle.saveRecon();
@@ -340,22 +446,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     caap.clearGuildsButtonListener = function () {
-        guilds.clear();
+        essence.clear();
         caap.updateDashboard(true);
     };
 
     caap.rescanGuildsButtonListener = function () {
-		guilds.rescan();
-        caap.updateDashboard(true);
-    };
-
-    caap.clearGiftingButtonListener = function () {
-        gifting.clear("history");
-        caap.updateDashboard(true);
-    };
-
-    caap.clearGiftQueueButtonListener = function () {
-        gifting.clear("queue");
+		essence.rescan();
         caap.updateDashboard(true);
     };
 
@@ -376,21 +472,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             $j('#caap_DBDisplay', caap.caapTopObject).on('change', caap.dbDisplayListener);
-            $j('#caap_GFDisplay', caap.caapTopObject).on('change', caap.gfDisplayListener);
-            $j('#caap_refreshMonsters', caap.caapTopObject).on('click', monster.fullReview);
-            $j('#caap_refreshFeeds', caap.caapTopObject).on('click', caap.refreshFeedListener);
-            $j('#caap_refreshGenerals', caap.caapTopObject).on('click', caap.refreshGeneralsListener);
-            $j('#caap_refreshGuildMonsters', caap.caapTopObject).on('click', caap.refreshGuildMonstersListener);
-            $j('#caap_liveFeed', caap.caapTopObject).on('click', caap.liveFeedButtonListener);
-            $j('#caap_crusaders', caap.caapTopObject).on('click', caap.crusadersButtonListener);
-            $j('#caap_fastHeal', caap.caapTopObject).on('click', caap.fastHealButtonListener);
-            $j('#caap_clearTargets', caap.caapTopObject).on('click', caap.clearTargetsButtonListener);
-            $j('#caap_clearBattle', caap.caapTopObject).on('click', caap.clearBattleButtonListener);
-            $j('#caap_clearGuilds', caap.caapTopObject).on('click', caap.clearGuildsButtonListener);
-            $j('#caap_rescanGuilds', caap.caapTopObject).on('click', caap.rescanGuildsButtonListener);
-            $j('#caap_clearGifting', caap.caapTopObject).on('click', caap.clearGiftingButtonListener);
-            $j('#caap_clearGiftQueue', caap.caapTopObject).on('click', caap.clearGiftQueueButtonListener);
-            $j('#caap_getArmy', caap.caapTopObject).on('click', caap.getArmyButtonListener);
             $j('#caap_dashMin', caap.caapTopObject).on('click', function () {
                 caap.caapTopObject.toggle('fold', {}, '', function () {
                     caap.caapTopMinObject.show();

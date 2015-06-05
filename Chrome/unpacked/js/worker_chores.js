@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,
+/*global window,escape,worker,$j,chores,stats,
+$u,chrome,spreadsheet,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -11,10 +11,14 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
 	worker.add('chores');
 	
-	chores.checkResults = function(page) {
+	chores.checkResults = function(page, resultsText) {
 		try {
 			var pagesHeaders = worker.pagesList.flatten('page'),
-				url = 'ajax:' + session.getItem('clickUrl', 'none');
+				url = 'ajax:' + caap.clickUrl,
+				picList = [],
+				dupList = [],
+				nameList = [],
+				src = '';
 				
 			if (pagesHeaders.hasIndexOf(page)) {
 				schedule.setItem('page_' + page, Date.now());
@@ -22,6 +26,46 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (pagesHeaders.hasIndexOf(url)) {
 				schedule.setItem('page_' + url, Date.now());
 			}
+			switch (page) {
+			case 'alchemy' :
+				// Check for ingredients in multiple recipes to avoid unwanted combines
+				if (!config.getItem('alchemy', false) || !caap.oneMinuteUpdate('alchemyDupIngredients')) {
+					break;
+				}
+				dupList = state.getItem('alchemyDupImages', dupList);
+				nameList = state.getItem('alchemyDupNames', nameList);
+				$j('#app_body img').not('[onmouseover*="display_reward"]').each( function() {
+					src = $u.setContent($j(this).attr('src'), '').regex(/.*\/(\w+\.\w+)/);
+					if (src) {
+						if (picList.hasIndexOf(src)) {
+							if (!dupList.hasIndexOf(src)) {
+								dupList.push(src);
+								nameList.push($j(this).parent().text().trim().innerTrim().replace(/ (Somewhere|Get|Find|Create) .*/, ''));
+							}
+						} else {
+							picList.push(src);
+						}
+					}
+				});
+				state.setItem('alchemyDupImages', dupList);
+				state.setItem('alchemyDupNames', nameList);
+				con.log(2, 'Alchemy ingredients in multiple recipes list: ' + nameList.join(', '), dupList);
+				break;
+			case 'goblin_emp' :
+				if (config.getItem("goblinHinting", true)) {
+					spreadsheet.doTitles(true);
+				}
+				if (/You have exceeded the 10 emporium roll limit for the day/.test(resultsText)) {
+					schedule.setItem('koboTimerDelay', 7 * 3600, 100);
+					con.log(2, 'Kobo: hit maximum rolls');
+					caap.setDivContent('kobo_mess', schedule.check('koboTimerDelay') ? 'Kobo = none' : 'Next Kobo: ' +
+						$u.setContent(caap.displayTime('koboTimerDelay'), "Unknown"));
+				}
+				break;
+			default :
+				break;
+			}
+				
         } catch (err) {
             con.error("ERROR in chores.checkResults: " + err.stack);
             return false;
@@ -66,7 +110,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 highest = battleHealth >= conquesthealth ? battleHealth : conquesthealth;
                 if ((caap.inLevelUpMode() || stats.stamina.num >= stats.stamina.max) && stats.health.num < highest) {
                     con.log(1, 'Heal');
-                    return caap.navigateTo('keep,keep_healbtn.gif');
+					monster.lastClick = '';
+					return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
                 }
             }
 
@@ -80,7 +125,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             con.log(1, 'Heal');
-            return caap.navigateTo('keep,keep_healbtn.gif');
+			monster.lastClick = '';
+			return caap.navigate3(caap.page, caap.page + '.php?action=heal_avatar');
         } catch (err) {
             con.error("ERROR in chores.heal: " + err.stack);
             return false;
@@ -88,133 +134,206 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     };
 
     /*-------------------------------------------------------------------------------------\
-    AutoAlchemy perform alchemy combines for all recipes that do not have missing
+    alchemy perform alchemy combines for all recipes that do not have missing
     ingredients.  By default, it also will not combine Battle Hearts.
     First we make sure the option is set and that we haven't been here for a while.
     \-------------------------------------------------------------------------------------*/
+/////////////////////////////////////////////////////////////////////
+//                          ALCHEMY
+/////////////////////////////////////////////////////////////////////
+
 	worker.addAction({fName : 'chores.alchemy', priority : -700, description : 'Doing Alchemy'});
 	
     chores.alchemy = function () {
         try {
-            if (!config.getItem('AutoAlchemy', false)) {
-                return false;
-            }
-
-            if (!schedule.check('AlchemyTimer')) {
+            if (!config.getItem('alchemy', false) || !schedule.check('AlchemyTimer')) {
                 return false;
             }
 
             /*-------------------------------------------------------------------------------------\
-			Now we navigate to the Alchemy Recipe page.
+			Navigate to the Alchemy Recipe page.
 			\-------------------------------------------------------------------------------------*/
-            if (!caap.navigateTo('keep,alchemy', 'alchfb_btn_alchemies_on.gif')) {
-                var button1 = {},
-					ssDiv = $j(),
-                    clicked = false;
+            if (caap.navigateTo('alchemy', 'alchfb_btn_alchemies_on.gif')) {
+				return true;
+			}
+			
+			/*-------------------------------------------------------------------------------------\
+			Get all of the recipes and step through them one by one
+			\-------------------------------------------------------------------------------------*/
 
-                /*-------------------------------------------------------------------------------------\
-				We close the results of our combines so they don't hog up our screen
+			var clicked = false,
+				repeatIngredientList = state.getItem('alchemyDupImages', []),
+				whiteList = config.getList('alchemy_whitelist', ''),
+				blackList = config.getList('alchemy_blacklist', '');
+
+			$j("div .recipe").has('input[src*="alchfb__btn_createon.gif"]').each(function () {
+
+				var name = $j(this).find('[onmouseover*="display_reward"]').parent().text().trim().innerTrim(),
+					repeat = [];
+					
+				/*-------------------------------------------------------------------------------------\
+				If ingredient in multiple recipes, skip it
 				\-------------------------------------------------------------------------------------*/
-                 if (caap.ifClick('help_close_x.gif')) {
-                    return true;
-                }
 
-                /*-------------------------------------------------------------------------------------\
-				Now we get all of the recipes and step through them one by one
+				$j(this).find('img').not('[onmouseover*="display_reward"]').each( function() {
+					var src = $u.setContent($j(this).attr('src'), '').regex(/.*\/(\w+\.\w+)/);
+					if (src && repeatIngredientList.hasIndexOf(src) && src != "alchfb_gifticon.gif") {
+						repeat.push($j(this).parent().text().trim().innerTrim().replace(/ (Somewhere|Get|Find|Create) .*/, ''));
+					}
+				});
+				if (repeat.length) {
+					con.log(2, 'Skipping ' + name + ' recipe because ingredients in more than one recipe: ' + repeat.join(', '));
+					return true;
+				}
+
+				/*-------------------------------------------------------------------------------------\
+				Check black and white lists
 				\-------------------------------------------------------------------------------------*/
-                ssDiv = $j("div[id*='recipe']");
-                if (!ssDiv || !ssDiv.length) {
-                    con.log(3, 'No recipes found');
-                }
 
-                ssDiv.each(function () {
-                    var button2 = {},
-						recipeDiv = $j(this);
+				if (!chores.blackWhite(whiteList, blackList, name)) {
+					con.log(2, 'Skipping ' + name + ' recipe from black or whitelist');
+					return true;
+				}
 
-                    con.log(3, 'If we are missing an ingredient then skip it');
-
-                    /*-------------------------------------------------------------------------------------\
-					If we are missing an ingredient then skip it
-					\-------------------------------------------------------------------------------------*/
-                    button2 = recipeDiv.find("img[src*='alchfb_createoff.gif']");
-                    if (button2 && button2.length) {
-                        con.log(2, 'Skipping Recipe');
-
-						recipeDiv = null;
-						button2 = null;
-                        return true;
-                    }
-
-                    con.log(3, 'If we are crafting map of atlantis then skip it');
-
-                    /*-------------------------------------------------------------------------------------\
-					If we are crafting map of atlantis then skip it
-					\-------------------------------------------------------------------------------------*/
-                    button2 = recipeDiv.find("img[src*='seamonster_map_finished.jpg']");
-                    if (button2 && button2.length) {
-                        con.log(2, 'Skipping map of atlantis Recipe');
-
-						recipeDiv = null;
-						button2 = null;
-                        return true;
-                    }
-
-                    con.log(3, 'If we are skipping battle hearts then skip it');
-
-                    /*-------------------------------------------------------------------------------------\
-					If we are skipping battle hearts then skip it
-					\-------------------------------------------------------------------------------------*/
-
-                    if (caap.hasImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
-                        con.log(2, 'Skipping Hearts');
-
-						recipeDiv = null;
-						button2 = null;
-                        return true;
-                    }
-
-                    con.log(3, 'Find our button and click it');
-
-                    /*-------------------------------------------------------------------------------------\
-					Find our button and click it
-					\-------------------------------------------------------------------------------------*/
-                    button2 = recipeDiv.find("input[type='image']");
-                    if (button2 && button2.length) {
-                        caap.click(button2);
-                        con.log(2, 'Clicked A Recipe', recipeDiv.find("div[style='padding-top:5px;']"));
-                        clicked = true;
-
-						recipeDiv = null;
-						button2 = null;
-                        return false;
-                    }
-
-                    con.warn('Cant Find Item Image Button');
-
-					recipeDiv = null;
-					button2 = null;
-                    return true;
-                });
-
-                con.log(3, 'End each recipe');
-
-                if (clicked) {
-                    return true;
-                }
-
-                /*-------------------------------------------------------------------------------------\
-				All done. Set the timer to check back in 3 hours.
+				/*-------------------------------------------------------------------------------------\
+				If we are crafting map of atlantis then skip it
 				\-------------------------------------------------------------------------------------*/
-                schedule.setItem('AlchemyTimer', 10800, 300);
+				if ($u.hasContent($j(this).find("img[src*='seamonster_map_finished.jpg']"))) {
+					con.log(2, 'Skipping map of atlantis Recipe');
+					return true;
+				}
 
-				button1 = null;
-				ssDiv = null;
+				/*-------------------------------------------------------------------------------------\
+				Find our button and click it
+				\-------------------------------------------------------------------------------------*/
+				if (caap.ifClick($j(this).find('input[src*="alchfb__btn_createon.gif"]'))) {
+					con.log(2, 'Clicking recipe for ' + name);
+					clicked = true;
+					return false;
+				}
+				con.warn('Cant Find Item Image Button');
+			});
+
+			if (clicked) {
+				return true;
+			}
+
+			/*-------------------------------------------------------------------------------------\
+			All done. Set the timer to check back later.
+			\-------------------------------------------------------------------------------------*/
+			schedule.setItem('AlchemyTimer', 9 * 3600, 300);
+			return false;
+
+		} catch (err) {
+            con.error("ERROR in chores.alchemy: " + err.stack);
+            return false;
+        }
+    };
+
+/////////////////////////////////////////////////////////////////////
+//                          KOBO
+/////////////////////////////////////////////////////////////////////
+
+	worker.addAction({fName : 'chores.kobo', priority : -2500, description : 'Doing Kobo Rolls'});
+
+	chores.blackWhite = function(whiteList, blackList, name, title) {
+		try {
+			var whiteListed = false,
+				blackListed = false;
+				
+			if (whiteList.listMatch(/(\w)/)) {
+				whiteListed = whiteList.some( function(w) {
+					var text = (w[0] == '~' ? title.replace(name, '') : name).trim().toLowerCase();
+					if (text.match(new RegExp(w.replace('~','').trim().toLowerCase()))) { 
+						con.log(2, "'" + name + "' white listed by condition " + w);
+						return true;
+					}
+				});
+				if (!whiteListed) { 
+					con.log(2, "'" + name + "' not white listed");
+				}
+			} else {
+				whiteListed = true;
+			}
+			if (blackList.listMatch(/(\w)/)) {
+				blackListed = blackList.some( function(black) {
+					if (name.trim().toLowerCase().match(new RegExp(black.trim().toLowerCase()))) { 
+						con.log(2, "'" + name + "' black listed by condition " + black);
+						return true;
+					}
+				});
+				if (!blackListed) { 
+					con.log(2, "'" + name + "' not black listed"); 
+				}
+			}
+			return whiteListed && !blackListed;
+			
+        } catch (err) {
+            con.error("ERROR in chores.blackWhite: " + err);
+            return false;
+        }
+    };
+
+	
+	
+    chores.kobo = function() {
+        try {
+            var gin_left = 10,
+				ingredientDIV,
+                addClick = true,
+				countClick = 0,
+				whiteList = config.getList('kobo_whitelist', ''),
+				blackList = config.getList('kobo_blacklist', ''),
+				addIng = function(_i, _e) {
+                    var count = $j(_e).text(),
+                        name = $j(_e).parent().parent()[0].children[0].children[0].alt,
+						title = $j(_e).parent().parent()[0].children[0].children[0].title;
+
+                    con.log(3, "ingredient " + _i + " '" + name + "' :count = " + count);
+                    if (count > config.getItem('koboKeepUnder', 10) && (gin_left > countClick) ) {
+						if (chores.blackWhite(whiteList, blackList, name, title)) {
+							addClick = true;
+							countClick = countClick + 1;
+							$j(_e).parent().parent().click();
+						}
+                    }
+				};
+
+
+            if ((!config.getItem('kobo', true)) || (!schedule.check('koboTimerDelay'))) {
+                caap.setDivContent('kobo_mess', schedule.check('koboTimerDelay') ? '' : 'Next Kobo: ' + $u.setContent(caap.displayTime('koboTimerDelay'), "Unknown"));
                 return false;
             }
 
-            return true;
+			if (caap.navigateTo('goblin_emp')) {
+				return true;
+			}
+			
+            ingredientDIV = $j("div[class='ingredientUnit']>div>span[id*='gout_value']");
+			
+			while (gin_left > 0) {
+				addClick = false;
+				countClick = 0;
+
+                ingredientDIV.each(addIng);
+
+                if (!addClick) {
+                    schedule.setItem('koboTimerDelay', 7 * 3600, 100);
+                    caap.setDivContent('kobo_mess', schedule.check('koboTimerDelay') ? '' : 'Next Kobo: ' + $u.setContent(caap.displayTime('koboTimerDelay'), "Unknown"));
+                    return false;
+                }
+				gin_left = Math.min(($j("span[id='gin_left_amt']")).text(), 10);
+            }
+
+            if (caap.ifClick('emporium_button.gif')) {
+                con.log(1, "Clicking Roll");
+                return true;
+            }
+
+            return false;
+
         } catch (err) {
-            con.error("ERROR in chores.alchemy: " + err.stack);
+            con.error("ERROR in chores.kobo: " + err);
             return false;
         }
     };
@@ -236,325 +355,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         } catch (err) {
             con.error("ERROR in chores.income: " + err.stack);
-            return false;
-        }
-    };
-
-    ////////////////////////////////////////////////////////////////////
-    //                      Auto Stat
-    ////////////////////////////////////////////////////////////////////
-
-	worker.addAction({fName : 'chores.immediateStat', priority : 1400, description : 'Raising Stats Immediately'});
-
-    chores.immediateStat = function () {
-        if (config.getItem("StatImmed", false) && config.getItem('AutoStat', false)) {
-			return chores.stats();
-        }
-    };
-
-    chores.increaseStat = function (attribute, attrAdjust, atributeSlice) {
-        function getValue(div) {
-            var retVal = $u.setContent($j("div[onmouseout*='hideItemPopup']", div.parent().parent().parent()).text(), '').regex(/(\d+)/);
-
-            con.log(2, "getValue got", retVal);
-            return retVal;
-        }
-
-        try {
-            attribute = attribute.toLowerCase();
-            var button = $j(),
-                level = 0,
-                attrCurrent = 0,
-                energy = 0,
-                stamina = 0,
-                attack = 0,
-                defense = 0,
-                health = 0,
-                attrAdjustNew = 0,
-                energyDiv = $j("a[href*='energy_max']", atributeSlice),
-                staminaDiv = $j("a[href*='stamina_max']", atributeSlice),
-                attackDiv = $j("a[href*='attack']", atributeSlice),
-                defenseDiv = $j("a[href*='defense']", atributeSlice),
-                healthDiv = $j("a[href*='health_max']", atributeSlice),
-                logTxt = "";
-
-            switch (attribute) {
-                case "energy":
-                    button = energyDiv;
-                    break;
-                case "stamina":
-                    button = staminaDiv;
-                    break;
-                case "attack":
-                    button = attackDiv;
-                    break;
-                case "defense":
-                    button = defenseDiv;
-                    break;
-                case "health":
-                    button = healthDiv;
-                    break;
-                default:
-                    energyDiv = null;
-                    staminaDiv = null;
-                    attackDiv = null;
-                    defenseDiv = null;
-                    healthDiv = null;
-                    button = null;
-                    throw "Unable to match attribute: " + attribute;
-            }
-
-            if (!$u.hasContent(button)) {
-                con.warn("Unable to locate upgrade button: Fail ", attribute);
-                energyDiv = null;
-                staminaDiv = null;
-                attackDiv = null;
-                defenseDiv = null;
-                healthDiv = null;
-                button = null;
-                return "Fail";
-            }
-
-            attrAdjustNew = attrAdjust;
-            logTxt = attrAdjust;
-            level = stats.level;
-
-            attrCurrent = getValue(button);
-            energy = getValue(energyDiv);
-            stamina = getValue(staminaDiv);
-            if (level >= 10) {
-                attack = getValue(attackDiv);
-                defense = getValue(defenseDiv);
-                health = getValue(healthDiv);
-            } else {
-                attack = stats.attack;
-                defense = stats.defense;
-                health = stats.health.norm;
-            }
-
-            con.log(2, "level/energy/stamina/attack/defense/health/health", level, energy, stamina, attack, defense, health, health);
-
-            if (config.getItem('AutoStatAdv', false)) {
-                //Using eval, so user can define formulas on menu, like energy = level + 50
-                /*jslint evil: true */
-                attrAdjustNew = eval(attrAdjust);
-                /*jslint evil: false */
-                logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
-                con.log(2, "logTxt", logTxt);
-            }
-
-            if ((attribute === 'stamina') && (stats.points.skill < 2)) {
-                if (attrAdjustNew <= attrCurrent) {
-                    con.log(2, "Stamina at requirement: Next");
-                    energyDiv = null;
-                    staminaDiv = null;
-                    attackDiv = null;
-                    defenseDiv = null;
-                    healthDiv = null;
-                    button = null;
-                    return "Next";
-                }
-
-                if (config.getItem("StatSpendAll", false)) {
-                    con.log(2, "Stamina requires 2 upgrade points: Next");
-                    energyDiv = null;
-                    staminaDiv = null;
-                    attackDiv = null;
-                    defenseDiv = null;
-                    healthDiv = null;
-                    button = null;
-                    return "Next";
-                }
-
-                con.log(2, "Stamina requires 2 upgrade points: Save");
-                state.setItem("statsMatch", false);
-                energyDiv = null;
-                staminaDiv = null;
-                attackDiv = null;
-                defenseDiv = null;
-                healthDiv = null;
-                button = null;
-                return "Save";
-            }
-
-            if (attrAdjustNew > attrCurrent) {
-                con.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
-                caap.click(button);
-                energyDiv = null;
-                staminaDiv = null;
-                attackDiv = null;
-                defenseDiv = null;
-                healthDiv = null;
-                button = null;
-                return "Click";
-            }
-
-            con.log(2, "We fell through: Next", attrAdjustNew, attrCurrent);
-            energyDiv = null;
-            staminaDiv = null;
-            attackDiv = null;
-            defenseDiv = null;
-            healthDiv = null;
-            button = null;
-            return "Next";
-        } catch (err) {
-            con.error("ERROR in chores.increaseStat: " + err.stack);
-            return "Error";
-        }
-    };
-
-    chores.statCheck = function () {
-        try {
-            var startAtt = 0,
-                stopAtt = 4,
-                attribute = '',
-                attrValue = 0,
-                n = 0,
-                level = 0,
-                energy = 0,
-                stamina = 0,
-                attack = 0,
-                defense = 0,
-                health = 0,
-                attrAdjust = 0,
-                value = 0,
-                passed = false;
-
-            if (!config.getItem('AutoStat', false) || !stats.points.skill) {
-                return ['', 0];
-            }
-
-            if (config.getItem("AutoStatAdv", false)) {
-                startAtt = 5;
-                stopAtt = 9;
-            }
-
-            for (n = startAtt; n <= stopAtt; n += 1) {
-                attribute = config.getItem('Attribute' + n, '').toLowerCase();
-                // current thinking is that continue should not be used as it can cause reader confusion
-                // therefore when linting, it throws a warning
-                /*jslint continue: true */
-                if (attribute === '') {
-                    con.log(1, "Skipping blank entry: continue");
-                    continue;
-                }
-
-                if (stats.level < 10) {
-                    if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
-                        con.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
-                        continue;
-                    }
-                }
-                /*jslint continue: false */
-
-                attrValue = config.getItem('AttrValue' + n, 0);
-                attrAdjust = attrValue;
-                level = stats.level;
-                energy = stats.energy.norm;
-                stamina = stats.stamina.norm;
-                attack = stats.attack;
-                defense = stats.defense;
-                health = stats.health.norm;
-
-                if (config.getItem('AutoStatAdv', false)) {
-                    //Using eval, so user can define formulas on menu, like energy = level + 50
-                    /*jslint evil: true */
-                    attrAdjust = eval(attrValue);
-                    /*jslint evil: false */
-                }
-
-                if (attribute === "attack" || attribute === "defense") {
-                    value = stats[attribute];
-                } else {
-                    value = stats[attribute].norm;
-                }
-
-                // current thinking is that continue should not be used as it can cause reader confusion
-                // therefore when linting, it throws a warning
-                /*jslint continue: true */
-                if (attrAdjust > value) {
-                    if (attribute === 'stamina' && stats.points.skill < 2) {
-    					if (config.getItem("StatSpendAll", false)) {
-							continue;
-						} else {
-							passed = false;
-							break;
-						}
-					} else {
-						passed = true;
-						break;
-					}
-                }
-                /*jslint continue: true */
-            }
-
-            state.setItem("statsMatch", passed);
-
-            if (passed) {
-                con.log(1, "Rule match to increase stats", attribute);
-                return [attribute, attrValue];
-            }
-
-            con.log(1, "No rules match to increase stats");
-            return ['', 0];
-        } catch (err) {
-            con.error("ERROR in chores.statCheck: " + err.stack);
-            return false;
-        }
-    };
-
-	worker.addAction({fName : 'chores.stats', priority : -200, description : 'Raising Stats'});
-
-    chores.stats = function () {
-        try {
-            if (!config.getItem('AutoStat', false) || !stats.points.skill) {
-                return false;
-            }
-
-            if (!state.getItem("statsMatch", true)) {
-                if (state.getItem("autoStatRuleLog", true)) {
-                    con.log(2, "User should possibly change their stats rules");
-                    state.setItem("autoStatRuleLog", false);
-                }
-
-                return false;
-            }
-
-            var atributeSlice,
-                attribute = [],
-                returnIncreaseStat = '';
-
-            attribute = chores.statCheck();
-            if (attribute[0] === '') {
-                return false;
-            }
-
-            atributeSlice = $j("#app_body div[style*='keep_bgv2.jpg']");
-            if (!$u.hasContent(atributeSlice)) {
-                caap.navigateTo('keep');
-                atributeSlice = null;
-                return true;
-            }
-
-            returnIncreaseStat = chores.increaseStat(attribute[0], attribute[1], atributeSlice);
-            con.log(1, attribute, returnIncreaseStat);
-            atributeSlice = null;
-            switch (returnIncreaseStat) {
-                case "Next":
-                    return true;
-                case "Click":
-                    return true;
-                case "Fail":
-                case "Save":
-                    // There is no code to handle this but as a hacky fix is to say that no stats match,
-                    // CAAP will try again but won't keep banging it's head if there is a CA problem.
-                    state.setItem("statsMatch", false);
-                    return false;
-                default:
-                    return false;
-            }
-        } catch (err) {
-            con.error("ERROR in chores.stats: " + err.stack);
             return false;
         }
     };
@@ -686,14 +486,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
  	worker.addAction({fName : 'chores.checkPages', priority : -1200, description : 'Reviewing Pages'});
 	
-	worker.addPageCheck({page : 'oracle'});
-
-	worker.addPageCheck({page : 'battlerank', path : 'battle,battlerank', level : 8});
-
-	worker.addPageCheck({page : 'war_rank', path : 'battle,war_rank', level : 100});
-
-	worker.addPageCheck({page : 'conquest_battlerank', level : 80});
-
 	worker.addPageCheck({page : 'conquest_duel'});
 
 	worker.addPageCheck({page : 'achievements'});
@@ -701,8 +493,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	worker.addPageCheck({page : 'symbolquests', path : 'quests,symbolquests', level : 8});
 
 	worker.addPageCheck({page : 'view_class_progress', path : 'player_monster_list,view_class_progress', level : 100});
-
-	worker.addPageCheck({page : 'gift', hours : 3, path : 'army,gift'});
 
 	worker.addPageCheck({page : 'keep', hours : 1});
 
@@ -712,7 +502,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				: $u.isString(page) ? [{page : page}] : worker.pagesList,
 				hours = 0;
 			return list.some( function(o) {
-				if (o.config && !config.getItem(o.config, false)) {
+				if ((o.config && !config.getItem(o.config, false)) ||
+						(o.func && !window[o.func.regex(/(\w+)\./)][o.func.regex(/\.(\w+)/)]())) {
 					return false;
 				}
 				hours = o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);
@@ -730,6 +521,60 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         } catch (err) {
             con.error("ERROR in chores.checkPages: " + err.stack);
             return false;
+        }
+    };
+
+    chores.menu = function () {
+        try {
+            // Other controls
+            var alchemyInstructions1 = "Alchemy will combine all recipes " + "that do not have missing ingredients. By default, it will not " + "combine Battle Hearts recipes.",
+                koboInstructions0 = "Enable or disable Kobo rolls.",
+                koboInstructions1 = "Number to keep of each item.",
+                koboWhiteListInstructions = "List of items to roll in Kobo. Leave blank to roll any item above the Keep value." +
+					'Use ~ for matching against the description. For example, ~gift would match all items that have "gift" in the description. Not case sensitive.',
+                koboBlackListInstructions = "List of items not to give to to Kobo. " + "Not case sensitive.",
+                alchemyWhiteListInstructions = "List of recipes to combine. Will not combine recipes with ingredients that can be used in multiple recipes, like " + state.getItem('alchemydupNames', ['Battle Hearts']).join(', ') + 
+					". Leave blank to combine any other recipes. Not case sensitive.",
+                alchemyBlackListInstructions = "List of recipes not to combine. " + "Not case sensitive.",
+                itemInvInst = "Inventory all items. Uses local storage space and not used by CAAP except to display the Item dashboard.",
+                potionsInstructions0 = "Enable or disable the consumption " + "of energy and stamina potions.",
+                potionsInstructions1 = "Number of stamina potions at which to " + "begin consuming.",
+                potionsInstructions2 = "Number of stamina potions to keep.",
+                potionsInstructions3 = "Number of energy potions at which to " + "begin consuming.",
+                potionsInstructions4 = "Number of energy potions to keep.",
+                potionsInstructions5 = "Do not consume potions if the " + "experience points to the next level are within this value.",
+                htmlCode = '';
+
+            htmlCode += caap.startToggle('Item', 'ITEMS');
+            htmlCode += caap.makeCheckTR('Potions', 'potions', false, potionsInstructions0);
+            htmlCode += caap.display.start('potions');
+            htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', potionsInstructions1, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', potionsInstructions2, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', potionsInstructions3, 30, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', potionsInstructions4, 25, '', '', true, false);
+            htmlCode += caap.makeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', potionsInstructions5, 55, '', '', true, false);
+            htmlCode += caap.display.end('potions');
+            htmlCode += caap.makeCheckTR('Alchemy', 'alchemy', false, alchemyInstructions1);
+            htmlCode += caap.display.start('alchemy');
+            htmlCode += caap.makeTD("Alchemy Recipe White List",true);
+            htmlCode += caap.makeTextBox('alchemy_whitelist', alchemyWhiteListInstructions, '', '');
+            htmlCode += caap.makeTD("Alchemy Recipe Black List",true);
+            htmlCode += caap.makeTextBox('alchemy_blacklist', alchemyBlackListInstructions, 'Trophy, ', '');
+            htmlCode += caap.display.end('alchemy');
+            htmlCode += caap.makeCheckTR('Kobo', 'kobo', false, koboInstructions0);
+            htmlCode += caap.display.start('kobo');
+            htmlCode += caap.makeNumberFormTR("Keep", 'koboKeepUnder', koboInstructions1, 100, '', '', true, false);
+            htmlCode += caap.makeTD("Kobo Item White List",true);
+            htmlCode += caap.makeTextBox('kobo_whitelist', koboWhiteListInstructions, '~gift, ', '');
+            htmlCode += caap.makeTD("Kobo Item Black List",true);
+            htmlCode += caap.makeTextBox('kobo_blacklist', koboBlackListInstructions, '', '');
+            htmlCode += caap.display.end('kobo');
+            htmlCode += caap.makeCheckTR('Inventory Items', 'itemIventory', false, itemInvInst);
+            htmlCode += caap.endToggle;
+            return htmlCode;
+        } catch (err) {
+            con.error("ERROR in chores.menu: " + err.stack);
+            return '';
         }
     };
 

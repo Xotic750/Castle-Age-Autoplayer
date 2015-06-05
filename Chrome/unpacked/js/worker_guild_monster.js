@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,
+/*global window,escape,stats,$j,rison,utility,
+$u,chrome,worker,self,caap,config,con,gm,
 schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 /*jslint maxlen: 256 */
 
@@ -413,11 +413,11 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 }
             url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record.slot);
-                caap.clickAjaxLinkSend(url);
+                caap.ajaxLink(url);
                 return true;
             }
 
-            schedule.setItem("guildMonsterReview", (gm ? gm.getItem('guildMonsterReviewMins', 60, hiddenVar) : 60) * 60, 300);
+            schedule.setItem("guildMonsterReview", (gm ? gm.getItem('guildMonsterReviewMins', 60) : 60) * 60, 300);
             state.setItem('guildMonsterBattlesRefresh', true);
             state.setItem('guildMonsterBattlesReview', false);
             state.setItem('guildMonsterReviewSlot', 0);
@@ -442,7 +442,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                 if (state.getItem('targetFrombattle_monster', '') || state.getItem('targetFromraid', '')) {
                     return true;
                 }
-                var WhenBattle = config.getItem("WhenBattle", 'Never');
             }
 
             return false;
@@ -577,7 +576,7 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
                     con.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
                     caap.setDivContent('guild_monster_mess', "Fighting (" + record.slot + ") " + record.name);
                     url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + "&slot=" + record.slot;
-                    caap.clickAjaxLinkSend(url);
+                    caap.ajaxLink(url);
                     form = null;
                     key = null;
                     return true;
@@ -901,21 +900,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
             return false;
         } catch (err) {
             con.error("ERROR in guild_monster.deleteItem: " + err);
-            return false;
-        }
-    };
-
-    guild_monster.clear = function() {
-        try {
-            con.log(1, "guild_monster.clear");
-            guild_monster.records = [];
-            guild_monster.save();
-            state.setItem('staminaGuildMonster', 0);
-            state.setItem('targetGuildMonster', {});
-            session.setItem("GuildMonsterDashUpdate", true);
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_monster.clear: " + err);
             return false;
         }
     };
@@ -1413,142 +1397,40 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
         }
     };
 
-    guild_monster.dashboard = function() {
-        try {
-            /*-------------------------------------------------------------------------------------\
-                Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
-                table and then build the header row.
-                \-------------------------------------------------------------------------------------*/
-            if (config.getItem('DBDisplay', '') === 'Guild Monster' && session.getItem("GuildMonsterDashUpdate", true)) {
-                var color = '',
-                    headers = ['Slot', 'Name', 'Damage', 'Damage%', 'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'],
-                    values = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus', 'ticker', 'state'],
-                    pp = 0,
-                    i = 0,
-                    len = 0,
-                    len1 = 0,
-                    data = {
-                        text: '',
-                        color: '',
-                        bgcolor: '',
-                        id: '',
-                        title: ''
-                    },
-                    handler = null,
-                    head = '',
-                    body = '',
-                    row = '';
-
-                for (pp = 0; pp < headers.length; pp += 1) {
-                    head += caap.makeTh({
-                        text: headers[pp],
-                        color: '',
-                        id: '',
-                        title: '',
-                        width: ''
-                    });
-                }
-
-                head = caap.makeTr(head);
-                for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
-                    row = "";
-                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                        switch (values[pp]) {
-                        case 'name':
-                            data = {
-                                text: '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name + '" mname="' + guild_monster.records[i].slot +
-                                    '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId + '&slot=' + guild_monster.records[i].slot +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
-                                color: guild_monster.records[i].color,
-                                id: '',
-                                title: ''
-                            };
-
-                            row += caap.makeTd(data);
-
-                            break;
-                        case 'ticker':
-                            row += caap.makeTd({
-                                text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '',
-                                color: guild_monster.records[i].color,
-                                id: '',
-                                title: ''
-                            });
-
-                            break;
-                        default:
-                            row += caap.makeTd({
-                                text: $u.hasContent(guild_monster.records[i][values[pp]]) ? guild_monster.records[i][values[pp]] : '',
-                                color: guild_monster.records[i].color,
-                                id: '',
-                                title: ''
-                            });
-                        }
-                    }
-
-                    data = {
-                        text: '<a href="' + caap.domain.altered + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId +
-                            '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
-                        color: 'blue',
-                        id: '',
-                        title: 'This is a siege link.'
-                    };
-
-                    row += caap.makeTd(data);
-
-                    if ($u.hasContent(guild_monster.records[i].conditions) && guild_monster.records[i].conditions !== 'none') {
-                        data = {
-                            text: '<span title="User Set Conditions: ' + guild_monster.records[i].conditions + '" class="ui-icon ui-icon-info">i</span>',
-                            color: guild_monster.records[i].color,
-                            id: '',
-                            title: ''
-                        };
-
-                        row += caap.makeTd(data);
-                    } else {
-                        row += caap.makeTd({
-                            text: '',
-                            color: color,
-                            id: '',
-                            title: ''
-                        });
-                    }
-
-                    body += caap.makeTr(row);
-                }
-
-                $j("#caap_guildMonster", caap.caapTopObject).html(caap.makeTable("guild_monster", head, body));
-
-                handler = function(e) {
-                    var visitMonsterLink = {
-                        mname: '',
-                        arlink: ''
-                    },
-                    i = 0,
-                        len = 0;
-
-                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                        if (e.target.attributes[i].nodeName === 'mname') {
-                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                        } else if (e.target.attributes[i].nodeName === 'rlink') {
-                            visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
-                        }
-                    }
-
-                    caap.clickAjaxLinkSend(visitMonsterLink.arlink);
-                };
-
-                $j("span[id*='caap_guildmonster_']", caap.caapTopObject).off('click', handler).on('click', handler);
-                handler = null;
-
-                session.setItem("GuildMonsterDashUpdate", false);
-            }
-
-            return true;
-        } catch (err) {
-            con.error("ERROR in guild_monster.dashboard: " + err);
-            return false;
-        }
-    };
+	guild_monster.dashboard = {		
+		name: 'Guild Monsters',
+		inst: 'Display your Guild Monsters',
+		records: 'guild_monster',
+		buttons: [{name: 'Refresh Monster List',
+			func: function() {
+				state.setItem('staminaGuildMonster', 0);
+				state.setItem('targetGuildMonster', {});
+				guild_monster.save('update');
+				schedule.setItem("guildMonsterReview", 0);
+			}
+		}],
+		tableTemplate: {
+			colorF: function(cM) {
+				return cM.color;
+		}},
+		tableEntries: [
+			{name: 'Name', color: 'blue', 
+				valueF: function(cM) {
+					var link = '"guild_battle_monster.php?twt2=' + guild_monster.info[cM.name].twt2 + '&guild_id=' + cM.guildId +
+						'&slot=' + cM.slot;
+					return '<a href="' + caap.domain.altered + '/' + link + '" onclick="ajaxLinkSend(\'globalContainer\', \'' + link +
+						'\'); ' + ' return false;" style="text-decoration:none;font-size:9px;">' + cM.name + '</a>';
+			}},
+			{name: 'Damage'},
+			{name: 'Damage%', value: 'enemyHealth'},
+			{name: 'My Status', value: 'myStatus'},
+			{name: 'TimeLeft', format: 'time',
+				valueF: function(r) {
+					return $u.hasContent(r.ticker) ? r.ticker.regex(/(\d+:\d+):\d+/) : '';
+			}},
+			{name: 'Status', value: 'state'},
+			{name: 'name', type: 'remove'}
+		]
+	};
 
 }());

@@ -1,9 +1,9 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,feed,spreadsheet,ss,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,battle,profiles,town,
-conquest,
+/*global window,escape,stats,$j,rison,chores,feed,spreadsheet,ss,
+$u,hyper,worker,self,caap,config,con,gm,guilds,profiles,town,
+conquest,battle,guild_battle,stats,statsFunc,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -231,6 +231,13 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+	caap.passThrough = function(result)  {
+		if (result && (!$u.isObject(result) || $u.setContent(result.action, true))) {
+			return result;
+		}
+		return false;
+	};
+	
     caap.mainLoop = function () {
         try {
             var button = $j(),
@@ -238,9 +245,12 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 actionsListCopy = [],
 				releaseControl = true,
 				result = false,
-                action = 0,
-                len = 0,
-                dmc = 0;
+				returnObj = {}, // Used to hold an object return for console logging or div setting
+                dmc = 0,
+				ucName,
+				message,
+				logText,
+				warnText;
 
             // assorted errors...
             if (caap.errorCheck()) {
@@ -341,13 +351,30 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             }
 
             actionsListCopy = worker.actionsList.slice();
-			releaseControl = session.getItem('ReleaseControl', true)
+			releaseControl = session.getItem('ReleaseControl', true);
 			if (!releaseControl) {
 				actionsListCopy.unshift(worker.actionsList.getObjByField('fName', state.getItem('LastAction', 'caap.idle')));
 			}
             result = actionsListCopy.some( function(action) {
 				session.setItem('ThisAction', action.fName);
-                if (window[action.worker][action.functionName]()) {
+				returnObj = window[action.worker][action.functionName]();
+				if ($u.isObject(returnObj)) {
+					ucName = action.worker.ucWords();
+					message = $u.isDefined(returnObj.mess) ? returnObj.mess : $u.isDefined(returnObj.mlog) ? returnObj.mlog :
+						$u.isDefined(returnObj.mess) ? returnObj.mwarn : false;
+					logText = $u.isDefined(returnObj.log) ? returnObj.log : $u.isDefined(returnObj.mlog) ? returnObj.mlog : false;
+					warnText = $u.isDefined(returnObj.mwarn) ? returnObj.mwarn : false;
+					if (message !== false) {
+						caap.setDivContent(action.worker + '_mess', $u.hasContent(message) ? ucName + ': ' + message : '');
+					}
+					if (logText !== false) {
+						con.log($u.setContent(returnObj.level, 1), ucName + ': ' + logText);
+					}
+					if (warnText !== false) {
+						con.warn(ucName + ': ' + warnText);
+					}
+				}
+                if (caap.passThrough(returnObj)) {
                     caap.checkLastAction(action);
 					return true;
                 }
@@ -391,7 +418,6 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         function doit() {
             var rc = session.incItem("reloadCounter"),
                 mc = session.getItem("messageCount", 0),
-				logonArray = [],
 				suffix = '';
 
             if (!force && rc < 20 && mc > 0) {
@@ -406,7 +432,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             if (force || (!config.getItem('Disabled') && state.getItem('caapPause') === 'none')) {
                 // better than reload... no prompt on forms!
                 con.log(1, 'Reloading now!');
-				if (typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
+				if (caap.checkForImage('header_persist_background.jpg').length && typeof hyper != 'undefined' && $u.isArray(hyper.getItem('logons',false)) && hyper.getItem('logons',false).length > 1) {
 					suffix = '/connect_login.php?platform_action=CA_web3_logout';
 				} else if (caap.domain.which === 0 || caap.domain.which === 2) {
 					suffix = '/keep.php';
@@ -432,10 +458,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 			if (state.getItem('caapPause', 'none') == 'none') {
 				if (schedule.since("clickedOnSomething", 300) || session.getItem("pageLoadCounter", 0) > 40
 						|| (caap.hyper && schedule.since("hyperTimer", reloadMin * 60))) {
-					con.log(1, 'Reloading if not paused after inactivity');
+					con.log(1, 'Reloading after inactivity');
 					session.setItem("flagReload", true);
-				} else {
-					con.log(2, 'Checked for reload, but not necessary', schedule.since("clickedOnSomething", 300), session.getItem("pageLoadCounter", 0) > 40, caap.hyper, schedule.since("hyperTimer", reloadMin * 60));
 				}
 			}
             window.setTimeout(function () {
@@ -579,11 +603,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 return stats;
             },
             'import': function (d) {
-                stats = d;
+                window.stats = d;
                 statsFunc.setRecord(stats);
             },
             'delete': function () {
-                stats = {};
+                window.stats = {};
                 gm.deleteItem("stats.record");
             }
         },

@@ -14,6 +14,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 (function () {
     "use strict";
 
+	caap.configsExport = '';
+	
     caap.chatLink = function (query) {
         try {
             var hr = new RegExp('.*(http:.*)'),
@@ -90,6 +92,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeTD = function (text, indent, right, css) {
         try {
+			//caap.configsExport += text + ',';
+		
             css = css ? " style='" + css + "'" : '';
             var cls = " class='caap_ff caap_fn" + (indent ? " caap_in" : '') + (right ? " caap_tr" : '') + "'";
             return "<div" + cls + css + ">" + text + "</div>";
@@ -198,6 +202,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
             htmlCode += caap.makeTD(caap.makeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
             htmlCode += caap.endTR;
+			
+			caap.configsExport += [idName, text, defaultValue].join(',') + '\n';
+
             return htmlCode;
         } catch (err) {
             con.error("ERROR in makeCheckTR: " + err);
@@ -216,6 +223,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
             htmlCode += caap.makeTD(caap.makeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
             htmlCode += caap.endTR;
+
+			caap.configsExport += [idName, text, initDefault].join(',') + '\n';
+
             return htmlCode;
         } catch (err) {
             con.error("ERROR in makeNumberFormTR: " + err);
@@ -226,6 +236,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
     caap.makeDropDownTR = function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css, id1, css1) {
         try {
             var htmlCode = '';
+			
+			caap.configsExport += [idName, text, defaultValue].join(',') + '\n';
 
             htmlCode += caap.startTR(id1 ? idName + id1 : idName + "_row", css1);
             htmlCode += caap.makeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
@@ -235,6 +247,64 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         } catch (err) {
             con.error("ERROR in makeDropDownTR: " + err);
             return '';
+        }
+    };
+
+    caap.setDisplay = function (area, idName, display, quiet) {
+        try {
+            if (!$u.hasContent(idName)) {
+                con.warn("idName", idName);
+                throw "Bad idName!";
+            }
+
+            var areaDiv = caap[area],
+                areatest = area,
+				attr = 'id';
+				
+			if ($u.isObject(idName)) {
+				attr = Object.keys(idName).pop();
+				idName = idName[attr];
+			}
+
+            if (!$u.hasContent(areaDiv)) {
+                areatest = "default";
+                areaDiv = $j(document.body);
+                con.warn("Unknown area. Using document.body", area);
+            }
+
+            con.log(2, "Change: display of 'caap_" + idName + "' to '" + (display === true ? 'block' : 'none') + "'", areatest);
+			areaDiv = $j('div[' + attr + '="caap_' + idName + '"]', areaDiv);
+            if (!$u.hasContent(areaDiv) && !quiet) {
+                con.warn("Unable to find idName in area!", idName, area);
+				return false;
+            }
+            areaDiv.each( function() {
+				$j(this).css('display', display === true ? 'block' : 'none');
+			});
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in setDisplay: " + err.stack);
+            return false;
+        }
+    };
+
+    caap.setDisplayById = function (idName) {
+        try {
+			$j("div[id^='caap_displayIf__" + idName + "__is']").each( function() {
+				var id = $j(this).attr('id'),					
+					arr = id.regex(/caap_displayIf__(\w+)__(is|isnot)__(\w+)/);
+				if (arr) {
+					caap.setDisplay('', id.replace('caap_',''), (config.getItem(arr[0], false).toString() == arr[2].replace(/_/g,' ')) == (arr[1] == 'is'));
+				} else {
+					con.warn('caap.dropBoxListener: Unable to parse setting change for id ' + id);
+				}
+			});
+
+            return true;
+        } catch (err) {
+            con.error("ERROR in setDisplayById: " + err.stack);
+            return false;
         }
     };
 
@@ -277,6 +347,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
                 displayChar = currentDisplay === "none" ? "+" : "-",
                 style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                 toggleCode = '';
+				
+			caap.configsExport += [staticText].join(',') + '\n';
 
             toggleCode += '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
             toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + ";'>";
@@ -291,8 +363,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
     caap.makeTextBox = function (idName, instructions, initDefault) {
         try {
-            initDefault = $u.setContent(initDefault, '');
-            var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
+			initDefault = $u.setContent(initDefault, '');
+
+			caap.configsExport += [idName, '', initDefault].join(',') + '\n';
+             var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                 value = config.getItem(idName, 'defaultValue');
 
             value = value === 'defaultValue' ? config.setItem(idName, initDefault) : value;

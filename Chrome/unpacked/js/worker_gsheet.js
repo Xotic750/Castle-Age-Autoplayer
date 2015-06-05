@@ -1,8 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,offline,town,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gsheet,ss,
+/*global window,escape,stats,$j,rison,utility,offline,town,
+$u,chrome,worker,self,caap,config,con,gsheet,ss,
 schedule,gifting,state,army, general,session,monster,guild_monster */
 /*jslint maxlen: 256 */
 
@@ -64,7 +64,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 						if (!$u.hasContent(obj.table) || !$u.hasContent(obj.table.rows)) {
 							con.log(1, 'Gsheet: no match for hash ' + hash + ' found on URL ' + url, data, obj);
 							return;
-						} else if (obj.table.rows.length != 1) {
+						} 
+						if (obj.table.rows.length != 1) {
 							con.log(1, 'Gsheet: too many matches for hash ' + hash + ' found on URL ' + url, data, obj);
 							return;
 						}
@@ -75,8 +76,9 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							label = $u.setContent(c.label, '').trim();
 							oldVal = $u.hasContent(label) ? config.getItem(label, 'defaultx') : null;
 							oldVal = oldVal == 'defaultx' ? null : oldVal;
-							newVal = !$u.hasContent(values[i]) || !$u.hasContent(values[i].v) ? null : values[i].v;
+							newVal = !$u.hasContent(values[i]) || !$u.hasContent(values[i].v) ? null : values[i].v == 'blank' ? '' : values[i].v;
 							if (oldVal !== null && newVal !== null && oldVal != newVal) {
+								newVal = $u.isString(oldVal) ? newVal.toString() : newVal;
 								con.log(1, 'Gsheet: Updating config value of ' + label + ' from ' + oldVal
 									+ ' to ' + config.setItem(label, newVal));
 							}

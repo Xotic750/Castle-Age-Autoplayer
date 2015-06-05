@@ -1,9 +1,8 @@
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,jQuery,$j,rison,utility,
-$u,chrome,CAAP_SCOPE_RUN,self,caap,config,con,gm,
-schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
+/*global $j,gb,stats,worker,$u,caap,config,con,loe,
+schedule,state,general,session,battle:true */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -24,20 +23,36 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		infoDiv: '',
 		waitHours: 24,
 		collectHours: 0,
-		minHealth: 0, 
+		minHealth: 0,
+		top : { enemy: 'guild_conquest_castle_battlelist',
+				your : 'index'},
 		scoring : 'loeScoring',
 		basePath: 'ajax:guildv2_conquest_expansion.php?guild_id='
 	};
 	
 	loe.checkResults = function(page, resultsText) {
         try {
+			var fR = false,
+				guild_id = '',
+				haveBattle = false,
+				towerDivs = $j(),
+				which,
+				check = false,
+				pics,
+				t;
+			
 			switch (page) {
+			case 'index' :
+				if ($u.hasContent($j('a[href*="guildv2_conquest_expansion.php?guild_id=' + stats.guild.id + '&slot=0'))) {
+					con.log(2, 'LoE: in defense mode');
+					fR = gb.getRecord('loe');
+					gb.setrPage(fR, gb.makePath(gb.loe, stats.guild.id));
+				}
+				break;
 			case 'guild_conquest_castle_battlelist' :
-				var fR = gb.getRecord('loe'),
-					guild_id; 
+				fR = gb.getRecord('loe');
 				
-				fR.paths = [];
-				
+				// Add LoE lands current at war
 				$j('img[src*="conq2_btn_attack.jpg"]').each(function() {
 					guild_id = $j(this).closest('a').attr('href').regex(/guild_id=(\d+_\d+)/);
 					if (!$u.isString(guild_id)) {
@@ -45,55 +60,81 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 						return;
 					}
 					con.log(2, 'At war with guild id ' + guild_id, fR);
-					gb.setrPage(fR, gb.makePath(gb['loe'], guild_id));
+					gb.setrPage(fR, gb.makePath(gb.loe, guild_id));
 				});
 				
+				// Delete any lands war is over with
 				$j.each(fR.enemy.towers, function(tower) {
-					if (!$u.hasContent($j('a[href*="?guild_id=' + tower.regex(/(\d):/) + '&"').find('img[src*="conq2_btn_attack.jpg"]'))) {
-						con.log(1, 'LoE: War is over, so deleting battles with guild id ' + tower.regex(/(\d):/) + ' tower ' + tower.regex(/:(\d)/));
+					guild_id = tower.regex(/([\d_]+):/);
+					if (!$u.hasContent($j('a[href*="?guild_id=' + guild_id + '&"').find('img[src*="conq2_btn_attack.jpg"]'))) {
+						con.log(1, 'LoE: War is over, so deleting battles with guild id ' + guild_id + ' tower ' + tower.regex(/:(\d)/));
 						delete fR.enemy.towers[tower];
+						gb.deleterPage(fR, gb.makePath(gb.loe, guild_id));
 					}
 				});
 				gb.setRecord(fR);
 				break;
 				
 			case 'guildv2_conquest_expansion' :
-				var fR = gb.getRecord('loe'),
-					guild_id = $j("img[src*='conq2_castle_defender_on.jpg']").closest('a').attr('href').regex(/guild_id=(\d+_\d+)/),
-					haveBattle = false;
 				
+				guild_id = $u.setContent($j("img[src*='conq2_castle_defender_on.jpg']").closest('a').attr('href'), '').regex(/guild_id=(\d+_\d+)/);
 				if (!$u.isString(guild_id)) {
-					con.warn('Loe guild id is undefined');
+					con.log(3, 'Loe guild id is undefined. Probably mist land.');
 					return;
 				}
+
+				which = guild_id == stats.guild.id ? 'your' : 'enemy';
+				fR = gb.getRecord('loe');
 				session.setItem('gbWhich', fR.label);
-				battle.readWinLoss(resultsText, gb.testList);
+				battle.readWinLoss(resultsText, gb.winLoss);
 				
-				$j('#hover_tab_1_1').closest('.tower_tab').find('div[onmouseover*="hover_tab_1_"]').each( function() {
-					var t = $j(this).attr('onmouseover').regex(/hover_tab_1_(\d)/);
-					if ($u.hasContent($j(this).find('div[title="Officer Tagged"]'))) {
-						gb.readTower(fR, 'enemy', guild_id + ':' + t, 
-							$j('#tower_' + t));
-						gb.setRecord(fR);
-						haveBattle = true;
-					} else {
-						if ($u.isObject(fR.enemy.towers[guild_id + ':' + t])) { 
-							con.log(1, 'LoE: No war, so deleting guild id ' + guild_id + ' tower ' + t + ' info');
-							delete fR.enemy.towers[guild_id + ':' + t];
+				towerDivs = which == 'enemy' ? $j('#hover_tab_1_1').closest('.tower_tab').find('div[onmouseover*="hover_tab_1_"]') :
+					$j('div[id^="tower_"]').not('[id*="fort"]').not('[id*="tab"]');
+				
+				towerDivs.each( function() {
+					var powers = [];
+					if (which == 'your') {
+						if (!resultsText.hasIndexOf('The guild battle is over, you cannot commence this battle')) {
+							pics = $j.makeArray($j(this).find('div[id^="action_panel"] form input[type="image"]').map(function() {
+								return $j(this).attr('src').regex(/(\w+\.\w+)$/); 
+							}));
+							Object.keys(gb.your).forEach( function(classes) {
+								gb.your[classes].forEach( function(att) {
+									pics.forEach( function(p) {
+										if (!att.healSplash && p.hasIndexOf($u.setContent(att.image, att.name))) {
+											powers.addToList(p);
+										}
+									});
+								});
+							});
+							check = powers.length;
 						}
+						t = $j(this).attr('id').regex(/tower_(\d)/);
+					} else {
+						check = $u.hasContent($j(this).find('div[title="Officer Tagged"]'));
+						t = $j(this).attr('onmouseover').regex(/hover_tab_1_(\d)/);
+					}
+						
+					if (check) {
+						gb.readTower(fR, which, guild_id + ':' + t, $j('#tower_' + t), $u.setContent(powers, undefined));
+						haveBattle = true;
+					} else if ($u.isObject(fR[which].towers[guild_id + ':' + t])) { 
+						con.log(1, 'LoE: No war, so deleting guild id ' + guild_id + ' tower ' + t + ' info');
+						delete fR[which].towers[guild_id + ':' + t];
 					}
 				});
 				if (haveBattle) {
-					gb.setrPage(fR, gb.makePath(gb['loe'], guild_id), 'review', Date.now());
+					gb.setrPage(fR, gb.makePath(gb.loe, guild_id), 'review', Date.now());
 				} else {
-					gb.deleterPage(fR, gb.makePath(gb['loe'], guild_id));
+					gb.deleterPage(fR, gb.makePath(gb.loe, guild_id));
 				}
-				
-				gb.setRecord(fR);
 				break;
 				
 			default :
 				break;
+			}
+			if (fR) {
+				gb.setRecord(fR);
 			}
 
 		} catch (err) {
@@ -123,43 +164,41 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 		loe.init();
 	};
 	
- 	loe.worker = function () {
+	loe.worker = function (which, land) {
         try {
-			var when = config.getItem('WhenLoE', 'Never'),
-				fR = gb.getRecord('loe'),
+			var isloe = land == 'loe',
+				whenLoE = config.getItem('When' + (isloe ? 'LoE' : 'Guardian'), 'Never'),
+				whenGuard = config.getItem('WhenGuardian', 'Never').regexd(/(\d+)/, 0),
+				fR = gb.getRecord(land),
 				gf = gb[fR.label], 
-				which = 'enemy',
 				stun = 'unstunned',
 				mess = 'conquest_mess',
 				stateMsg = '',
+				path,
 				t = {score : 0},
-				n = 0,
-				pgO = {},
 				result = false,
-				seal = fR[which].seal ? 'seal' : 'normal';
+				seal = fR[which].seal ? 'seal' : 'normal',
+				doLand = which == 'your' && stats.conquest.Guardian >= whenGuard ? false : isloe ?
+					whenLoE != 'Never' && (whenLoE != 'Blue Crystals' || loe.blueDay()) : fR.state == 'Active';
 				
-			if (when == 'Never' || !stats.guildTokens.num || (when == 'Blue Crystals' && !loe.blueDay())) {
+			if (!stats.guildTokens.num || !doLand) {
 				return false;
 			}
 			if (!fR.t.score) {
-				for (var i = 0; i < fR.paths.length; i++) {
-					pgO = fR.paths[i];
+				result = fR.paths.some( function(pgO) {
 					if (schedule.since(pgO.review, 5 * 60)) {
-						//con.log(2,'Reviewing battle page',pgO.path, fR.paths);
-						caap.setDivContent(mess, gf.name + ': Reviewing lands');
-						result = caap.navigate2(pgO.path);
-						if (result == 'fail') {
-							gb.deleterPage(fR, 'path', pgO.path);
-						} else if (result) {
-							gb.setRecord(fR);
+						con.log(1, land.ucWords() + ': Reviewing lands');
+						if (caap.navigate3(gf.top[pgO.path.hasIndexOf(stats.guild.id) ? 'your' : 'enemy'], pgO.path.replace('ajax:', ''))) {
 							return true;
-						} else {
-							con.log(2, 'Loading keep page to force page reload', pgO.path, result);
-							gb.setRecord(fR);
-							return caap.navigateTo('keep');
 						}
+						con.warn(land.ucWords() + ' link not available on page');
+						gb.deleterPage(fR, 'path', pgO.path);
 					}
-				}
+				});
+			}
+			if (result === true) {
+				gb.setRecord(fR);
+				return {mlog : 'Reviewing ' + which + ' ' + land.ucWords() + ' lands'};
 			}
 			
 			$j.each(fR[which].towers, function(tower) {
@@ -173,23 +212,29 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
 			fR.t = t;
 			if (!t.score) {
 				caap.setDivContent(mess, stateMsg + ' no valid target');
-				con.log(2, gf.name + ': No valid target to attack', fR);
 				gb.setRecord(fR);
 				return false;
 			}
 			
+			if (!general.hasRecord(t.general.replace('@',''))) {
+				t.general = 'Use Current';
+			}
+			
 			caap.setDivContent(mess, stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name);
 			con.log(2,  stateMsg + t.attack + ' on ' + t.team + ' T' + t.tower + ' ' + t.name, t);
-			n = t.tower.regex(/:(\d)/);
-			result = caap.navigate2(t.general + ',' + gb.makePath(gf, t.team, t.tower)
-				+ ',clickjq:div[onclick^="towerTabClick(' + "'" + n + "'" + ')"]:visible,jq:#tower_' 
-				+ n + ':visible,clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]');
+			//n = t.tower.toString().replace(/.*:/,'');
+			//path = ',clickjq:div[onclick^="towerTabClick(' + "'" + n + "'" + ')"]:visible,jq:#tower_' +
+			//	n + ':visible,clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]';
+			path = isloe ? ',clickjq:.action_panel_' + t.id + ' input[src*="' + t.attack + '.jpg"]' :
+				',clickjq:#special_defense_1_' + t.id + ' input[src*="' + t.attack + '.gif"]';
+			result = caap.navigate2(t.general + ',' + gb.makePath(gf, t.team, t.tower) + path);
 			if (result == 'fail') {
 				con.warn(stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.current + ' has ' + t.attack + ', reloading page', general.current, general.loadout);
 				caap.setDivContent(mess, stateMsg + t.attack + ' failed on ' + t.team + ' T' + t.tower + ' ' + t.name + ' Check ' + general.current + ' has ' + t.attack);
 				gb.setRecord(fR);
 				return caap.navigate2('ajax:guild_conquest_castle_battlelist.php');
-			} else if (result == 'done') {
+			} 
+			if (result == 'done') {
 				battle.setRecordVal(t.id, 'level', t.level);
 				state.setItem('lastBattleID', t.id);
 				fR.t = false;
@@ -210,8 +255,7 @@ schedule,gifting,state,army, general,session,battle:true,guild_battle: true */
                 whenLoEinst = [
                     'Never - disables starting guild battles',
                     'Do LoE attacks on blue crystal days when a war is available',
-                    'Always do LoE attacks',
-                ],
+                    'Always do LoE attacks'],
 				loeScoringInst = "List of score adjustments to pick targets",
                 htmlCode = caap.makeDropDownTR("Do LoE conquest for", 'WhenLoE', whenLoElist, whenLoEinst, '', 'Never', false, false, 62);
 				

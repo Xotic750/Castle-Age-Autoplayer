@@ -3,11 +3,11 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        141.0.0
-// @dev            269
+// @dev			280
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true,
+/*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global window,escape,jQuery,$j,rison,utility,
@@ -23,7 +23,7 @@ var caapjQuery = "1.8.3",
     caapjQueryUI = "1.9.2",
     caapjQueryDataTables = "1.9.4",
     caapVersion = "141.0.0",
-    devVersion = "269",
+    devVersion = "280",
     hiddenVar = true,
     caap_timeout = 0,
     image64 = {},
@@ -53,8 +53,20 @@ String.prototype.stripCaap = function() {
     return this.replace(/caap_/i, '');
 };
 
+String.prototype.spaces = function() {
+    return this.replace('_', ' ');
+};
+
+String.prototype.underline = function() {
+    return this.replace(/ /g, '_');
+};
+
 String.prototype.numberOnly = function() {
     return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
+};
+
+String.prototype.regexd = function(reg, d) {
+    return $u.setContent(this.regex(reg), d);
 };
 
 Number.prototype.numberOnly = function() {
@@ -89,8 +101,8 @@ Array.prototype.addToList = function(v) {
 Array.prototype.sum = function() {
 	return this.reduce(function(a,b) {
 		return a+b;
-	});
-}
+	}, 0);
+};
 
 Array.prototype.removeFromList = function(v) {
 	var i = this.indexOf(v);
@@ -112,7 +124,7 @@ Array.prototype.getObjByField = function(f, v, d) {
 };
 
 Array.prototype.getObjByFieldLc = function(f, v, d) {
-	 var i = this.getObjIndex(f, v, true);
+	 var i = this.getObjIndex(f, v.toLowerCase(), true);
     return i == -1 ? d : this[i];
 };
 
@@ -150,3 +162,7 @@ String.prototype.parseTimer = function() {
 
     return b;
 };
+
+function ignoreJSLintError() {
+	1;
+}
