@@ -256,7 +256,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					winLossF: function(r) {
 						r.att = stats.bonus.api;
 						r.wl = r.wl === 0 ? 'lost' : 'won';
-						r.name = caap.resultsText.regext(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
+						r.name = caap.resultsText.regex(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
 					},
 					other: 'None'
 				};
