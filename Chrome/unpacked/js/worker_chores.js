@@ -14,7 +14,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	chores.checkResults = function(page, resultsText) {
 		try {
 			var pagesHeaders = worker.pagesList.flatten('page'),
-				url = 'ajax:' + caap.clickUrl,
+				url = caap.clickUrl,
 				picList = [],
 				dupList = [],
 				nameList = [],
@@ -436,6 +436,10 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
+    chores.getMoney = function (num) {
+		return chores.retrieveFromBank(num - stats.gold.cash);
+    };
+
     chores.retrieveFromBank = function (num) {
         try {
             if (num <= 0) {
@@ -486,31 +490,27 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 
  	worker.addAction({fName : 'chores.checkPages', priority : -1200, description : 'Reviewing Pages'});
 	
-	worker.addPageCheck({page : 'conquest_duel'});
-
 	worker.addPageCheck({page : 'achievements'});
 
-	worker.addPageCheck({page : 'symbolquests', path : 'quests,symbolquests', level : 8});
-
-	worker.addPageCheck({page : 'view_class_progress', path : 'player_monster_list,view_class_progress', level : 100});
+	worker.addPageCheck({page : 'view_class_progress', level : 100});
 
 	worker.addPageCheck({page : 'keep', hours : 1});
 
-    chores.checkPages = function(page, value) {
+    chores.checkPages = function(page, value, newOnly) {
         try {
-			var list = $u.isDefined(value) ? worker.pagesList.filterByField(page, value) 
-				: $u.isString(page) ? [{page : page}] : worker.pagesList,
+			var list = $u.isDefined(value) ? worker.pagesList.filterByField(page, value) :
+				$u.isString(page) ? [{page : page}] : worker.pagesList,
 				hours = 0;
 			return list.some( function(o) {
 				if ((o.config && !config.getItem(o.config, false)) ||
 						(o.func && !window[o.func.regex(/(\w+)\./)][o.func.regex(/\.(\w+)/)]())) {
 					return false;
 				}
-				hours = o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);
+				hours = newOnly ? 24 * 7 * 4 : o.cFreq ? config.getItem(o.cFreq, 60) / 60 : $u.setContent(o.hours, 24);
 				if (schedule.since('page_' + o.page, hours * 3600) && (!$u.hasContent(o.level) || stats.level >= o.level)
 					&& config.getItem($u.setContent(o.config, 'NoNe'), true)) {
 					con.log(2, 'Reviewing ' + o.page, o);
-					var result = caap.navigateTo($u.setContent(o.path, o.page));
+					var result = caap.ajaxLink(o.page);
 					if (result == 'fail') {
 						con.warn('Chores: Unable to check page ' + o.page + '. Waiting to retry', o);
 						schedule.setItem('page_' + page, Date.now());

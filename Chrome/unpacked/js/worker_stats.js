@@ -128,7 +128,8 @@ gm,hiddenVar,battle,general */
 				Guardian: 0,
 				Hunter: 0,
 				Engineer: 0,
-				dif : 0
+				dif : 0,
+				collectOk: true,
 			},
 			LoMland: -1,
 			other: {
@@ -307,7 +308,7 @@ gm,hiddenVar,battle,general */
             // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
             if (stats.exp) {
                 xS = gm ? gm.getItem("expStaminaRatio", 2.4, hiddenVar) : 2.4;
-                xE = state.getItem('AutoQuest', caap.newAutoQuest()).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
+                xE = state.getItem('nextQuest', {expRatio : 1.4}).expRatio || (gm ? gm.getItem("expEnergyRatio", 1.4, hiddenVar) : 1.4);
                 stats.indicators.htl = ((stats.level * 12.5) - (stats.stamina.max * xS) - (stats.energy.max * xE)) / (24 * (xS + xE));
                 stats.indicators.hrtl = (stats.exp.dif - (stats.stamina.num * xS) - (stats.energy.num * xE)) / (24 * (xS + xE));
                 stats.indicators.enl = Date.now() + Math.ceil(stats.indicators.hrtl * 3600000);
@@ -358,7 +359,7 @@ gm,hiddenVar,battle,general */
 					break;
 				}
 				
-				if (!caap.bulkRegex(text, /(.*?) ?Level \d+ - (.*?) ([\d\.]+) .*?Max Energy .*? ([\d\.]+) .*?Max Stamina .*? ([\d\.]+) .*?Max Health/,
+				if (!caap.bulkRegex(text, /(.*?) ?Level \d+ - (.*?) ([\d\.]+) .*?Max Energy .*? ([\d\.]+) .*?Max Stamina .* ([\d\.]+) .*?Max Health/,
 					stats, ['PlayerName', 'rank.battle', 'energy.norm', 'stamina.norm', 'health.norm'])) {
 					con.warn('Stats: unable to read energy, stamina, health unmodified values', text);
 				}

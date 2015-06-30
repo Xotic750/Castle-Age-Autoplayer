@@ -53,7 +53,7 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 
     gift.init = function () {
         try {
-			worker.addPageCheck({page : 'ajax:index.php?feed=allies&news_feed_accept=0', config: 'giftAccept', hours : 0.5});
+			worker.addPageCheck({page : 'index.php?feed=allies&news_feed_accept=0', config: 'giftAccept', hours : 0.5});
         } catch (err) {
             con.error("ERROR in gift.loadTemp: " + err.stack);
             return false;

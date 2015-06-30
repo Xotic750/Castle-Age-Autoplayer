@@ -256,7 +256,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					winLossF: function(r) {
 						r.att = stats.bonus.api;
 						r.wl = r.wl === 0 ? 'lost' : 'won';
-						r.name = caap.resultsText.regext(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
+						r.name = caap.resultsText.regex(/[\+\-\d]+ Health (.*) [\+\-\d]+ Conquest Rank Pts/i);
 					},
 					other: 'None'
 				};
@@ -288,7 +288,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Calculate an a score based on level, army size, and previous experience for a battle record to pick the best target
 	battle.filterF = function(arr, which) {
 		var	w = battle[which],
-				loose = battle.demisPointsToDo('left') && ['Festival', 'War'].hasIndexOf(which), // Play loose if not reconning for demis
+				 // Play loose if not reconning for demis
+				loose = battle.demisPointsToDo('left') && ['Festival', 'War'].hasIndexOf(config.getItem('battleWhich', 'Invade')),
 				minRank = loose ? 0 : battle.minMaxF(w, 'minRank'),
 				maxRank = battle.minMaxF(w, 'maxRank'),
 				minLevel = loose ? 0 : battle.minMaxF(w, 'minLevel'),
@@ -444,6 +445,11 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	// Options either used for 'monster' to trigger lower priority call, or with a number when called from monster to burn extra stamina
     battle.worker = function(options) {
         try {
+			// Run with lower priority if monsters levelling up
+			if (caap.inLevelUpMode() && !$u.hasContent(options)) {
+				return false;
+			}
+			
             var type = config.getItem('TargetType', 'Invade'),
 				which = type == 'Raid' ? 'Raid' +  (['Duel', 'Festival'].hasIndexOf(type) ? 'Duel' : 'Invade') : config.getItem('battleWhich', 'Invade'),
 				w = battle[which],
@@ -668,6 +674,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             return false;
         }
     };
+
+	worker.addPageCheck({page : 'conquest_duel'});
 
 	worker.addPageCheck({page : 'battle', hours : 7, level : 9, func: 'battle.demiPoints'});		
 
@@ -894,7 +902,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					' charged and not levelling up then use battle first if space in the appropriate stat.', false, false, '', '_zin_row', who ? "display: block;" : "display: none;");
 
             htmlCode += "<div title='Does not work with War'>Get below Demi points first</div>";
-			caap.demiQuestList.forEach( function(item, i) {
+			['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'].forEach( function(item, i) {
                 subCode += "<span title='" + item + "'>";
                 subCode += "<img alt='" + item + "' src='data:image/gif;base64," + image64[item] + "' height='15px' width='15px'/>";
                 subCode += caap.makeCheckBox('DemiPoint' + i, false);

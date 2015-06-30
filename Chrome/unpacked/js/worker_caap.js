@@ -1,7 +1,7 @@
 /*jslint white: true, browser: true, devel: true,
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,escape,statsFunc,$j,gm,utility,
+/*global window,escape,statsFunc,$j,gm,utility,ignoreJSLintError,
 $u,stats,worker,self,caap,config,con,
 schedule,gifting,state,army, general,session,monster,feed */
 /*jslint maxlen: 256 */
@@ -15,6 +15,7 @@ schedule,gifting,state,army, general,session,monster,feed */
 	
 	caap.checkResults = function(page, resultsText) {
         try {
+			ignoreJSLintError(resultsText);
 			switch (page) {
 			case 'index' :
 				if (config.getItem('AutoGift', false)) {
@@ -48,16 +49,19 @@ schedule,gifting,state,army, general,session,monster,feed */
 
     caap.passiveGeneral = function () {
         try {
-			var timedLoadoutCheck = general.timedLoadout();
+			var timedLoadoutCheck = general.timedLoadout(),
+				generalSwapping;
 			if (timedLoadoutCheck) {
 //				con.log(5,"Idle Check paused",timedLoadoutCheck);
 				return timedLoadoutCheck === 'change';
 			}
-//			con.log(2,"Idle Check equipped", timedLoadoutCheck, stats.battleIdle);
-			if (stats.battleIdle != 'Use Current' ? general.Select(stats.battleIdle) 
+			
+			generalSwapping = stats.battleIdle != 'Use Current' ? general.Select(stats.battleIdle) 
 				: (config.getItem('IdleGeneral', 'Use Current') == 'Use Current') 
 				? general.Select(state.getItem('lastLoadout', 'Use Current')) || general.Select(state.getItem('lastGeneral', 'Use Current'))
-				: general.Select('IdleGeneral')) {
+				: general.Select('IdleGeneral');
+				
+			if (generalSwapping) {
 				return true;
 			}
 			state.setItem('lastLoadout', 'Use Current');
@@ -76,6 +80,11 @@ schedule,gifting,state,army, general,session,monster,feed */
 	worker.addAction({worker : 'caap', priority : -10000, description : 'Idle', functionName : 'idle'});
 	
     caap.idle = function () {
+		if (schedule.since("clickedOnSomething", 60) && caap.hyper) {
+			con.log(1, 'Reloading since idle for over a minute and other HYPER accounts waiting');
+			session.setItem("flagReload", true);
+		}
+		
         if (caap.doCTAs()) {
             return true;
         }
@@ -184,7 +193,10 @@ schedule,gifting,state,army, general,session,monster,feed */
         }
 
         try {
-            if ((gm ? gm.getItem("ajaxCTA", false) : false) || caap.waitAjaxCTA || stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
+			var count,
+				gmCheck = gm ? gm.getItem("ajaxCTA", false) : false; 
+			
+            if (gmCheck || caap.waitAjaxCTA || stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
                 return false;
             }
 
@@ -234,7 +246,7 @@ schedule,gifting,state,army, general,session,monster,feed */
                 return false;
             }
 
-            var count = state.getItem('ajaxCTACount', 0);
+            count = state.getItem('ajaxCTACount', 0);
             if (count < caap.recordCTA.length) {
                 caap.waitAjaxCTA = true;
 

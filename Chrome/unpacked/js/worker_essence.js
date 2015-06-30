@@ -89,88 +89,63 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 				unitMin = Math.max(1, Math.min(4, Math.floor((stats.energy.norm - energyConfig) / 25))),
 				minEnergy = unitMin * 25 + energyConfig,
 				result = false,
-				essenceChecks = ['attack', 'defense', 'damage', 'health'],
-				tradedEssence = '',
-				guildButtonLevel,
-				runeButtonLevel,
-				buttonLevel,
-				target;
+				essenceChecks = ['attack', 'defense', 'damage', 'health'].filter( function(e) {
+					return config.getItem('essence' + e.ucWords(), false) &&
+						(stats.essence[e] >= unitMin * 200 || (state.getItem('essenceBurn', false) && stats.essence[e] > 200));
+				}),
+				tryGuildF = function(g, type) {
+					var guildButtonLevel = Math.floor(g[type] / 200),
+						runeButtonLevel = Math.floor(stats.essence[type] / 200),
+						amount = Math.min(guildButtonLevel, unitMin, runeButtonLevel) * 200,
+						target = ['attack', 'defense', 'damage', 'health'].indexOf(type) + 1;
+					caap.navigate3("guild_conquest_market.php?guild_id=" + g.guildId, "guild_conquest_market.php?guild_id=" + g.guildId +
+						"&confirmTrade=" + target + "&confirmedTradeAmount=" + amount);
+					result = {mlog: 'Trading ' + amount + ' ' + type + ' essence'};
+				};
 				
             if (!config.getItem('EssenceScanCheck', false)) {
 				return {action: false, mess: ''};
 			}
 			
+			if (essenceChecks.length === 0) {
+				state.deleteItem('essenceBurn');
+				return {action: false, mess: 'No essence over minimum of ' + unitMin * 200};
+			}
+
             if (stats.energy.num < Math.min(minEnergy + 100, stats.energy.norm - 15)) {
 				return {action: false, mess: 'Waiting for ' + stats.energy.num + '/' + Math.min(minEnergy + 100, stats.energy.norm - 15)};
-			}
-			
-			if (essence.eR && caap.ifClick(caap.checkForImage('trade_btn_confirm.gif', $j("#single_popup_content")))) {
-				return {log: 'Clicking trade confirm button'};
 			}
 			
             if (stats.essence.bonus < config.getItem('essenceBonus', 0)) {
 				return {action: false, mess: 'Waiting for essence bonus: ' + stats.essence.bonus + '/' + config.getItem('essenceBonus', 0) + '%'};
 			}
 			
-			essenceChecks = essenceChecks.filter( function(e) {
-				return config.getItem('essence' + e.ucWords(), false) &&
-					(stats.essence[e] >= unitMin * 200 || (state.getItem('essenceBurn', false) && stats.essence[e] > 200));
-			});
-			
-			if (essenceChecks.length === 0) {
-				state.deleteItem('essenceBurn');
-				return {action: false, mess: 'No essence over minimum of ' + unitMin * 200};
-			}
 			state.setItem('essenceBurn', true);
 			
-			// If we have an essence record from checkResults, then try trading
-			if (essence.eR) {
-
-				result = essenceChecks.some( function(e) {
-
-					guildButtonLevel = Math.floor(essence.eR[e] / 200);
-					runeButtonLevel = Math.floor(stats.essence[e] / 200);
-					buttonLevel = Math.min(guildButtonLevel, unitMin, runeButtonLevel);
-
-					if (buttonLevel >= 1) {
-						target = ['attack', 'defense', 'damage', 'health'].indexOf(e) + 1;
-						caap.click ($j('#trade_confirm_pop_' + target + '_' + (buttonLevel - 1))[0]);
-						tradedEssence = e;
-						return true;
-					}
-				});
-				if (result) {
-					return {mlog: 'Trading ' + buttonLevel * 200 + ' ' + tradedEssence + ' essence'};
-				}
-			}
-			
 			// Look for guilds that had space in an essence we want to trade
-			essenceChecks.some( function(a) {
-				result = essence.records.sort($u.sortBy(true, a)).some( function(eR) {
-					if (stats.essence[a] >= 200 && (eR[a] >= 200 || schedule.since(eR.lastCheck, 7 * 60 * 60))) {
-						caap.ajaxLink("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
+			essence.records.some( function(eR) {
+				return essenceChecks.some( function(type) {
+					if (stats.essence[type] >= 200 && eR[type] >= 200) {
+						tryGuildF(eR, type);
 						return true;
 					}
 				});
-				if (result) {
-					return true;
-				}
 			});
 			
 			if (result) {
-				return {mlog: 'Scanning guilds that had essence space before'};
+				return result;
 			}
-
-			// Look for guilds we haven't reviewed in several hours
-			result = essence.records.sort($u.sortBy(false, "lastCheck")).some( function(eR) {
-				if (schedule.since(eR.lastCheck, 5 * 60 * 60)) {
-					caap.ajaxLink("guild_conquest_market.php?guild_id=" + eR.guildId, 1000);
+			
+			// Scan guilds
+			essence.records.some( function(eR) {
+				if (schedule.since(eR.lastCheck, 7 * 60 * 60)) {
+					tryGuildF(eR, 'attack');
 					return true;
 				}
 			});
 			
 			if (result) {
-				return {mlog: 'Scanning guilds not reviewed in a while'};
+				return {mlog: 'Scanning guilds'};
 			}
 			
 			if (essence.records.length < 500) {

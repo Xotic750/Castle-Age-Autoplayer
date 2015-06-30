@@ -151,7 +151,7 @@ schedule,state,general,session,battle:true */
 		try {
 			var when = config.getItem('WhenLoE', 'Never');
 			if (when == 'Always' || (when == 'Blue Crystals' && loe.blueDay())) {
-				worker.addPageCheck({page : 'guild_conquest_castle_battlelist', hours : 1, path: 'ajax:guild_conquest_castle_battlelist.php'});
+				worker.addPageCheck({page : 'guild_conquest_castle_battlelist', hours : 1});
 			}
 		} catch (err) {
             con.error("ERROR in loe.init: " + err.stack);
