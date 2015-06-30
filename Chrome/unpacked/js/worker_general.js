@@ -117,7 +117,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 			}).flatten('name');
 			
 			loadoutVals.forEach( function(v) {
-				worker.addPageCheck({page : 'ajax:player_loadouts.php?loadout=' + v + '&selection=4', hours : 5});
+				worker.addPageCheck({page : 'player_loadouts.php?loadout=' + v + '&selection=4', hours : 5});
 			});
 			
 			['Quest', 'Monster', 'Buy', 'Idle', 'Collect', 'Fortify', 'Invade', 'Duel', 'War', 'GuildMonster'].forEach( function(g) {
@@ -779,7 +779,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
     };
 
 	general.charged = function(name) {
-		var go = general.getRecord($u.isString(name) ? name : general.current);
+		var go = $u.isObject(name) ? name : general.getRecord($u.isString(name) ? name : general.current);
 		return  !go.newRecord && go.coolDown ? schedule.since(go.charge, 0) : false;
 	};
 
@@ -804,7 +804,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 					var special = general.getRecordVal(g, 'special'),
 						stat = special.regexd(/(Energy|Stamina)/, 'Energy').toLowerCase(),
 						amount = special.regex(/(?:Spirit|Dance) \+(\d+)/);
-					return stats[stat].max - stats[stat].num > amount;
+					return stats[stat].max - stats[stat].num > amount && general.charged(g);
 				}),
                 coolType = general.getCoolDownType(whichGeneral),
                 coolName = useZinLike.length ? useZinLike.shift() : coolType ? config.getItem(coolType, '') : '';

@@ -124,7 +124,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
             available displays.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:25px;'>Display: ";
-            layout += caap.makeDropDown('DBDisplay', dashNames, displayInst, '', 'User Stats', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
+            layout += caap.makeDropDown('DBDisplay', dashNames, displayInst, '', 'Monster', "font-size: 9px; min-width: 90px; max-width: 90px; width : 90px;") + "</div>";
 
             /*-------------------------------------------------------------------------------------\
             We install the minimize/maximise button that allows the user to make the dashboard
@@ -161,8 +161,8 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					if (e.type == 'remove') {
 						e = {name: '&nbsp;', format: 'unsortable',
 							valueF: function(r) {
-								return '<span title="Clicking this link will remove ' + r[name] +
-								' from CAAP" class="caap_' + rO.records + '_remove ui-icon ui-icon-circle-close" rlink="' +
+								return '<span title="Clicking this link will remove ' + r.name +
+								' from CAAP" class="caap_' + dO.records + '_remove ui-icon ui-icon-circle-close" rlink="' +
 								r[rO.recordIndex] + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">X</span>';
 						}};
 						dO.tableEntries[i] = e;
@@ -279,7 +279,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
         }
     };
 
-    caap.updateDashboard = function (force) {
+    caap.updateDashboard = function(force) {
         try {
             if (config.getItem("dashMinimised", false)) {
                 return false;
@@ -318,6 +318,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					return true; // Right dashboard, but it's up to date
 				}
 				con.log(2, "Updating " + dO.name + " Dashboard ");
+				caap.bqh = $j('input[name="bqh"]:first').attr('value');
 				
 				if ($u.hasContent(tE)) {
 
@@ -340,7 +341,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							default :																					break;
 							}
 
-							text = e.format != 'text' && $u.hasContent(text) && Number(text) == text ? Number(text).dp(1).addCommas() : text;
+							text = e.format != 'text' && $u.hasContent(text) && Number(text) == text ? Number(text).dp(2).addCommas() : text;
 							row += caap.makeTd({
 								text: text,
 								// Order: table entry from record, table entry function, table template fixed value, table template function, blank

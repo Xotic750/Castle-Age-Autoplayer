@@ -635,7 +635,6 @@ schedule,state,general,session,battle:true */
 
 			con.log(2, 'Battle: ' + gf.label + ' ' + which.ucWords() + ' Tower ' + tower + " in seconds " + ((Date.now() - now)/1000).dp(2), fR);
 			session.setItem(gf.label + "DashUpdate", true);
-            caap.updateDashboard(true);
             return fR;
         } catch (err) {
             con.error("ERROR in gb.onBattle: " + err.stack);

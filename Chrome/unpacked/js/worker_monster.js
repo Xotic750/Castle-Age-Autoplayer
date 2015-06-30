@@ -1,8 +1,8 @@
 /*jslint white: true, browser: true, devel: true, 
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
-/*global window,stats,$j,battle,$u,worker,feed,caap,statsFunc,ignoreJSLintError,
-config,con,gm,schedule,state,general,session,monster:true */
+/*global window,stats,$j,battle,$u,worker,feed,caap,statsFunc,ignoreJSLintError,quest,
+config,con,gm,schedule,state,general,session,conquest,monster:true */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -60,7 +60,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 			stunTarget: 0,
             state: '',
             stunType: '',
-			targetPart: -1,
+			targetPart: 0, // 1 based index. Zero for invalid
+			mainOnly: false,
 			listReviewed: 0,
 			lMissing: 0,
             save: true,
@@ -234,6 +235,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 				damageDiv = $j(),
 				partsDiv = $j(),
 				partsElem = $j(),
+				armsList = [],
+				target,
 				tStr = '',
 				partsHealth = [],
 				arms = [],
@@ -512,7 +515,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 			
 			// Is it alive?
 			if ($u.hasContent(time)) {
-				cM.time = time[0] + time[1] / 60;
+				cM.time = (time[0] + time[1] / 60).dp(2);
 				
 				// new siege style
 				tempDiv = $j("#objective_list_section div[style*='mobjective_container']", slice);
@@ -556,7 +559,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 				// if the monster has parts, hit the weakest minion first, and then hit the part with the least health next
 				partsDiv = $j("#app_body div[id^='monster_target_']");
 				if ($u.hasContent(partsDiv)) {
-					cM.targetPart = -1;
+					cM.targetPart = 0;
+					cM.mainOnly = true;
 					partsHealth = [];
 					//con.log(2, "The monster has " + partsDiv.length + " parts");
 
@@ -571,7 +575,11 @@ config,con,gm,schedule,state,general,session,monster:true */
 							if ($u.hasContent(tempDiv)) {
 								partsHealth.push(tNum);
 								if (tempDiv.text().regex(/reduce/)) {
+									if (tNum < 75) {
+										cM.mainOnly = false;
+									}
 									arms.push(tNum);
+									armsList.push((index + 1).toString());
 								} else if (tempDiv.text().regex(/hinder/)) {
 									minions.push(tNum);
 								} else {
@@ -587,20 +595,22 @@ config,con,gm,schedule,state,general,session,monster:true */
 					});
 					//con.log(2, 'parts list', minions, arms, mains);
 					
+					target = partsHealth.lastIndexOf(minions.length ? caap.minMaxArray(minions, 'min', 0)
+						: Math.min((arms.length ? caap.minMaxArray(arms, 'min', 0) : 100), caap.minMaxArray(mains, 'min', 0))) + 1;
+						
+					cM.mainOnly = armsList.hasIndexOf(target) ? false : cM.mainOnly;
 					// Define if use user or default order parts
 					if (/:po/i.test(cM.conditions)) {
 						tempArr = cM.conditions.substring(cM.conditions.indexOf('[') + 1, cM.conditions.lastIndexOf(']')).split(".");
 						tempArr.some( function(part) {
-							if ($u.setcontent(partsHealth[part],0) > 0) {
+							if ($u.setContent(partsHealth[part - 1], 0) > 0 && (!cM.mainOnly || !armsList.hasIndexOf(part))) {
 								cM.targetPart = part;
 								return true;
 							}
 						});
-					} else {
-						cM.targetPart = partsHealth.lastIndexOf(minions.length ? caap.minMaxArray(minions, 'min', 0)
-								: Math.min((arms.length ? caap.minMaxArray(arms, 'min', 0) : 100), caap.minMaxArray(mains, 'min', 0))) + 1;
-						//con.log(2, 'targetpart calcs', Math.min.apply(null, aliveArray(minions)),  Math.min.apply(null, aliveArray(arms)), Math.min.apply(null, aliveArray(mains)));
-					}
+					} 
+					
+					cM.targetPart = cM.targetPart > 0 ? cM.targetPart : target;
 
 					// If one of the mains is more damaged that most damaged hinderer and arms > 80% health, assume headless
 					if (arms.length && caap.minMaxArray(mains, 'min', 0) < caap.minMaxArray(arms, 'min', 0) &&
@@ -610,7 +620,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 						cM.life = ((mains.reduce(function(a, b) { return a + b; }, 0) + arms.reduce(function(a, b) { return a + b; }, 0) / 5)	/ (mains.length + arms.length / 5)).dp(2);
 					}
 				}
-				cM.t2k = monster.t2kCalc(cM);
+				cM.t2k = ((cM.life * monster.getInfo(cM, 'duration', cM.page === 'festival_battle_monster' ? 192 : 168) - cM.time) /
+					(100 - cM.life)).dp(2);
 					
 				// Check public and priority monster.parseCondition("s", cM.conditions)
 				cM.canPri = !cM.link.hasIndexOf(stats.FBID) ? false : $u.hasContent(caap.checkForImage('pri_btn_priority.gif'));
@@ -748,7 +759,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 			// It's dead
 			} else {
 				// And I haven't hit it and it's not conquest
-				if (!monster.damaged(cM) && !cM.link.hasIndexOf("guildv2_battle_monster.php")) {
+				if (!monster.damaged(cM) && !monster.isConq(cM)) {
 					//and it's dead and not a conquest monster, so delete
 					if (monster.hasRecord(cM.link)) {
 						monster.deleteRecord(lastClick);
@@ -761,6 +772,10 @@ config,con,gm,schedule,state,general,session,monster:true */
 					cM.color = 'grey';
 				}
 			}
+			
+			// Set staminaSpent to a minimum value to make Hunter collect algorithms work
+			cM.spentStamina = cM.spentStamina > 0 || !monster.damaged(cM) ? cM.spentStamina : cM.listStamina.split(',').shift() * 
+				general.getRecordVal(general.current, 'special').regexd(/(\d)x power attacks/i, 1);
 			
 			if (deleteMon) {
 				monster.deleteRecord(cM.link);
@@ -785,6 +800,10 @@ config,con,gm,schedule,state,general,session,monster:true */
             con.error("ERROR in checkResults_onMonster: " + err.stack);
         }
     };
+
+	monster.isConq = function(cM) {
+		return cM.link.hasIndexOf("guildv2_battle_monster.php");
+	};
 	
     caap.inLevelUpMode = function () {
         try {
@@ -1013,6 +1032,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				hunterPts = config.getItem('WhenHunter','Never'),
 				conquestCollect = false,
 				result = false,
+				click = false,
 				message = 'Reviewing ',
 				doSiege = false,
 				siegeLimit = 0;
@@ -1050,16 +1070,16 @@ config,con,gm,schedule,state,general,session,monster:true */
 
 				time = (cM.state === 'Attack' ? (monster.parseCondition('mnt', cM.conditions) || 60) : 12 * 60) * 60;
 
-				link = "ajax:" + cM.link;
+				link = cM.link;
 
 				if (['Collect', 'Dead or fled'].hasIndexOf(cM.state)) {
-					conquestCollect = !cM.link.hasIndexOf('guildv2_battle_monster') || hunterPts == 'Never' || stats.conquest.Hunter < hunterPts;
+					conquestCollect = !monster.isConq(cM) || hunterPts == 'Never' || stats.conquest.Hunter < hunterPts;
 					if (conquestCollect && (/:collect\b/.test(cM.conditions) ||
 						(/:collectsmall\b/.test(cM.conditions) && cM.damage < 200000) ||
 						(!/:!collect\b/.test(cM.conditions) && config.getItem('monsterCollectReward', false)))) {
 						message = 'Collecting ';
 						if (general.Select('CollectGeneral')) {
-							result = {mlog: message + (i + 1) + '/' + monster.records.length + ' ' + cM.name};;
+							result = {mlog: message + (i + 1) + '/' + monster.records.length + ' ' + cM.name};
 							return true;
 						}
 
@@ -1085,7 +1105,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 					}
 
 					if (doSiege) {
-						link += ',clickimg:siege_btn.gif';
+						click = caap.linkMatch(/assist/i) || true;
 						message = 'Sieging ';
 					} else if (cM.canPri && monster.parseCondition("pri", cM.conditions) &&
 						monster.parseCondition("pri", cM.conditions) > cM.time && schedule.check('monsterPriorityWait')) {
@@ -1102,7 +1122,11 @@ config,con,gm,schedule,state,general,session,monster:true */
                     return false;
                 }
 
-				caap.navigate2(link);
+				if (click) {
+					caap.navigate3(link, click);
+				} else {
+					caap.ajaxLink(link);
+				}
 				monster.lastClick = cM.link;
 				result = {mlog: message + (i + 1) + '/' + monster.records.length + ' ' + cM.name};
 				return true;
@@ -1146,12 +1170,12 @@ config,con,gm,schedule,state,general,session,monster:true */
 				result = false,
 				burning = false,
 				charged = false,
-				cQ = state.getItem('AutoQuest', caap.newAutoQuest()), // current Quest
+				cQ = state.getItem('nextQuest', {energy: 0, experience: 0}), // current Quest
 				healPercStam = config.getItem('HealPercStam', 20) / 100,
 				energyAvailable = caap.checkEnergy('Fortify', config.getItem('WhenFortify', 'Energy Available')),
 				maxEnergy = caap.checkEnergy('Fortify', 'Energy Available'),
 				gMultFunc = function(gen) { 
-					return $u.setContent(general.getRecordVal(general.getConfigMenuGeneral(gen), 'special').regex(/(\d)x power attacks/i), 1);
+					return general.getRecordVal(general.getConfigMenuGeneral(gen), 'special').regexd(/(\d)x power attacks/i, 1);
 				},
 				setGeneralVarsFunc = function(generalMenuSetting, stat) { 
 					burning = /:burn\b/i.test(cM.conditions);
@@ -1162,7 +1186,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 					goBig = !general.ZinMisaCheck(generalMenuSetting) && (burning || charged);
 					statAvailable = stat == 'cover' || (stat == 'energy' && cM.stunDo) ? maxEnergy : whichStat == 'listEnergy' ?
 						energyAvailable : goBig ?
-						Math.min(stats.stamina.num - 20, burning && !charged ? 100 : 1000) :
+						Math.min(stats.stamina.num - (caap.inLevelUpMode() ? 0 : 20), burning && !charged ? 100 : 1000) :
 						Math.min(caap.checkStamina('Monster'), healPercStam > 0 && !caap.inLevelUpMode() ?
 							(stats.energy.num / healPercStam) : stats.stamina.num);
 					minMax = whichStat == 'listStamina' && (goBig || config.getItem('PowerAttackMax', false))	? 'max' : 'min';
@@ -1236,7 +1260,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 						} else {
 							// If just about to do big hit, do any quests to use energy first.
 							if (stats.energy.num > cQ.energy && cQ.experience < stats.exp.dif) {
-								result = caap.quests();
+								result = quest.worker();
 								if (caap.passThrough(result)) { 
 									return result;
 								}
@@ -1250,7 +1274,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 							}
 							// Last do a big quest if that's the biggest we've got
 							if (stats.energy.num > cQ.energy && cQ.experience > statRequireBig * 2.2) {
-								result = caap.quests();
+								result = quest.worker();
 								if (caap.passThrough(result)) { // If just about to do big hit, do any quests to use energy first.
 									return result;
 								}
@@ -1260,7 +1284,10 @@ config,con,gm,schedule,state,general,session,monster:true */
 						setGeneralVarsFunc(levelUpGen, stat);
 						statRequire = statRequireBig;
 					}
-					con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' xp ' + stats.exp.dif, cM);
+					if (statRequire > 0) {
+						con.log(2, 'Hitting for ' + statRequire + ' Big ' + statRequireBig + ' Stamina ' + stats.stamina.num + ' with ' +
+							statRequire + ' available. xp ' + stats.exp.dif, cM);
+					}
 				} else if (statList[0] == 1 && (/:sa\b/i.test(cM.conditions) || (!config.getItem('PowerAttack', false) &&  !/:pa\b/i.test(cM.conditions)))) {
 					statRequire = gMult;
 				} else {
@@ -1628,6 +1655,9 @@ config,con,gm,schedule,state,general,session,monster:true */
         'Kraken': {
             achTitle : "Kraken"
         },
+        'Agamemnon The Overseer': {
+            achTitle : "Agamemnon the Overseer"
+        },
         'Alpha Mephistopheles': {
             ach: 12000000
         },
@@ -1845,8 +1875,6 @@ config,con,gm,schedule,state,general,session,monster:true */
     monster.parseCondition = function(type, conditions) {
         try {
 			
-			//con.log(2, 'PARSE', type, conditions);
-
             if (!$u.isString(type) || !$u.isString(conditions)) {
 				con.warn('Invalid data passed to monster.parseCondition', type, conditions);
 				return false;
@@ -1877,7 +1905,7 @@ config,con,gm,schedule,state,general,session,monster:true */
     };
 
 	// Do KOB parsing and achievement/max damage levels plus colorization
-	monster.parsing = function(cM) {
+	monster.setLimits = function(cM) {
         try {
 			// Start of Keep On Budget (KOB) code Part 1 -- required variables
 			//con.log(2, 'Start of Keep On Budget (KOB) Code');
@@ -1892,8 +1920,10 @@ config,con,gm,schedule,state,general,session,monster:true */
                 KOBtotalMonsterTime = 0,
 				achLevel = monster.parseCondition('ach', cM.conditions),
 				maxDamage = monster.parseCondition('max', cM.conditions),
+				main = monster.parseCondition('main', cM.conditions),
 				maxToFortify = monster.parseCondition('f%', cM.conditions),
-				maxSta = monster.parseCondition('sta', cM.conditions);
+				maxSta = monster.parseCondition('sta', cM.conditions),
+				maxHunt = cM.conditions.regex(/:hunt\b/) && monster.isConq(cM) ? session.getItem('hunterMaxed', []).hasIndexOf(cM.link) : false;
 
 			cM.color = '';
 			cM.over = '';
@@ -1987,7 +2017,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 			// End of Keep On Budget (KOB) code Part 1 -- required variables
 
 			//con.log(2, 'MAX DAMAGE', maxDamage, cM.damage);
-			if ((maxDamage && cM.damage >= maxDamage) || (maxSta && cM.spentStamina >= maxSta)) {
+			if ((((maxDamage && cM.damage >= maxDamage) || (maxSta && cM.spentStamina >= maxSta)) && (!cM.mainOnly || !main)) ||
+					(cM.mainOnly && main && cM.damage >= main) || maxHunt) {
 
 				cM.color = 'red';
 				cM.over = 'max';
@@ -2044,20 +2075,6 @@ config,con,gm,schedule,state,general,session,monster:true */
         }
     };
 	
-    monster.t2kCalc = function(cM) {
-        try {
-            var duration = monster.getInfo(cM, 'duration', cM.page === 'festival_battle_monster' ? 192 : 168),
-                timeUsed = duration - cM.time,
-                T2K = ((cM.life * timeUsed) / (100 - cM.life)).dp(2);
-
-			con.log(3, 'T2K: ', $u.minutes2hours(T2K));
-			return T2K;
-        } catch (err) {
-            con.error("ERROR in monster.t2kCalc: " + err.stack);
-            return 0;
-        }
-    };
-
     monster.characterClass = {
         'Warrior': ['Strengthen', 'Heal'],
         'Rogue': ['Cripple'],
@@ -2130,6 +2147,8 @@ config,con,gm,schedule,state,general,session,monster:true */
 				feedCheck = caap.oneMinuteUpdate('feedCheck'),
                 monsterlink = '',
                 attackOrderList = [];
+				
+			conquest.hunterCombos('maxed');
 
             // Next we get our monster objects from the repository and break them into separate lists
             // for monster or raid.  If we are serializing then we make one list only.
@@ -2139,7 +2158,7 @@ config,con,gm,schedule,state,general,session,monster:true */
 				if (!$u.hasContent(cM.link)) {
 					con.warn('Deleting monster record without link', cM);
 					monster.deleteRecord(cM.link);
-				} else if (cM.lMissing > 3 && (!cM.link.hasIndexOf('guildv2_battle_monster') || cM.state == 'Done')) {
+				} else if (cM.lMissing > 3 && (!monster.isConq(cM) || cM.state == 'Done')) {
 					con.log(2, 'Deleting monster ' + cM.name + ' since not seen on monster list ' + cM.lMissing + ' times', cM);
 					monster.deleteRecord(cM.link);
 				} else if (monster.damaged(cM)) {
@@ -2234,9 +2253,9 @@ config,con,gm,schedule,state,general,session,monster:true */
                             return;
                         }
 						
-						monster.parsing(cM);
+						monster.setLimits(cM);
 						
-                        // monster.parsing set our 'color' and 'over' values. Check these to see if this is the monster we should select
+                        // monster.setLimits set our 'color' and 'over' values. Check these to see if this is the monster we should select
                         if (!firstUnderMax && cM.color !== 'purple') {
                             if (cM.over === 'ach') {
                                 if (!firstOverAch) {

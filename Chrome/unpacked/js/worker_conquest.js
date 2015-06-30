@@ -2,7 +2,7 @@
 nomen: true, bitwise: true, plusplus: true,
 regexp: true, eqeq: true, newcap: true, forin: false */
 /*global $j,$u,caap,config,con,battle,conquest,worker,stats,statsFunc,conquestLands,loe,lom,essence,gm,recon,
-schedule,state,general,session */
+schedule,state,general,session,monster */
 /*jslint maxlen: 256 */
 
 ////////////////////////////////////////////////////////////////////
@@ -32,23 +32,13 @@ schedule,state,general,session */
 	
 	conquest.checkResults = function(page, resultsText) {
         try {
-            var tempDiv, text;
+			
+			if (page == 'guild_castle_fort' && resultsText.match(/This fortification is already at max capacity/i)) {
+				schedule.setItem('loeFortMax', 3 * 3600);
+			}
 			
 			switch (page) {
-			case 'conquest_duel' :
-				// Check coins
-				tempDiv = $j("#guild_token_current_value");
-				if ($u.hasContent(tempDiv)) {
-					stats.guildTokens = caap.getStatusNumbers(tempDiv.eq(0).parent().text().trim());
-				} else {
-					con.warn("Unable to get Conquest Tokens Div", tempDiv);
-				}
-				break;
 			case 'guild_castle_fort' :  // Land of Earth defense
-				if (resultsText.match(/This fortification is already at max capacity/i)) {
-					schedule.setItem('loeFortMax', 3 * 3600);
-				}
-				/* falls through */
 			case 'guildv2_conquest_command' : // Land of Mist top
 			case 'guildv2_conquest_expansion_fort' :  // Land of ??
 			case 'guildv2_conquest_battlelist' : // Land of Mist enemies
@@ -56,16 +46,24 @@ schedule,state,general,session */
 			case 'guild_conquest_castle' : // Land of Earth top
 			case 'guild_conquest_castle_battlelist' : // Land of Earth enemies
 			case 'guildv2_conquest_expansion' : // Land of Mist or Earth tower
-				text = $j("#app_body div[style*='conq4_top.jpg']").text().trim().innerTrim();
+				var text = $j("#app_body div[style*='conq4_top.jpg']").text().trim().innerTrim();
 					
 				//7944 5363 GUILD LEVEL: 12 Points to Next Rank: 250 CONQUEST LV: 39 Points to Next Level: 91 13/14 MORE: (9:58) Conqueror 670 Hunter 0 Guardian 150 Engineer 0 Click here to view Conquest Report! Bel Thrall City LAND OF EARTH NONE
 				
 				// "12631 4736 GUILD LEVEL: 12 Points to Next Rank: 250 CONQUEST LV: 12 Points to Next Level: 134 11/11 Conqueror 460 Engineer 30 Hunter 0 Guardian 150 Click here to view Conquest Report! Malcaster Castle DEF silo"
 				
 				if (!caap.bulkRegex(text,
-					/(\d+) (\d+) GUILD LEVEL: (\d+) Points to Next Rank: \d+ CONQUEST LV: (\d+) Points to Next \w+: (\d+) (\d+)\/(\d+)/,
-					stats, ['resources.lumber', 'resources.iron', 'guild.level', 'rank.conquestLevel', 'conquest.dif', 'guildTokens.num', 'guildTokens.max'])) {
-					con.warn('Conquest: unable to conquest information and resources', text);
+					/(\d+) (\d+) GUILD LEVEL: (\d+) Points to Next Rank: \d+ CONQUEST LV: (\d+)/,
+					stats, ['resources.lumber', 'resources.iron', 'guild.level', 'rank.conquestLevel'])) {
+					con.warn('Conquest: unable to guild level and resources', text);
+				}
+				
+				if (!caap.bulkRegex(text, /(\d+)\/(\d+)/, stats, ['guildTokens.num', 'guildTokens.max'])) {
+					con.warn('Conquest: unable to conquest tokens', text);
+				}
+				
+				if (stats.rank.conquestLevel < 100 && !caap.bulkRegex(text, /Points to Next \w+: (\d+)/, stats, ['conquest.dif'])) {
+					con.warn('Conquest: unable to conquest tokens to level', text);
 				}
 				
 				conquest.categories.forEach( function(c) {
@@ -73,18 +71,21 @@ schedule,state,general,session */
 						con.warn('Conquest: unable to read ' + c + ' points', text);
 					}
 				});
+				
+				stats.conquest.collectOk = !text.match(/Collect in \d+ hours/);
 
 				statsFunc.setRecord(stats);
 				break;
 				
 			default :
-				if (!caap.oneMinuteUpdate('checkConquestTokens')) {
+				if (!caap.oneMinuteUpdate('checkConquestTokens', page == 'conquest_duel')) {
 					return false;
 				}
 				stats.guildTokens.num = $j('#persistHomeConquestPlateOpen').text().numberOnly();
 				statsFunc.setRecord(stats);
 				break;
 			}
+			stats.guildTokens.dif = stats.guildTokens.max - stats.guildTokens.num;
 
             return false;
         } catch (err) {
@@ -179,17 +180,21 @@ schedule,state,general,session */
 	
 	conquest.categories = ['Conqueror','Guardian','Hunter','Engineer'];
 
-	worker.addPageCheck({page : 'ajax:guildv2_conquest_command.php?tier=3', hours : 1});
+	worker.addPageCheck({page : 'guildv2_conquest_command.php?tier=3', hours : 1});
 	
     conquest.collect = function() {
         try {
-            var check = false, 
+			if (!stats.conquest.collectOk) {
+				return false;
+			}
+			
+            var result = false, 
 				message = [], 
 				pts = 0,
 				when,
 				vals = [0, 1000, 3000];
 		
-			check = ['Conqueror','Guardian','Engineer'].every( function(category) {
+			['Conqueror','Guardian','Engineer'].every( function(category) {
 				when = config.getItem('When' + category, 'Never');
 				if (when == 'Never') {
 					return true;
@@ -197,30 +202,42 @@ schedule,state,general,session */
 				pts = stats.conquest[category];
 				if (when == 'Round Up') {
 					if (pts - caap.minMaxArray(vals, 'max', -1, pts + 1) < 200 || pts > 4500) {
-						if (pts > 1000) {
+						if (pts >= 1000) {
 							message.push(category + ' points rounding at ' + pts);
 						}
 						return true;
 					}
 					return false;
 				} 
-				if (pts > when) {
+				if (pts >= when) {
 					message.push(category + ' points ' + pts + ' over ' + when);
 					return true;
 				}
 			});
 			
-			if (check && message.length) {
-				check = caap.navigate3('guildv2_conquest_command.php?tier=3','conquest_path_shop.php?action=report_collect&ajax=1');
-				if (check) {
-					con.log(1, message.join(', ') + ' so clicking report collect');
-					if (check == 'done') {
+			if (message.length || (stats.conquest.Conqueror <= 150 && stats.conquest.Guardian <= 150 && stats.conquest.Engineer == 0)) {
+				result = conquest.hunterCombos('link');
+				if (result) {
+					caap.navigate2("ajax:" + result + '&action=collectReward');
+					stats.conquest.Hunter += monster.getRecordVal(result, 'spentStamina');
+					return {mlog: 'Collecting conquest monsters'};
+				} 
+				when = config.getItem('WhenHunter', 'Never');
+				if (when != 'Never' && stats.conquest.Hunter >= when) {
+					message.push('Hunter points at ' + stats.conquest.Hunter + ' over ' + when);
+				}
+			}
+				
+			if (message.length) {
+				result = caap.navigate3('guildv2_conquest_command.php?tier=3','conquest_path_shop.php?action=report_collect&ajax=1');
+				if (result) {
+					if (result == 'done') {
 						conquest.categories.forEach( function(category) {
 							stats.conquest[category] = 0;
 						});
 					}
+					return {mlog: message.join(', ') + ' so clicking report collect'};
 				}
-				return check;
 			}
 			return false;
         } catch (err) {
@@ -229,6 +246,100 @@ schedule,state,general,session */
         }
     };
 	
+	// If query = 'link', gives the link of the best monster to collect to complete hunter points
+	// If query = 'maxed', gives the links of the monsters that can be combined to go over the hunter points target
+	conquest.hunterCombos = function(query) {
+        try {
+            var whenHunt = config.getItem('WhenHunter', 'Never'),
+				currentPoints = stats.conquest.Hunter,
+				mobs = monster.records.filter( function(m) {
+					return monster.isConq(m) &&
+						(['Dead or fled', 'Collect'].hasIndexOf(m.state) || (query == 'maxed' && m.state == 'Attack'));
+				}),
+				combinationF = function(arr, k) {
+					if (!$u.hasContent(arr)) {
+						return [];
+					}
+					var ret = [];
+					
+					k = $u.setContent(k, arr.length);
+					arr.forEach( function(e, i) {
+						if(k === 1){
+							ret.push( [ e ] );
+						} else {
+							combinationF(arr.slice(i+1, arr.length), k - 1).forEach( function(next) {
+								next.unshift(e);
+								ret.push( next );
+							});
+						}
+					});
+					return k === 1 ? ret : ret.concat(combinationF(arr, k - 1));
+				},
+				staminas = mobs.flatten('spentStamina'),
+				result,
+				bestF = function() {  // return array of stamina values that is just over whenHunt and not over 20% over
+					var combos = combinationF(staminas),
+						sums = combos.map( function(a) {
+							return a.sum();
+						}),
+						sum = caap.minMaxArray(sums, 'min', whenHunt - currentPoints, whenHunt * 1.2 - currentPoints);
+						
+					return !$u.hasContent(sum) ? [] : combos[sums.indexOf(sum)];
+				},
+				best,
+				maxed = [],
+				remove = function(b) {
+					staminas.removeFromList(b);
+					var mob = mobs[mobs.flatten('spentStamina').indexOf(b)];
+					maxed.addToList(mob.link);
+					mobs.removeFromList(mob);
+				};
+				
+			best = whenHunt <= currentPoints ? [] : bestF();
+		
+			if (query == 'link') {
+				// If we already have more points than the target, return
+				if (whenHunt <= currentPoints) {
+					return false;
+				}
+				// If we don't have many hunter points, and there is a monster with > target points, just collect it
+				// These monsters do not qualify for bestF if > whenHunt * 1.2
+				if (stats.conquest.Hunter < 100) { // 100 to account for one-hit siege joins
+					mobs.some( function(m) {
+						result = m.spentStamina >= whenHunt ? m.link : false;
+						return result;
+					});
+					if (result) {
+						return result;
+					}
+				}
+				// Otherwise, return the link of the biggest stamina spent that can be combined to make a group with more points than target
+				if ($u.hasContent(best)) {
+					// Return the link of the mob with the highest stamina spent in the combo that is over and closest to the hunter points target
+					return mobs[mobs.flatten('spentStamina').indexOf(best.sort().pop())].link;
+				}
+				return false;
+			}
+			
+			// query == 'maxed'
+			
+			// Record all combos of living or dead conq monsters that total over target hunter points
+			do {
+				best.forEach(remove);
+				currentPoints = 0; // One combo done, so we can clear out the current Hunter points
+				best = bestF();
+			} 
+			while ($u.hasContent(best));
+
+			session.setItem('hunterMaxed', maxed);
+			return;
+			
+        } catch (err) {
+            con.error("ERROR in conquest.hunterCombos: " + err.stack);
+            return;
+        }
+	};
+
     conquest.engineer = function() {
         try {
 			var result = caap.checkEnergy('Quest', config.getItem('WhenQuest','Never')),
@@ -334,10 +445,10 @@ schedule,state,general,session */
             htmlCode += caap.makeDropDownTR("Target Level", 'conquestLevels', levelList, levelsInst, '', 'Any', false, false, 62);
             htmlCode += caap.makeNumberFormTR("Max Chains", 'ConquestMaxChains', maxChainsInstructions, 4, '', '');
             htmlCode += caap.makeTD("Attack targets that are not:");
-            htmlCode += caap.makeNumberFormTR("Lower Than Rank", 'ConquestMinRank', minRankInst, '', '', 'text'); // Check +1 works
-            htmlCode += caap.makeNumberFormTR("Higher Than Rank", 'ConquestMaxRank', maxRankInst, '', '', 'text'); // Check +1 works
-            htmlCode += caap.makeNumberFormTR("Lower Than Level", 'ConquestMinLevel', minLevelInst, '', '', 'text'); // Check +1 works
-            htmlCode += caap.makeNumberFormTR("Higher Than Level", 'ConquestMaxLevel', maxLevelInst, '', '', 'text'); // Check +1 works
+            htmlCode += caap.makeNumberFormTR("Lower Than Rank", 'ConquestMinRank', minRankInst, '', '', 'text'); 
+            htmlCode += caap.makeNumberFormTR("Higher Than Rank", 'ConquestMaxRank', maxRankInst, '', '', 'text'); 
+            htmlCode += caap.makeNumberFormTR("Lower Than Level", 'ConquestMinLevel', minLevelInst, '', '', 'text'); 
+            htmlCode += caap.makeNumberFormTR("Higher Than Level", 'ConquestMaxLevel', maxLevelInst, '', '', 'text'); 
             htmlCode += caap.display.end('WhenLoE', 'isnot', 'Always');
             htmlCode += caap.display.end('WhenConquest', 'isnot', 'Never');
             htmlCode += caap.endToggle;
