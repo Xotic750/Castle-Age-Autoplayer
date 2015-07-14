@@ -1087,7 +1087,7 @@ config,con,gm,schedule,state,general,session,conquest,monster:true */
 					}
 
 				} else if (cM.state == 'Done') {
-					if (cM.lpage == "player_monster_list" && (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false)))) {
+					if (cM.lpage == "player_monster_list" && !cM.link.match(/mpool=2/) && (/:clear\b/.test(cM.conditions) || (!/:!clear\b/.test(cM.conditions) && config.getItem('clearCompleteMonsters', false)))) {
 						link = link.replace("battle_monster.php?casuser=", "player_monster_list.php?remove_list=").concat("&monster_filter=1");
 						message = 'Clearing ';
 						monster.deleteRecord(cM.link);

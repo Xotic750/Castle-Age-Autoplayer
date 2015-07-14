@@ -298,6 +298,10 @@ gb,essence,gift,chores */
 					}
 				};
 				
+			if (questFor == 'Manual') {
+				return;
+			}
+			
 			validQuests = quest.records.filter( function(q) {
 				return stats.gold.total >= q.cost && q.influence < 100 &&
 					(questFor != 'Advancement' || !opening || questLand.getRecordVal(q.land, 'status') == 'Opening');
