@@ -62,7 +62,7 @@ schedule,state,general,session,monster */
 					con.warn('Conquest: unable to conquest tokens', text);
 				}
 				
-				if (stats.rank.conquestLevel < 100 && !caap.bulkRegex(text, /Points to Next \w+: (\d+)/, stats, ['conquest.dif'])) {
+				if (stats.rank.conquestLevel < 100 && !caap.bulkRegex(text, /Points to Next Level: (\d+)/, stats, ['conquest.dif'])) {
 					con.warn('Conquest: unable to conquest tokens to level', text);
 				}
 				
@@ -188,13 +188,14 @@ schedule,state,general,session,monster */
 				return false;
 			}
 			
-            var result = false, 
+            var result = false,
+				collectTime = false,
 				message = [], 
 				pts = 0,
 				when,
 				vals = [0, 1000, 3000];
 		
-			['Conqueror','Guardian','Engineer'].every( function(category) {
+			collectTime = ['Conqueror','Guardian','Engineer'].every( function(category) {
 				when = config.getItem('When' + category, 'Never');
 				if (when == 'Never') {
 					return true;
@@ -215,7 +216,7 @@ schedule,state,general,session,monster */
 				}
 			});
 			
-			if (message.length || (stats.conquest.Conqueror <= 150 && stats.conquest.Guardian <= 150 && stats.conquest.Engineer == 0)) {
+			if (collectTime && (message.length || (stats.conquest.Conqueror <= 150 && stats.conquest.Guardian <= 150 && stats.conquest.Engineer == 0))) {
 				result = conquest.hunterCombos('link');
 				if (result) {
 					caap.navigate2("ajax:" + result + '&action=collectReward');
@@ -228,7 +229,7 @@ schedule,state,general,session,monster */
 				}
 			}
 				
-			if (message.length) {
+			if (collectTime && message.length) {
 				result = caap.navigate3('guildv2_conquest_command.php?tier=3','conquest_path_shop.php?action=report_collect&ajax=1');
 				if (result) {
 					if (result == 'done') {
