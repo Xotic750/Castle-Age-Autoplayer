@@ -147,6 +147,7 @@ gb,essence,gift,chores */
             experience : 0,
 			cost: 0,
 			buyLink : '',
+			groupEne : 0,
 			groupExp : 0
         };
     };
@@ -177,22 +178,23 @@ gb,essence,gift,chores */
             }
 
             var div = $j(),
-                questInfluenceRegExp = /LEVEL (\d) INFLUENCE: (\d+)%/,
-				questEnergyRegExp = /\+(\d+) Exp .* \$([\d,]+)(?:mil)? ?- ?\$([\d,]+)(mil)? (\d+) Energy/,
 				firstb,
                 text,
 				titleDiv = $j('div .title_tab_selected a'),
 				land = page + (page == 'symbolquests' ? '' : '.php?land=' + ($u.hasContent(titleDiv) ? titleDiv.attr('href').regex(/land=(\d+)/) : '')),
+				landStatus = 'Opening',
                 qO = {},
                 group = [],
 				groupExpF = function() {
 					var list = quest.records.filter( function(q) {
 							return group.hasIndexOf(q.link);
 						}),
+						ene = list.flatten('energy').sum() / list.length,
 						exp = list.flatten('experience').sum() / list.flatten('energy').sum();
 						
 					list.flatten('link').forEach( function(l) {
 						quest.setRecordVal(l, 'groupExp', exp.dp(2));
+						quest.setRecordVal(l, 'groupEne', ene.dp(2));
 					});
 					group = [];
 				};
@@ -229,7 +231,8 @@ gb,essence,gift,chores */
 				qO.land = land;
 
 				text = div.text().trim().innerTrim();
-				caap.bulkRegex(text, questEnergyRegExp, qO, ['experience', 'gold', 'maxGold', 'mil', 'energy'], 'silent');
+				caap.bulkRegex(text, /\+(\d+) Exp .* \$([\d,]+)(?:mil)? ?- ?\$([\d,]+)(mil)? (\d+) Energy/,
+					qO, ['experience', 'gold', 'maxGold', 'mil', 'energy'], 'silent');
 				
 				qO.gold = (qO.gold.numberOnly() * ($u.hasContent(qO.mil) ? 1000000 : 1) + 
 					qO.maxGold.numberOnly() * ($u.hasContent(qO.mil) ? 1000000 : 1)) / 2;
@@ -239,19 +242,23 @@ gb,essence,gift,chores */
 				if (qO.land == 'monster_quests.php?land=1') { // Atlantis I
 					qO.type = 'Primary';
 					qO.influence = text.regexd(/INFLUENCE: (\d+)%/, 0);
-				} else if (!caap.bulkRegex(text, questInfluenceRegExp, qO, ['level', 'influence'], 'silent')) {
+				} else if (!caap.bulkRegex(text, /INFLUENCE: (\d+)%/, qO, ['influence'], 'silent')) {
 					qO.type = 'Boss';
-					qO.influence = $u.hasContent($j(".quests_background_sub")) ? 100 : -1;
+					qO.influence = $u.hasContent($j(".quests_background_sub")) ? 100 : 0;
 				} else {
+					qO.level = text.regexd(/LEVEL (\d) INFLUENCE: \d+%/, 1);
 					qO.type = $u.hasContent($j('input[name="excavation"]', div)) ? 'Excavation' :
 						div.attr('class') == 'quests_background_sub' ? 'Subquest' : 'Primary';
+					if (qO.type == 'Subquest') {
+						landStatus = qO.influence < 100 || landStatus == 'Opened' ? 'Opened' : 'Complete';
+					}
 					
 					// Calc for quest group average exp/energy return
-					if (qO.type != 'Subquest') {
-						groupExpF();
-					} 
-					group.push(qO.link);
 				}
+				if (qO.type != 'Subquest') {
+					groupExpF();
+				} 
+				group.push(qO.link);
 				qO.cost = text.regexd(/Buy ([\w ]*?) for \$([\d,]+)/g, [[0,0]]).map( function(arr) {
 					return $u.isNumber(arr[0]) || !general.hasRecord(arr[0]) ? arr[1].numberOnly() : 0;
 				}).sum();
@@ -260,6 +267,7 @@ gb,essence,gift,chores */
 				}).pop();
 				quest.setRecord(qO);
             });
+			questLand.setRecordVal(land, 'status', landStatus);
 			groupExpF();
 			quest.select();
 			
@@ -291,7 +299,7 @@ gb,essence,gift,chores */
 						return f['Skill Points'](a, b);
 					},
 					'Skill Points' : function(a, b) {
-						return a.energy - b.energy;
+						return b.groupEne - a.groupEne;
 					},
 					'Gold' : function(a, b) {
 						return (a.gold / a.energy) - (b.gold / b.energy);
@@ -303,7 +311,7 @@ gb,essence,gift,chores */
 			}
 			
 			validQuests = quest.records.filter( function(q) {
-				return stats.gold.total >= q.cost && q.influence < 100 &&
+				return stats.gold.total >= q.cost && q.influence < 100 && q.type != 'Excavation' &&
 					(questFor != 'Advancement' || !opening || questLand.getRecordVal(q.land, 'status') == 'Opening');
 			});
 				
@@ -498,7 +506,8 @@ gb,essence,gift,chores */
 				valueF: function(r) {
 					return (r.experience / r.energy).dp(2);
 			}},
-			{name: 'Group Exp/Ene', value: 'groupExp'},
+			{name: 'Grp Exp/Ene', value: 'groupExp'},
+			{name: 'Grp Ene', value: 'groupEne'},
 			{name: 'Gold/Ene',
 				valueF: function(r) {
 					return (r.gold / r.energy).dp();
@@ -539,7 +548,7 @@ gb,essence,gift,chores */
                     'Never - disables questing.'],
                 questForList = ['Advancement', 'Skill Points', 'Fast Leveling', 'Slow Leveling', 'Burst Leveling', 'Lazy Leveling', 'Gold', 'Manual'],
                 questForListInstructions = [
-                    'Advancement performs all the incomplete main quests and boss quests but not the secondary quests',
+                    'Advancement performs all the incomplete main quests and boss quests and then quests by the lowest Skill Points',
                     'Skill Points performs the incomplete quests with the lowest energy cost available first to gain skill points',
                     'Fast Leveling performs the incomplete group of quests that yields the highest experience',
                     'Slow Leveling performs the incomplete group of quests that yields the lowest experience',

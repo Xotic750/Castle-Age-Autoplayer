@@ -320,7 +320,8 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 							s += 1;
 							break;
 						}
-					} else if (action == 'ajax') {						if (session.getItem('clickUrl', '').replace(/.*\//,'') !== text) {
+					} else if (action == 'ajax') {
+						if (session.getItem('clickUrl', '').replace(/.*\//,'') !== text) {
 							result = caap.ajaxLink(text,2000);
 							con.log(2, 'Navigate2: Go to ajax link '+ text, result, jq, step, path, s);
 							return s == lastStep ? 'done' : caap.navigate2RepeatCheck(true, path, s);
