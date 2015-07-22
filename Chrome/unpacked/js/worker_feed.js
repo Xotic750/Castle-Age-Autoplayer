@@ -443,7 +443,7 @@ chores,town,general,session,monster:true */
 				undermax = monster.records.filter( function(obj) {
 					return obj.state == 'Attack' && obj.over != 'max';
 				}).length,
-				mainOnly = cM.mainOnly,
+				mainOnly = life == 100 || cM.mainOnly,
 				targetpart = cM.targetPart,
 				parts = cM.partsHealth,
 				time = cM.time,
@@ -500,7 +500,8 @@ chores,town,general,session,monster:true */
 				achrecords = stats.achievements.monster,
 				main = killed ? achrecords[killed + "'s Main"] : Object.keys(achrecords).reduce(function(previous, current) {
 					return previous || (current.hasIndexOf(cM.monster) && current.match(/'s Main/) ? achrecords[current] : 0);
-				}, 0);
+				}, 0),
+				mainleft = 5 > main + same;
 
 			ignoreJSLintError(filterok, userid, life, t2k, dp, sameundermax, undermax, targetpart, parts, time, monstername, damagemod, rogue,
 				warlock, cleric, warrior, mage, ranger, levelup, energy, atmaxenergy, atmaxstamina, exp, needpic, needrecipe, userdamage, keep,
