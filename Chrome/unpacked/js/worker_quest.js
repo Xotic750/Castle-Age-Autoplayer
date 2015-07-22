@@ -199,7 +199,7 @@ gb,essence,gift,chores */
 					group = [];
 				};
 					
-			if (!$u.hasContent(titleDiv)) {
+			if (!$u.hasContent(titleDiv) && page !== 'symbolquests') {
 				return; // Locked land
 			}
 
@@ -249,15 +249,16 @@ gb,essence,gift,chores */
 					qO.level = text.regexd(/LEVEL (\d) INFLUENCE: \d+%/, 1);
 					qO.type = $u.hasContent($j('input[name="excavation"]', div)) ? 'Excavation' :
 						div.attr('class') == 'quests_background_sub' ? 'Subquest' : 'Primary';
-					if (qO.type == 'Subquest') {
-						landStatus = qO.influence < 100 || landStatus == 'Opened' ? 'Opened' : 'Complete';
-					}
-					
 					// Calc for quest group average exp/energy return
 				}
+				
+				if (qO.type == 'Subquest' || qO.land == 'monster_quests.php?land=1') {
+					landStatus = qO.influence < 100 || landStatus == 'Opened' ? 'Opened' : 'Complete';
+				}
+				
 				if (qO.type != 'Subquest') {
 					groupExpF();
-				} 
+				}
 				group.push(qO.link);
 				qO.cost = text.regexd(/Buy ([\w ]*?) for \$([\d,]+)/g, [[0,0]]).map( function(arr) {
 					return $u.isNumber(arr[0]) || !general.hasRecord(arr[0]) ? arr[1].numberOnly() : 0;
@@ -281,7 +282,11 @@ gb,essence,gift,chores */
         try {
 			var questFor = config.getItem('questFor', 'Never'),
 				validQuests = [],
-				opening = questLand.records.flatten('status').hasIndexOf('Opening'),
+				opening = questLand.records.filterByField('status', 'Opening').some( function(l) {
+					return quest.records.filterByField('land',l).some(function(q) {
+						return q.influence < 100 && q.type != 'Excavation';
+					});
+				}),
 				f = {
 					'Burst Leveling' : function(a, b) {
 						return (a.experience / a.energy) - (b.experience / b.energy);
@@ -331,7 +336,7 @@ gb,essence,gift,chores */
             var whenQuest = config.getItem('WhenQuest', 'Never'),
                 energyCheck,
                 result,
-                qO = state.getItem('nextQuest', {});
+                qO = state.getItem('nextQuest', false);
 
             if (whenQuest === 'Never') {
                 return {action: false, mess: ''};
@@ -350,7 +355,7 @@ gb,essence,gift,chores */
 				return result;
 			}
 
-            if (!$u.hasContent(qO)) {
+            if (qO === false) {
 				return config.getItem('questFor', 'Manual') === 'Manual' ? {mess: 'Pick quest on Quest Dashboard'} 
 					: {mess: 'Unable to find quest'};
 			}
@@ -470,8 +475,8 @@ gb,essence,gift,chores */
 				return q.link === state.getItem('nextQuest', {}).link ? 'green' : q.influence == 100 ? 'grey' : 'black';
 		}},
 		headerF: function() {
-			var r = state.getItem('nextQuest', {});
-			return 'Current Quest: ' + '<a href="' + caap.domain.altered + '/' + r.link +
+			var r = state.getItem('nextQuest', false);
+			return !r ? 'No quest' : 'Current Quest: ' + '<a href="' + caap.domain.altered + '/' + r.link +
 					'" onclick="ajaxLinkSend(\'globalContainer\', \'' + r.link + '&ajax=1&bqh=' + caap.bqh +
 					'\'); return false;" style="text-decoration:none;font-size:11px;color:blue;">' +
 					$u.setContent(r.name, 'N/A') + '</a>' +
