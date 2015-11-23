@@ -152,7 +152,6 @@ schedule,gifting,state,army, general,session,monster:true,guild_monster: true */
 					guild_monster.clear();
 				}
 
-				caap.updateDashboard(true);
 				break;
 			case 'guild_monster_summon_list' :
 				if (config.getItem("enableSpider", true)) {

@@ -114,7 +114,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 	
 				con.log(3, "army.loadTemp", army.recordsTemp);
 			}
-			worker.addPageCheck({page : 'ajax:index.php?feed=allies&news_feed_accept=2', config: 'armyAccept'});
+			worker.addPageCheck({page : 'index.php?feed=allies&news_feed_accept=2', config: 'armyAccept'});
             return true;
         } catch (err) {
             con.error("ERROR in army.loadTemp: " + err.stack);

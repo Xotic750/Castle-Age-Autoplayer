@@ -26,15 +26,15 @@ chores,town,general,session,monster:true */
 			}
 			var keeps = config.getItem('feedKeeps', ''); 
 			
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=2', config: 'feedLowTier', cFreq: 'feedLowTierFreq', type: 'findKeep'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=3', config: 'feedMediumTier', cFreq: 'feedMediumTierFreq', type: 'findKeep'});
-			worker.addPageCheck({page : 'ajax:public_monster_list.php?monster_tier=4', config: 'feedHighTier', cFreq: 'feedHighTierFreq', type: 'findKeep'});
-			worker.addPageCheck({page : 'ajax:guild_priority_mlist.php', config: 'feedGuild', cFreq: 'feedGuildFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'public_monster_list.php?monster_tier=2', config: 'feedLowTier', cFreq: 'feedLowTierFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'public_monster_list.php?monster_tier=3', config: 'feedMediumTier', cFreq: 'feedMediumTierFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'public_monster_list.php?monster_tier=4', config: 'feedHighTier', cFreq: 'feedHighTierFreq', type: 'findKeep'});
+			worker.addPageCheck({page : 'guild_priority_mlist.php', config: 'feedGuild', cFreq: 'feedGuildFreq', type: 'findKeep'});
 			if (!$u.hasContent(keeps.trim())) {
 				return true;
 			}
 			$u.setContent(keeps.regex(/(\d+:\d)/g), []).forEach( function(k) {
-				worker.addPageCheck({page : 'ajax:battle_monster.php?casuser=' + k.regex(/(\d+):/) + '&mpool=' + k.regex(/:(\d)/), hours: 1, type: 'findKeep'});
+				worker.addPageCheck({page : 'battle_monster.php?casuser=' + k.regex(/(\d+):/) + '&mpool=' + k.regex(/:(\d)/), hours: 1, type: 'findKeep'});
 			});
 				
 			return true;
@@ -198,7 +198,7 @@ chores,town,general,session,monster:true */
 				attackReady = false;
 			
 			// Check on achievements
-			if (chores.checkPages('achievements') || chores.checkPages('general')) {
+			if (chores.checkPages('achievements') || (general.records.length < 21 && chores.checkPages('generals'))) {
 				return true;
 			}
 			
@@ -443,6 +443,7 @@ chores,town,general,session,monster:true */
 				undermax = monster.records.filter( function(obj) {
 					return obj.state == 'Attack' && obj.over != 'max';
 				}).length,
+				mainOnly = life == 100 || cM.mainOnly,
 				targetpart = cM.targetPart,
 				parts = cM.partsHealth,
 				time = cM.time,
@@ -495,8 +496,12 @@ chores,town,general,session,monster:true */
 				guild = cM.lpage == 'guild_priority_mlist',
 				mine = cM.link.regex(new RegExp ('user=(' + stats.FBID + ')\\b')),
 				achleft = 0,
-				conq = cM.link.hasIndexOf('guildv2_battle_monster'),
-				achrecords = stats.achievements.monster;
+				conq = monster.isConq(cM),
+				achrecords = stats.achievements.monster,
+				main = killed ? achrecords[killed + "'s Main"] : Object.keys(achrecords).reduce(function(previous, current) {
+					return previous || (current.hasIndexOf(cM.monster) && current.match(/'s Main/) ? achrecords[current] : 0);
+				}, 0),
+				mainleft = 5 > main + same;
 
 			ignoreJSLintError(filterok, userid, life, t2k, dp, sameundermax, undermax, targetpart, parts, time, monstername, damagemod, rogue,
 				warlock, cleric, warrior, mage, ranger, levelup, energy, atmaxenergy, atmaxstamina, exp, needpic, needrecipe, userdamage, keep,

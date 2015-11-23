@@ -333,7 +333,8 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 						con.log(2,'Navigate2: On URL ' + text, step, s, path, caap.pageList[step]);
 						s += 1;
 						break;
-					} else if (step == 0) {
+					} 
+					if (step == 0) {
 						con.log(1, 'Unable to find a starting page to navigate to',  step, s, path);
 						return false;
 					}
@@ -472,14 +473,14 @@ regexp: true, eqeq: true, newcap: true, forin: false */
     };
 	
 	// Output a list of all links available
-	caap.scrapeLinks = function(div) {
+	caap.scrapeLinks = function(div, silent) {
 		var links = $j.makeArray($j('#app_body [onclick*="ajaxLinkSend"]', div).map(function() { 
-			return $u.setContent($j(this).attr('href'), '').regex(/(\w+\.php.*)/); 
-		}));
+				return $u.setContent($j(this).attr('href'), '').regex(/(\w+\.php.*)/); 
+			}));
 		
 		div = $u.setContent(div, $j('#app_body_container'));
 		links = links.concat($j.makeArray($j('[onsubmit*="ajaxFormSend"]', div).map(function() {
-			var head = $j(this).attr('onsubmit').regexd(/(\w+\.php[?&=\w]+)/, '');
+			var head = $j(this).attr('onsubmit').regexd(/(\w+\.php[?&=\w]*)/, '');
 			return head + (head.match(/\?/) ? '&' : '?') + $j(this).serialize();
 		})));
 		
@@ -487,7 +488,23 @@ regexp: true, eqeq: true, newcap: true, forin: false */
 		links = links.filter( function(l, i) {
 			return !(l.hasIndexOf('keep.php') && l.hasIndexOf('casuser=')) && i == links.indexOf(l);
 		});
-		con.log(1, 'Links available on page aside from user keeps are:\n' + links.sort().join('\n'));
+		if (!silent) {
+			con.log(1, 'Links available on page aside from user keeps are:\n' + links.sort().join('\n'));
+		}
+		return links;
+	};
+	
+	caap.linkMatch = function(term, div) {
+		var links = caap.scrapeLinks(div, 'silent'),
+			match = false;
+			
+		div = $u.setContent(div, $j('#app_body_container'));
+		links.some( function(l) {
+			match = l.match(term) ? l : false;
+			return match;
+		});
+		
+		return match;
 	};
 
     caap.checkForImage = function (image, webSlice, subDocument, nodeNum) {
