@@ -76,7 +76,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 							label = $u.setContent(c.label, '').trim();
 							oldVal = $u.hasContent(label) ? config.getItem(label, 'defaultx') : null;
 							oldVal = oldVal == 'defaultx' ? null : oldVal;
-							newVal = !$u.hasContent(values[i]) || !$u.hasContent(values[i].v) ? null : values[i].v == 'blank' ? '' : values[i].v;
+							newVal = !$u.hasContent(values[i]) || !$u.hasContent(values[i].v) ? null : values[i].v == 'blank' ? '' : values[i].v=='false'?false:values[i].v=='true'?true:values[i].v;
 							if (oldVal !== null && newVal !== null && oldVal != newVal) {
 								newVal = $u.isString(oldVal) ? newVal.toString() : newVal;
 								con.log(1, 'Gsheet: Updating config value of ' + label + ' from ' + oldVal

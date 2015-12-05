@@ -135,7 +135,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
         try {
 			// Shrink the general box
             var name = '',
-				generalBox = $j('div[style*="hot_general_container.gif"]'),
+				generalBox = $j('div[style*="persistent_main_widget"]'),
 				loadoutsDiv = $j('#hot_swap_loadouts_div select[name="choose_loadout"] option'),
                 loadoutsList = loadoutsDiv.map(function() {
                     return this.text;
@@ -399,7 +399,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 			}
 
 			general.quickSwitch = false;
-			generalBox = $u.setContent(generalBox, $j('div[style*="hot_general_container.gif"]'));
+			generalBox = $u.setContent(generalBox, $j('div[style*="persistent_main_widget"]'));
 			loadoutsDiv = $u.setContent(loadoutsDiv, $j('#hot_swap_loadouts_div select[name="choose_loadout"] option'));
 			
 			var loadoutRecord = {},
@@ -409,7 +409,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
 				eatk, edef,
                 temptext = '',
 				generalDiv,
-				generalName = $j('div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3', generalBox).text().trim(),loadoutName = loadoutsDiv.filter(':selected').text().trim();
+				generalName = $j('div:first > div:first > div:nth-child(2), #equippedGeneralContainer div.general_name_div3', generalBox).text().trim(),loadoutName = loadoutsDiv.filter(':selected').text().trim();
 				
 			// Get the current general
             
@@ -460,7 +460,7 @@ schedule,gifting,state,stats,general,session,monster,worker,guild_monster */
                 return false;
             }
 
-            generalDiv = $j("#globalContainer div[style*='hot_general_container.gif'] div[style*='width:25px;']");
+            generalDiv = $j("#globalContainer div[style*='persistent_main_widget'] div[style*='width:25px;']");
             if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                 temptext = $u.setContent(generalDiv.text(), '');
                 if ($u.hasContent(temptext)) {

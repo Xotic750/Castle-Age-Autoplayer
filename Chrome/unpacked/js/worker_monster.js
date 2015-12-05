@@ -92,6 +92,8 @@ config,con,gm,schedule,state,general,session,conquest,monster:true */
 			case 'guildv2_battle_monster': 
 			case 'battle_expansion_monster': 
 				return monster.checkResults_monster(page, resultsText, ajax, slice, lastClick);
+			case 'festival_battle_monster': 
+				return monster.checkResults_monster(page, resultsText, ajax, slice, lastClick);
 				
 			default : 
 				break;
@@ -1450,7 +1452,7 @@ config,con,gm,schedule,state,general,session,conquest,monster:true */
 	
 	monster.onMonsterHeader = "div[style*='dragon_title_owner'],div[style*='monster_header_'],div[style*='monster_'][style*='_title']" +
 		",div[style*='monster_'][style*='_header'],div[style*='boss_'][style*='_header'],div[style*='boss_header_']" +
-		",div[style*='newmonsterbanner_']";
+		",div[style*='newmonsterbanner_'],div[style*='festival_monsters_']";
 
     monster.completeButton = {
         'battle_monster': {
