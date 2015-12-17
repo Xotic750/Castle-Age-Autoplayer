@@ -156,12 +156,15 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 					linkF: function(userId, deity) {
 						return 'battle.php?symbol_id=' + deity + '&target_id=' + userId + '&action=battle&duel=true';
 					},
-					winLossRegex: /.*\d+(.*) fought with.*You have (won|lost) (\d+) Battle Points.*\$([,\d]+)?/i,
-					regexVars: ['name', 'wl', 'points', 'gold'],
+					winLossRegex: /([\+\-\d]+) Battle Points.*? ([\+\d]+ XP)?.*\$([,\d]+)?/i,
+					regexVars: ['points', 'wl', 'gold'],
 					winLossF: function(r) {
-						r.att = stats.bonus.api;
+						r.att = stats.bonus.api;  //conqduel_defeat2 conqduel_victory2
+						r.wl = $u.hasContent(r.wl) ? 'won' : 'lost';
 						r.gold = r.gold ? r.gold.numberOnly() : 0;
 						r.points = (r.wl == 'won' ? 1 : -1) * r.points;
+						r.name = r.wl == 'won' ? caap.resultsText.regex(/[\+\-\d]+ Demi Points (.*) [\+\-\d]+ Battle Points/i) 
+							: caap.resultsText.regex(/[\+\-\d]+ Money (.*) [\+\-\d]+ Battle Points/i);
 					},
 					other: 'War' // Check War for win loss if no match for duel
 				};
@@ -379,7 +382,7 @@ schedule,gifting,state,army, general,session,monster,guild_monster */
 				w = battle.Invade;  // battle.duel is possible as well, but battle.Invade has all the commands we need on this page, and is the start of the win/loss checks
 				
 				// Check demi points
-				demis = $u.setContent($j('#app_body div[style*="battle_top.jpg"]').text().trim().innerTrim(), '').regex(/(\d+) \/ (\d+)/g);
+				demis = $u.setContent($j('#app_body div[style*="battle_top1.jpg"]').text().trim().innerTrim(), '').regex(/(\d+) \/ (\d+)/g);
 				if ($u.hasContent(demis) && demis.length == 5) {
 					['ambrosia', 'malekus', 'corvintheus', 'aurora', 'azeron'].forEach(function (d) {
 						caap.demi[d].daily = caap.getStatusNumbers(demis.shift().join('/'));
