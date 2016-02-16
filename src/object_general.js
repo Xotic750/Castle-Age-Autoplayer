@@ -425,8 +425,7 @@
         GetCurrent: function () {
             try {
                 var equipDiv    = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer", caap.globalContainer),
-                    nameObj     = $j(".general_name_div3", equipDiv),
-                    generalName = $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, ''),
+                    generalName = $j('div[style*="general_plate.gif"] > div:first, #equippedGeneralContainer div.general_name_div3').text().trim(),
                     record      = {};
 
                 if (!generalName) {
@@ -450,7 +449,7 @@
 
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2", caap.appBodyDiv),
+                var generalsDiv = $j("div.generalSmallContainer2", caap.appBodyDiv),
                     update      = false,
                     save        = false;
 
@@ -471,10 +470,10 @@
                             container  = $j(this),
                             it         = 0,
                             len        = 0,
-                            tempObj    = $j(".general_name_div3", container);
+                            tempObj    = $j("div.general_name_div3", container);
 
                         if ($u.hasContent(tempObj)) {
-                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
+                            name = tempObj.text().trim();
                         } else {
                             con.warn("Unable to find 'name' container", index);
                         }

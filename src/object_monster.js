@@ -1027,6 +1027,34 @@
                 newbg_img    : ['monster_header_chimera.jpg'],
                 list_img     : ['monster_chimera_list.jpg'],
                 cta_img      : ['cta_typhonus.gif']
+            },
+            "Malekus" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 640000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 43600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg',
+                levels       : [1,  50, 100, 150],
+                join         : [30, 30, 35,  50],
+                mClass       : 'Epic Boss',
+                mpool        : 1,
+                newbg_img    : ['boss_header_malekus.jpg'],
+                list_img     : ['boss_malekus_list.jpg'],
+                cta_img      : ['cta_malekus.gif']
             }
         },
 

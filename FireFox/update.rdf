@@ -6,7 +6,7 @@
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.5"
                    em:maxVersion="4.0.*"
-                   em:updateLink="https://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/packed/caap.xpi"
+                   em:updateLink="https://github.com/magowiz/Castle-Age-Autoplayer/blob/master/FireFox/packed/caap.xpi?raw=true"
                    em:updateInfoURL="https://castle-age-auto-player.googlecode.com/svn/trunk/FireFox/update.xhtml" />
   <RDF:Description RDF:about="urn:mozilla:extension:xotic750@gmail.com">
     <em:updates RDF:resource="rdf:#$6praC"/>
@@ -15,7 +15,7 @@
     <RDF:li RDF:resource="rdf:#$7praC"/>
   </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$7praC"
-                   em:version="141.0.0.7">
+                   em:version="141.0.0.13">
     <em:targetApplication RDF:resource="rdf:#$apraC"/>
   </RDF:Description>
 </RDF:RDF>
